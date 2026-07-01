@@ -283,7 +283,7 @@ typedef struct {
     /**
      * An owned, heap-allocated variable index buffer the caller takes ownership of.
      */
-    LmU32Buffer *indices;
+    LmU32Buffer indices;
     /**
      * The bias of the quadratic entry.
      */
@@ -778,6 +778,22 @@ typedef struct {
     LmStatus (*quadratic_set_bias)(LmQuadratic*, uint32_t, uint32_t, double);
     LmStatus (*quadratic_eq)(const LmQuadratic*, const LmQuadratic*, bool*);
     LmStatus (*quadratic_neg)(const LmQuadratic*, LmQuadratic**);
+    void (*higher_order_free)(LmHigherOrder*);
+    LmHigherOrder *(*higher_order_default)(void);
+    LmHigherOrder *(*higher_order_with_capacity)(uintptr_t);
+    LmStatus (*higher_order_clone)(const LmHigherOrder*, LmHigherOrder**);
+    LmStatus (*higher_order_len)(const LmHigherOrder*, uintptr_t*);
+    LmStatus (*higher_order_is_zero)(const LmHigherOrder*, bool*);
+    LmStatus (*higher_order_is_empty)(const LmHigherOrder*, bool*);
+    LmStatus (*higher_order_items)(const LmHigherOrder*, LmHigherOrderItemBuffer*);
+    LmStatus (*higher_order_degree)(const LmHigherOrder*, uintptr_t*);
+    LmStatus (*higher_order_add_entry)(LmHigherOrder*, const uint32_t*, uintptr_t, double);
+    LmStatus (*higher_order_add_higher_order)(LmHigherOrder*, const LmHigherOrder*);
+    LmStatus (*higher_order_mul_bias)(LmHigherOrder*, double);
+    LmStatus (*higher_order_index)(const LmHigherOrder*, const uint32_t*, uintptr_t, double*);
+    LmStatus (*higher_order_set_bias)(LmHigherOrder*, const uint32_t*, uintptr_t, double);
+    LmStatus (*higher_order_eq)(const LmHigherOrder*, const LmHigherOrder*, bool*);
+    LmStatus (*higher_order_neg)(const LmHigherOrder*, LmHigherOrder**);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

@@ -133,8 +133,24 @@ impl Neg for HigherOrder {
 
     /// Negates every stored higher-order bias.
     fn neg(self) -> Self::Output {
-        Self {
+        HigherOrder {
             entries: self.entries.into_iter().map(|(k, b)| (k, -b)).collect(),
+        }
+    }
+}
+
+impl Neg for &HigherOrder {
+    type Output = HigherOrder;
+
+    /// Negates every stored higher-order bias.
+    fn neg(self) -> Self::Output {
+        HigherOrder {
+            entries: self
+                .entries
+                .clone()
+                .into_iter()
+                .map(|(k, b)| (k, -b))
+                .collect(),
         }
     }
 }

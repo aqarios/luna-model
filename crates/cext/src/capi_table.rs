@@ -278,4 +278,27 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     quadratic_mul_bias: crate::quadratic::lm_quadratic_mul_bias,
     quadratic_set_bias: crate::quadratic::lm_quadratic_set_bias,
     quadratic_neg: crate::quadratic::lm_quadratic_neg,
+    // /////////// //
+    // HigherOrder //
+    // /////////// //
+    higher_order_free: crate::higher_order::lm_higher_order_free,
+    // HigherOrder -- creation
+    higher_order_default: crate::higher_order::lm_higher_order_default,
+    higher_order_with_capacity: crate::higher_order::lm_higher_order_with_capacity,
+    // HigherOrder -- general
+    higher_order_clone: crate::higher_order::lm_higher_order_clone,
+    higher_order_eq: crate::higher_order::lm_higher_order_eq,
+    // HigherOrder -- access
+    higher_order_len: crate::higher_order::lm_higher_order_len,
+    higher_order_is_zero: crate::higher_order::lm_higher_order_is_zero,
+    higher_order_is_empty: crate::higher_order::lm_higher_order_is_empty,
+    higher_order_items: crate::higher_order::lm_higher_order_items,
+    higher_order_degree: crate::higher_order::lm_higher_order_degree,
+    higher_order_index: crate::higher_order::lm_higher_order_index,
+    // HigherOrder -- modification
+    higher_order_add_entry: crate::higher_order::lm_higher_order_add_entry,
+    higher_order_add_higher_order: crate::higher_order::lm_higher_order_add_higher_order,
+    higher_order_mul_bias: crate::higher_order::lm_higher_order_mul_bias,
+    higher_order_set_bias: crate::higher_order::lm_higher_order_set_bias,
+    higher_order_neg: crate::higher_order::lm_higher_order_neg,
 };

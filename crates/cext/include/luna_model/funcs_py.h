@@ -242,6 +242,22 @@ static inline int import_luna_model(void) {
 #define lm_quadratic_set_bias(...) (lunamodel__vtable->quadratic_set_bias(__VA_ARGS__))
 #define lm_quadratic_eq(...) (lunamodel__vtable->quadratic_eq(__VA_ARGS__))
 #define lm_quadratic_neg(...) (lunamodel__vtable->quadratic_neg(__VA_ARGS__))
+#define lm_higher_order_free(...) (lunamodel__vtable->higher_order_free(__VA_ARGS__))
+#define lm_higher_order_default(...) (lunamodel__vtable->higher_order_default(__VA_ARGS__))
+#define lm_higher_order_with_capacity(...) (lunamodel__vtable->higher_order_with_capacity(__VA_ARGS__))
+#define lm_higher_order_clone(...) (lunamodel__vtable->higher_order_clone(__VA_ARGS__))
+#define lm_higher_order_len(...) (lunamodel__vtable->higher_order_len(__VA_ARGS__))
+#define lm_higher_order_is_zero(...) (lunamodel__vtable->higher_order_is_zero(__VA_ARGS__))
+#define lm_higher_order_is_empty(...) (lunamodel__vtable->higher_order_is_empty(__VA_ARGS__))
+#define lm_higher_order_items(...) (lunamodel__vtable->higher_order_items(__VA_ARGS__))
+#define lm_higher_order_degree(...) (lunamodel__vtable->higher_order_degree(__VA_ARGS__))
+#define lm_higher_order_add_entry(...) (lunamodel__vtable->higher_order_add_entry(__VA_ARGS__))
+#define lm_higher_order_add_higher_order(...) (lunamodel__vtable->higher_order_add_higher_order(__VA_ARGS__))
+#define lm_higher_order_mul_bias(...) (lunamodel__vtable->higher_order_mul_bias(__VA_ARGS__))
+#define lm_higher_order_index(...) (lunamodel__vtable->higher_order_index(__VA_ARGS__))
+#define lm_higher_order_set_bias(...) (lunamodel__vtable->higher_order_set_bias(__VA_ARGS__))
+#define lm_higher_order_eq(...) (lunamodel__vtable->higher_order_eq(__VA_ARGS__))
+#define lm_higher_order_neg(...) (lunamodel__vtable->higher_order_neg(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

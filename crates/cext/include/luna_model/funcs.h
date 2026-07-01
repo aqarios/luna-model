@@ -978,6 +978,158 @@ LmStatus lm_expr_serialize(const LmExpr *expr, LmBuffer *out);
 LmStatus lm_expr_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env, LmExpr **out);
 
 /**
+ * Returns the len of the higher_order term.
+ *
+ * # Safety
+ * `higher_order` must be a valid higher_order handle created by this library.
+ * `out` must point to writable `usize` storage.
+ */
+LmStatus lm_higher_order_len(const LmHigherOrder *higher_order, uintptr_t *out);
+
+/**
+ * Returns if the higher_order term is zero.
+ *
+ * # Safety
+ * `higher_order` must be a valid higher_order handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_higher_order_is_zero(const LmHigherOrder *higher_order, bool *out);
+
+/**
+ * Returns if the higher_order term is empty.
+ *
+ * # Safety
+ * `higher_order` must be a valid higher_order handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_higher_order_is_empty(const LmHigherOrder *higher_order, bool *out);
+
+/**
+ * Returns the degree of the higher_order term.
+ *
+ * # Safety
+ * `higher_order` must be a valid higher_order handle created by this library.
+ * `out` must point to writable `usize` storage.
+ */
+LmStatus lm_higher_order_degree(const LmHigherOrder *higher_order, uintptr_t *out);
+
+/**
+ * Returns the higher_order term items.
+ *
+ * The returned array is owned by the caller and must be released with [`lm_higher_order_item_buffer_free`].
+ *
+ * # Safety
+ * `higher_order` must be a valid higher_order handle created by this library.
+ * `out` must point to writable `LmHigherOrderItemBuffer` storage.
+ */
+LmStatus lm_higher_order_items(const LmHigherOrder *higher_order,
+                               LmHigherOrderItemBuffer *out);
+
+/**
+ * Returns the bias in the higher_order term for the var idx.
+ *
+ * # Safety
+ * `higher_order` must be a valid higher_order handle created by this library.
+ * `out` must point to writable `f64` storage.
+ */
+LmStatus lm_higher_order_index(const LmHigherOrder *higher_order,
+                               const uint32_t *indices,
+                               uintptr_t indices_len,
+                               double *out);
+
+/**
+ * Frees a higher_order handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `higher_order` must originate from this library and must not be used or freed again.
+ */
+void lm_higher_order_free(LmHigherOrder *higher_order);
+
+/**
+ * Creates a new empty higher_order term.
+ *
+ * Returns a non-null handle that must be released with [`lm_higher_order_free`].
+ */
+LmHigherOrder *lm_higher_order_default(void);
+
+/**
+ * Creates a new higher_order term with some capacity.
+ *
+ * Returns a non-null handle that must be released with [`lm_higher_order_free`].
+ */
+LmHigherOrder *lm_higher_order_with_capacity(uintptr_t cap);
+
+/**
+ * Compares two higher_order terms for equality.
+ *
+ * # Safety
+ * `higher_order` must be a valid higher_order handle created by this library.
+ * `other` must be a valid higher_order handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_higher_order_eq(const LmHigherOrder *higher_order,
+                            const LmHigherOrder *other,
+                            bool *out);
+
+/**
+ * Clones a higher_order term into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `higher_order` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_higher_order_clone(const LmHigherOrder *higher_order, LmHigherOrder **out);
+
+/**
+ * Add a new entry with it's bias to the higher_order term.
+ *
+ * # Safety
+ * `higher_order` must be a valid mutable higher_order handle created by this library.
+ */
+LmStatus lm_higher_order_add_entry(LmHigherOrder *higher_order,
+                                   const uint32_t *indices,
+                                   uintptr_t indices_len,
+                                   double bias);
+
+/**
+ * Add another higher_order term to this higher_order term.
+ *
+ * # Safety
+ * `higher_order` must be a valid mutable higher_order handle created by this library.
+ * `other` must be a valid higher_order handle created by this library.
+ */
+LmStatus lm_higher_order_add_higher_order(LmHigherOrder *higher_order, const LmHigherOrder *other);
+
+/**
+ * Mul this higher_order term with some value.
+ *
+ * # Safety
+ * `higher_order` must be a valid mutable higher_order handle created by this library.
+ * `bias` must be a valid f64.
+ */
+LmStatus lm_higher_order_mul_bias(LmHigherOrder *higher_order, double bias);
+
+/**
+ * Negate this higher_order term and writing the result to a new higher_order handle.
+ *
+ * # Safety
+ * `higher_order` must be a valid mutable higher_order handle created by this library.
+ * `out` must point to writable `LmHigherOrder` storage.
+ */
+LmStatus lm_higher_order_neg(const LmHigherOrder *higher_order, LmHigherOrder **out);
+
+/**
+ * Set the bias for a specific entry (variable tuple) of the higher-order term.
+ *
+ * # Safety
+ * `higher_order` must be a valid mutable higher-order handle created by this library.
+ * `indices` must point to `indices_len` readable `u32`s (may be null iff `indices_len == 0`).
+ */
+LmStatus lm_higher_order_set_bias(LmHigherOrder *higher_order,
+                                  const uint32_t *indices,
+                                  uintptr_t indices_len,
+                                  double bias);
+
+/**
  * Returns the len of the linear term.
  *
  * # Safety

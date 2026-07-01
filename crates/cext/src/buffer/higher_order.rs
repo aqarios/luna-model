@@ -36,15 +36,10 @@ pub unsafe extern "C" fn lm_higher_order_item_buffer_free(buffer: LmHigherOrderI
     if buffer.data.is_null() || buffer.cap == 0 {
         return;
     }
-    // Reconstruct the outer Vec; it frees the item array when it drops at the
-    // end of scope. Each item's `indices` box is a raw pointer with no Drop,
-    // so release those (and the u32 storage they own) explicitly first.
+    // Consume the outer Vec by value so we can move each item's inline buffer
+    // into `lm_u32_buffer_free`. The outer array is freed when `items` drops.
     let items = unsafe { Vec::from_raw_parts(buffer.data, buffer.len, buffer.cap) };
-    for item in &items {
-        if !item.indices.is_null() {
-            let inner = unsafe { Box::from_raw(item.indices) };
-            unsafe { lm_u32_buffer_free(*inner) };
-        }
+    for item in items {
+        unsafe { lm_u32_buffer_free(item.indices) };
     }
-    // `items` drops here, freeing the outer array.
 }

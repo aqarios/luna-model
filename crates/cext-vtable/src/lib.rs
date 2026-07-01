@@ -303,7 +303,7 @@ pub struct LmQuadraticItemBuffer {
 #[repr(C)]
 pub struct LmHigherOrderItem {
     /// An owned, heap-allocated variable index buffer the caller takes ownership of.
-    pub indices: *mut LmU32Buffer,
+    pub indices: LmU32Buffer,
     /// The bias of the quadratic entry.
     pub bias: f64,
 }
@@ -766,4 +766,31 @@ pub struct LunaModelCApi {
     pub quadratic_eq:
         unsafe extern "C" fn(*const LmQuadratic, *const LmQuadratic, *mut bool) -> LmStatus,
     pub quadratic_neg: unsafe extern "C" fn(*const LmQuadratic, *mut *mut LmQuadratic) -> LmStatus,
+    // /////////// //
+    // HigherOrder //
+    // /////////// //
+    pub higher_order_free: unsafe extern "C" fn(*mut LmHigherOrder),
+    pub higher_order_default: extern "C" fn() -> *mut LmHigherOrder,
+    pub higher_order_with_capacity: extern "C" fn(usize) -> *mut LmHigherOrder,
+    pub higher_order_clone:
+        unsafe extern "C" fn(*const LmHigherOrder, *mut *mut LmHigherOrder) -> LmStatus,
+    pub higher_order_len: unsafe extern "C" fn(*const LmHigherOrder, *mut usize) -> LmStatus,
+    pub higher_order_is_zero: unsafe extern "C" fn(*const LmHigherOrder, *mut bool) -> LmStatus,
+    pub higher_order_is_empty: unsafe extern "C" fn(*const LmHigherOrder, *mut bool) -> LmStatus,
+    pub higher_order_items:
+        unsafe extern "C" fn(*const LmHigherOrder, *mut LmHigherOrderItemBuffer) -> LmStatus,
+    pub higher_order_degree: unsafe extern "C" fn(*const LmHigherOrder, *mut usize) -> LmStatus,
+    pub higher_order_add_entry:
+        unsafe extern "C" fn(*mut LmHigherOrder, *const u32, usize, f64) -> LmStatus,
+    pub higher_order_add_higher_order:
+        unsafe extern "C" fn(*mut LmHigherOrder, *const LmHigherOrder) -> LmStatus,
+    pub higher_order_mul_bias: unsafe extern "C" fn(*mut LmHigherOrder, f64) -> LmStatus,
+    pub higher_order_index:
+        unsafe extern "C" fn(*const LmHigherOrder, *const u32, usize, *mut f64) -> LmStatus,
+    pub higher_order_set_bias:
+        unsafe extern "C" fn(*mut LmHigherOrder, *const u32, usize, f64) -> LmStatus,
+    pub higher_order_eq:
+        unsafe extern "C" fn(*const LmHigherOrder, *const LmHigherOrder, *mut bool) -> LmStatus,
+    pub higher_order_neg:
+        unsafe extern "C" fn(*const LmHigherOrder, *mut *mut LmHigherOrder) -> LmStatus,
 }
