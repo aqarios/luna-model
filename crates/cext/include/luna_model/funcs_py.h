@@ -266,6 +266,9 @@ static inline int import_luna_model(void) {
 #define lm_higher_order_set_bias(...) (lunamodel__vtable->higher_order_set_bias(__VA_ARGS__))
 #define lm_higher_order_eq(...) (lunamodel__vtable->higher_order_eq(__VA_ARGS__))
 #define lm_higher_order_neg(...) (lunamodel__vtable->higher_order_neg(__VA_ARGS__))
+#define lm_timer_free(...) (lunamodel__vtable->timer_free(__VA_ARGS__))
+#define lm_timer_start(...) (lunamodel__vtable->timer_start(__VA_ARGS__))
+#define lm_timer_stop(...) (lunamodel__vtable->timer_stop(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

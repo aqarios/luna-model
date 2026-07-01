@@ -23,6 +23,32 @@ extern "C" {
 LmStatus lm_bound_is_bounded(const LmBound *bound, bool *out);
 
 /**
+ * Frees a timer handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `timer` must originate from this library and must not be used or freed again.
+ */
+void lm_timer_free(LmTimer *timer);
+
+/**
+ * Creates a new timer by starting it.
+ *
+ * Returns a non-null handle that must be released with [`lm_timer_free`].
+ */
+LmTimer *lm_timer_start(void);
+
+/**
+ * Stops a timer.
+ *
+ * Returns a non-null handle that must be released with [`lm_timing_free`].
+ *
+ * # Safety
+ * `timer` must be a valid timer handle created by this library.
+ * `out`  must point to writable `LmBounds` storage.
+ */
+LmStatus lm_timer_stop(const LmTimer *timer, LmTiming **out);
+
+/**
  * Returns a copy of the bounds' lower bound.
  *
  * # Safety

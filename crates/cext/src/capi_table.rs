@@ -318,4 +318,10 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     higher_order_mul_bias: crate::higher_order::lm_higher_order_mul_bias,
     higher_order_set_bias: crate::higher_order::lm_higher_order_set_bias,
     higher_order_neg: crate::higher_order::lm_higher_order_neg,
+    // ///// //
+    // Timer //
+    // ///// //
+    timer_free: crate::timer::lm_timer_free,
+    timer_start: crate::timer::lm_timer_start,
+    timer_stop: crate::timer::lm_timer_stop,
 };

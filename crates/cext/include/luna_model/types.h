@@ -181,6 +181,22 @@ typedef struct {
 } LmBound;
 
 /**
+ * Opaque handle to a LunaModel timer reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmTimer;
+
+/**
+ * Opaque handle to a LunaModel timing reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmTiming;
+
+/**
  * Opaque handle to a LunaModel bounds reference.
  *
  */
@@ -802,6 +818,9 @@ typedef struct {
     LmStatus (*higher_order_set_bias)(LmHigherOrder*, const uint32_t*, uintptr_t, double);
     LmStatus (*higher_order_eq)(const LmHigherOrder*, const LmHigherOrder*, bool*);
     LmStatus (*higher_order_neg)(const LmHigherOrder*, LmHigherOrder**);
+    void (*timer_free)(LmTimer*);
+    LmTimer *(*timer_start)(void);
+    LmStatus (*timer_stop)(const LmTimer*, LmTiming**);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */
