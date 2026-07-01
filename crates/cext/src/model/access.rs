@@ -239,7 +239,7 @@ pub unsafe extern "C" fn lm_model_objective(
 ///
 /// # Safety
 /// `model` must be a valid model handle created by this library.
-/// `out` must point to writable `LmExpr` storage.
+/// `out` must point to writable `LmCC` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_constraints(
     model: *const LmModel,

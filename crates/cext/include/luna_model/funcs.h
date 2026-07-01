@@ -924,7 +924,7 @@ LmStatus lm_model_objective(const LmModel *model, LmExpr **out);
  *
  * # Safety
  * `model` must be a valid model handle created by this library.
- * `out` must point to writable `LmExpr` storage.
+ * `out` must point to writable `LmCC` storage.
  */
 LmStatus lm_model_constraints(const LmModel *model, LmCC **out);
 
