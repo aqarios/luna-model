@@ -6,8 +6,8 @@ use crate::buffer::{buffer_from_vec, vref_buffer_from_vec, vtype_buffer_from_vec
 use crate::error::{CapiError, guard};
 use crate::utils::{sense_to_c, vtype_to_c};
 use crate::{
-    LmBuffer, LmEnv, LmExpr, LmModel, LmSense, LmSpecs, LmStatus, LmVref, LmVrefBuffer, LmVtype,
-    LmVtypeBuffer,
+    LmBuffer, LmCC, LmEnv, LmExpr, LmModel, LmSense, LmSpecs, LmStatus, LmVref, LmVrefBuffer,
+    LmVtype, LmVtypeBuffer,
 };
 
 /// Returns a copy of the model name as an owned UTF-8 byte buffer.
@@ -231,6 +231,25 @@ pub unsafe extern "C" fn lm_model_objective(
             .ok_or_else(|| CapiError::null_pointer("model"))?;
         let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
         *out = Box::into_raw(Box::new(model.objective.clone())) as *mut LmExpr;
+        Ok(())
+    })
+}
+
+/// Returns the constraints of the model.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `LmExpr` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_constraints(
+    model: *const LmModel,
+    out: *mut *mut LmCC,
+) -> LmStatus {
+    guard(|| {
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        *out = Box::into_raw(Box::new(model.constraints.clone())) as *mut LmCC;
         Ok(())
     })
 }

@@ -920,6 +920,15 @@ LmStatus lm_model_var(const LmModel *model, const char *name, LmVref **out);
 LmStatus lm_model_objective(const LmModel *model, LmExpr **out);
 
 /**
+ * Returns the constraints of the model.
+ *
+ * # Safety
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `LmExpr` storage.
+ */
+LmStatus lm_model_constraints(const LmModel *model, LmCC **out);
+
+/**
  * Frees a model handle. Passing null is a no-op.
  *
  * # Safety
@@ -1128,6 +1137,15 @@ LmStatus lm_model_set_sense(LmModel *model, const LmSense *sense);
  * `expr` must point to a valid `LmExpr` handle
  */
 LmStatus lm_model_set_objective(LmModel *model, const LmExpr *expr);
+
+/**
+ * Set the constraints of the model.
+ *
+ * # Safety
+ * `model` must be a valid mutable model handle created by this library.
+ * `cc` must point to a valid `LmCC` handle
+ */
+LmStatus lm_model_set_constraints(LmModel *model, const LmCC *cc);
 
 /**
  * Deserializes a solution from `len` bytes at `data`, writing a new handle to `out`.

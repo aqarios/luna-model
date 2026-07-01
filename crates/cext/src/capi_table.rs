@@ -49,10 +49,12 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     model_vars: crate::model::lm_model_vars,
     model_var: crate::model::lm_model_var,
     model_objective: crate::model::lm_model_objective,
+    model_constraints: crate::model::lm_model_constraints,
     // Model -- setter
     model_set_name: crate::model::lm_model_set_name,
     model_set_sense: crate::model::lm_model_set_sense,
     model_set_objective: crate::model::lm_model_set_objective,
+    model_set_constraints: crate::model::lm_model_set_constraints,
     // Model -- serializer
     model_serialize: crate::model::lm_model_serialize,
     model_deserialize: crate::model::lm_model_deserialize,

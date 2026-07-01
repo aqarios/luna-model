@@ -413,9 +413,11 @@ pub struct LunaModelCApi {
     pub model_var:
         unsafe extern "C" fn(*const LmModel, *const c_char, *mut *mut LmVref) -> LmStatus,
     pub model_objective: unsafe extern "C" fn(*const LmModel, *mut *mut LmExpr) -> LmStatus,
+    pub model_constraints: unsafe extern "C" fn(*const LmModel, *mut *mut LmCC) -> LmStatus,
     pub model_set_name: unsafe extern "C" fn(*mut LmModel, *const c_char) -> LmStatus,
     pub model_set_sense: unsafe extern "C" fn(*mut LmModel, *const LmSense) -> LmStatus,
     pub model_set_objective: unsafe extern "C" fn(*mut LmModel, *const LmExpr) -> LmStatus,
+    pub model_set_constraints: unsafe extern "C" fn(*mut LmModel, *const LmCC) -> LmStatus,
     pub model_add_var: unsafe extern "C" fn(
         *mut LmModel,
         *const c_char,

@@ -433,9 +433,11 @@ typedef struct {
     LmStatus (*model_vars)(const LmModel*, LmVrefBuffer*);
     LmStatus (*model_var)(const LmModel*, const char*, LmVref**);
     LmStatus (*model_objective)(const LmModel*, LmExpr**);
+    LmStatus (*model_constraints)(const LmModel*, LmCC**);
     LmStatus (*model_set_name)(LmModel*, const char*);
     LmStatus (*model_set_sense)(LmModel*, const LmSense*);
     LmStatus (*model_set_objective)(LmModel*, const LmExpr*);
+    LmStatus (*model_set_constraints)(LmModel*, const LmCC*);
     LmStatus (*model_add_var)(LmModel*, const char*, const LmVtype*, const LmBounds*, LmVref**);
     LmStatus (*model_add_var_with_fallback)(LmModel*,
                                             const char*,
