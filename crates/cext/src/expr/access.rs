@@ -1,7 +1,7 @@
 use luna_model::core::Expression;
 
 use crate::{
-    LmEnv, LmExpr, LmHigherOrderTerm, LmLinearTerm, LmQuadraticTerm, LmStatus, LmVref,
+    LmEnv, LmExpr, LmHigherOrder, LmLinear, LmQuadratic, LmStatus, LmVref,
     LmVrefBuffer, LmVtype, LmVtypeBuffer,
     buffer::{vref_buffer_from_vec, vtype_buffer_from_vec},
     error::{CapiError, guard},
@@ -50,14 +50,14 @@ pub unsafe extern "C" fn lm_expr_offset(expr: *const LmExpr, out: *mut f64) -> L
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_linear(
     expr: *const LmExpr,
-    out: *mut *mut LmLinearTerm,
+    out: *mut *mut LmLinear,
 ) -> LmStatus {
     guard(|| {
         let expr = unsafe { (expr as *const Expression).as_ref() }
             .ok_or_else(|| CapiError::null_pointer("expr"))?;
 
         let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(expr.linear.clone())) as *mut LmLinearTerm;
+        *out = Box::into_raw(Box::new(expr.linear.clone())) as *mut LmLinear;
         Ok(())
     })
 }
@@ -70,14 +70,14 @@ pub unsafe extern "C" fn lm_expr_linear(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_quadratic(
     expr: *const LmExpr,
-    out: *mut *mut LmQuadraticTerm,
+    out: *mut *mut LmQuadratic,
 ) -> LmStatus {
     guard(|| {
         let expr = unsafe { (expr as *const Expression).as_ref() }
             .ok_or_else(|| CapiError::null_pointer("expr"))?;
 
         let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(expr.quadratic.clone())) as *mut LmQuadraticTerm;
+        *out = Box::into_raw(Box::new(expr.quadratic.clone())) as *mut LmQuadratic;
         Ok(())
     })
 }
@@ -90,14 +90,14 @@ pub unsafe extern "C" fn lm_expr_quadratic(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_higher_order(
     expr: *const LmExpr,
-    out: *mut *mut LmHigherOrderTerm,
+    out: *mut *mut LmHigherOrder,
 ) -> LmStatus {
     guard(|| {
         let expr = unsafe { (expr as *const Expression).as_ref() }
             .ok_or_else(|| CapiError::null_pointer("expr"))?;
 
         let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(expr.higher_order.clone())) as *mut LmHigherOrderTerm;
+        *out = Box::into_raw(Box::new(expr.higher_order.clone())) as *mut LmHigherOrder;
         Ok(())
     })
 }

@@ -17,6 +17,91 @@
 #define LUNA_MODEL_CAPI_ABI_VERSION 1
 
 /**
+ * Status codes returned by every fallible `lm_*` entry point.
+ *
+ * `Ok` is guaranteed to be `0`. On any non-`Ok` status, a human-readable
+ * description is available from [`lm_last_error_message`] until the next C API
+ * call on the same thread.
+ */
+typedef enum {
+    /**
+     * Operation succeeded.
+     */
+    LmStatus_Ok = 0,
+    /**
+     * A required pointer argument was null.
+     */
+    LmStatus_NullPointer = 1,
+    /**
+     * An argument was invalid (e.g. non-UTF-8 bytes where text was required).
+     */
+    LmStatus_InvalidArgument = 2,
+    /**
+     * Encoding a value to bytes failed.
+     */
+    LmStatus_Serialization = 3,
+    /**
+     * Decoding a value from bytes failed.
+     */
+    LmStatus_Deserialization = 4,
+    /**
+     * A Rust panic was caught at the FFI boundary.
+     */
+    LmStatus_Panic = 5,
+    /**
+     * An error was encountered.
+     */
+    LmStatus_Errored = 6,
+    /**
+     * A requested optional value was not present.
+     */
+    LmStatus_Absent = 7,
+} LmStatus;
+
+/**
+ * Discriminant for `LmBound`.
+ */
+typedef enum {
+    /**
+     * A finite inclusive bound value.
+     */
+    LmBoundTag_Bounded = 0,
+    /**
+     * No bound on this side of the interval.
+     */
+    LmBoundTag_Unbounded = 1,
+} LmBoundTag;
+
+/**
+ * Vtype used by the C API.
+ *
+ * This is the C-ABI-stable mirror of LunaModel's Rust `Vtype` enum.
+ */
+typedef enum {
+    /**
+     * A binary variable that can take values 0 or 1.
+     */
+    LmVtype_Binary = 0,
+    /**
+     * An inverted binary variable (`!b == 1 - b`) that is not optimized itself and it's value
+     * depends on the value of the corresponding [Vtype::Binary] variable.
+     */
+    LmVtype_InvertedBinary = 1,
+    /**
+     * Spin variable that can take values -1 or +1.
+     */
+    LmVtype_Spin = 2,
+    /**
+     * Discrete integer-valued variable that take integer values within bounds.
+     */
+    LmVtype_Integer = 3,
+    /**
+     * Continuous real-valued variable that take any value within given bounds.
+     */
+    LmVtype_Real = 4,
+} LmVtype;
+
+/**
  * Comparator used by the C API.
  *
  * This is the C-ABI-stable mirror of LunaModel's Rust `Comparator` enum.
@@ -65,77 +150,6 @@ typedef enum {
 } LmCtype;
 
 /**
- * Vtype used by the C API.
- *
- * This is the C-ABI-stable mirror of LunaModel's Rust `Vtype` enum.
- */
-typedef enum {
-    /**
-     * A binary variable that can take values 0 or 1.
-     */
-    LmVtype_Binary = 0,
-    /**
-     * An inverted binary variable (`!b == 1 - b`) that is not optimized itself and it's value
-     * depends on the value of the corresponding [Vtype::Binary] variable.
-     */
-    LmVtype_InvertedBinary = 1,
-    /**
-     * Spin variable that can take values -1 or +1.
-     */
-    LmVtype_Spin = 2,
-    /**
-     * Discrete integer-valued variable that take integer values within bounds.
-     */
-    LmVtype_Integer = 3,
-    /**
-     * Continuous real-valued variable that take any value within given bounds.
-     */
-    LmVtype_Real = 4,
-} LmVtype;
-
-/**
- * Status codes returned by every fallible `lm_*` entry point.
- *
- * `Ok` is guaranteed to be `0`. On any non-`Ok` status, a human-readable
- * description is available from [`lm_last_error_message`] until the next C API
- * call on the same thread.
- */
-typedef enum {
-    /**
-     * Operation succeeded.
-     */
-    LmStatus_Ok = 0,
-    /**
-     * A required pointer argument was null.
-     */
-    LmStatus_NullPointer = 1,
-    /**
-     * An argument was invalid (e.g. non-UTF-8 bytes where text was required).
-     */
-    LmStatus_InvalidArgument = 2,
-    /**
-     * Encoding a value to bytes failed.
-     */
-    LmStatus_Serialization = 3,
-    /**
-     * Decoding a value from bytes failed.
-     */
-    LmStatus_Deserialization = 4,
-    /**
-     * A Rust panic was caught at the FFI boundary.
-     */
-    LmStatus_Panic = 5,
-    /**
-     * An error was encountered.
-     */
-    LmStatus_Errored = 6,
-    /**
-     * A requested optional value was not present.
-     */
-    LmStatus_Absent = 7,
-} LmStatus;
-
-/**
  * Objective optimization sense used by the C API.
  *
  * This is the C-ABI-stable mirror of LunaModel's Rust `Sense` enum.
@@ -153,18 +167,26 @@ typedef enum {
 } LmSense;
 
 /**
- * Discriminant for `LmBound`.
+ * Opaque handle to a LunaModel bounds reference.
+ *
  */
-typedef enum {
-    /**
-     * A finite inclusive bound value.
-     */
-    LmBoundTag_Bounded = 0,
-    /**
-     * No bound on this side of the interval.
-     */
-    LmBoundTag_Unbounded = 1,
-} LmBoundTag;
+typedef struct {
+    uint8_t _private[0];
+} LmBounds;
+
+/**
+ * Bound used by the C API.
+ *
+ * One side of a variable bound interval.
+ *
+ * This is the C-ABI-stable mirror of LunaModel's Rust `Bound` enum.
+ * `tag == LmBoundTag_Bounded` means `value` contains the finite inclusive
+ * bound value. `tag == LmBoundTag_Unbounded` means `value` is ignored.
+ */
+typedef struct {
+    LmBoundTag tag;
+    double value;
+} LmBound;
 
 /**
  * An owned, heap-allocated byte buffer the caller takes ownership of.
@@ -231,6 +253,140 @@ typedef struct {
      */
     uintptr_t cap;
 } LmCtypeBuffer;
+
+/**
+ * An owned, heap-allocated u32 buffer the caller takes ownership of.
+ *
+ * u32 buffers returned by LunaModel must be released
+ * with [`lm_u32_buffer_free`]. The fields mirror a `Vec<u32>` so it can
+ * be rebuilt for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first u32, or null for an empty buffer.
+     */
+    uint32_t *data;
+    /**
+     * Number of valid u32s.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmU32Buffer;
+
+/**
+ * A higher-order item.
+ */
+typedef struct {
+    /**
+     * An owned, heap-allocated variable index buffer the caller takes ownership of.
+     */
+    LmU32Buffer *indices;
+    /**
+     * The bias of the quadratic entry.
+     */
+    double bias;
+} LmHigherOrderItem;
+
+/**
+ * An owned, heap-allocated higher-order items buffer the caller takes ownership of.
+ *
+ * Comparator buffers returned by LunaModel must be released
+ * with [`lm_higher_order_item_buffer_free`]. The fields mirror a `Vec<LmHigherOrderItem>` so it can
+ * be rebuilt for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first LmHigherOrderItem, or null for an empty buffer.
+     */
+    LmHigherOrderItem *data;
+    /**
+     * Number of valid bytes.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmHigherOrderItemBuffer;
+
+/**
+ * A linear item.
+ */
+typedef struct {
+    /**
+     * The variable index of the linear entry.
+     */
+    uint32_t idx;
+    /**
+     * The bias of the linear entry.
+     */
+    double bias;
+} LmLinearItem;
+
+/**
+ * An owned, heap-allocated linear items buffer the caller takes ownership of.
+ *
+ * Comparator buffers returned by LunaModel must be released
+ * with [`lm_linear_item_buffer_free`]. The fields mirror a `Vec<LmLinearItem>` so it can
+ * be rebuilt for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first LmLinearItem, or null for an empty buffer.
+     */
+    LmLinearItem *data;
+    /**
+     * Number of valid bytes.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmLinearItemBuffer;
+
+/**
+ * A quadratic item.
+ */
+typedef struct {
+    /**
+     * The variable index of the one quadratic item entry.
+     */
+    uint32_t u_idx;
+    /**
+     * The variable index of the other quadratic item entry.
+     */
+    uint32_t v_idx;
+    /**
+     * The bias of the quadratic entry.
+     */
+    double bias;
+} LmQuadraticItem;
+
+/**
+ * An owned, heap-allocated quadratic items buffer the caller takes ownership of.
+ *
+ * Comparator buffers returned by LunaModel must be released
+ * with [`lm_quadratic_item_buffer_free`]. The fields mirror a `Vec<LmQuadraticItem>` so it can
+ * be rebuilt for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first LmQuadraticItem, or null for an empty buffer.
+     */
+    LmQuadraticItem *data;
+    /**
+     * Number of valid bytes.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmQuadraticItemBuffer;
 
 /**
  * Opaque handle to a LunaModel variable reference.
@@ -349,7 +505,7 @@ typedef struct {
  */
 typedef struct {
     uint8_t _private[0];
-} LmLinearTerm;
+} LmLinear;
 
 /**
  * Opaque handle to a LunaModel quadratic terms reference.
@@ -357,7 +513,7 @@ typedef struct {
  */
 typedef struct {
     uint8_t _private[0];
-} LmQuadraticTerm;
+} LmQuadratic;
 
 /**
  * Opaque handle to a LunaModel higher-order terms reference.
@@ -365,7 +521,7 @@ typedef struct {
  */
 typedef struct {
     uint8_t _private[0];
-} LmHigherOrderTerm;
+} LmHigherOrder;
 
 /**
  * Opaque handle to a LunaModel model.
@@ -385,14 +541,6 @@ typedef struct {
 typedef struct {
     uint8_t _private[0];
 } LmSpecs;
-
-/**
- * Opaque handle to a LunaModel bounds reference.
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmBounds;
 
 /**
  * Opaque handle to a LunaModel solution.
@@ -415,20 +563,6 @@ typedef struct {
 } LmVar;
 
 /**
- * Bound used by the C API.
- *
- * One side of a variable bound interval.
- *
- * This is the C-ABI-stable mirror of LunaModel's Rust `Bound` enum.
- * `tag == LmBoundTag_Bounded` means `value` contains the finite inclusive
- * bound value. `tag == LmBoundTag_Unbounded` means `value` is ignored.
- */
-typedef struct {
-    LmBoundTag tag;
-    double value;
-} LmBound;
-
-/**
  * Stable, versioned table of LunaModel C API entry points.
  *
  * Consumers obtaining this via the capsule must check [`Self::abi_version`]
@@ -446,6 +580,10 @@ typedef struct {
     void (*ctype_buffer_free)(LmCtypeBuffer);
     void (*cmp_buffer_free)(LmCmpBuffer);
     void (*vref_buffer_free)(LmVrefBuffer);
+    void (*u32_buffer_free)(LmU32Buffer);
+    void (*linear_item_buffer_free)(LmLinearItemBuffer);
+    void (*quadratic_item_buffer_free)(LmQuadraticItemBuffer);
+    void (*higher_order_item_buffer_free)(LmHigherOrderItemBuffer);
     void (*model_free)(LmModel*);
     LmModel *(*model_default)(void);
     LmStatus (*model_new)(const char*, const LmSense*, LmModel**);
@@ -514,18 +652,18 @@ typedef struct {
     LmStatus (*expr_new_constant)(const LmEnv*, double, LmExpr**);
     LmStatus (*expr_from_double)(double, LmExpr**);
     LmStatus (*expr_from_size_t)(uintptr_t, LmExpr**);
-    LmStatus (*expr_from_linear)(const LmLinearTerm*, LmExpr**);
-    LmStatus (*expr_from_quadratic)(const LmQuadraticTerm*, LmExpr**);
-    LmStatus (*expr_from_higher_order)(const LmHigherOrderTerm*, LmExpr**);
+    LmStatus (*expr_from_linear)(const LmLinear*, LmExpr**);
+    LmStatus (*expr_from_quadratic)(const LmQuadratic*, LmExpr**);
+    LmStatus (*expr_from_higher_order)(const LmHigherOrder*, LmExpr**);
     LmStatus (*expr_clone)(const LmExpr*, LmExpr**);
     LmStatus (*expr_deep_clone)(const LmExpr*, const LmEnv*, LmExpr**);
     LmStatus (*expr_serialize)(const LmExpr*, LmBuffer*);
     LmStatus (*expr_deserialize)(const uint8_t*, uintptr_t, const LmEnv*, LmExpr**);
     LmStatus (*expr_env)(const LmExpr*, LmEnv**);
     LmStatus (*expr_offset)(const LmExpr*, double*);
-    LmStatus (*expr_linear)(const LmExpr*, LmLinearTerm**);
-    LmStatus (*expr_quadratic)(const LmExpr*, LmQuadraticTerm**);
-    LmStatus (*expr_higher_order)(const LmExpr*, LmHigherOrderTerm**);
+    LmStatus (*expr_linear)(const LmExpr*, LmLinear**);
+    LmStatus (*expr_quadratic)(const LmExpr*, LmQuadratic**);
+    LmStatus (*expr_higher_order)(const LmExpr*, LmHigherOrder**);
     LmStatus (*expr_num_vars)(const LmExpr*, uintptr_t*);
     LmStatus (*expr_vtypes)(const LmExpr*, LmVtypeBuffer*);
     LmStatus (*expr_vars)(const LmExpr*, LmVrefBuffer*);
@@ -611,6 +749,21 @@ typedef struct {
     LmStatus (*bounds_clone)(const LmBounds*, LmBounds**);
     LmStatus (*bounds_lower)(const LmBounds*, LmBound**);
     LmStatus (*bounds_upper)(const LmBounds*, LmBound**);
+    void (*linear_free)(LmLinear*);
+    LmLinear *(*linear_default)(void);
+    LmStatus (*linear_for_var)(uint32_t, double, LmLinear**);
+    LmStatus (*linear_clone)(const LmLinear*, LmLinear**);
+    LmStatus (*linear_len)(const LmLinear*, uintptr_t*);
+    LmStatus (*linear_is_zero)(const LmLinear*, bool*);
+    LmStatus (*linear_is_empty)(const LmLinear*, bool*);
+    LmStatus (*linear_items)(const LmLinear*, LmLinearItemBuffer*);
+    LmStatus (*linear_add_entry)(LmLinear*, uint32_t, double);
+    LmStatus (*linear_add_linear)(LmLinear*, const LmLinear*);
+    LmStatus (*linear_mul_bias)(LmLinear*, double);
+    LmStatus (*linear_index)(const LmLinear*, uint32_t, double*);
+    LmStatus (*linear_set_bias)(LmLinear*, uint32_t, double);
+    LmStatus (*linear_eq)(const LmLinear*, const LmLinear*, bool*);
+    LmStatus (*linear_neg)(const LmLinear*, LmLinear**);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

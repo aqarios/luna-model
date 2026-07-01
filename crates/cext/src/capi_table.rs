@@ -20,6 +20,10 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     vref_buffer_free: crate::buffer::lm_vref_buffer_free,
     cmp_buffer_free: crate::buffer::lm_cmp_buffer_free,
     ctype_buffer_free: crate::buffer::lm_ctype_buffer_free,
+    u32_buffer_free: crate::buffer::lm_u32_buffer_free,
+    linear_item_buffer_free: crate::buffer::lm_linear_item_buffer_free,
+    quadratic_item_buffer_free: crate::buffer::lm_quadratic_item_buffer_free,
+    higher_order_item_buffer_free: crate::buffer::lm_higher_order_item_buffer_free,
     // ///// //
     // MODEL //
     // ///// //
@@ -231,4 +235,26 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Bounds -- access
     bounds_lower: crate::bounds::lm_bounds_lower,
     bounds_upper: crate::bounds::lm_bounds_upper,
+    // ////// //
+    // Linear //
+    // ////// //
+    linear_free: crate::linear::lm_linear_free,
+    // Linear -- creation
+    linear_default: crate::linear::lm_linear_default,
+    linear_for_var: crate::linear::lm_linear_for_var,
+    // Linear -- general
+    linear_clone: crate::linear::lm_linear_clone,
+    linear_eq: crate::linear::lm_linear_eq,
+    // Linear -- access
+    linear_len: crate::linear::lm_linear_len,
+    linear_is_zero: crate::linear::lm_linear_is_zero,
+    linear_is_empty: crate::linear::lm_linear_is_empty,
+    linear_items: crate::linear::lm_linear_items,
+    linear_index: crate::linear::lm_linear_index,
+    // Linear -- modificattion
+    linear_add_entry:crate::linear::lm_linear_add_entry,
+    linear_add_linear: crate::linear::lm_linear_add_linear,
+    linear_mul_bias: crate::linear::lm_linear_mul_bias,
+    linear_set_bias: crate::linear::lm_linear_set_bias,
+    linear_neg: crate::linear::lm_linear_neg,
 };

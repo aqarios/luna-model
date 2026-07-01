@@ -182,3 +182,14 @@ impl Neg for Linear {
         }
     }
 }
+
+impl Neg for &Linear {
+    type Output = Linear;
+
+    /// Negates every stored bias.
+    fn neg(self) -> Self::Output {
+        Linear {
+            biases: self.biases.iter().map(|(idx, b)| (idx, -b)).collect(),
+        }
+    }
+}

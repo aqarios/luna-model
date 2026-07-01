@@ -7,7 +7,7 @@ use luna_model::{
 };
 
 use crate::{
-    LmEnv, LmExpr, LmHigherOrderTerm, LmLinearTerm, LmQuadraticTerm, LmStatus,
+    LmEnv, LmExpr, LmHigherOrder, LmLinear, LmQuadratic, LmStatus,
     env::utils::environment_from_c,
     error::{CapiError, guard},
 };
@@ -96,7 +96,7 @@ pub unsafe extern "C" fn lm_expr_from_size_t(cnst: usize, out: *mut *mut LmExpr)
 /// `out` receives an owned expression handle that must be freed with `lm_expr_free`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_from_linear(
-    lin: *const LmLinearTerm,
+    lin: *const LmLinear,
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
@@ -114,7 +114,7 @@ pub unsafe extern "C" fn lm_expr_from_linear(
 /// `out` receives an owned expression handle that must be freed with `lm_expr_free`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_from_quadratic(
-    quad: *const LmQuadraticTerm,
+    quad: *const LmQuadratic,
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
@@ -132,7 +132,7 @@ pub unsafe extern "C" fn lm_expr_from_quadratic(
 /// `out` receives an owned expression handle that must be freed with `lm_expr_free`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_from_higher_order(
-    ho: *const LmHigherOrderTerm,
+    ho: *const LmHigherOrder,
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {

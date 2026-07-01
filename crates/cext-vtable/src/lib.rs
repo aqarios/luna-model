@@ -234,6 +234,95 @@ pub struct LmVrefBuffer {
     pub cap: usize,
 }
 
+/// An owned, heap-allocated u32 buffer the caller takes ownership of.
+///
+/// u32 buffers returned by LunaModel must be released
+/// with [`lm_u32_buffer_free`]. The fields mirror a `Vec<u32>` so it can
+/// be rebuilt for deallocation.
+#[repr(C)]
+pub struct LmU32Buffer {
+    /// Pointer to the first u32, or null for an empty buffer.
+    pub data: *mut u32,
+    /// Number of valid u32s.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
+/// A linear item.
+#[repr(C)]
+pub struct LmLinearItem {
+    /// The variable index of the linear entry.
+    pub idx: u32,
+    /// The bias of the linear entry.
+    pub bias: f64,
+}
+
+/// An owned, heap-allocated linear items buffer the caller takes ownership of.
+///
+/// Comparator buffers returned by LunaModel must be released
+/// with [`lm_linear_item_buffer_free`]. The fields mirror a `Vec<LmLinearItem>` so it can
+/// be rebuilt for deallocation.
+#[repr(C)]
+pub struct LmLinearItemBuffer {
+    /// Pointer to the first LmLinearItem, or null for an empty buffer.
+    pub data: *mut LmLinearItem,
+    /// Number of valid bytes.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
+/// A quadratic item.
+#[repr(C)]
+pub struct LmQuadraticItem {
+    /// The variable index of the one quadratic item entry.
+    pub u_idx: u32,
+    /// The variable index of the other quadratic item entry.
+    pub v_idx: u32,
+    /// The bias of the quadratic entry.
+    pub bias: f64,
+}
+
+/// An owned, heap-allocated quadratic items buffer the caller takes ownership of.
+///
+/// Comparator buffers returned by LunaModel must be released
+/// with [`lm_quadratic_item_buffer_free`]. The fields mirror a `Vec<LmQuadraticItem>` so it can
+/// be rebuilt for deallocation.
+#[repr(C)]
+pub struct LmQuadraticItemBuffer {
+    /// Pointer to the first LmQuadraticItem, or null for an empty buffer.
+    pub data: *mut LmQuadraticItem,
+    /// Number of valid bytes.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
+/// A higher-order item.
+#[repr(C)]
+pub struct LmHigherOrderItem {
+    /// An owned, heap-allocated variable index buffer the caller takes ownership of.
+    pub indices: *mut LmU32Buffer,
+    /// The bias of the quadratic entry.
+    pub bias: f64,
+}
+
+/// An owned, heap-allocated higher-order items buffer the caller takes ownership of.
+///
+/// Comparator buffers returned by LunaModel must be released
+/// with [`lm_higher_order_item_buffer_free`]. The fields mirror a `Vec<LmHigherOrderItem>` so it can
+/// be rebuilt for deallocation.
+#[repr(C)]
+pub struct LmHigherOrderItemBuffer {
+    /// Pointer to the first LmHigherOrderItem, or null for an empty buffer.
+    pub data: *mut LmHigherOrderItem,
+    /// Number of valid bytes.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
 /// Opaque handle to a LunaModel model.
 ///
 /// Created by [`lm_model_default`], [`lm_model_new`] or [`lm_model_deserialize`] and released with
@@ -344,7 +433,7 @@ pub struct LmExpr {
 ///
 /// cbindgen:opaque
 #[repr(C)]
-pub struct LmLinearTerm {
+pub struct LmLinear {
     _private: [u8; 0],
 }
 
@@ -352,7 +441,7 @@ pub struct LmLinearTerm {
 ///
 /// cbindgen:opaque
 #[repr(C)]
-pub struct LmQuadraticTerm {
+pub struct LmQuadratic {
     _private: [u8; 0],
 }
 
@@ -360,7 +449,7 @@ pub struct LmQuadraticTerm {
 ///
 /// cbindgen:opaque
 #[repr(C)]
-pub struct LmHigherOrderTerm {
+pub struct LmHigherOrder {
     _private: [u8; 0],
 }
 
@@ -388,6 +477,10 @@ pub struct LunaModelCApi {
     pub ctype_buffer_free: unsafe extern "C" fn(LmCtypeBuffer),
     pub cmp_buffer_free: unsafe extern "C" fn(LmCmpBuffer),
     pub vref_buffer_free: unsafe extern "C" fn(LmVrefBuffer),
+    pub u32_buffer_free: unsafe extern "C" fn(LmU32Buffer),
+    pub linear_item_buffer_free: unsafe extern "C" fn(LmLinearItemBuffer),
+    pub quadratic_item_buffer_free: unsafe extern "C" fn(LmQuadraticItemBuffer),
+    pub higher_order_item_buffer_free: unsafe extern "C" fn(LmHigherOrderItemBuffer),
     // ///// //
     // MODEL //
     // ///// //
@@ -494,11 +587,10 @@ pub struct LunaModelCApi {
     pub expr_new_constant: unsafe extern "C" fn(*const LmEnv, f64, *mut *mut LmExpr) -> LmStatus,
     pub expr_from_double: unsafe extern "C" fn(f64, *mut *mut LmExpr) -> LmStatus,
     pub expr_from_size_t: unsafe extern "C" fn(usize, *mut *mut LmExpr) -> LmStatus,
-    pub expr_from_linear: unsafe extern "C" fn(*const LmLinearTerm, *mut *mut LmExpr) -> LmStatus,
-    pub expr_from_quadratic:
-        unsafe extern "C" fn(*const LmQuadraticTerm, *mut *mut LmExpr) -> LmStatus,
+    pub expr_from_linear: unsafe extern "C" fn(*const LmLinear, *mut *mut LmExpr) -> LmStatus,
+    pub expr_from_quadratic: unsafe extern "C" fn(*const LmQuadratic, *mut *mut LmExpr) -> LmStatus,
     pub expr_from_higher_order:
-        unsafe extern "C" fn(*const LmHigherOrderTerm, *mut *mut LmExpr) -> LmStatus,
+        unsafe extern "C" fn(*const LmHigherOrder, *mut *mut LmExpr) -> LmStatus,
     pub expr_clone: unsafe extern "C" fn(*const LmExpr, *mut *mut LmExpr) -> LmStatus,
     pub expr_deep_clone:
         unsafe extern "C" fn(*const LmExpr, *const LmEnv, *mut *mut LmExpr) -> LmStatus,
@@ -507,10 +599,9 @@ pub struct LunaModelCApi {
         unsafe extern "C" fn(*const u8, usize, *const LmEnv, *mut *mut LmExpr) -> LmStatus,
     pub expr_env: unsafe extern "C" fn(*const LmExpr, *mut *mut LmEnv) -> LmStatus,
     pub expr_offset: unsafe extern "C" fn(*const LmExpr, *mut f64) -> LmStatus,
-    pub expr_linear: unsafe extern "C" fn(*const LmExpr, *mut *mut LmLinearTerm) -> LmStatus,
-    pub expr_quadratic: unsafe extern "C" fn(*const LmExpr, *mut *mut LmQuadraticTerm) -> LmStatus,
-    pub expr_higher_order:
-        unsafe extern "C" fn(*const LmExpr, *mut *mut LmHigherOrderTerm) -> LmStatus,
+    pub expr_linear: unsafe extern "C" fn(*const LmExpr, *mut *mut LmLinear) -> LmStatus,
+    pub expr_quadratic: unsafe extern "C" fn(*const LmExpr, *mut *mut LmQuadratic) -> LmStatus,
+    pub expr_higher_order: unsafe extern "C" fn(*const LmExpr, *mut *mut LmHigherOrder) -> LmStatus,
     pub expr_num_vars: unsafe extern "C" fn(*const LmExpr, *mut usize) -> LmStatus,
     pub expr_vtypes: unsafe extern "C" fn(*const LmExpr, *mut LmVtypeBuffer) -> LmStatus,
     pub expr_vars: unsafe extern "C" fn(*const LmExpr, *mut LmVrefBuffer) -> LmStatus,
@@ -636,4 +727,22 @@ pub struct LunaModelCApi {
     pub bounds_clone: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBounds) -> LmStatus,
     pub bounds_lower: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBound) -> LmStatus,
     pub bounds_upper: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBound) -> LmStatus,
+    // ////// //
+    // Linear //
+    // ////// //
+    pub linear_free: unsafe extern "C" fn(*mut LmLinear),
+    pub linear_default: extern "C" fn() -> *mut LmLinear,
+    pub linear_for_var: unsafe extern "C" fn(u32, f64, *mut *mut LmLinear) -> LmStatus,
+    pub linear_clone: unsafe extern "C" fn(*const LmLinear, *mut *mut LmLinear) -> LmStatus,
+    pub linear_len: unsafe extern "C" fn(*const LmLinear, *mut usize) -> LmStatus,
+    pub linear_is_zero: unsafe extern "C" fn(*const LmLinear, *mut bool) -> LmStatus,
+    pub linear_is_empty: unsafe extern "C" fn(*const LmLinear, *mut bool) -> LmStatus,
+    pub linear_items: unsafe extern "C" fn(*const LmLinear, *mut LmLinearItemBuffer) -> LmStatus,
+    pub linear_add_entry: unsafe extern "C" fn(*mut LmLinear, u32, f64) -> LmStatus,
+    pub linear_add_linear: unsafe extern "C" fn(*mut LmLinear, *const LmLinear) -> LmStatus,
+    pub linear_mul_bias: unsafe extern "C" fn(*mut LmLinear, f64) -> LmStatus,
+    pub linear_index: unsafe extern "C" fn(*const LmLinear, u32, *mut f64) -> LmStatus,
+    pub linear_set_bias: unsafe extern "C" fn(*mut LmLinear, u32, f64) -> LmStatus,
+    pub linear_eq: unsafe extern "C" fn(*const LmLinear, *const LmLinear, *mut bool) -> LmStatus,
+    pub linear_neg: unsafe extern "C" fn(*const LmLinear, *mut *mut LmLinear) -> LmStatus,
 }
