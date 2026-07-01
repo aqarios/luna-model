@@ -1,6 +1,9 @@
-use luna_model::core::{
-    Expression,
-    prelude::{DefaultEditable, HigherOrder, Linear, Quadratic},
+use luna_model::{
+    core::{
+        Expression,
+        prelude::{DefaultEditable, HigherOrder, Linear, Quadratic},
+    },
+    types::Bias,
 };
 
 use crate::{
@@ -57,6 +60,32 @@ pub unsafe extern "C" fn lm_expr_new_constant(
         let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
         let env = unsafe { environment_from_c(env) }?;
         let expr = Expression::constant(env.clone(), val);
+        *out = Box::into_raw(Box::new(expr)) as *mut LmExpr;
+        Ok(())
+    })
+}
+
+/// Creates a new expression from a constant double.
+///
+/// `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_expr_from_double(cnst: f64, out: *mut *mut LmExpr) -> LmStatus {
+    guard(|| {
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = Expression::with(|e| e.offset = cnst);
+        *out = Box::into_raw(Box::new(expr)) as *mut LmExpr;
+        Ok(())
+    })
+}
+
+/// Creates a new expression from a constant size_t.
+///
+/// `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_expr_from_size_t(cnst: usize, out: *mut *mut LmExpr) -> LmStatus {
+    guard(|| {
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = Expression::with(|e| e.offset = cnst as Bias);
         *out = Box::into_raw(Box::new(expr)) as *mut LmExpr;
         Ok(())
     })

@@ -10,8 +10,9 @@ pub use access::{
     lm_expr_num_vars, lm_expr_offset, lm_expr_quadratic, lm_expr_vars, lm_expr_vtypes,
 };
 pub use creation::{
-    lm_expr_default, lm_expr_free, lm_expr_from_higher_order, lm_expr_from_linear,
-    lm_expr_from_quadratic, lm_expr_new, lm_expr_new_constant,
+    lm_expr_default, lm_expr_free, lm_expr_from_double, lm_expr_from_higher_order,
+    lm_expr_from_linear, lm_expr_from_quadratic, lm_expr_from_size_t, lm_expr_new,
+    lm_expr_new_constant,
 };
 pub use equality::{lm_expr_eq, lm_expr_equal_contents};
 pub use general::{lm_expr_clone, lm_expr_deep_clone};

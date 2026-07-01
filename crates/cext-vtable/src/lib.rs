@@ -492,6 +492,8 @@ pub struct LunaModelCApi {
     pub expr_default: extern "C" fn() -> *mut LmExpr,
     pub expr_new: unsafe extern "C" fn(*const LmEnv, *mut *mut LmExpr) -> LmStatus,
     pub expr_new_constant: unsafe extern "C" fn(*const LmEnv, f64, *mut *mut LmExpr) -> LmStatus,
+    pub expr_from_double: unsafe extern "C" fn(f64, *mut *mut LmExpr) -> LmStatus,
+    pub expr_from_size_t: unsafe extern "C" fn(usize, *mut *mut LmExpr) -> LmStatus,
     pub expr_from_linear: unsafe extern "C" fn(*const LmLinearTerm, *mut *mut LmExpr) -> LmStatus,
     pub expr_from_quadratic:
         unsafe extern "C" fn(*const LmQuadraticTerm, *mut *mut LmExpr) -> LmStatus,

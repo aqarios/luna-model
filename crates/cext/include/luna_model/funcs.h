@@ -758,6 +758,20 @@ LmStatus lm_expr_new(const LmEnv *env, LmExpr **out);
 LmStatus lm_expr_new_constant(const LmEnv *env, double val, LmExpr **out);
 
 /**
+ * Creates a new expression from a constant double.
+ *
+ * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ */
+LmStatus lm_expr_from_double(double cnst, LmExpr **out);
+
+/**
+ * Creates a new expression from a constant size_t.
+ *
+ * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ */
+LmStatus lm_expr_from_size_t(uintptr_t cnst, LmExpr **out);
+
+/**
  * Creates a new expression from a linear term.
  *
  * `out` receives an owned expression handle that must be freed with `lm_expr_free`.

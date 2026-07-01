@@ -98,6 +98,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_default: crate::expr::lm_expr_default,
     expr_new: crate::expr::lm_expr_new,
     expr_new_constant: crate::expr::lm_expr_new_constant,
+    expr_from_double: crate::expr::lm_expr_from_double,
+    expr_from_size_t: crate::expr::lm_expr_from_size_t,
     expr_from_linear: crate::expr::lm_expr_from_linear,
     expr_from_quadratic: crate::expr::lm_expr_from_quadratic,
     expr_from_higher_order: crate::expr::lm_expr_from_higher_order,
