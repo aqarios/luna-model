@@ -219,6 +219,10 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     specs_max_degree: crate::specs::lm_specs_max_degree,
     specs_max_constraint_degree: crate::specs::lm_specs_max_constraint_degree,
     specs_max_num_variables: crate::specs::lm_specs_max_num_variables,
+    // ///// //
+    // Bound //
+    // ///// //
+    bound_is_bounded: crate::bound::lm_bound_is_bounded,
     // ////// //
     // Bounds //
     // ////// //

@@ -167,14 +167,6 @@ typedef enum {
 } LmSense;
 
 /**
- * Opaque handle to a LunaModel bounds reference.
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmBounds;
-
-/**
  * Bound used by the C API.
  *
  * One side of a variable bound interval.
@@ -187,6 +179,14 @@ typedef struct {
     LmBoundTag tag;
     double value;
 } LmBound;
+
+/**
+ * Opaque handle to a LunaModel bounds reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmBounds;
 
 /**
  * An owned, heap-allocated byte buffer the caller takes ownership of.
@@ -739,6 +739,7 @@ typedef struct {
     LmStatus (*specs_max_num_variables)(const LmSpecs*, uintptr_t*);
     LmStatus (*specs_satisfies)(const LmSpecs*, const LmSpecs*, bool*);
     LmStatus (*specs_clone)(const LmSpecs*, LmSpecs**);
+    LmStatus (*bound_is_bounded)(const LmBound*, bool*);
     void (*bounds_free)(LmBounds*);
     LmStatus (*bounds_new)(LmBound, LmBound, LmBounds**);
     LmStatus (*bounds_binary)(LmBounds**);

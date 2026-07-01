@@ -28,6 +28,7 @@ pub use lunamodel_cext_vtable::{
 pub const CAPI_ABI_VERSION: u32 = 1;
 const _: () = assert!(CAPI_ABI_VERSION == lunamodel_cext_vtable::CAPI_ABI_VERSION);
 
+pub mod bound;
 pub mod bounds;
 pub mod buffer;
 pub mod capi_table;
@@ -37,6 +38,7 @@ pub mod env;
 pub mod error;
 pub mod expr;
 pub mod higher_order;
+pub mod lazy_bounds;
 pub mod linear;
 pub mod model;
 pub mod quadratic;
@@ -45,6 +47,5 @@ pub mod specs;
 pub mod var;
 pub mod version;
 pub mod vref;
-pub mod lazy_bounds;
 
 mod utils;
