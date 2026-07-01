@@ -14,9 +14,11 @@
 #ifndef LUNA_MODEL_HPP
 #define LUNA_MODEL_HPP
 
-#include "luna_model/error.hpp"
-#include "luna_model/model.hpp"
-#include "luna_model/solution.hpp"
-#include "luna_model/version.hpp"
+#include "luna_model/error.hpp"    // IWYU pragma: export
+#include "luna_model/model.hpp"    // IWYU pragma: export
+#include "luna_model/solution.hpp" // IWYU pragma: export
+#include "luna_model/version.hpp"  // IWYU pragma: export
+#include "luna_model/timer.hpp"    // IWYU pragma: export
+#include "luna_model/timing.hpp"   // IWYU pragma: export
 
 #endif // LUNA_MODEL_HPP
