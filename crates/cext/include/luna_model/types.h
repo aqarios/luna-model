@@ -503,6 +503,11 @@ typedef struct {
     LmStatus (*expr_equal_contents)(const LmExpr*, const LmExpr*, bool*);
     void (*constr_free)(LmConstraint*);
     LmStatus (*constr_new)(const LmExpr*, double, LmComparator, const char*, LmConstraint**);
+    LmStatus (*constr_lhs)(const LmConstraint*, LmExpr**);
+    LmStatus (*constr_rhs)(const LmConstraint*, double*);
+    LmStatus (*constr_comparator)(const LmConstraint*, LmComparator*);
+    LmStatus (*constr_name)(const LmConstraint*, LmBuffer*);
+    LmStatus (*constr_set_name)(LmConstraint*, const char*);
     void (*cc_free)(LmCC*);
     LmCC *(*cc_default)(void);
     LmCC *(*cc_new)(void);

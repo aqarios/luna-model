@@ -524,6 +524,11 @@ pub struct LunaModelCApi {
         *const c_char,
         *mut *mut LmConstraint,
     ) -> LmStatus,
+    pub constr_lhs: unsafe extern "C" fn(*const LmConstraint, *mut *mut LmExpr) -> LmStatus,
+    pub constr_rhs: unsafe extern "C" fn(*const LmConstraint, *mut f64) -> LmStatus,
+    pub constr_comparator: unsafe extern "C" fn(*const LmConstraint, *mut LmComparator) -> LmStatus,
+    pub constr_name: unsafe extern "C" fn(*const LmConstraint, *mut LmBuffer) -> LmStatus,
+    pub constr_set_name: unsafe extern "C" fn(*mut LmConstraint, *const c_char) -> LmStatus,
     // //////////////////// //
     // ConstraintCollection //
     // //////////////////// //

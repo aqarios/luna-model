@@ -304,6 +304,59 @@ LmStatus lm_constr_new(const LmExpr *lhs,
                        LmConstraint **out);
 
 /**
+ * Returns a copy of the constraint's name as an owned UTF-8 byte buffer.
+ *
+ * The returned buffer is written to `out` and must be released with
+ * `lm_buffer_free`.
+ *
+ * The buffer is not guaranteed to be NUL-terminated. C callers should use
+ * `buffer.data` together with `buffer.len`.
+ *
+ * # Safety
+ * `constr` must be a valid constraint handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_constr_name(const LmConstraint *constr, LmBuffer *out);
+
+/**
+ * Returns a copy of the constraint's lhs.
+ *
+ * # Safety
+ * `constr` must be a valid constraint handle created by this library.
+ * `out` must point to writable `LmExpr` storage.
+ */
+LmStatus lm_constr_lhs(const LmConstraint *constr, LmExpr **out);
+
+/**
+ * Returns a copy of the constraint's rhs.
+ *
+ * # Safety
+ * `constr` must be a valid constraint handle created by this library.
+ * `out` must point to writable `f64` storage.
+ */
+LmStatus lm_constr_rhs(const LmConstraint *constr, double *out);
+
+/**
+ * Returns a copy of the constraint's comparator.
+ *
+ * # Safety
+ * `constr` must be a valid constraint handle created by this library.
+ * `out` must point to writable `LmComparator` storage.
+ */
+LmStatus lm_constr_comparator(const LmConstraint *constr, LmComparator *out);
+
+/**
+ * Sets the constraint name.
+ *
+ * `name` must be non-null and valid UTF-8.
+ *
+ * # Safety
+ * `constr` must be a valid mutable constraint handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ */
+LmStatus lm_constr_set_name(LmConstraint *constr, const char *name);
+
+/**
  * Returns the number of variables in the environment.
  *
  * # Safety
