@@ -749,6 +749,13 @@ typedef struct {
     LmStatus (*bounds_clone)(const LmBounds*, LmBounds**);
     LmStatus (*bounds_lower)(const LmBounds*, LmBound**);
     LmStatus (*bounds_upper)(const LmBounds*, LmBound**);
+    void (*lazy_bounds_free)(LmLazyBounds*);
+    LmLazyBounds *(*lazy_bounds_default)(void);
+    LmStatus (*lazy_bounds_new)(const LmBound*, const LmBound*, LmLazyBounds**);
+    LmStatus (*lazy_bounds_clone)(const LmLazyBounds*, LmLazyBounds**);
+    LmStatus (*lazy_bounds_lower)(const LmLazyBounds*, LmBound**);
+    LmStatus (*lazy_bounds_upper)(const LmLazyBounds*, LmBound**);
+    LmStatus (*lazy_bounds_concretize)(const LmLazyBounds*, LmVtype, LmBounds**);
     void (*linear_free)(LmLinear*);
     LmLinear *(*linear_default)(void);
     LmStatus (*linear_for_var)(uint32_t, double, LmLinear**);

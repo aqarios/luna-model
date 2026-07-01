@@ -728,6 +728,18 @@ pub struct LunaModelCApi {
     pub bounds_lower: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBound) -> LmStatus,
     pub bounds_upper: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBound) -> LmStatus,
     // ////// //
+    // LazyBounds //
+    // ////// //
+    pub lazy_bounds_free: unsafe extern "C" fn(*mut LmLazyBounds),
+    pub lazy_bounds_default: extern "C" fn() -> *mut LmLazyBounds,
+    pub lazy_bounds_new:
+        unsafe extern "C" fn(*const LmBound, *const LmBound, *mut *mut LmLazyBounds) -> LmStatus,
+    pub lazy_bounds_clone: unsafe extern "C" fn(*const LmLazyBounds, *mut *mut LmLazyBounds) -> LmStatus,
+    pub lazy_bounds_lower: unsafe extern "C" fn(*const LmLazyBounds, *mut *mut LmBound) -> LmStatus,
+    pub lazy_bounds_upper: unsafe extern "C" fn(*const LmLazyBounds, *mut *mut LmBound) -> LmStatus,
+    pub lazy_bounds_concretize:
+        unsafe extern "C" fn(*const LmLazyBounds, LmVtype, *mut *mut LmBounds) -> LmStatus,
+    // ////// //
     // Linear //
     // ////// //
     pub linear_free: unsafe extern "C" fn(*mut LmLinear),

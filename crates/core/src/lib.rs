@@ -15,7 +15,7 @@
 //! rest of the workspace fits together.
 pub mod prelude;
 
-mod bounds;
+pub mod bounds;
 mod constraint;
 mod environment;
 mod expression;
@@ -26,12 +26,12 @@ mod traits;
 mod utils;
 mod variable;
 
+pub use bounds::Bounds;
 pub use constraint::{Constraint, ConstraintCollection};
 pub use environment::{ArcEnv, Environment};
 pub use expression::Expression;
 pub use model::Model;
 pub use solution::{Solution, Timer, Timing, ValueSource};
-pub use bounds::Bounds;
 
 /// Trait for indexing domain collections with fallible APIs.
 pub use traits::TryIndex;

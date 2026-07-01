@@ -2031,6 +2031,67 @@ LmStatus lm_vref_eq(const LmVref *vref, const LmVref *other, bool *out);
  */
 LmStatus lm_vref_to_var(const LmVref *vref, LmVar **out);
 
+/**
+ * Returns a copy of the lazy-bounds' lower bound.
+ *
+ * # Safety
+ * `lazy_bounds` must be a valid lazy-bounds handle created by this library.
+ * `out` must point to writable `LmBound` storage.
+ */
+LmStatus lm_lazy_bounds_lower(const LmLazyBounds *lazy_bounds, LmBound **out);
+
+/**
+ * Returns a copy of the lazy-bounds' upper bound.
+ *
+ * # Safety
+ * `lazy_bounds` must be a valid lazy-bounds handle created by this library.
+ * `out` must point to writable `LmBound` storage.
+ */
+LmStatus lm_lazy_bounds_upper(const LmLazyBounds *lazy_bounds, LmBound **out);
+
+/**
+ * Frees a lazy-bounds handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `lazy_bounds` must originate from this library and must not be used or freed again.
+ */
+void lm_lazy_bounds_free(LmLazyBounds *lazy_bounds);
+
+/**
+ * Creates a default lazy-bounds.
+ */
+LmLazyBounds *lm_lazy_bounds_default(void);
+
+/**
+ * Creates a new lazy-bounds.
+ *
+ * # Safety
+ * `lower == NULL`: use the default lower bounds when this lazy-bounds is concretized for a LmVtype.
+ * `upper == NULL`: use the default lower bounds when this lazy-bounds is concretized for a LmVtype.
+ * `out`  must point to writable `LmBounds` storage.
+ */
+LmStatus lm_lazy_bounds_new(const LmBound *lower, const LmBound *upper, LmLazyBounds **out);
+
+/**
+ * Resolves optional caller-supplied bounds against the variable type defaults.
+ *
+ * Missing endpoints fall back to the type-specific defaults. Integer
+ * bounds are additionally checked for integral endpoints.
+ *
+ * # Safety
+ * `lazy_bounds` must be a valid lazy-bounds handle created by this library.
+ * `out` must point to writable `LmBound` storage.
+ */
+LmStatus lm_lazy_bounds_concretize(const LmLazyBounds *lazy_bounds, LmVtype vtype, LmBounds **out);
+
+/**
+ * Clones a lazy-bounds into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `lazy_bounds` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_lazy_bounds_clone(const LmLazyBounds *lazy_bounds, LmLazyBounds **out);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

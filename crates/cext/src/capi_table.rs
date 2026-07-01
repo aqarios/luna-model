@@ -236,6 +236,19 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     bounds_lower: crate::bounds::lm_bounds_lower,
     bounds_upper: crate::bounds::lm_bounds_upper,
     // ////// //
+    // LazyBounds //
+    // ////// //
+    lazy_bounds_free: crate::lazy_bounds::lm_lazy_bounds_free,
+    // Bounds -- creation
+    lazy_bounds_default: crate::lazy_bounds::lm_lazy_bounds_default,
+    lazy_bounds_new: crate::lazy_bounds::lm_lazy_bounds_new,
+    // Bounds -- general
+    lazy_bounds_concretize: crate::lazy_bounds::lm_lazy_bounds_concretize,
+    lazy_bounds_clone: crate::lazy_bounds::lm_lazy_bounds_clone,
+    // Bounds -- access
+    lazy_bounds_lower: crate::lazy_bounds::lm_lazy_bounds_lower,
+    lazy_bounds_upper: crate::lazy_bounds::lm_lazy_bounds_upper,
+    // ////// //
     // Linear //
     // ////// //
     linear_free: crate::linear::lm_linear_free,
