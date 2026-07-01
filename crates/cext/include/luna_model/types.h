@@ -821,6 +821,7 @@ typedef struct {
     void (*timer_free)(LmTimer*);
     LmTimer *(*timer_start)(void);
     LmStatus (*timer_stop)(const LmTimer*, LmTiming**);
+    void (*timing_free)(LmTiming*);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

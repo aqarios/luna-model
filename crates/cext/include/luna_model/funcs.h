@@ -2126,6 +2126,14 @@ LmStatus lm_vref_eq(const LmVref *vref, const LmVref *other, bool *out);
  */
 LmStatus lm_vref_to_var(const LmVref *vref, LmVar **out);
 
+/**
+ * Frees a timing handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `timing` must originate from this library and must not be used or freed again.
+ */
+void lm_timing_free(LmTiming *timing);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

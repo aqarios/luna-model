@@ -56,7 +56,7 @@ cclean:
 
 .PHONY: ctest
 ctest: cheader clib-dev
-	cmake -S $(C_DIR_TEST) -B $(C_DIR_TEST_BUILD) -DLUNA_MODEL_LIB_DIR=$(abspath $(C_DIR_OUT_LIB)) -DLUNA_MODEL_INCLUDE_PATH=$(abspath $(C_DIR_OUT_INCLUDE))
+	cmake -S $(C_DIR_TEST) -B $(C_DIR_TEST_BUILD) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DLUNA_MODEL_LIB_DIR=$(abspath $(C_DIR_OUT_LIB)) -DLUNA_MODEL_INCLUDE_PATH=$(abspath $(C_DIR_OUT_INCLUDE))
 	cmake --build $(C_DIR_TEST_BUILD)
 	ctest -V --test-dir $(C_DIR_TEST_BUILD)
 

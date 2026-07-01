@@ -816,4 +816,8 @@ pub struct LunaModelCApi {
     pub timer_free: unsafe extern "C" fn(*mut LmTimer),
     pub timer_start: extern "C" fn() -> *mut LmTimer,
     pub timer_stop: unsafe extern "C" fn(*const LmTimer, *mut *mut LmTiming) -> LmStatus,
+    // ////// //
+    // Timing //
+    // ////// //
+    pub timing_free: unsafe extern "C" fn(*mut LmTiming),
 }

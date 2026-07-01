@@ -324,4 +324,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     timer_free: crate::timer::lm_timer_free,
     timer_start: crate::timer::lm_timer_start,
     timer_stop: crate::timer::lm_timer_stop,
+    // ////// //
+    // Timing //
+    // ////// //
+    timing_free: crate::timing::lm_timing_free,
 };
