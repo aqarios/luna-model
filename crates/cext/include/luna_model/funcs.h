@@ -274,36 +274,6 @@ LmStatus lm_cc_serialize(const LmCC *cc, LmBuffer *out);
 LmStatus lm_cc_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env, LmCC **out);
 
 /**
- * Frees a constraint handle. Passing null is a no-op.
- *
- * # Safety
- * `constr` must originate from this library and must not be used or freed again.
- */
-void lm_constr_free(LmConstraint *constr);
-
-/**
- * Creates a new constraint and normalizes its left-hand side.
- *
- * If `lhs` contains a constant offset, that constant is subtracted from the
- * expression and folded into `rhs`. The resulting constraint is therefore
- * easier to compare, serialize, and translate consistently.
- *
- * `lhs` is cloned, not consumed: the caller keeps ownership of the handle.
- *
- * # Safety
- * `lhs`  must be a valid expression handle created by this library.
- * `name` may be null (the constraint is then auto-named, e.g. `c0`);
- *        if non-null it must point to a NUL-terminated, valid UTF-8 C string.
- * `out`  must point to writable `*mut LmConstraint` storage.
- *        On `LmStatus::Ok` it receives an owned handle the caller must release with `lm_constr_free`.
- */
-LmStatus lm_constr_new(const LmExpr *lhs,
-                       double rhs,
-                       LmComparator comparator,
-                       const char *name,
-                       LmConstraint **out);
-
-/**
  * Returns a copy of the constraint's name as an owned UTF-8 byte buffer.
  *
  * The returned buffer is written to `out` and must be released with
@@ -355,6 +325,84 @@ LmStatus lm_constr_comparator(const LmConstraint *constr, LmComparator *out);
  * `name` must point to a valid NUL-terminated C string.
  */
 LmStatus lm_constr_set_name(LmConstraint *constr, const char *name);
+
+/**
+ * Frees a constraint handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `constr` must originate from this library and must not be used or freed again.
+ */
+void lm_constr_free(LmConstraint *constr);
+
+/**
+ * Creates a new constraint and normalizes its left-hand side.
+ *
+ * If `lhs` contains a constant offset, that constant is subtracted from the
+ * expression and folded into `rhs`. The resulting constraint is therefore
+ * easier to compare, serialize, and translate consistently.
+ *
+ * `lhs` is cloned, not consumed: the caller keeps ownership of the handle.
+ *
+ * # Safety
+ * `lhs`  must be a valid expression handle created by this library.
+ * `name` may be null (the constraint is then auto-named, e.g. `c0`);
+ *        if non-null it must point to a NUL-terminated, valid UTF-8 C string.
+ * `out`  must point to writable `*mut LmConstraint` storage.
+ *        On `LmStatus::Ok` it receives an owned handle the caller must release with `lm_constr_free`.
+ */
+LmStatus lm_constr_new(const LmExpr *lhs,
+                       double rhs,
+                       LmComparator comparator,
+                       const char *name,
+                       LmConstraint **out);
+
+/**
+ * Clones a constraint into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `constraint` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_constr_clone(const LmConstraint *constr, LmConstraint **out);
+
+/**
+ * Deep-Clones a constraint into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `constr` and `env` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_constr_deep_clone(const LmConstraint *constr, const LmEnv *env, LmConstraint **out);
+
+/**
+ * Substitute the variable with a given expression.
+ *
+ * # Safety
+ * `constr` must be a valid mutable constraint handle created by this library.
+ * `target` must be a valid vref handle created by this library.
+ * `replacement` must be a valid expression handle created by this library.
+ */
+LmStatus lm_constr_substitute(LmConstraint *constr,
+                              const LmVref *target,
+                              const LmExpr *replacement);
+
+/**
+ * Compares two constraints for equal contents (ignoring different environments).
+ *
+ * # Safety
+ * `constr` must be a valid constraint handle created by this library.
+ * `other` must be a valid constraint handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_constr_equal_contents(const LmConstraint *constr, const LmConstraint *other, bool *out);
+
+/**
+ * Compares two constraints for equality (ignoring different environments).
+ *
+ * # Safety
+ * `constr` must be a valid constraint handle created by this library.
+ * `other` must be a valid constraint handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_constr_eq(const LmConstraint *constr, const LmConstraint *other, bool *out);
 
 /**
  * Returns the number of variables in the environment.

@@ -502,12 +502,17 @@ typedef struct {
     LmStatus (*expr_eq)(const LmExpr*, const LmExpr*, bool*);
     LmStatus (*expr_equal_contents)(const LmExpr*, const LmExpr*, bool*);
     void (*constr_free)(LmConstraint*);
+    LmStatus (*constr_clone)(const LmConstraint*, LmConstraint**);
+    LmStatus (*constr_deep_clone)(const LmConstraint*, const LmEnv*, LmConstraint**);
     LmStatus (*constr_new)(const LmExpr*, double, LmComparator, const char*, LmConstraint**);
     LmStatus (*constr_lhs)(const LmConstraint*, LmExpr**);
     LmStatus (*constr_rhs)(const LmConstraint*, double*);
     LmStatus (*constr_comparator)(const LmConstraint*, LmComparator*);
     LmStatus (*constr_name)(const LmConstraint*, LmBuffer*);
     LmStatus (*constr_set_name)(LmConstraint*, const char*);
+    LmStatus (*constr_substitute)(LmConstraint*, const LmVref*, const LmExpr*);
+    LmStatus (*constr_equal_contents)(const LmConstraint*, const LmConstraint*, bool*);
+    LmStatus (*constr_eq)(const LmConstraint*, const LmConstraint*, bool*);
     void (*cc_free)(LmCC*);
     LmCC *(*cc_default)(void);
     LmCC *(*cc_new)(void);

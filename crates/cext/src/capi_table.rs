@@ -125,6 +125,12 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     constr_free: crate::constr::lm_constr_free,
     // Constraint -- creation
     constr_new: crate::constr::lm_constr_new,
+    // Constraint -- general
+    constr_clone: crate::constr::lm_constr_clone,
+    constr_deep_clone: crate::constr::lm_constr_deep_clone,
+    constr_substitute: crate::constr::lm_constr_substitute,
+    constr_equal_contents: crate::constr::lm_constr_equal_contents,
+    constr_eq: crate::constr::lm_constr_eq,
     // Constraint -- access
     constr_lhs: crate::constr::lm_constr_lhs,
     constr_rhs: crate::constr::lm_constr_rhs,

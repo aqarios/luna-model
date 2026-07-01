@@ -1,0 +1,123 @@
+use std::ffi::{CStr, c_char};
+
+use luna_model::core::prelude::Constraint;
+
+use crate::{
+    LmBuffer, LmComparator, LmConstraint, LmExpr, LmStatus,
+    buffer::buffer_from_vec,
+    error::{CapiError, guard},
+    utils::cmp_to_c,
+};
+
+/// Returns a copy of the constraint's name as an owned UTF-8 byte buffer.
+///
+/// The returned buffer is written to `out` and must be released with
+/// `lm_buffer_free`.
+///
+/// The buffer is not guaranteed to be NUL-terminated. C callers should use
+/// `buffer.data` together with `buffer.len`.
+///
+/// # Safety
+/// `constr` must be a valid constraint handle created by this library.
+/// `out` must point to writable `LmBuffer` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_constr_name(
+    constr: *const LmConstraint,
+    out: *mut LmBuffer,
+) -> LmStatus {
+    guard(|| {
+        let constr = unsafe { (constr as *const Constraint).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("constr"))?;
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let name = constr.name();
+        *out = buffer_from_vec(name.as_bytes().to_vec());
+        Ok(())
+    })
+}
+
+/// Returns a copy of the constraint's lhs.
+///
+/// # Safety
+/// `constr` must be a valid constraint handle created by this library.
+/// `out` must point to writable `LmExpr` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_constr_lhs(
+    constr: *const LmConstraint,
+    out: *mut *mut LmExpr,
+) -> LmStatus {
+    guard(|| {
+        let constr = unsafe { (constr as *const Constraint).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("constr"))?;
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        *out = Box::into_raw(Box::new(constr.lhs.clone())) as *mut LmExpr;
+        Ok(())
+    })
+}
+
+/// Returns a copy of the constraint's rhs.
+///
+/// # Safety
+/// `constr` must be a valid constraint handle created by this library.
+/// `out` must point to writable `f64` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_constr_rhs(constr: *const LmConstraint, out: *mut f64) -> LmStatus {
+    guard(|| {
+        let constr = unsafe { (constr as *const Constraint).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("constr"))?;
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        *out = constr.rhs;
+        Ok(())
+    })
+}
+
+/// Returns a copy of the constraint's comparator.
+///
+/// # Safety
+/// `constr` must be a valid constraint handle created by this library.
+/// `out` must point to writable `LmComparator` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_constr_comparator(
+    constr: *const LmConstraint,
+    out: *mut LmComparator,
+) -> LmStatus {
+    guard(|| {
+        let constr = unsafe { (constr as *const Constraint).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("constr"))?;
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        *out = cmp_to_c(constr.comparator);
+        Ok(())
+    })
+}
+
+/// Sets the constraint name.
+///
+/// `name` must be non-null and valid UTF-8.
+///
+/// # Safety
+/// `constr` must be a valid mutable constraint handle created by this library.
+/// `name` must point to a valid NUL-terminated C string.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_constr_set_name(
+    constr: *mut LmConstraint,
+    name: *const c_char,
+) -> LmStatus {
+    guard(|| {
+        let constr = unsafe { (constr as *mut Constraint).as_mut() }
+            .ok_or_else(|| CapiError::null_pointer("constr"))?;
+
+        if name.is_null() {
+            return Err(CapiError::null_pointer("name"));
+        }
+
+        let name = unsafe { CStr::from_ptr(name) }.to_str().map_err(|e| {
+            CapiError::new(
+                LmStatus::InvalidArgument,
+                format!("`name` must be valid UTF-8: {e}"),
+            )
+        })?;
+        constr
+            .set_name(name.to_owned())
+            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+        Ok(())
+    })
+}

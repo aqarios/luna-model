@@ -517,6 +517,9 @@ pub struct LunaModelCApi {
     // Constraint //
     // ////////// //
     pub constr_free: unsafe extern "C" fn(*mut LmConstraint),
+    pub constr_clone: unsafe extern "C" fn(*const LmConstraint, *mut *mut LmConstraint) -> LmStatus,
+    pub constr_deep_clone:
+        unsafe extern "C" fn(*const LmConstraint, *const LmEnv, *mut *mut LmConstraint) -> LmStatus,
     pub constr_new: unsafe extern "C" fn(
         *const LmExpr,
         f64,
@@ -529,6 +532,12 @@ pub struct LunaModelCApi {
     pub constr_comparator: unsafe extern "C" fn(*const LmConstraint, *mut LmComparator) -> LmStatus,
     pub constr_name: unsafe extern "C" fn(*const LmConstraint, *mut LmBuffer) -> LmStatus,
     pub constr_set_name: unsafe extern "C" fn(*mut LmConstraint, *const c_char) -> LmStatus,
+    pub constr_substitute:
+        unsafe extern "C" fn(*mut LmConstraint, *const LmVref, *const LmExpr) -> LmStatus,
+    pub constr_equal_contents:
+        unsafe extern "C" fn(*const LmConstraint, *const LmConstraint, *mut bool) -> LmStatus,
+    pub constr_eq:
+        unsafe extern "C" fn(*const LmConstraint, *const LmConstraint, *mut bool) -> LmStatus,
     // //////////////////// //
     // ConstraintCollection //
     // //////////////////// //
