@@ -17,6 +17,8 @@ class Expression {
         }
     }
 
+    LmExpr *get() const { return handle_; }
+
   private:
     LmExpr *handle_;
 };

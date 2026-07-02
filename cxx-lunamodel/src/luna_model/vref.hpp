@@ -9,6 +9,7 @@
 #include "luna_model/detail/capi.hpp"
 #include "luna_model/env.hpp"
 #include "luna_model/funcs.h"
+#include "luna_model/types.h"
 #include "luna_model/variable.hpp"
 
 namespace lm {
@@ -104,6 +105,8 @@ class Vref {
         return out;
     }
     bool operator!=(const Vref &other) const { return !(*this == other); }
+
+    LmVref *get() const { return handle_; }
 
   private:
     LmVref *handle_;
