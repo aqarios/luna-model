@@ -1,6 +1,7 @@
 #ifndef LUNA_MODEL_VREF_HPP
 #define LUNA_MODEL_VREF_HPP
 
+#include <cstddef>
 #include <optional>
 
 #include <luna_model.h>
@@ -8,6 +9,7 @@
 #include "luna_model/bounds.hpp"
 #include "luna_model/detail/capi.hpp"
 #include "luna_model/env.hpp"
+#include "luna_model/expr.hpp"
 #include "luna_model/funcs.h"
 #include "luna_model/types.h"
 #include "luna_model/variable.hpp"
@@ -106,11 +108,78 @@ class Vref {
     }
     bool operator!=(const Vref &other) const { return !(*this == other); }
 
+    Expression pow(std::size_t n) const {
+        LmExpr *out = nullptr;
+        detail::check(lm_vref_pow(handle_, n, &out));
+        return Expression(out);
+    }
+
+    bool eval(double value, std::optional<double> tol) const {
+        bool out = false;
+        detail::check(lm_vref_eval(handle_, value, tol ? &tol.value() : nullptr, &out));
+        return out;
+    }
+
     LmVref *get() const { return handle_; }
 
   private:
     LmVref *handle_;
 };
+
+inline Expression operator*(const Vref &lhs, const Vref &rhs) {
+    LmExpr *out = nullptr;
+    detail::check(lm_vref_mul_vref(lhs.get(), rhs.get(), &out));
+    return Expression(out);
+}
+
+inline Expression operator*(const Vref &lhs, double rhs) {
+    LmExpr *out = nullptr;
+    detail::check(lm_vref_mul_bias(lhs.get(), rhs, &out));
+    return Expression(out);
+}
+
+inline Expression operator*(double lhs, const Vref &rhs) { return rhs * lhs; }
+
+inline Expression operator+(const Vref &lhs, const Vref &rhs) {
+    LmExpr *out = nullptr;
+    detail::check(lm_vref_add_vref(lhs.get(), rhs.get(), &out));
+    return Expression(out);
+}
+
+inline Expression operator+(const Vref &lhs, double rhs) {
+    LmExpr *out = nullptr;
+    detail::check(lm_vref_add_bias(lhs.get(), rhs, &out));
+    return Expression(out);
+}
+
+inline Expression operator+(double lhs, const Vref &rhs) { return rhs + lhs; }
+
+inline Expression operator-(const Vref &lhs, const Vref &rhs) {
+    LmExpr *out = nullptr;
+    detail::check(lm_vref_sub_vref(lhs.get(), rhs.get(), &out));
+    return Expression(out);
+}
+
+inline Expression operator-(const Vref &lhs, double rhs) {
+    LmExpr *out = nullptr;
+    detail::check(lm_vref_sub_bias(lhs.get(), rhs, &out));
+    return Expression(out);
+}
+
+inline Expression operator-(const Vref &lhs) {
+    LmExpr *out = nullptr;
+    detail::check(lm_vref_neg(lhs.get(), &out));
+    return Expression(out);
+}
+
+inline Vref operator!(const Vref &lhs) {
+    LmVref *out = nullptr;
+    detail::check(lm_vref_not(lhs.get(), &out));
+    return Vref(out);
+}
+
+// TODO: use a C-API function here also.
+// inline Expression operator-(double lhs, const Vref &rhs) { return rhs + lhs; }
 
 } // namespace lm
 

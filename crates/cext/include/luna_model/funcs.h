@@ -2258,6 +2258,99 @@ LmStatus lm_vref_eq(const LmVref *vref, const LmVref *other, bool *out);
  */
 LmStatus lm_vref_to_var(const LmVref *vref, LmVar **out);
 
+/**
+ * Multiplies two variable references, promoting the result to an expression
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `other` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_vref_mul_vref(const LmVref *vref, const LmVref *other, LmExpr **out);
+
+/**
+ * Multiplies a variable reference by a double, promoting the result to an expression
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_vref_mul_bias(const LmVref *vref, double other, LmExpr **out);
+
+/**
+ * Adds two variable references, promoting the result to an expression
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `other` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_vref_add_vref(const LmVref *vref, const LmVref *other, LmExpr **out);
+
+/**
+ * Adds a double value to a variable reference, promoting the result to an expression
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_vref_add_bias(const LmVref *vref, double other, LmExpr **out);
+
+/**
+ * Subtracts two variable references, promoting the result to an expression
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `other` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_vref_sub_vref(const LmVref *vref, const LmVref *other, LmExpr **out);
+
+/**
+ * Subtract a double value to a variable reference, promoting the result to an expression
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_vref_sub_bias(const LmVref *vref, double other, LmExpr **out);
+
+/**
+ * Negate a variable reference, promoting the result to an expression
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_vref_neg(const LmVref *vref, LmExpr **out);
+
+/**
+ * Invert a variable reference, resulting in a reference to the inverted variable.
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmVref *` storage.
+ */
+LmStatus lm_vref_not(const LmVref *vref, LmVref **out);
+
+/**
+ * Raise a variable reference to a power, promoting the result to an expression.
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_vref_pow(const LmVref *vref, uintptr_t n, LmExpr **out);
+
+/**
+ * Evaluates if the value satisfies this vref's current bounds.
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_vref_eval(const LmVref *vref, double value, const double *tol, bool *out);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

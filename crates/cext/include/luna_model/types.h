@@ -730,6 +730,16 @@ typedef struct {
     LmStatus (*vref_hash)(const LmVref*, uint64_t*);
     LmStatus (*vref_eq)(const LmVref*, const LmVref*, bool*);
     LmStatus (*vref_to_var)(const LmVref*, LmVar**);
+    LmStatus (*vref_mul_vref)(const LmVref*, const LmVref*, LmExpr **out);
+    LmStatus (*vref_mul_bias)(const LmVref*, double, LmExpr **out);
+    LmStatus (*vref_add_vref)(const LmVref*, const LmVref*, LmExpr **out);
+    LmStatus (*vref_add_bias)(const LmVref*, double, LmExpr **out);
+    LmStatus (*vref_sub_vref)(const LmVref*, const LmVref*, LmExpr **out);
+    LmStatus (*vref_sub_bias)(const LmVref*, double, LmExpr **out);
+    LmStatus (*vref_neg)(const LmVref*, LmExpr **out);
+    LmStatus (*vref_not)(const LmVref*, LmVref **out);
+    LmStatus (*vref_pow)(const LmVref*, uintptr_t, LmExpr **out);
+    LmStatus (*vref_eval)(const LmVref*, double, const double*, bool *out);
     void (*var_free)(LmVar*);
     LmStatus (*var_name)(const LmVar*, LmBuffer*);
     LmStatus (*var_vtype)(const LmVar*, LmVtype*);

@@ -684,6 +684,19 @@ pub struct LunaModelCApi {
     pub vref_hash: unsafe extern "C" fn(*const LmVref, *mut u64) -> LmStatus,
     pub vref_eq: unsafe extern "C" fn(*const LmVref, *const LmVref, *mut bool) -> LmStatus,
     pub vref_to_var: unsafe extern "C" fn(*const LmVref, *mut *mut LmVar) -> LmStatus,
+    pub vref_mul_vref:
+        unsafe extern "C" fn(*const LmVref, *const LmVref, out: *mut *mut LmExpr) -> LmStatus,
+    pub vref_mul_bias: unsafe extern "C" fn(*const LmVref, f64, out: *mut *mut LmExpr) -> LmStatus,
+    pub vref_add_vref:
+        unsafe extern "C" fn(*const LmVref, *const LmVref, out: *mut *mut LmExpr) -> LmStatus,
+    pub vref_add_bias: unsafe extern "C" fn(*const LmVref, f64, out: *mut *mut LmExpr) -> LmStatus,
+    pub vref_sub_vref:
+        unsafe extern "C" fn(*const LmVref, *const LmVref, out: *mut *mut LmExpr) -> LmStatus,
+    pub vref_sub_bias: unsafe extern "C" fn(*const LmVref, f64, out: *mut *mut LmExpr) -> LmStatus,
+    pub vref_neg: unsafe extern "C" fn(*const LmVref, out: *mut *mut LmExpr) -> LmStatus,
+    pub vref_not: unsafe extern "C" fn(*const LmVref, out: *mut *mut LmVref) -> LmStatus,
+    pub vref_pow: unsafe extern "C" fn(*const LmVref, usize, out: *mut *mut LmExpr) -> LmStatus,
+    pub vref_eval: unsafe extern "C" fn(*const LmVref, f64, *const f64, out: *mut bool) -> LmStatus,
     // //////// //
     // Variable //
     // //////// //

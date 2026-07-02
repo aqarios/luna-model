@@ -194,6 +194,17 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     vref_hash: crate::vref::lm_vref_hash,
     vref_eq: crate::vref::lm_vref_eq,
     vref_to_var: crate::vref::lm_vref_to_var,
+    // Vref -- ops
+    vref_mul_vref: crate::vref::lm_vref_mul_vref,
+    vref_mul_bias: crate::vref::lm_vref_mul_bias,
+    vref_add_vref: crate::vref::lm_vref_add_vref,
+    vref_add_bias: crate::vref::lm_vref_add_bias,
+    vref_sub_vref: crate::vref::lm_vref_sub_vref,
+    vref_sub_bias: crate::vref::lm_vref_sub_bias,
+    vref_neg: crate::vref::lm_vref_neg,
+    vref_not: crate::vref::lm_vref_not,
+    vref_pow: crate::vref::lm_vref_pow,
+    vref_eval: crate::vref::lm_vref_eval,
     // //////// //
     // Variable //
     // //////// //
