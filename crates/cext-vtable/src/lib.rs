@@ -613,6 +613,7 @@ pub struct LunaModelCApi {
     pub expr_eq: unsafe extern "C" fn(*const LmExpr, *const LmExpr, *mut bool) -> LmStatus,
     pub expr_equal_contents:
         unsafe extern "C" fn(*const LmExpr, *const LmExpr, *mut bool) -> LmStatus,
+    pub expr_add_vref: unsafe extern "C" fn(*mut LmExpr, *const LmVref) -> LmStatus,
     // ////////// //
     // Constraint //
     // ////////// //
@@ -693,6 +694,8 @@ pub struct LunaModelCApi {
     pub vref_sub_vref:
         unsafe extern "C" fn(*const LmVref, *const LmVref, out: *mut *mut LmExpr) -> LmStatus,
     pub vref_sub_bias: unsafe extern "C" fn(*const LmVref, f64, out: *mut *mut LmExpr) -> LmStatus,
+    pub vref_rsub_bias:
+        unsafe extern "C" fn(*const LmVref, f64, out: *mut *mut LmExpr) -> LmStatus,
     pub vref_neg: unsafe extern "C" fn(*const LmVref, out: *mut *mut LmExpr) -> LmStatus,
     pub vref_not: unsafe extern "C" fn(*const LmVref, out: *mut *mut LmVref) -> LmStatus,
     pub vref_pow: unsafe extern "C" fn(*const LmVref, usize, out: *mut *mut LmExpr) -> LmStatus,

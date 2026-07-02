@@ -132,6 +132,27 @@ pub unsafe extern "C" fn lm_vref_sub_bias(
     })
 }
 
+/// Subtracts a variable reference from a double value (`other - vref`),
+/// promoting the result to an expression (Rust `bias - vref`).
+///
+/// # Safety
+/// `vref` must be a valid vref handle created by this library.
+/// `out` must point to writable `LmExpr *` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_vref_rsub_bias(
+    vref: *const LmVref,
+    other: f64,
+    out: *mut *mut LmExpr,
+) -> LmStatus {
+    guard(|| {
+        let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
+        let out = unsafe { out_from_c(out) }?;
+        let expr = (other - vref.clone()).map_err(CapiError::errored)?;
+        *out = handle_to_c(expr);
+        Ok(())
+    })
+}
+
 /// Negate a variable reference, promoting the result to an expression
 ///
 /// # Safety

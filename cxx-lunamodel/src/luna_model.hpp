@@ -25,6 +25,7 @@
 #include "luna_model/lazy_bounds.hpp"           // IWYU pragma: export
 #include "luna_model/linear.hpp"                // IWYU pragma: export
 #include "luna_model/model.hpp"                 // IWYU pragma: export
+#include "luna_model/ops.hpp"                   // IWYU pragma: export
 #include "luna_model/quadratic.hpp"             // IWYU pragma: export
 #include "luna_model/solution.hpp"              // IWYU pragma: export
 #include "luna_model/specs.hpp"                 // IWYU pragma: export

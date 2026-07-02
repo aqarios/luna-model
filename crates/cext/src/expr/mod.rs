@@ -3,6 +3,7 @@ mod creation;
 mod equality;
 mod general;
 mod serialize;
+mod ops;
 
 pub use access::{
     lm_expr_complete_vars, lm_expr_degree, lm_expr_env, lm_expr_has_higher_order,
@@ -17,3 +18,4 @@ pub use creation::{
 pub use equality::{lm_expr_eq, lm_expr_equal_contents};
 pub use general::{lm_expr_clone, lm_expr_deep_clone};
 pub use serialize::{lm_expr_deserialize, lm_expr_serialize};
+pub use ops::lm_expr_add_vref;

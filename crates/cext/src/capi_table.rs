@@ -130,6 +130,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_is_constant: crate::expr::lm_expr_is_constant,
     expr_has_quadratic: crate::expr::lm_expr_has_quadratic,
     expr_has_higher_order: crate::expr::lm_expr_has_higher_order,
+    // Expr -- ops
+    expr_add_vref: crate::expr::lm_expr_add_vref,
     // ////////// //
     // Constraint //
     // ////////// //
@@ -201,6 +203,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     vref_add_bias: crate::vref::lm_vref_add_bias,
     vref_sub_vref: crate::vref::lm_vref_sub_vref,
     vref_sub_bias: crate::vref::lm_vref_sub_bias,
+    vref_rsub_bias: crate::vref::lm_vref_rsub_bias,
     vref_neg: crate::vref::lm_vref_neg,
     vref_not: crate::vref::lm_vref_not,
     vref_pow: crate::vref::lm_vref_pow,

@@ -1041,6 +1041,15 @@ LmStatus lm_expr_serialize(const LmExpr *expr, LmBuffer *out);
 LmStatus lm_expr_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env, LmExpr **out);
 
 /**
+ * Adds a variable reference to the expression in place (Rust `expr += &vref`).
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `vref` must be a valid vref handle created by this library.
+ */
+LmStatus lm_expr_add_vref(LmExpr *expr, const LmVref *vref);
+
+/**
  * Returns the number of explicitly stored entries of the higher_order term.
  *
  * # Safety
@@ -2324,6 +2333,16 @@ LmStatus lm_vref_sub_vref(const LmVref *vref, const LmVref *other, LmExpr **out)
  * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_vref_sub_bias(const LmVref *vref, double other, LmExpr **out);
+
+/**
+ * Subtracts a variable reference from a double value (`other - vref`),
+ * promoting the result to an expression (Rust `bias - vref`).
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_vref_rsub_bias(const LmVref *vref, double other, LmExpr **out);
 
 /**
  * Negate a variable reference, promoting the result to an expression

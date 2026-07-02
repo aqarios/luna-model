@@ -2,19 +2,20 @@
 #define LUNA_MODEL_VREF_HPP
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
+#include <string>
 
 #include <luna_model.h>
 
 #include "luna_model/bounds.hpp"
 #include "luna_model/detail/capi.hpp"
 #include "luna_model/env.hpp"
-#include "luna_model/expr.hpp"
-#include "luna_model/funcs.h"
-#include "luna_model/types.h"
 #include "luna_model/variable.hpp"
 
 namespace lm {
+
+class Expression; // defined in expr.hpp; ops are defined in ops.hpp
 
 /* Owning handle to a LunaModel VarRef (frees on destruction).
  *
@@ -23,7 +24,7 @@ namespace lm {
 class Vref {
   public:
     /* Creates a new vref (Rust `VarRef::new(id, env)`). */
-    explicit Vref(std::uint32_t id, Env env) {
+    Vref(std::uint32_t id, const Env &env) {
         LmVref *out = nullptr;
         detail::check(lm_vref_new(id, env.get(), &out));
         handle_ = out;
@@ -38,16 +39,31 @@ class Vref {
         }
     }
 
-    /* Returns the id of the vref. */
+    Vref(Vref &&other) noexcept : handle_(other.handle_) { other.handle_ = nullptr; }
+    Vref &operator=(Vref &&other) noexcept {
+        if (this != &other) {
+            if (handle_ != nullptr) {
+                lm_vref_free(handle_);
+            }
+            handle_ = other.handle_;
+            other.handle_ = nullptr;
+        }
+        return *this;
+    }
+    Vref(const Vref &) = delete;
+    Vref &operator=(const Vref &) = delete;
+
+    /* Returns the raw variable index inside the environment (Rust `vref.id()`). */
     std::uint32_t id() const {
-        std::uint32_t out;
+        std::uint32_t out = 0;
         detail::check(lm_vref_id(handle_, &out));
         return out;
     }
 
-    /* Returns true if the referenced variable still exists in its environment, false otherwise. */
+    /* Returns whether the referenced variable still exists in its environment
+     * (Rust `vref.check_living().is_ok()`). */
     bool check_living() const {
-        bool out;
+        bool out = false;
         detail::check(lm_vref_check_living(handle_, &out));
         return out;
     }
@@ -63,7 +79,7 @@ class Vref {
 
     /* Returns the variable vtype (Rust `vref.vtype()`). */
     LmVtype vtype() const {
-        LmVtype out;
+        LmVtype out = {};
         detail::check(lm_vref_vtype(handle_, &out));
         return out;
     }
@@ -92,7 +108,8 @@ class Vref {
         return out;
     }
 
-    /* Returns a stable hash derived from the variable name (Rust `vref.hash()`). */
+    /* Materializes the referenced environment entry as an owned variable
+     * (Rust `TryInto<Variable>`). */
     Variable to_var() const {
         LmVar *out = nullptr;
         detail::check(lm_vref_to_var(handle_, &out));
@@ -108,78 +125,29 @@ class Vref {
     }
     bool operator!=(const Vref &other) const { return !(*this == other); }
 
-    Expression pow(std::size_t n) const {
-        LmExpr *out = nullptr;
-        detail::check(lm_vref_pow(handle_, n, &out));
-        return Expression(out);
-    }
+    /* Raises the variable to the power `n`, promoting the result to an
+     * expression (Rust `vref.pow(n)`). Defined in ops.hpp. */
+    Expression pow(std::size_t n) const;
 
-    bool eval(double value, std::optional<double> tol) const {
+    /* Evaluates whether `value` satisfies the variable's current bounds
+     * (Rust `vref.evaluate(value, tol)`). `std::nullopt` selects the default
+     * tolerance. */
+    bool eval(double value, std::optional<double> tol = std::nullopt) const {
         bool out = false;
         detail::check(lm_vref_eval(handle_, value, tol ? &tol.value() : nullptr, &out));
         return out;
     }
 
-    LmVref *get() const { return handle_; }
+    LmVref *get() const noexcept { return handle_; }
+    LmVref *release() noexcept {
+        LmVref *h = handle_;
+        handle_ = nullptr;
+        return h;
+    }
 
   private:
     LmVref *handle_;
 };
-
-inline Expression operator*(const Vref &lhs, const Vref &rhs) {
-    LmExpr *out = nullptr;
-    detail::check(lm_vref_mul_vref(lhs.get(), rhs.get(), &out));
-    return Expression(out);
-}
-
-inline Expression operator*(const Vref &lhs, double rhs) {
-    LmExpr *out = nullptr;
-    detail::check(lm_vref_mul_bias(lhs.get(), rhs, &out));
-    return Expression(out);
-}
-
-inline Expression operator*(double lhs, const Vref &rhs) { return rhs * lhs; }
-
-inline Expression operator+(const Vref &lhs, const Vref &rhs) {
-    LmExpr *out = nullptr;
-    detail::check(lm_vref_add_vref(lhs.get(), rhs.get(), &out));
-    return Expression(out);
-}
-
-inline Expression operator+(const Vref &lhs, double rhs) {
-    LmExpr *out = nullptr;
-    detail::check(lm_vref_add_bias(lhs.get(), rhs, &out));
-    return Expression(out);
-}
-
-inline Expression operator+(double lhs, const Vref &rhs) { return rhs + lhs; }
-
-inline Expression operator-(const Vref &lhs, const Vref &rhs) {
-    LmExpr *out = nullptr;
-    detail::check(lm_vref_sub_vref(lhs.get(), rhs.get(), &out));
-    return Expression(out);
-}
-
-inline Expression operator-(const Vref &lhs, double rhs) {
-    LmExpr *out = nullptr;
-    detail::check(lm_vref_sub_bias(lhs.get(), rhs, &out));
-    return Expression(out);
-}
-
-inline Expression operator-(const Vref &lhs) {
-    LmExpr *out = nullptr;
-    detail::check(lm_vref_neg(lhs.get(), &out));
-    return Expression(out);
-}
-
-inline Vref operator!(const Vref &lhs) {
-    LmVref *out = nullptr;
-    detail::check(lm_vref_not(lhs.get(), &out));
-    return Vref(out);
-}
-
-// TODO: use a C-API function here also.
-// inline Expression operator-(double lhs, const Vref &rhs) { return rhs + lhs; }
 
 } // namespace lm
 

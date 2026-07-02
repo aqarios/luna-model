@@ -686,6 +686,7 @@ typedef struct {
     LmStatus (*expr_has_higher_order)(const LmExpr*, bool*);
     LmStatus (*expr_eq)(const LmExpr*, const LmExpr*, bool*);
     LmStatus (*expr_equal_contents)(const LmExpr*, const LmExpr*, bool*);
+    LmStatus (*expr_add_vref)(LmExpr*, const LmVref*);
     void (*constr_free)(LmConstraint*);
     LmStatus (*constr_clone)(const LmConstraint*, LmConstraint**);
     LmStatus (*constr_deep_clone)(const LmConstraint*, const LmEnv*, LmConstraint**);
@@ -736,6 +737,7 @@ typedef struct {
     LmStatus (*vref_add_bias)(const LmVref*, double, LmExpr **out);
     LmStatus (*vref_sub_vref)(const LmVref*, const LmVref*, LmExpr **out);
     LmStatus (*vref_sub_bias)(const LmVref*, double, LmExpr **out);
+    LmStatus (*vref_rsub_bias)(const LmVref*, double, LmExpr **out);
     LmStatus (*vref_neg)(const LmVref*, LmExpr **out);
     LmStatus (*vref_not)(const LmVref*, LmVref **out);
     LmStatus (*vref_pow)(const LmVref*, uintptr_t, LmExpr **out);
