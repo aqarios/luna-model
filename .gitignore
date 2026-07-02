@@ -78,6 +78,8 @@ py-lunamodel/.intentionally-empty-file.o
 !THIRD_PARTY_LICENSES.txt
 py-lunamodel/output.lp
 py-lunamodel/problem.lp
+py-lunamodel/output.mps
+py-lunamodel/problem.mps
 
 py-lunamodel/tests/test_core/test_solution/test_translator/model.lp
 py-lunamodel/tests/test_core/test_translator/mps_models/*.mps

@@ -108,7 +108,7 @@ class QiskitOptMapperTranslator:
         >>> x = mod.binary_var("x")
         >>> y = mod.binary_var("y")
         >>> mod.minimize(constant=0.5, linear={"x": -1, "y": 2}, quadratic={("x", "y"): 1})
-        >>> model = QiskitOptMapperTranslator.to_lm(bqm)
+        >>> model = QiskitOptMapperTranslator.to_lm(mod)
         >>> print(model.objective)
         x y - x + 2 y + 0.5
         """
