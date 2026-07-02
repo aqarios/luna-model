@@ -95,6 +95,7 @@ dev = [
     "pyscipopt>=6.2.1",
     "pytest>=9.0.2",
     "qiskit>=2.1.2",
+    "qiskit-addon-opt-mapper>=0.1.0",
     "qiskit-ibm-runtime>=0.47.0",
     "qiskit-optimization>=0.6.1",
     "scipy>=1.16.3",
