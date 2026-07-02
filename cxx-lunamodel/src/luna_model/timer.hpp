@@ -3,6 +3,7 @@
 
 #include <luna_model.h>
 
+#include "luna_model/detail/capi.hpp"
 #include "luna_model/timing.hpp"
 
 namespace lm {
@@ -16,14 +17,27 @@ class Timer {
         }
     }
 
-    static Timer start() {
-        LmTimer *out = nullptr;
-        return Timer(out);
+    Timer(Timer &&other) noexcept : handle_(other.handle_) { other.handle_ = nullptr; }
+    Timer &operator=(Timer &&other) noexcept {
+        if (this != &other) {
+            if (handle_ != nullptr) {
+                lm_timer_free(handle_);
+            }
+            handle_ = other.handle_;
+            other.handle_ = nullptr;
+        }
+        return *this;
     }
+    Timer(const Timer &) = delete;
+    Timer &operator=(const Timer &) = delete;
 
+    /* Starts a new wall-clock timer (Rust `Timer::start()`). */
+    static Timer start() { return Timer(lm_timer_start()); }
+
+    /* Stops the timer, producing a timing record (Rust `timer.stop()`). */
     Timing stop() const {
         LmTiming *out = nullptr;
-        lm_timer_stop(handle_, &out);
+        detail::check(lm_timer_stop(handle_, &out));
         return Timing(out);
     }
 

@@ -14,11 +14,18 @@
 #ifndef LUNA_MODEL_HPP
 #define LUNA_MODEL_HPP
 
-#include "luna_model/error.hpp"    // IWYU pragma: export
-#include "luna_model/model.hpp"    // IWYU pragma: export
-#include "luna_model/solution.hpp" // IWYU pragma: export
-#include "luna_model/version.hpp"  // IWYU pragma: export
-#include "luna_model/timer.hpp"    // IWYU pragma: export
-#include "luna_model/timing.hpp"   // IWYU pragma: export
+#include "luna_model/bound.hpp"                 // IWYU pragma: export
+#include "luna_model/bounds.hpp"                // IWYU pragma: export
+#include "luna_model/constraint.hpp"            // IWYU pragma: export
+#include "luna_model/constraint_collection.hpp" // IWYU pragma: export
+#include "luna_model/env.hpp"                   // IWYU pragma: export
+#include "luna_model/error.hpp"                 // IWYU pragma: export
+#include "luna_model/model.hpp"                 // IWYU pragma: export
+#include "luna_model/solution.hpp"              // IWYU pragma: export
+#include "luna_model/timer.hpp"                 // IWYU pragma: export
+#include "luna_model/timing.hpp"                // IWYU pragma: export
+#include "luna_model/variable.hpp"              // IWYU pragma: export
+#include "luna_model/version.hpp"               // IWYU pragma: export
+#include "luna_model/vref.hpp"                  // IWYU pragma: export
 
 #endif // LUNA_MODEL_HPP

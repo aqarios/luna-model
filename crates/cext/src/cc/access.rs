@@ -43,7 +43,7 @@ pub unsafe extern "C" fn lm_cc_ctypes(cc: *const LmCC, out: *mut LmCmpBuffer) ->
     })
 }
 
-/// Returns the distinct variables used by the constraint-collection.
+/// Returns the distinct variables used by the constraint-collection including inverted binary variables.
 ///
 /// This matches `ConstraintCollection::complete_vars()` in the Rust API.
 /// The returned array is owned by the caller and must be released with `lm_vref_buffer_free`.
@@ -57,7 +57,7 @@ pub unsafe extern "C" fn lm_cc_complete_vars(cc: *const LmCC, out: *mut LmVrefBu
         let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
         let out = unsafe { out_from_c(out) }?;
         let vars = cc
-            .vars()
+            .complete_vars()
             .map(|v| handle_to_c(v))
             .collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
@@ -65,7 +65,7 @@ pub unsafe extern "C" fn lm_cc_complete_vars(cc: *const LmCC, out: *mut LmVrefBu
     })
 }
 
-/// Returns the distinct variables used by the constraint-collection including inverted binary variables.
+/// Returns the distinct variables used by the constraint-collection.
 ///
 /// This matches `ConstraintCollection::vars()` in the Rust API.
 /// The returned array is owned by the caller and must be released with `lm_vref_buffer_free`.
@@ -79,7 +79,7 @@ pub unsafe extern "C" fn lm_cc_vars(cc: *const LmCC, out: *mut LmVrefBuffer) -> 
         let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
         let out = unsafe { out_from_c(out) }?;
         let vars = cc
-            .complete_vars()
+            .vars()
             .map(|v| handle_to_c(v))
             .collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);

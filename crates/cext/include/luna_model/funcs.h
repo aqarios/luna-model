@@ -222,7 +222,7 @@ LmStatus lm_cc_vtypes(const LmCC *cc, LmVtypeBuffer *out);
 LmStatus lm_cc_ctypes(const LmCC *cc, LmCmpBuffer *out);
 
 /**
- * Returns the distinct variables used by the constraint-collection.
+ * Returns the distinct variables used by the constraint-collection including inverted binary variables.
  *
  * This matches `ConstraintCollection::complete_vars()` in the Rust API.
  * The returned array is owned by the caller and must be released with `lm_vref_buffer_free`.
@@ -231,10 +231,11 @@ LmStatus lm_cc_ctypes(const LmCC *cc, LmCmpBuffer *out);
  * `cc` must be a valid constraint-collection handle created by this library.
  * `out` must point to writable `LmVrefBuffer` storage.
  */
-LmStatus lm_cc_complete_vars(const LmCC *cc, LmVrefBuffer *out);
+LmStatus lm_cc_complete_vars(const LmCC *cc,
+                             LmVrefBuffer *out);
 
 /**
- * Returns the distinct variables used by the constraint-collection including inverted binary variables.
+ * Returns the distinct variables used by the constraint-collection.
  *
  * This matches `ConstraintCollection::vars()` in the Rust API.
  * The returned array is owned by the caller and must be released with `lm_vref_buffer_free`.
@@ -243,8 +244,7 @@ LmStatus lm_cc_complete_vars(const LmCC *cc, LmVrefBuffer *out);
  * `cc` must be a valid constraint-collection handle created by this library.
  * `out` must point to writable `LmVrefBuffer` storage.
  */
-LmStatus lm_cc_vars(const LmCC *cc,
-                    LmVrefBuffer *out);
+LmStatus lm_cc_vars(const LmCC *cc, LmVrefBuffer *out);
 
 /**
  * Returns `true` when the constraint-collection contains no constraints.
