@@ -1,6 +1,7 @@
 mod access;
 mod creation;
 mod general;
+mod ops;
 
 pub use access::{
     lm_vref_bounds, lm_vref_check_living, lm_vref_hash, lm_vref_id, lm_vref_inverted, lm_vref_name,

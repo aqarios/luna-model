@@ -12,6 +12,12 @@ namespace lm {
 class Env {
 
   public:
+    ~Env() {
+        if (handle_ != nullptr) {
+            lm_env_free(handle_);
+        }
+    }
+
     LmEnv *get() const { return handle_; }
 
   private:
