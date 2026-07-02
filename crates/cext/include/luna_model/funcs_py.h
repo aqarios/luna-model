@@ -224,6 +224,7 @@ static inline int import_luna_model(void) {
 #define lm_bounds_clone(...) (lunamodel__vtable->bounds_clone(__VA_ARGS__))
 #define lm_bounds_lower(...) (lunamodel__vtable->bounds_lower(__VA_ARGS__))
 #define lm_bounds_upper(...) (lunamodel__vtable->bounds_upper(__VA_ARGS__))
+#define lm_bounds_eval(...) (lunamodel__vtable->bounds_eval(__VA_ARGS__))
 #define lm_lazy_bounds_free(...) (lunamodel__vtable->lazy_bounds_free(__VA_ARGS__))
 #define lm_lazy_bounds_default(...) (lunamodel__vtable->lazy_bounds_default(__VA_ARGS__))
 #define lm_lazy_bounds_new(...) (lunamodel__vtable->lazy_bounds_new(__VA_ARGS__))

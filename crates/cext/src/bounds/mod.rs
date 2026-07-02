@@ -1,6 +1,7 @@
 mod access;
 mod creation;
 mod general;
+mod ops;
 
 pub use access::{lm_bounds_lower, lm_bounds_upper};
 pub use creation::{
@@ -8,3 +9,4 @@ pub use creation::{
     lm_bounds_real, lm_bounds_spin,
 };
 pub use general::lm_bounds_clone;
+pub use ops::lm_bounds_eval;

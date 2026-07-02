@@ -774,6 +774,7 @@ typedef struct {
     LmStatus (*bounds_clone)(const LmBounds*, LmBounds**);
     LmStatus (*bounds_lower)(const LmBounds*, LmBound*);
     LmStatus (*bounds_upper)(const LmBounds*, LmBound*);
+    LmStatus (*bounds_eval)(const LmBounds*, double, const double*, bool*);
     void (*lazy_bounds_free)(LmLazyBounds*);
     LmLazyBounds *(*lazy_bounds_default)(void);
     LmStatus (*lazy_bounds_new)(const LmBound*, const LmBound*, LmLazyBounds**);

@@ -250,6 +250,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Bounds -- access
     bounds_lower: crate::bounds::lm_bounds_lower,
     bounds_upper: crate::bounds::lm_bounds_upper,
+    // Bounds -- ops
+    bounds_eval: crate::bounds::lm_bounds_eval,
     // ////// //
     // LazyBounds //
     // ////// //

@@ -2,9 +2,11 @@
 #define LUNA_MODEL_BOUNDS_HPP
 
 #include <luna_model.h>
+#include <optional>
 
 #include "luna_model/bound.hpp"
 #include "luna_model/detail/capi.hpp"
+#include "luna_model/funcs.h"
 
 namespace lm {
 
@@ -98,6 +100,12 @@ class Bounds {
         LmBounds *out = nullptr;
         detail::check(lm_bounds_clone(handle_, &out));
         return Bounds(out);
+    }
+
+    bool eval(double value, std::optional<double> tol) const {
+        bool out = false;
+        detail::check(lm_bounds_eval(handle_, value, tol ? &tol.value() : nullptr, &out));
+        return out;
     }
 
     /* Rust `PartialEq` — compares both endpoints.

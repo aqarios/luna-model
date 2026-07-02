@@ -746,6 +746,7 @@ pub struct LunaModelCApi {
     pub bounds_clone: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBounds) -> LmStatus,
     pub bounds_lower: unsafe extern "C" fn(*const LmBounds, *mut LmBound) -> LmStatus,
     pub bounds_upper: unsafe extern "C" fn(*const LmBounds, *mut LmBound) -> LmStatus,
+    pub bounds_eval: unsafe extern "C" fn(*const LmBounds, f64, *const f64, *mut bool) -> LmStatus,
     // ////// //
     // LazyBounds //
     // ////// //

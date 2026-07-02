@@ -111,6 +111,16 @@ LmStatus lm_bounds_default_for(LmVtype vtype, LmBounds **out);
 LmStatus lm_bounds_clone(const LmBounds *bounds, LmBounds **out);
 
 /**
+ * Returns whether `val` lies within the closed interval represented by these bounds.
+ * Unbounded sides are treated as always satisfied.
+ *
+ * # Safety
+ * `bounds` must be a valid bounds handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_bounds_eval(const LmBounds *bounds, double value, const double *tol, bool *out);
+
+/**
  * Frees a buffer previously returned by LunaModel.
  *
  * A null/empty buffer is a no-op. Each buffer must be freed at most once.
