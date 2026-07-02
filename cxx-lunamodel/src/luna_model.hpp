@@ -20,8 +20,14 @@
 #include "luna_model/constraint_collection.hpp" // IWYU pragma: export
 #include "luna_model/env.hpp"                   // IWYU pragma: export
 #include "luna_model/error.hpp"                 // IWYU pragma: export
+#include "luna_model/expr.hpp"                  // IWYU pragma: export
+#include "luna_model/higher_order.hpp"          // IWYU pragma: export
+#include "luna_model/lazy_bounds.hpp"           // IWYU pragma: export
+#include "luna_model/linear.hpp"                // IWYU pragma: export
 #include "luna_model/model.hpp"                 // IWYU pragma: export
+#include "luna_model/quadratic.hpp"             // IWYU pragma: export
 #include "luna_model/solution.hpp"              // IWYU pragma: export
+#include "luna_model/specs.hpp"                 // IWYU pragma: export
 #include "luna_model/timer.hpp"                 // IWYU pragma: export
 #include "luna_model/timing.hpp"                // IWYU pragma: export
 #include "luna_model/variable.hpp"              // IWYU pragma: export
