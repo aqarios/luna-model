@@ -1,9 +1,7 @@
+use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::core::prelude::HigherOrder;
 
-use crate::{
-    LmHigherOrder, LmStatus,
-    error::{CapiError, guard},
-};
+use crate::{LmHigherOrder, LmStatus, error::guard};
 
 /// Compares two higher_order terms for equality.
 ///
@@ -18,11 +16,10 @@ pub unsafe extern "C" fn lm_higher_order_eq(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *const HigherOrder).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
-        let other = unsafe { (other as *const HigherOrder).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let higher_order =
+            unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
+        let other = unsafe { ref_from_c(other as *const HigherOrder, "other") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = higher_order.eq(other);
         Ok(())
     })
@@ -31,17 +28,18 @@ pub unsafe extern "C" fn lm_higher_order_eq(
 /// Clones a higher_order term into a new, independent handle written to `out`.
 ///
 /// # Safety
-/// `higher_order` must be a valid handle and `out` must point to writable storage.
+/// `higher_order` must be a valid higher-order handle created by this library.
+/// `out` must point to writable `LmHigherOrder *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_higher_order_clone(
     higher_order: *const LmHigherOrder,
     out: *mut *mut LmHigherOrder,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *const HigherOrder).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(higher_order.clone())) as *mut LmHigherOrder;
+        let higher_order =
+            unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(higher_order.clone());
         Ok(())
     })
 }

@@ -12,7 +12,7 @@ pub(crate) fn empty_ctype_buffer() -> LmCtypeBuffer {
     }
 }
 
-/// Converts an owned `Vec<u8>` into a buffer the caller now owns.
+/// Converts an owned `Vec<LmCtype>` into a buffer the caller now owns.
 pub(crate) fn ctype_buffer_from_vec(mut vec: Vec<LmCtype>) -> LmCtypeBuffer {
     if vec.is_empty() {
         return empty_ctype_buffer();

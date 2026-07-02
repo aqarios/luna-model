@@ -1,8 +1,9 @@
+use crate::utils::{drop_from_c, handle_to_c, out_from_c};
 use luna_model::core::prelude::Bounds;
 
 use crate::{
     LmBound, LmBounds, LmStatus, LmVtype,
-    error::{CapiError, guard},
+    error::guard,
     utils::{bound_from_c, vtype_from_c},
 };
 
@@ -12,17 +13,16 @@ use crate::{
 /// `bounds` must originate from this library and must not be used or freed again.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_bounds_free(bounds: *mut LmBounds) {
-    if !bounds.is_null() {
-        drop(unsafe { Box::from_raw(bounds as *mut Bounds) });
-    }
+    unsafe { drop_from_c(bounds as *mut Bounds) }
 }
 
-/// Creates a new bounds.
+/// Creates new bounds from explicit lower and upper bounds.
+///
+/// On success, `out` receives an owned handle that must be released with
+/// [`lm_bounds_free`].
 ///
 /// # Safety
-/// `lower`  must be a valid bound handle created by this library.
-/// `upper`  must be a valid bound handle created by this library.
-/// `out`  must point to writable `LmBounds` storage.
+/// `out` must point to writable `LmBounds *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_bounds_new(
     lower: LmBound,
@@ -30,10 +30,10 @@ pub unsafe extern "C" fn lm_bounds_new(
     out: *mut *mut LmBounds,
 ) -> LmStatus {
     guard(|| {
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
         let bounds = Bounds::new(bound_from_c(lower), bound_from_c(upper));
-        *out = Box::into_raw(Box::new(bounds)) as *mut LmBounds;
+        *out = handle_to_c(bounds);
         Ok(())
     })
 }
@@ -41,12 +41,12 @@ pub unsafe extern "C" fn lm_bounds_new(
 /// Creates new binary bounds.
 ///
 /// # Safety
-/// `out`  must point to writable `LmBounds` storage.
+/// `out` must point to writable `LmBounds *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_bounds_binary(out: *mut *mut LmBounds) -> LmStatus {
     guard(|| {
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(Bounds::binary())) as *mut LmBounds;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(Bounds::binary());
         Ok(())
     })
 }
@@ -54,12 +54,12 @@ pub unsafe extern "C" fn lm_bounds_binary(out: *mut *mut LmBounds) -> LmStatus {
 /// Creates new spin bounds.
 ///
 /// # Safety
-/// `out`  must point to writable `LmBounds` storage.
+/// `out` must point to writable `LmBounds *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_bounds_spin(out: *mut *mut LmBounds) -> LmStatus {
     guard(|| {
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(Bounds::spin())) as *mut LmBounds;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(Bounds::spin());
         Ok(())
     })
 }
@@ -67,12 +67,12 @@ pub unsafe extern "C" fn lm_bounds_spin(out: *mut *mut LmBounds) -> LmStatus {
 /// Creates new integer bounds.
 ///
 /// # Safety
-/// `out`  must point to writable `LmBounds` storage.
+/// `out` must point to writable `LmBounds *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_bounds_integer(out: *mut *mut LmBounds) -> LmStatus {
     guard(|| {
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(Bounds::integer())) as *mut LmBounds;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(Bounds::integer());
         Ok(())
     })
 }
@@ -80,12 +80,12 @@ pub unsafe extern "C" fn lm_bounds_integer(out: *mut *mut LmBounds) -> LmStatus 
 /// Creates new real bounds.
 ///
 /// # Safety
-/// `out`  must point to writable `LmBounds` storage.
+/// `out` must point to writable `LmBounds *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_bounds_real(out: *mut *mut LmBounds) -> LmStatus {
     guard(|| {
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(Bounds::real())) as *mut LmBounds;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(Bounds::real());
         Ok(())
     })
 }
@@ -94,15 +94,15 @@ pub unsafe extern "C" fn lm_bounds_real(out: *mut *mut LmBounds) -> LmStatus {
 ///
 /// # Safety
 /// `vtype` the vtype to generate the bounds for.
-/// `out`   must point to writable `LmBounds` storage.
+/// `out` must point to writable `LmBounds *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_bounds_default_for(
     vtype: LmVtype,
     out: *mut *mut LmBounds,
 ) -> LmStatus {
     guard(|| {
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(Bounds::default_for(&vtype_from_c(vtype)))) as *mut LmBounds;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(Bounds::default_for(&vtype_from_c(vtype)));
         Ok(())
     })
 }

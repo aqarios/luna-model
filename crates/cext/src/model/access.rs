@@ -1,4 +1,5 @@
-use std::ffi::{CStr, c_char};
+use crate::utils::{handle_to_c, out_from_c, ref_from_c, str_from_c};
+use std::ffi::c_char;
 
 use luna_model::core::Model;
 
@@ -24,10 +25,9 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_name(model: *const LmModel, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
         *out = buffer_from_vec(model.name.as_bytes().to_vec());
 
@@ -43,10 +43,9 @@ pub unsafe extern "C" fn lm_model_name(model: *const LmModel, out: *mut LmBuffer
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_sense(model: *const LmModel, out: *mut LmSense) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
         *out = sense_to_c(model.sense);
 
@@ -58,16 +57,15 @@ pub unsafe extern "C" fn lm_model_sense(model: *const LmModel, out: *mut LmSense
 ///
 /// # Safety
 /// `model` must be a valid model handle created by this library.
-/// `out` must point to writable `LmEnv` storage.
+/// `out` must point to writable `LmEnv *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_env(model: *const LmModel, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
-        *out = Box::into_raw(Box::new(model.environment.clone())) as *mut LmEnv;
+        *out = handle_to_c(model.environment.clone());
 
         Ok(())
     })
@@ -77,16 +75,15 @@ pub unsafe extern "C" fn lm_model_env(model: *const LmModel, out: *mut *mut LmEn
 ///
 /// # Safety
 /// `model` must be a valid model handle created by this library.
-/// `out` must point to writable `LmSpecs` storage.
+/// `out` must point to writable `LmSpecs *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_specs(model: *const LmModel, out: *mut *mut LmSpecs) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
-        *out = Box::into_raw(Box::new(model.specs())) as *mut LmSpecs;
+        *out = handle_to_c(model.specs());
 
         Ok(())
     })
@@ -107,10 +104,9 @@ pub unsafe extern "C" fn lm_model_vtypes(
     out: *mut LmVtypeBuffer,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
         let vtypes = model.vtypes().map(vtype_to_c).collect::<Vec<LmVtype>>();
 
@@ -127,17 +123,16 @@ pub unsafe extern "C" fn lm_model_vtypes(
 ///
 /// # Safety
 /// `model` must be a valid model handle created by this library.
-/// `out` must point to writable `usize` storage.
+/// `out` must point to writable `uintptr_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_num_variables(
     model: *const LmModel,
     out: *mut usize,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
         *out = model.num_variables();
 
@@ -157,14 +152,13 @@ pub unsafe extern "C" fn lm_model_num_variables(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_vars(model: *const LmModel, out: *mut LmVrefBuffer) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
         let vars = model
             .vars()
-            .map(|v| Box::into_raw(Box::new(v)) as *mut LmVref)
+            .map(|v| handle_to_c(v))
             .collect::<Vec<*mut LmVref>>();
 
         *out = vref_buffer_from_vec(vars);
@@ -190,27 +184,15 @@ pub unsafe extern "C" fn lm_model_var(
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
-        if name.is_null() {
-            return Err(CapiError::null_pointer("name"));
-        }
+        let name = unsafe { str_from_c(name, "name") }?;
 
-        let name = unsafe { CStr::from_ptr(name) }.to_str().map_err(|e| {
-            CapiError::new(
-                LmStatus::InvalidArgument,
-                format!("`name` must be valid UTF-8: {e}"),
-            )
-        })?;
+        let var = model.var(name).map_err(CapiError::invalid_argument)?;
 
-        let var = model
-            .var(name)
-            .map_err(|e| CapiError::new(LmStatus::InvalidArgument, e.to_string()))?;
-
-        *out = Box::into_raw(Box::new(var)) as *mut LmVref;
+        *out = handle_to_c(var);
 
         Ok(())
     })
@@ -220,17 +202,16 @@ pub unsafe extern "C" fn lm_model_var(
 ///
 /// # Safety
 /// `model` must be a valid model handle created by this library.
-/// `out` must point to writable `LmExpr` storage.
+/// `out` must point to writable `LmExpr *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_objective(
     model: *const LmModel,
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(model.objective.clone())) as *mut LmExpr;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(model.objective.clone());
         Ok(())
     })
 }
@@ -239,17 +220,16 @@ pub unsafe extern "C" fn lm_model_objective(
 ///
 /// # Safety
 /// `model` must be a valid model handle created by this library.
-/// `out` must point to writable `LmCC` storage.
+/// `out` must point to writable `LmCC *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_constraints(
     model: *const LmModel,
     out: *mut *mut LmCC,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(model.constraints.clone())) as *mut LmCC;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(model.constraints.clone());
         Ok(())
     })
 }

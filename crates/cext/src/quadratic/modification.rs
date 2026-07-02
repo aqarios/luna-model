@@ -1,13 +1,11 @@
+use crate::utils::{handle_to_c, mut_from_c, out_from_c, ref_from_c};
 use std::ops::{AddAssign, MulAssign, Neg};
 
 use luna_model::core::prelude::Quadratic;
 
-use crate::{
-    LmQuadratic, LmStatus,
-    error::{CapiError, guard},
-};
+use crate::{LmQuadratic, LmStatus, error::guard};
 
-/// Add a new entry with it's bias to the quadratic term.
+/// Adds a new entry with its bias to the quadratic term.
 ///
 /// # Safety
 /// `quadratic` must be a valid mutable quadratic handle created by this library.
@@ -19,14 +17,13 @@ pub unsafe extern "C" fn lm_quadratic_add_entry(
     bias: f64,
 ) -> LmStatus {
     guard(|| {
-        let quadratic = unsafe { (quadratic as *mut Quadratic).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("quadratic"))?;
+        let quadratic = unsafe { mut_from_c(quadratic as *mut Quadratic, "quadratic") }?;
         quadratic.add_assign((u, v, bias));
         Ok(())
     })
 }
 
-/// Add another quadratic term to this quadratic term.
+/// Adds another quadratic term to this quadratic term.
 ///
 /// # Safety
 /// `quadratic` must be a valid mutable quadratic handle created by this library.
@@ -37,50 +34,48 @@ pub unsafe extern "C" fn lm_quadratic_add_quadratic(
     other: *const LmQuadratic,
 ) -> LmStatus {
     guard(|| {
-        let quadratic = unsafe { (quadratic as *mut Quadratic).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("quadratic"))?;
-        let other = unsafe { (other as *const Quadratic).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
+        let quadratic = unsafe { mut_from_c(quadratic as *mut Quadratic, "quadratic") }?;
+        let other = unsafe { ref_from_c(other as *const Quadratic, "other") }?;
         quadratic.add_assign(other);
         Ok(())
     })
 }
 
-/// Mul this quadratic term with some value.
+/// Multiplies every bias of this quadratic term by `bias`.
 ///
 /// # Safety
 /// `quadratic` must be a valid mutable quadratic handle created by this library.
-/// `bias` must be a valid f64.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_quadratic_mul_bias(quadratic: *mut LmQuadratic, bias: f64) -> LmStatus {
     guard(|| {
-        let quadratic = unsafe { (quadratic as *mut Quadratic).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("quadratic"))?;
+        let quadratic = unsafe { mut_from_c(quadratic as *mut Quadratic, "quadratic") }?;
         quadratic.mul_assign(bias);
         Ok(())
     })
 }
 
-/// Negate this quadratic term and writing the result to a new quadratic handle.
+/// Negates this quadratic term, writing the result to a new quadratic handle.
+///
+/// On success, `out` receives an owned handle that must be released with
+/// [`lm_quadratic_free`].
 ///
 /// # Safety
-/// `quadratic` must be a valid mutable quadratic handle created by this library.
-/// `out` must point to writable `LmQuadratic` storage.
+/// `quadratic` must be a valid quadratic handle created by this library.
+/// `out` must point to writable `LmQuadratic *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_quadratic_neg(
     quadratic: *const LmQuadratic,
     out: *mut *mut LmQuadratic,
 ) -> LmStatus {
     guard(|| {
-        let quadratic = unsafe { (quadratic as *const Quadratic).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("quadratic"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(quadratic.neg().clone())) as *mut LmQuadratic;
+        let quadratic = unsafe { ref_from_c(quadratic as *const Quadratic, "quadratic") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(quadratic.neg());
         Ok(())
     })
 }
 
-/// Set bias for a specific index of the quadratic term.
+/// Sets the bias for a specific index of the quadratic term.
 ///
 /// # Safety
 /// `quadratic` must be a valid mutable quadratic handle created by this library.
@@ -92,8 +87,7 @@ pub unsafe extern "C" fn lm_quadratic_set_bias(
     bias: f64,
 ) -> LmStatus {
     guard(|| {
-        let quadratic = unsafe { (quadratic as *mut Quadratic).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("quadratic"))?;
+        let quadratic = unsafe { mut_from_c(quadratic as *mut Quadratic, "quadratic") }?;
         quadratic[(u, v)] = bias;
         Ok(())
     })

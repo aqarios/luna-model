@@ -1,4 +1,4 @@
-//! Owned ctype-buffer helpers for the C ABI.
+//! Owned linear-item-buffer helpers for the C ABI.
 #![allow(dead_code)]
 
 use crate::{LmLinearItem, LmLinearItemBuffer};
@@ -24,7 +24,7 @@ pub(crate) fn linear_item_buffer_from_vec(mut vec: Vec<LmLinearItem>) -> LmLinea
 
 /// Frees a linear item buffer previously returned by LunaModel.
 ///
-/// A null/empty buffer is a no-op. Each ctype buffer must be freed at most once.
+/// A null/empty buffer is a no-op. Each linear item buffer must be freed at most once.
 ///
 /// # Safety
 /// `buffer` must have been produced by this library and not already freed.

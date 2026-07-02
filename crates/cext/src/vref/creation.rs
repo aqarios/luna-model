@@ -1,10 +1,7 @@
+use crate::utils::{drop_from_c, handle_to_c, out_from_c};
 use luna_model::core::prelude::VarRef;
 
-use crate::{
-    LmEnv, LmStatus, LmVref,
-    env::utils::environment_from_c,
-    error::{CapiError, guard},
-};
+use crate::{LmEnv, LmStatus, LmVref, env::utils::environment_from_c, error::guard};
 
 /// Frees a vref handle. Passing null is a no-op.
 ///
@@ -12,14 +9,19 @@ use crate::{
 /// `vref` must originate from this library and must not be used or freed again.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_vref_free(vref: *mut LmVref) {
-    if !vref.is_null() {
-        drop(unsafe { Box::from_raw(vref as *mut VarRef) });
-    }
+    unsafe { drop_from_c(vref as *mut VarRef) }
 }
 
 /// Creates a new vref for an id and an environment.
 ///
+/// The id is not validated immediately: metadata access through the returned
+/// vref fails if the id does not exist in the environment.
+///
 /// `out` receives an owned vref handle that must be freed with `lm_vref_free`.
+///
+/// # Safety
+/// `env` must be a valid environment handle created by this library.
+/// `out` must point to writable `LmVref *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_vref_new(
     id: u32,
@@ -27,11 +29,11 @@ pub unsafe extern "C" fn lm_vref_new(
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
         let env = unsafe { environment_from_c(env) }?;
         let vref = VarRef::new(id, env.clone());
-        *out = Box::into_raw(Box::new(vref)) as *mut LmVref;
+        *out = handle_to_c(vref);
         Ok(())
     })
 }

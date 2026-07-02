@@ -1,3 +1,4 @@
+use crate::utils::{handle_to_c, mut_from_c, opt_from_c, out_from_c, ref_from_c};
 use luna_model::core::{Expression, Model, Solution, prelude::VarRef};
 
 use crate::{
@@ -5,12 +6,15 @@ use crate::{
     error::{CapiError, guard},
 };
 
-/// Evaluate the model for a given solution.
+/// Evaluates the model for a given solution.
+///
+/// On success, `out` receives an owned handle to the evaluated solution that
+/// must be released with [`lm_sol_free`].
 ///
 /// # Safety
 /// `model` must be a valid model handle created by this library.
-/// `solution` must be a valid model handle created by this library.
-/// `out` must point to writable `LmSol` storage.
+/// `solution` must be a valid solution handle created by this library.
+/// `out` must point to writable `LmSol *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_evaluate_solution(
     model: *const LmModel,
@@ -18,26 +22,27 @@ pub unsafe extern "C" fn lm_model_evaluate_solution(
     out: *mut *mut LmSol,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
-        let sol = unsafe { (solution as *const Solution).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("solution"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        let res = model
-            .evaluate_solution(sol)
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
-        *out = Box::into_raw(Box::new(res)) as *mut LmSol;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
+        let sol = unsafe { ref_from_c(solution as *const Solution, "solution") }?;
+        let out = unsafe { out_from_c(out) }?;
+        let res = model.evaluate_solution(sol).map_err(CapiError::errored)?;
+        *out = handle_to_c(res);
         Ok(())
     })
 }
 
-/// Evaluate the model for a given solution with a tolerance.
+/// Evaluates the model for a given solution with a feasibility tolerance.
+///
+/// `tol == NULL` means use the default tolerance.
+///
+/// On success, `out` receives an owned handle to the evaluated solution that
+/// must be released with [`lm_sol_free`].
 ///
 /// # Safety
 /// `model` must be a valid model handle created by this library.
-/// `solution` must be a valid model handle created by this library.
-/// `tol` must be a valid `usize`, `tol == NULL` means use the default tolerance.
-/// `out` must point to writable `LmSol` storage.
+/// `solution` must be a valid solution handle created by this library.
+/// `tol` must be null or point to a readable `double`.
+/// `out` must point to writable `LmSol *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_evaluate_solution_with_tol(
     model: *const LmModel,
@@ -46,22 +51,20 @@ pub unsafe extern "C" fn lm_model_evaluate_solution_with_tol(
     out: *mut *mut LmSol,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
-        let sol = unsafe { (solution as *const Solution).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("solution"))?;
-        let tol = unsafe { tol.as_ref() }.copied();
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
+        let sol = unsafe { ref_from_c(solution as *const Solution, "solution") }?;
+        let tol = unsafe { opt_from_c(tol) };
+        let out = unsafe { out_from_c(out) }?;
 
         let res = model
             .evaluate_solution_with_tol(sol, tol)
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
-        *out = Box::into_raw(Box::new(res)) as *mut LmSol;
+            .map_err(CapiError::errored)?;
+        *out = handle_to_c(res);
         Ok(())
     })
 }
 
-/// Substitute the variable with a given expression.
+/// Substitutes every occurrence of `target` in the model with `replacement`.
 ///
 /// # Safety
 /// `model` must be a valid mutable model handle created by this library.
@@ -74,16 +77,13 @@ pub unsafe extern "C" fn lm_model_substitute(
     replacement: *const LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *mut Model).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
-        let target = unsafe { (target as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("target"))?;
-        let replacement = unsafe { (replacement as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("replacement"))?;
+        let model = unsafe { mut_from_c(model as *mut Model, "model") }?;
+        let target = unsafe { ref_from_c(target as *const VarRef, "target") }?;
+        let replacement = unsafe { ref_from_c(replacement as *const Expression, "replacement") }?;
 
         model
             .substitute(target, replacement)
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+            .map_err(CapiError::errored)?;
 
         Ok(())
     })

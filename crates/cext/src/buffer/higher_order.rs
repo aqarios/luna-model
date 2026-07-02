@@ -1,4 +1,4 @@
-//! Owned ctype-buffer helpers for the C ABI.
+//! Owned higher-order-item-buffer helpers for the C ABI.
 #![allow(dead_code)]
 
 use crate::{LmHigherOrderItem, LmHigherOrderItemBuffer, buffer::lm_u32_buffer_free};

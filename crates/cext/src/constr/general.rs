@@ -1,3 +1,4 @@
+use crate::utils::{handle_to_c, mut_from_c, out_from_c, ref_from_c};
 use luna_model::core::{
     Expression,
     prelude::{Constraint, ContentEquality, VarRef},
@@ -12,17 +13,16 @@ use crate::{
 /// Clones a constraint into a new, independent handle written to `out`.
 ///
 /// # Safety
-/// `constraint` must be a valid handle and `out` must point to writable storage.
+/// `out` must point to writable `LmConstraint *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_constr_clone(
     constr: *const LmConstraint,
     out: *mut *mut LmConstraint,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { (constr as *const Constraint).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("constr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(constr.clone())) as *mut LmConstraint;
+        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(constr.clone());
         Ok(())
     })
 }
@@ -30,7 +30,9 @@ pub unsafe extern "C" fn lm_constr_clone(
 /// Deep-Clones a constraint into a new, independent handle written to `out`.
 ///
 /// # Safety
-/// `constr` and `env` must be a valid handle and `out` must point to writable storage.
+/// `constr` must be a valid constraint handle created by this library.
+/// `env` must be a valid environment handle created by this library.
+/// `out` must point to writable `LmConstraint *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_constr_deep_clone(
     constr: *const LmConstraint,
@@ -38,16 +40,15 @@ pub unsafe extern "C" fn lm_constr_deep_clone(
     out: *mut *mut LmConstraint,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { (constr as *const Constraint).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("constr"))?;
+        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
         let env = unsafe { environment_from_c(env)? };
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(constr.deep_clone(env.clone()))) as *mut LmConstraint;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(constr.deep_clone(env.clone()));
         Ok(())
     })
 }
 
-/// Substitute the variable with a given expression.
+/// Substitutes every occurrence of `target` in the constraint with `replacement`.
 ///
 /// # Safety
 /// `constr` must be a valid mutable constraint handle created by this library.
@@ -60,16 +61,13 @@ pub unsafe extern "C" fn lm_constr_substitute(
     replacement: *const LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { (constr as *mut Constraint).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("constr"))?;
-        let target = unsafe { (target as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("target"))?;
-        let replacement = unsafe { (replacement as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("replacement"))?;
+        let constr = unsafe { mut_from_c(constr as *mut Constraint, "constr") }?;
+        let target = unsafe { ref_from_c(target as *const VarRef, "target") }?;
+        let replacement = unsafe { ref_from_c(replacement as *const Expression, "replacement") }?;
 
         constr
             .substitute(target, replacement)
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+            .map_err(CapiError::errored)?;
 
         Ok(())
     })
@@ -88,11 +86,9 @@ pub unsafe extern "C" fn lm_constr_equal_contents(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { (constr as *const Constraint).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("constr"))?;
-        let other = unsafe { (other as *const Constraint).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
+        let other = unsafe { ref_from_c(other as *const Constraint, "other") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = constr.equal_contents(other);
         Ok(())
     })
@@ -111,11 +107,9 @@ pub unsafe extern "C" fn lm_constr_eq(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { (constr as *const Constraint).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("constr"))?;
-        let other = unsafe { (other as *const Constraint).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
+        let other = unsafe { ref_from_c(other as *const Constraint, "other") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = constr.eq(other);
         Ok(())
     })

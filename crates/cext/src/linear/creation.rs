@@ -1,9 +1,7 @@
+use crate::utils::{drop_from_c, handle_to_c, out_from_c};
 use luna_model::{core::prelude::Linear, types::Specs};
 
-use crate::{
-    LmLinear, LmStatus,
-    error::{CapiError, guard},
-};
+use crate::{LmLinear, LmStatus, error::guard};
 
 /// Frees a linear handle. Passing null is a no-op.
 ///
@@ -11,9 +9,7 @@ use crate::{
 /// `linear` must originate from this library and must not be used or freed again.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_linear_free(linear: *mut LmLinear) {
-    if !linear.is_null() {
-        drop(unsafe { Box::from_raw(linear as *mut Specs) });
-    }
+    unsafe { drop_from_c(linear as *mut Specs) }
 }
 
 /// Creates a new empty linear term.
@@ -21,12 +17,15 @@ pub unsafe extern "C" fn lm_linear_free(linear: *mut LmLinear) {
 /// Returns a non-null handle that must be released with [`lm_linear_free`].
 #[unsafe(no_mangle)]
 pub extern "C" fn lm_linear_default() -> *mut LmLinear {
-    Box::into_raw(Box::new(Linear::default())) as *mut LmLinear
+    handle_to_c(Linear::default())
 }
 
 /// Creates a new linear term for a variable index and bias.
 ///
 /// `out` receives an owned linear handle that must be freed with [`lm_linear_free`].
+///
+/// # Safety
+/// `out` must point to writable `LmLinear *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_linear_for_var(
     var: u32,
@@ -34,8 +33,8 @@ pub unsafe extern "C" fn lm_linear_for_var(
     out: *mut *mut LmLinear,
 ) -> LmStatus {
     guard(|| {
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(Linear::for_var(var, bias))) as *mut LmLinear;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(Linear::for_var(var, bias));
         Ok(())
     })
 }

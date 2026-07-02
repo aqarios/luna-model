@@ -1,13 +1,11 @@
+use crate::utils::{handle_to_c, mut_from_c, out_from_c, ref_from_c};
 use std::ops::{AddAssign, MulAssign, Neg};
 
 use luna_model::core::prelude::Linear;
 
-use crate::{
-    LmLinear, LmStatus,
-    error::{CapiError, guard},
-};
+use crate::{LmLinear, LmStatus, error::guard};
 
-/// Add a new entry with it's bias to the linear term.
+/// Adds a new entry with its bias to the linear term.
 ///
 /// # Safety
 /// `linear` must be a valid mutable linear handle created by this library.
@@ -18,14 +16,13 @@ pub unsafe extern "C" fn lm_linear_add_entry(
     bias: f64,
 ) -> LmStatus {
     guard(|| {
-        let linear = unsafe { (linear as *mut Linear).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("linear"))?;
+        let linear = unsafe { mut_from_c(linear as *mut Linear, "linear") }?;
         linear.add_assign((id, bias));
         Ok(())
     })
 }
 
-/// Add another linear term to this linear term.
+/// Adds another linear term to this linear term.
 ///
 /// # Safety
 /// `linear` must be a valid mutable linear handle created by this library.
@@ -36,58 +33,55 @@ pub unsafe extern "C" fn lm_linear_add_linear(
     other: *const LmLinear,
 ) -> LmStatus {
     guard(|| {
-        let linear = unsafe { (linear as *mut Linear).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("linear"))?;
-        let other = unsafe { (other as *const Linear).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
+        let linear = unsafe { mut_from_c(linear as *mut Linear, "linear") }?;
+        let other = unsafe { ref_from_c(other as *const Linear, "other") }?;
         linear.add_assign(other);
         Ok(())
     })
 }
 
-/// Mul this linear term with some value.
+/// Multiplies every bias of this linear term by `bias`.
 ///
 /// # Safety
 /// `linear` must be a valid mutable linear handle created by this library.
-/// `bias` must be a valid f64.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_linear_mul_bias(linear: *mut LmLinear, bias: f64) -> LmStatus {
     guard(|| {
-        let linear = unsafe { (linear as *mut Linear).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("linear"))?;
+        let linear = unsafe { mut_from_c(linear as *mut Linear, "linear") }?;
         linear.mul_assign(bias);
         Ok(())
     })
 }
 
-/// Negate this linear term and writing the result to a new linear handle.
+/// Negates this linear term, writing the result to a new linear handle.
+///
+/// On success, `out` receives an owned handle that must be released with
+/// [`lm_linear_free`].
 ///
 /// # Safety
-/// `linear` must be a valid mutable linear handle created by this library.
-/// `out` must point to writable `LmLinear` storage.
+/// `linear` must be a valid linear handle created by this library.
+/// `out` must point to writable `LmLinear *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_linear_neg(
     linear: *const LmLinear,
     out: *mut *mut LmLinear,
 ) -> LmStatus {
     guard(|| {
-        let linear = unsafe { (linear as *const Linear).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("linear"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(linear.neg().clone())) as *mut LmLinear;
+        let linear = unsafe { ref_from_c(linear as *const Linear, "linear") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(linear.neg());
         Ok(())
     })
 }
 
-/// Set bias for a specific index of the linear term.
+/// Sets the bias for a specific index of the linear term.
 ///
 /// # Safety
 /// `linear` must be a valid mutable linear handle created by this library.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_linear_set_bias(linear: *mut LmLinear, id: u32, bias: f64) -> LmStatus {
     guard(|| {
-        let linear = unsafe { (linear as *mut Linear).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("linear"))?;
+        let linear = unsafe { mut_from_c(linear as *mut Linear, "linear") }?;
         linear[id] = bias;
         Ok(())
     })

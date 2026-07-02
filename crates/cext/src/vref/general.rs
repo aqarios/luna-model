@@ -1,3 +1,4 @@
+use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::{
     core::prelude::{VarRef, Variable},
     error::LunaModelResult,
@@ -21,11 +22,9 @@ pub unsafe extern "C" fn lm_vref_eq(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let vref = unsafe { (vref as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("vref"))?;
-        let other = unsafe { (other as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
+        let other = unsafe { ref_from_c(other as *const VarRef, "other") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = vref.eq(other);
         Ok(())
     })
@@ -35,17 +34,15 @@ pub unsafe extern "C" fn lm_vref_eq(
 ///
 /// # Safety
 /// `vref` must be a valid vref handle created by this library.
-/// `out` must point to writable `LmVar` storage.
+/// `out` must point to writable `LmVar *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_vref_to_var(vref: *const LmVref, out: *mut *mut LmVar) -> LmStatus {
     guard(|| {
-        let vref = unsafe { (vref as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("vref"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
+        let out = unsafe { out_from_c(out) }?;
         let maybe_variable: LunaModelResult<Variable> = vref.try_into();
-        let variable =
-            maybe_variable.map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
-        *out = Box::into_raw(Box::new(variable)) as *mut LmVar;
+        let variable = maybe_variable.map_err(CapiError::errored)?;
+        *out = handle_to_c(variable);
         Ok(())
     })
 }

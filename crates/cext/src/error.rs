@@ -29,6 +29,26 @@ impl CapiError {
     pub(crate) fn null_pointer(what: &str) -> Self {
         Self::new(LmStatus::NullPointer, format!("`{what}` must not be null"))
     }
+
+    /// Maps a Rust error to `LmStatus::Errored`.
+    pub(crate) fn errored(e: impl ToString) -> Self {
+        Self::new(LmStatus::Errored, e.to_string())
+    }
+
+    /// Maps a Rust error to `LmStatus::InvalidArgument`.
+    pub(crate) fn invalid_argument(e: impl ToString) -> Self {
+        Self::new(LmStatus::InvalidArgument, e.to_string())
+    }
+
+    /// Maps a Rust error to `LmStatus::Serialization`.
+    pub(crate) fn serialization(e: impl ToString) -> Self {
+        Self::new(LmStatus::Serialization, e.to_string())
+    }
+
+    /// Maps a Rust error to `LmStatus::Deserialization`.
+    pub(crate) fn deserialization(e: impl ToString) -> Self {
+        Self::new(LmStatus::Deserialization, e.to_string())
+    }
 }
 
 fn set_last_error(message: &str) {

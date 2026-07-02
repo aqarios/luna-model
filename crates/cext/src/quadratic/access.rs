@@ -1,31 +1,30 @@
+use crate::utils::{out_from_c, ref_from_c};
 use luna_model::core::prelude::Quadratic;
 
 use crate::{
     LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer, LmStatus,
-    buffer::quadratic_item_buffer_from_vec,
-    error::{CapiError, guard},
+    buffer::quadratic_item_buffer_from_vec, error::guard,
 };
 
-/// Returns the len of the quadratic term.
+/// Returns the number of explicitly stored entries of the quadratic term.
 ///
 /// # Safety
 /// `quadratic` must be a valid quadratic handle created by this library.
-/// `out` must point to writable `usize` storage.
+/// `out` must point to writable `uintptr_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_quadratic_len(
     quadratic: *const LmQuadratic,
     out: *mut usize,
 ) -> LmStatus {
     guard(|| {
-        let quadratic = unsafe { (quadratic as *const Quadratic).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("quadratic"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let quadratic = unsafe { ref_from_c(quadratic as *const Quadratic, "quadratic") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = quadratic.len();
         Ok(())
     })
 }
 
-/// Returns if the quadratic term is zero.
+/// Returns whether the quadratic term is zero.
 ///
 /// # Safety
 /// `quadratic` must be a valid quadratic handle created by this library.
@@ -36,15 +35,14 @@ pub unsafe extern "C" fn lm_quadratic_is_zero(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let quadratic = unsafe { (quadratic as *const Quadratic).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("quadratic"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let quadratic = unsafe { ref_from_c(quadratic as *const Quadratic, "quadratic") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = quadratic.is_zero();
         Ok(())
     })
 }
 
-/// Returns if the quadratic term is empty.
+/// Returns whether the quadratic term is empty.
 ///
 /// # Safety
 /// `quadratic` must be a valid quadratic handle created by this library.
@@ -55,9 +53,8 @@ pub unsafe extern "C" fn lm_quadratic_is_empty(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let quadratic = unsafe { (quadratic as *const Quadratic).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("quadratic"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let quadratic = unsafe { ref_from_c(quadratic as *const Quadratic, "quadratic") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = quadratic.is_empty();
         Ok(())
     })
@@ -76,9 +73,8 @@ pub unsafe extern "C" fn lm_quadratic_items(
     out: *mut LmQuadraticItemBuffer,
 ) -> LmStatus {
     guard(|| {
-        let quadratic = unsafe { (quadratic as *const Quadratic).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("quadratic"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let quadratic = unsafe { ref_from_c(quadratic as *const Quadratic, "quadratic") }?;
+        let out = unsafe { out_from_c(out) }?;
         let items = quadratic
             .iter_flat()
             .map(|(u_idx, v_idx, bias)| LmQuadraticItem { u_idx, v_idx, bias })
@@ -88,11 +84,11 @@ pub unsafe extern "C" fn lm_quadratic_items(
     })
 }
 
-/// Returns the bias in the quadratic term for the var idx.
+/// Returns the bias stored in the quadratic term for the given variable index.
 ///
 /// # Safety
 /// `quadratic` must be a valid quadratic handle created by this library.
-/// `out` must point to writable `f64` storage.
+/// `out` must point to writable `double` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_quadratic_index(
     quadratic: *const LmQuadratic,
@@ -101,9 +97,8 @@ pub unsafe extern "C" fn lm_quadratic_index(
     out: *mut f64,
 ) -> LmStatus {
     guard(|| {
-        let quadratic = unsafe { (quadratic as *const Quadratic).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("quadratic"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let quadratic = unsafe { ref_from_c(quadratic as *const Quadratic, "quadratic") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = quadratic[(u, v)];
         Ok(())
     })

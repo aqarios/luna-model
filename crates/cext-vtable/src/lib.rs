@@ -508,20 +508,20 @@ pub struct LunaModelCApi {
     pub model_objective: unsafe extern "C" fn(*const LmModel, *mut *mut LmExpr) -> LmStatus,
     pub model_constraints: unsafe extern "C" fn(*const LmModel, *mut *mut LmCC) -> LmStatus,
     pub model_set_name: unsafe extern "C" fn(*mut LmModel, *const c_char) -> LmStatus,
-    pub model_set_sense: unsafe extern "C" fn(*mut LmModel, *const LmSense) -> LmStatus,
+    pub model_set_sense: unsafe extern "C" fn(*mut LmModel, LmSense) -> LmStatus,
     pub model_set_objective: unsafe extern "C" fn(*mut LmModel, *const LmExpr) -> LmStatus,
     pub model_set_constraints: unsafe extern "C" fn(*mut LmModel, *const LmCC) -> LmStatus,
     pub model_add_var: unsafe extern "C" fn(
         *mut LmModel,
         *const c_char,
-        *const LmVtype,
+        LmVtype,
         *const LmBounds,
         *mut *mut LmVref,
     ) -> LmStatus,
     pub model_add_var_with_fallback: unsafe extern "C" fn(
         *mut LmModel,
         *const c_char,
-        *const LmVtype,
+        LmVtype,
         *const LmBounds,
         *mut *mut LmVref,
     ) -> LmStatus,
@@ -553,14 +553,14 @@ pub struct LunaModelCApi {
     pub env_insert: unsafe extern "C" fn(
         *mut LmEnv,
         *const c_char,
-        *const LmVtype,
+        LmVtype,
         *const LmLazyBounds,
         *mut *mut LmVref,
     ) -> LmStatus,
     pub env_insert_with_fallback: unsafe extern "C" fn(
         *mut LmEnv,
         *const c_char,
-        *const LmVtype,
+        LmVtype,
         *const LmLazyBounds,
         *mut *mut LmVref,
     ) -> LmStatus,
@@ -698,11 +698,13 @@ pub struct LunaModelCApi {
     pub specs_free: unsafe extern "C" fn(*mut LmSpecs),
     pub specs_new: unsafe extern "C" fn(
         *const LmSense,
-        *const LmVtypeBuffer,
-        *const LmCtypeBuffer,
+        *const LmVtype,
         usize,
+        *const LmCtype,
         usize,
-        usize,
+        *const usize,
+        *const usize,
+        *const usize,
         *mut *mut LmSpecs,
     ) -> LmStatus,
     pub specs_sense: unsafe extern "C" fn(*const LmSpecs, *mut LmSense) -> LmStatus,
@@ -729,8 +731,8 @@ pub struct LunaModelCApi {
     pub bounds_real: unsafe extern "C" fn(*mut *mut LmBounds) -> LmStatus,
     pub bounds_default_for: unsafe extern "C" fn(LmVtype, *mut *mut LmBounds) -> LmStatus,
     pub bounds_clone: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBounds) -> LmStatus,
-    pub bounds_lower: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBound) -> LmStatus,
-    pub bounds_upper: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBound) -> LmStatus,
+    pub bounds_lower: unsafe extern "C" fn(*const LmBounds, *mut LmBound) -> LmStatus,
+    pub bounds_upper: unsafe extern "C" fn(*const LmBounds, *mut LmBound) -> LmStatus,
     // ////// //
     // LazyBounds //
     // ////// //
@@ -740,8 +742,8 @@ pub struct LunaModelCApi {
         unsafe extern "C" fn(*const LmBound, *const LmBound, *mut *mut LmLazyBounds) -> LmStatus,
     pub lazy_bounds_clone:
         unsafe extern "C" fn(*const LmLazyBounds, *mut *mut LmLazyBounds) -> LmStatus,
-    pub lazy_bounds_lower: unsafe extern "C" fn(*const LmLazyBounds, *mut *mut LmBound) -> LmStatus,
-    pub lazy_bounds_upper: unsafe extern "C" fn(*const LmLazyBounds, *mut *mut LmBound) -> LmStatus,
+    pub lazy_bounds_lower: unsafe extern "C" fn(*const LmLazyBounds, *mut LmBound) -> LmStatus,
+    pub lazy_bounds_upper: unsafe extern "C" fn(*const LmLazyBounds, *mut LmBound) -> LmStatus,
     pub lazy_bounds_concretize:
         unsafe extern "C" fn(*const LmLazyBounds, LmVtype, *mut *mut LmBounds) -> LmStatus,
     // ////// //
@@ -820,4 +822,5 @@ pub struct LunaModelCApi {
     // Timing //
     // ////// //
     pub timing_free: unsafe extern "C" fn(*mut LmTiming),
+    pub timing_new: unsafe extern "C" fn(u64, u64, *const f64, *mut *mut LmTiming) -> LmStatus,
 }

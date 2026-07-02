@@ -1,3 +1,4 @@
+use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::core::prelude::Variable;
 
 use crate::{
@@ -21,9 +22,8 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_var_name(var: *const LmVar, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let var = unsafe { (var as *const Variable).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("var"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let var = unsafe { ref_from_c(var as *const Variable, "var") }?;
+        let out = unsafe { out_from_c(out) }?;
         let name = var.name();
         *out = buffer_from_vec(name.as_bytes().to_vec());
         Ok(())
@@ -38,9 +38,8 @@ pub unsafe extern "C" fn lm_var_name(var: *const LmVar, out: *mut LmBuffer) -> L
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_var_vtype(var: *const LmVar, out: *mut LmVtype) -> LmStatus {
     guard(|| {
-        let var = unsafe { (var as *const Variable).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("var"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let var = unsafe { ref_from_c(var as *const Variable, "var") }?;
+        let out = unsafe { out_from_c(out) }?;
         let vtype = var.vtype();
         *out = vtype_to_c(vtype);
         Ok(())
@@ -51,15 +50,14 @@ pub unsafe extern "C" fn lm_var_vtype(var: *const LmVar, out: *mut LmVtype) -> L
 ///
 /// # Safety
 /// `var` must be a valid variable handle created by this library.
-/// `out` must point to writable `LmBounds` storage.
+/// `out` must point to writable `LmBounds *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_var_bounds(var: *const LmVar, out: *mut *mut LmBounds) -> LmStatus {
     guard(|| {
-        let var = unsafe { (var as *const Variable).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("var"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let var = unsafe { ref_from_c(var as *const Variable, "var") }?;
+        let out = unsafe { out_from_c(out) }?;
         let bounds = var.bounds();
-        *out = Box::into_raw(Box::new(bounds)) as *mut LmBounds;
+        *out = handle_to_c(bounds);
         Ok(())
     })
 }
@@ -72,13 +70,12 @@ pub unsafe extern "C" fn lm_var_bounds(var: *const LmVar, out: *mut *mut LmBound
 ///
 /// # Safety
 /// `var` must be a valid variable handle created by this library.
-/// `out` must point to writable `u32` storage.
+/// `out` must point to writable `uint32_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_var_inverted(var: *const LmVar, out: *mut u32) -> LmStatus {
     guard(|| {
-        let var = unsafe { (var as *const Variable).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("var"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let var = unsafe { ref_from_c(var as *const Variable, "var") }?;
+        let out = unsafe { out_from_c(out) }?;
         match var.inverted {
             Some(id) => {
                 *out = id;

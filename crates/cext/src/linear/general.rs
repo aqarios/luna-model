@@ -1,9 +1,7 @@
+use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::core::prelude::Linear;
 
-use crate::{
-    LmLinear, LmStatus,
-    error::{CapiError, guard},
-};
+use crate::{LmLinear, LmStatus, error::guard};
 
 /// Compares two linear terms for equality.
 ///
@@ -18,11 +16,9 @@ pub unsafe extern "C" fn lm_linear_eq(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let linear = unsafe { (linear as *const Linear).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("linear"))?;
-        let other = unsafe { (other as *const Linear).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let linear = unsafe { ref_from_c(linear as *const Linear, "linear") }?;
+        let other = unsafe { ref_from_c(other as *const Linear, "other") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = linear.eq(other);
         Ok(())
     })
@@ -31,17 +27,17 @@ pub unsafe extern "C" fn lm_linear_eq(
 /// Clones a linear term into a new, independent handle written to `out`.
 ///
 /// # Safety
-/// `linear` must be a valid handle and `out` must point to writable storage.
+/// `linear` must be a valid linear handle created by this library.
+/// `out` must point to writable `LmLinear *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_linear_clone(
     linear: *const LmLinear,
     out: *mut *mut LmLinear,
 ) -> LmStatus {
     guard(|| {
-        let linear = unsafe { (linear as *const Linear).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("linear"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(linear.clone())) as *mut LmLinear;
+        let linear = unsafe { ref_from_c(linear as *const Linear, "linear") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(linear.clone());
         Ok(())
     })
 }

@@ -1,9 +1,7 @@
+use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::core::prelude::Quadratic;
 
-use crate::{
-    LmQuadratic, LmStatus,
-    error::{CapiError, guard},
-};
+use crate::{LmQuadratic, LmStatus, error::guard};
 
 /// Compares two quadratic terms for equality.
 ///
@@ -18,11 +16,9 @@ pub unsafe extern "C" fn lm_quadratic_eq(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let quadratic = unsafe { (quadratic as *const Quadratic).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("quadratic"))?;
-        let other = unsafe { (other as *const Quadratic).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let quadratic = unsafe { ref_from_c(quadratic as *const Quadratic, "quadratic") }?;
+        let other = unsafe { ref_from_c(other as *const Quadratic, "other") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = quadratic.eq(other);
         Ok(())
     })
@@ -31,17 +27,17 @@ pub unsafe extern "C" fn lm_quadratic_eq(
 /// Clones a quadratic term into a new, independent handle written to `out`.
 ///
 /// # Safety
-/// `quadratic` must be a valid handle and `out` must point to writable storage.
+/// `quadratic` must be a valid quadratic handle created by this library.
+/// `out` must point to writable `LmQuadratic *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_quadratic_clone(
     quadratic: *const LmQuadratic,
     out: *mut *mut LmQuadratic,
 ) -> LmStatus {
     guard(|| {
-        let quadratic = unsafe { (quadratic as *const Quadratic).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("quadratic"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(quadratic.clone())) as *mut LmQuadratic;
+        let quadratic = unsafe { ref_from_c(quadratic as *const Quadratic, "quadratic") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(quadratic.clone());
         Ok(())
     })
 }

@@ -1,10 +1,11 @@
+use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::core::Expression;
 
 use crate::{
-    LmEnv, LmExpr, LmHigherOrder, LmLinear, LmQuadratic, LmStatus, LmVref,
-    LmVrefBuffer, LmVtype, LmVtypeBuffer,
+    LmEnv, LmExpr, LmHigherOrder, LmLinear, LmQuadratic, LmStatus, LmVref, LmVrefBuffer, LmVtype,
+    LmVtypeBuffer,
     buffer::{vref_buffer_from_vec, vtype_buffer_from_vec},
-    error::{CapiError, guard},
+    error::guard,
     utils::vtype_to_c,
 };
 
@@ -12,15 +13,14 @@ use crate::{
 ///
 /// # Safety
 /// `expr` must be a valid expression handle created by this library.
-/// `out` must point to writable `LmEnv` storage.
+/// `out` must point to writable `LmEnv *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_env(expr: *const LmExpr, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(expr.env.clone())) as *mut LmEnv;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(expr.env.clone());
         Ok(())
     })
 }
@@ -33,10 +33,9 @@ pub unsafe extern "C" fn lm_expr_env(expr: *const LmExpr, out: *mut *mut LmEnv) 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_offset(expr: *const LmExpr, out: *mut f64) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
         *out = expr.offset;
         Ok(())
     })
@@ -46,18 +45,14 @@ pub unsafe extern "C" fn lm_expr_offset(expr: *const LmExpr, out: *mut f64) -> L
 ///
 /// # Safety
 /// `expr` must be a valid expr handle created by this library.
-/// `out` must point to writable `LmLinearTerm` storage.
+/// `out` must point to writable `LmLinear *` storage.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn lm_expr_linear(
-    expr: *const LmExpr,
-    out: *mut *mut LmLinear,
-) -> LmStatus {
+pub unsafe extern "C" fn lm_expr_linear(expr: *const LmExpr, out: *mut *mut LmLinear) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(expr.linear.clone())) as *mut LmLinear;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(expr.linear.clone());
         Ok(())
     })
 }
@@ -66,18 +61,17 @@ pub unsafe extern "C" fn lm_expr_linear(
 ///
 /// # Safety
 /// `expr` must be a valid expr handle created by this library.
-/// `out` must point to writable `LmQuadraticTerm` storage.
+/// `out` must point to writable `LmQuadratic *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_quadratic(
     expr: *const LmExpr,
     out: *mut *mut LmQuadratic,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(expr.quadratic.clone())) as *mut LmQuadratic;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(expr.quadratic.clone());
         Ok(())
     })
 }
@@ -86,18 +80,17 @@ pub unsafe extern "C" fn lm_expr_quadratic(
 ///
 /// # Safety
 /// `expr` must be a valid expr handle created by this library.
-/// `out` must point to writable `LmHigherOrderTerm` storage.
+/// `out` must point to writable `LmHigherOrder *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_higher_order(
     expr: *const LmExpr,
     out: *mut *mut LmHigherOrder,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(expr.higher_order.clone())) as *mut LmHigherOrder;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(expr.higher_order.clone());
         Ok(())
     })
 }
@@ -106,13 +99,12 @@ pub unsafe extern "C" fn lm_expr_higher_order(
 ///
 /// # Safety
 /// `expr` must be a valid expr handle created by this library.
-/// `out` must point to writable `usize` storage.
+/// `out` must point to writable `uintptr_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_num_vars(expr: *const LmExpr, out: *mut usize) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = expr.num_vars();
         Ok(())
     })
@@ -129,9 +121,8 @@ pub unsafe extern "C" fn lm_expr_num_vars(expr: *const LmExpr, out: *mut usize) 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_vtypes(expr: *const LmExpr, out: *mut LmVtypeBuffer) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let out = unsafe { out_from_c(out) }?;
         let vtypes = expr.vtypes().map(vtype_to_c).collect::<Vec<LmVtype>>();
         *out = vtype_buffer_from_vec(vtypes);
         Ok(())
@@ -149,12 +140,11 @@ pub unsafe extern "C" fn lm_expr_vtypes(expr: *const LmExpr, out: *mut LmVtypeBu
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_vars(expr: *const LmExpr, out: *mut LmVrefBuffer) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let out = unsafe { out_from_c(out) }?;
         let vars = expr
             .vars()
-            .map(|v| Box::into_raw(Box::new(v)) as *mut LmVref)
+            .map(|v| handle_to_c(v))
             .collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
         Ok(())
@@ -176,12 +166,11 @@ pub unsafe extern "C" fn lm_expr_complete_vars(
     out: *mut LmVrefBuffer,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let out = unsafe { out_from_c(out) }?;
         let vars = expr
             .complete_vars()
-            .map(|v| Box::into_raw(Box::new(v)) as *mut LmVref)
+            .map(|v| handle_to_c(v))
             .collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
         Ok(())
@@ -192,19 +181,18 @@ pub unsafe extern "C" fn lm_expr_complete_vars(
 ///
 /// # Safety
 /// `expr` must be a valid expr handle created by this library.
-/// `out` must point to writable `usize` storage.
+/// `out` must point to writable `uintptr_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_degree(expr: *const LmExpr, out: *mut usize) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = expr.degree();
         Ok(())
     })
 }
 
-/// Returns if the expression is constant.
+/// Returns whether the expression is constant.
 ///
 /// # Safety
 /// `expr` must be a valid expr handle created by this library.
@@ -212,15 +200,14 @@ pub unsafe extern "C" fn lm_expr_degree(expr: *const LmExpr, out: *mut usize) ->
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_is_constant(expr: *const LmExpr, out: *mut bool) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = expr.is_constant();
         Ok(())
     })
 }
 
-/// Returns if the expression has at least one quadratic term.
+/// Returns whether the expression has at least one quadratic term.
 ///
 /// # Safety
 /// `expr` must be a valid expr handle created by this library.
@@ -228,15 +215,14 @@ pub unsafe extern "C" fn lm_expr_is_constant(expr: *const LmExpr, out: *mut bool
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_has_quadratic(expr: *const LmExpr, out: *mut bool) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = expr.has_quadratic();
         Ok(())
     })
 }
 
-/// Returns if the expression has at least one higher-order term.
+/// Returns whether the expression has at least one higher-order term.
 ///
 /// # Safety
 /// `expr` must be a valid expr handle created by this library.
@@ -244,9 +230,8 @@ pub unsafe extern "C" fn lm_expr_has_quadratic(expr: *const LmExpr, out: *mut bo
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_has_higher_order(expr: *const LmExpr, out: *mut bool) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = expr.has_higher_order();
         Ok(())
     })

@@ -196,9 +196,12 @@ impl PartialEq for Quadratic {
 impl Neg for Quadratic {
     type Output = Self;
 
-    /// Negates every stored quadratic bias.
-    fn neg(self) -> Self::Output {
-        (&self).neg()
+    /// Negates every stored quadratic bias in place, reusing the existing storage.
+    fn neg(mut self) -> Self::Output {
+        self.adj
+            .iter_mut()
+            .for_each(|t| t.neighborhood.iter_mut().for_each(|(_, b)| *b = -*b));
+        self
     }
 }
 

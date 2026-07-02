@@ -1,24 +1,22 @@
+use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::core::prelude::Bounds;
 
-use crate::{
-    LmBounds, LmStatus,
-    error::{CapiError, guard},
-};
+use crate::{LmBounds, LmStatus, error::guard};
 
 /// Clones a bounds into a new, independent handle written to `out`.
 ///
 /// # Safety
-/// `bounds` must be a valid handle and `out` must point to writable storage.
+/// `bounds` must be a valid bounds handle created by this library.
+/// `out` must point to writable `LmBounds *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_bounds_clone(
     bounds: *const LmBounds,
     out: *mut *mut LmBounds,
 ) -> LmStatus {
     guard(|| {
-        let bounds = unsafe { (bounds as *const Bounds).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("bounds"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(bounds.clone())) as *mut LmBounds;
+        let bounds = unsafe { ref_from_c(bounds as *const Bounds, "bounds") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(bounds.clone());
         Ok(())
     })
 }

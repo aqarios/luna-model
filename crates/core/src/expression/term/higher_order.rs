@@ -131,11 +131,10 @@ impl IndexMut<&String> for HigherOrder {
 impl Neg for HigherOrder {
     type Output = Self;
 
-    /// Negates every stored higher-order bias.
-    fn neg(self) -> Self::Output {
-        HigherOrder {
-            entries: self.entries.into_iter().map(|(k, b)| (k, -b)).collect(),
-        }
+    /// Negates every stored higher-order bias in place, reusing the existing storage.
+    fn neg(mut self) -> Self::Output {
+        self.entries.values_mut().for_each(|b| *b = -*b);
+        self
     }
 }
 
@@ -145,12 +144,7 @@ impl Neg for &HigherOrder {
     /// Negates every stored higher-order bias.
     fn neg(self) -> Self::Output {
         HigherOrder {
-            entries: self
-                .entries
-                .clone()
-                .into_iter()
-                .map(|(k, b)| (k, -b))
-                .collect(),
+            entries: self.entries.iter().map(|(k, b)| (k.clone(), -b)).collect(),
         }
     }
 }

@@ -1,4 +1,5 @@
-use std::ffi::{CStr, c_char};
+use crate::utils::{handle_to_c, out_from_c, ref_from_c, str_from_c};
+use std::ffi::c_char;
 
 use luna_model::core::ArcEnv;
 
@@ -12,13 +13,13 @@ use crate::{
 /// Returns the number of variables in the environment.
 ///
 /// # Safety
-/// `env` must be a valid handle and `out` must point to writable storage.
+/// `env` must be a valid environment handle created by this library.
+/// `out` must point to writable `uintptr_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_len(env: *const LmEnv, out: *mut usize) -> LmStatus {
     guard(|| {
-        let env = unsafe { (env as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("env"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = env.len();
         Ok(())
     })
@@ -27,13 +28,13 @@ pub unsafe extern "C" fn lm_env_len(env: *const LmEnv, out: *mut usize) -> LmSta
 /// Returns `true` when the environment contains no variables.
 ///
 /// # Safety
-/// `env` must be a valid handle and `out` must point to writable storage.
+/// `env` must be a valid environment handle created by this library.
+/// `out` must point to writable `bool` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_is_empty(env: *const LmEnv, out: *mut bool) -> LmStatus {
     guard(|| {
-        let env = unsafe { (env as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("env"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = env.is_empty();
         Ok(())
     })
@@ -42,17 +43,17 @@ pub unsafe extern "C" fn lm_env_is_empty(env: *const LmEnv, out: *mut bool) -> L
 /// Returns all variables as environment-bound references.
 ///
 /// # Safety
-/// `env` must be a valid handle and `out` must point to writable storage.
+/// `env` must be a valid environment handle created by this library.
+/// `out` must point to writable `LmVrefBuffer` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_vars(env: *const LmEnv, out: *mut LmVrefBuffer) -> LmStatus {
     guard(|| {
-        let env = unsafe { (env as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("env"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let out = unsafe { out_from_c(out) }?;
         let vars = env
             .vars()
             .into_iter()
-            .map(|v| Box::into_raw(Box::new(v)) as *mut LmVref)
+            .map(|v| handle_to_c(v))
             .collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
         Ok(())
@@ -62,13 +63,13 @@ pub unsafe extern "C" fn lm_env_vars(env: *const LmEnv, out: *mut LmVrefBuffer) 
 /// Returns the unique id of the environment.
 ///
 /// # Safety
-/// `env` must be a valid handle and `out` must point to writable `LmEnvId` storage.
+/// `env` must be a valid environment handle created by this library.
+/// `out` must point to writable `LmEnvId` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_id(env: *const LmEnv, out: *mut LmEnvId) -> LmStatus {
     guard(|| {
-        let env = unsafe { (env as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("env"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let out = unsafe { out_from_c(out) }?;
         let id = env.id();
         *out = LmEnvId {
             hi: (id >> 64) as u64,
@@ -83,7 +84,7 @@ pub unsafe extern "C" fn lm_env_id(env: *const LmEnv, out: *mut LmEnvId) -> LmSt
 /// # Safety
 /// `env` must be a valid environment handle created by this library.
 /// `name` must point to a valid NUL-terminated C string.
-/// `out` must point to writable `LmVref` storage.
+/// `out` must point to writable `LmVref *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_lookup(
     env: *const LmEnv,
@@ -91,22 +92,11 @@ pub unsafe extern "C" fn lm_env_lookup(
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { (env as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("env"))?;
-        if name.is_null() {
-            return Err(CapiError::null_pointer("name"));
-        }
-        let name = unsafe { CStr::from_ptr(name) }.to_str().map_err(|e| {
-            CapiError::new(
-                LmStatus::InvalidArgument,
-                format!("`name` must be valid UTF-8: {e}"),
-            )
-        })?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        let var = env
-            .lookup(&name)
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
-        *out = Box::into_raw(Box::new(var)) as *mut LmVref;
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let name = unsafe { str_from_c(name, "name") }?;
+        let out = unsafe { out_from_c(out) }?;
+        let var = env.lookup(&name).map_err(CapiError::errored)?;
+        *out = handle_to_c(var);
         Ok(())
     })
 }
@@ -118,8 +108,7 @@ pub unsafe extern "C" fn lm_env_lookup(
 ///
 /// # Safety
 /// `env` must be a valid environment handle created by this library.
-/// `vid` must point to a valid vref id.
-/// `out` must point to writable `LmVref` storage.
+/// `out` must point to writable `LmVref *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_get(
     env: *const LmEnv,
@@ -127,11 +116,10 @@ pub unsafe extern "C" fn lm_env_get(
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { (env as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("env"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let out = unsafe { out_from_c(out) }?;
         let var = env.get(vid);
-        *out = Box::into_raw(Box::new(var)) as *mut LmVref;
+        *out = handle_to_c(var);
         Ok(())
     })
 }
@@ -149,18 +137,9 @@ pub unsafe extern "C" fn lm_env_contains(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { (env as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("env"))?;
-        if name.is_null() {
-            return Err(CapiError::null_pointer("name"));
-        }
-        let name = unsafe { CStr::from_ptr(name) }.to_str().map_err(|e| {
-            CapiError::new(
-                LmStatus::InvalidArgument,
-                format!("`name` must be valid UTF-8: {e}"),
-            )
-        })?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let name = unsafe { str_from_c(name, "name") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = env.contains(&name);
         Ok(())
     })
@@ -179,21 +158,10 @@ pub unsafe extern "C" fn lm_env_vtype_of(
     out: *mut LmVtype,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { (env as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("env"))?;
-        if name.is_null() {
-            return Err(CapiError::null_pointer("name"));
-        }
-        let name = unsafe { CStr::from_ptr(name) }.to_str().map_err(|e| {
-            CapiError::new(
-                LmStatus::InvalidArgument,
-                format!("`name` must be valid UTF-8: {e}"),
-            )
-        })?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        let vt = env
-            .vtype_of(&name)
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let name = unsafe { str_from_c(name, "name") }?;
+        let out = unsafe { out_from_c(out) }?;
+        let vt = env.vtype_of(&name).map_err(CapiError::errored)?;
         *out = vtype_to_c(vt);
         Ok(())
     })

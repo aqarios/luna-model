@@ -1,4 +1,5 @@
-use std::ffi::{CStr, c_char};
+use crate::utils::{mut_from_c, opt_str_from_c, out_from_c, ref_from_c, str_from_c};
+use std::ffi::c_char;
 
 use luna_model::core::{Constraint, ConstraintCollection, Expression, prelude::VarRef};
 
@@ -27,31 +28,15 @@ pub unsafe extern "C" fn lm_cc_add_constraint(
     out: *mut LmBuffer,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { (cc as *mut ConstraintCollection).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("cc"))?;
-        let constr = unsafe { (constr as *const Constraint).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("constr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let cc = unsafe { mut_from_c(cc as *mut ConstraintCollection, "cc") }?;
+        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
+        let out = unsafe { out_from_c(out) }?;
 
-        let name = if name.is_null() {
-            None
-        } else {
-            Some(
-                unsafe { CStr::from_ptr(name) }
-                    .to_str()
-                    .map_err(|e| {
-                        CapiError::new(
-                            LmStatus::InvalidArgument,
-                            format!("`name` must be valid UTF-8: {e}"),
-                        )
-                    })?
-                    .to_owned(),
-            )
-        };
+        let name = unsafe { opt_str_from_c(name, "name") }?.map(str::to_owned);
 
         let cname = cc
             .add_constraint(constr.clone(), name)
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+            .map_err(CapiError::errored)?;
 
         *out = buffer_from_vec(cname.into_bytes());
         Ok(())
@@ -72,27 +57,11 @@ pub unsafe extern "C" fn lm_cc_add_collection(
     prefix: *const c_char,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { (cc as *mut ConstraintCollection).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("cc"))?;
-        let other = unsafe { (other as *const ConstraintCollection).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
-        let prefix = if prefix.is_null() {
-            None
-        } else {
-            Some(
-                unsafe { CStr::from_ptr(prefix) }
-                    .to_str()
-                    .map_err(|e| {
-                        CapiError::new(
-                            LmStatus::InvalidArgument,
-                            format!("`prefix` must be valid UTF-8: {e}"),
-                        )
-                    })?
-                    .to_owned(),
-            )
-        };
+        let cc = unsafe { mut_from_c(cc as *mut ConstraintCollection, "cc") }?;
+        let other = unsafe { ref_from_c(other as *const ConstraintCollection, "other") }?;
+        let prefix = unsafe { opt_str_from_c(prefix, "prefix") }?.map(str::to_owned);
         cc.add_collection(other.clone(), prefix)
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+            .map_err(CapiError::errored)?;
         Ok(())
     })
 }
@@ -110,24 +79,13 @@ pub unsafe extern "C" fn lm_cc_set_constraint(
     constr: *const LmConstraint,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { (cc as *mut ConstraintCollection).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("cc"))?;
-        let constr = unsafe { (constr as *const Constraint).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("constr"))?;
+        let cc = unsafe { mut_from_c(cc as *mut ConstraintCollection, "cc") }?;
+        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
 
-        if key.is_null() {
-            return Err(CapiError::null_pointer("key"));
-        }
-
-        let key = unsafe { CStr::from_ptr(key) }.to_str().map_err(|e| {
-            CapiError::new(
-                LmStatus::InvalidArgument,
-                format!("`key` must be valid UTF-8: {e}"),
-            )
-        })?;
+        let key = unsafe { str_from_c(key, "key") }?;
 
         cc.set_constraint(key, constr.clone())
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+            .map_err(CapiError::errored)?;
         Ok(())
     })
 }
@@ -140,27 +98,16 @@ pub unsafe extern "C" fn lm_cc_set_constraint(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_remove_constraint(cc: *mut LmCC, key: *const c_char) -> LmStatus {
     guard(|| {
-        let cc = unsafe { (cc as *mut ConstraintCollection).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("cc"))?;
+        let cc = unsafe { mut_from_c(cc as *mut ConstraintCollection, "cc") }?;
 
-        if key.is_null() {
-            return Err(CapiError::null_pointer("key"));
-        }
+        let key = unsafe { str_from_c(key, "key") }?;
 
-        let key = unsafe { CStr::from_ptr(key) }.to_str().map_err(|e| {
-            CapiError::new(
-                LmStatus::InvalidArgument,
-                format!("`key` must be valid UTF-8: {e}"),
-            )
-        })?;
-
-        cc.remove_constraint(key)
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+        cc.remove_constraint(key).map_err(CapiError::errored)?;
         Ok(())
     })
 }
 
-/// Substitute the variable with a given expression.
+/// Substitutes every occurrence of `target` in the collection with `replacement`.
 ///
 /// # Safety
 /// `cc` must be a valid mutable constraint-collection handle created by this library.
@@ -173,15 +120,12 @@ pub unsafe extern "C" fn lm_cc_substitute(
     replacement: *const LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { (cc as *mut ConstraintCollection).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("cc"))?;
-        let target = unsafe { (target as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("target"))?;
-        let replacement = unsafe { (replacement as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("replacement"))?;
+        let cc = unsafe { mut_from_c(cc as *mut ConstraintCollection, "cc") }?;
+        let target = unsafe { ref_from_c(target as *const VarRef, "target") }?;
+        let replacement = unsafe { ref_from_c(replacement as *const Expression, "replacement") }?;
 
         cc.substitute(target, replacement)
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+            .map_err(CapiError::errored)?;
 
         Ok(())
     })

@@ -1,21 +1,19 @@
+use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::core::{ArcEnv, prelude::ContentEquality};
 
-use crate::{
-    LmEnv, LmStatus,
-    error::{CapiError, guard},
-};
+use crate::{LmEnv, LmStatus, error::guard};
 
 /// Clones an environment into a new, independent handle written to `out`.
 ///
 /// # Safety
-/// `env` must be a valid handle and `out` must point to writable storage.
+/// `env` must be a valid environment handle created by this library.
+/// `out` must point to writable `LmEnv *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_clone(env: *const LmEnv, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
-        let env = unsafe { (env as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("env"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(env.clone())) as *mut LmEnv;
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(env.clone());
         Ok(())
     })
 }
@@ -23,14 +21,14 @@ pub unsafe extern "C" fn lm_env_clone(env: *const LmEnv, out: *mut *mut LmEnv) -
 /// Deep clones an environment into a new, independent handle written to `out`.
 ///
 /// # Safety
-/// `env` must be a valid handle and `out` must point to writable storage.
+/// `env` must be a valid environment handle created by this library.
+/// `out` must point to writable `LmEnv *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_deep_clone(env: *const LmEnv, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
-        let env = unsafe { (env as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("env"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(env.deep_clone())) as *mut LmEnv;
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(env.deep_clone());
         Ok(())
     })
 }
@@ -48,11 +46,9 @@ pub unsafe extern "C" fn lm_env_equal_contents(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { (env as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("env"))?;
-        let other = unsafe { (other as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let other = unsafe { ref_from_c(other as *const ArcEnv, "other") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = env.equal_contents(other);
         Ok(())
     })

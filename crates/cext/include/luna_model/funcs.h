@@ -15,38 +15,13 @@ extern "C" {
 #endif // __cplusplus
 
 /**
- * Returns if the bound is bounded.
+ * Returns whether the bound is finite (`Bounded`) rather than `Unbounded`.
  *
  * # Safety
- * `bound` must be a valid bound handle created by this library.
+ * `bound` must point to a readable `LmBound`.
+ * `out` must point to writable `bool` storage.
  */
 LmStatus lm_bound_is_bounded(const LmBound *bound, bool *out);
-
-/**
- * Frees a timer handle. Passing null is a no-op.
- *
- * # Safety
- * `timer` must originate from this library and must not be used or freed again.
- */
-void lm_timer_free(LmTimer *timer);
-
-/**
- * Creates a new timer by starting it.
- *
- * Returns a non-null handle that must be released with [`lm_timer_free`].
- */
-LmTimer *lm_timer_start(void);
-
-/**
- * Stops a timer.
- *
- * Returns a non-null handle that must be released with [`lm_timing_free`].
- *
- * # Safety
- * `timer` must be a valid timer handle created by this library.
- * `out`  must point to writable `LmBounds` storage.
- */
-LmStatus lm_timer_stop(const LmTimer *timer, LmTiming **out);
 
 /**
  * Returns a copy of the bounds' lower bound.
@@ -55,7 +30,7 @@ LmStatus lm_timer_stop(const LmTimer *timer, LmTiming **out);
  * `bounds` must be a valid bounds handle created by this library.
  * `out` must point to writable `LmBound` storage.
  */
-LmStatus lm_bounds_lower(const LmBounds *bounds, LmBound **out);
+LmStatus lm_bounds_lower(const LmBounds *bounds, LmBound *out);
 
 /**
  * Returns a copy of the bounds' upper bound.
@@ -64,7 +39,7 @@ LmStatus lm_bounds_lower(const LmBounds *bounds, LmBound **out);
  * `bounds` must be a valid bounds handle created by this library.
  * `out` must point to writable `LmBound` storage.
  */
-LmStatus lm_bounds_upper(const LmBounds *bounds, LmBound **out);
+LmStatus lm_bounds_upper(const LmBounds *bounds, LmBound *out);
 
 /**
  * Frees a bounds handle. Passing null is a no-op.
@@ -75,12 +50,13 @@ LmStatus lm_bounds_upper(const LmBounds *bounds, LmBound **out);
 void lm_bounds_free(LmBounds *bounds);
 
 /**
- * Creates a new bounds.
+ * Creates new bounds from explicit lower and upper bounds.
+ *
+ * On success, `out` receives an owned handle that must be released with
+ * [`lm_bounds_free`].
  *
  * # Safety
- * `lower`  must be a valid bound handle created by this library.
- * `upper`  must be a valid bound handle created by this library.
- * `out`  must point to writable `LmBounds` storage.
+ * `out` must point to writable `LmBounds *` storage.
  */
 LmStatus lm_bounds_new(LmBound lower, LmBound upper, LmBounds **out);
 
@@ -88,7 +64,7 @@ LmStatus lm_bounds_new(LmBound lower, LmBound upper, LmBounds **out);
  * Creates new binary bounds.
  *
  * # Safety
- * `out`  must point to writable `LmBounds` storage.
+ * `out` must point to writable `LmBounds *` storage.
  */
 LmStatus lm_bounds_binary(LmBounds **out);
 
@@ -96,7 +72,7 @@ LmStatus lm_bounds_binary(LmBounds **out);
  * Creates new spin bounds.
  *
  * # Safety
- * `out`  must point to writable `LmBounds` storage.
+ * `out` must point to writable `LmBounds *` storage.
  */
 LmStatus lm_bounds_spin(LmBounds **out);
 
@@ -104,7 +80,7 @@ LmStatus lm_bounds_spin(LmBounds **out);
  * Creates new integer bounds.
  *
  * # Safety
- * `out`  must point to writable `LmBounds` storage.
+ * `out` must point to writable `LmBounds *` storage.
  */
 LmStatus lm_bounds_integer(LmBounds **out);
 
@@ -112,7 +88,7 @@ LmStatus lm_bounds_integer(LmBounds **out);
  * Creates new real bounds.
  *
  * # Safety
- * `out`  must point to writable `LmBounds` storage.
+ * `out` must point to writable `LmBounds *` storage.
  */
 LmStatus lm_bounds_real(LmBounds **out);
 
@@ -121,7 +97,7 @@ LmStatus lm_bounds_real(LmBounds **out);
  *
  * # Safety
  * `vtype` the vtype to generate the bounds for.
- * `out`   must point to writable `LmBounds` storage.
+ * `out` must point to writable `LmBounds *` storage.
  */
 LmStatus lm_bounds_default_for(LmVtype vtype, LmBounds **out);
 
@@ -129,7 +105,8 @@ LmStatus lm_bounds_default_for(LmVtype vtype, LmBounds **out);
  * Clones a bounds into a new, independent handle written to `out`.
  *
  * # Safety
- * `bounds` must be a valid handle and `out` must point to writable storage.
+ * `bounds` must be a valid bounds handle created by this library.
+ * `out` must point to writable `LmBounds *` storage.
  */
 LmStatus lm_bounds_clone(const LmBounds *bounds, LmBounds **out);
 
@@ -177,7 +154,7 @@ void lm_higher_order_item_buffer_free(LmHigherOrderItemBuffer buffer);
 /**
  * Frees a linear item buffer previously returned by LunaModel.
  *
- * A null/empty buffer is a no-op. Each ctype buffer must be freed at most once.
+ * A null/empty buffer is a no-op. Each linear item buffer must be freed at most once.
  *
  * # Safety
  * `buffer` must have been produced by this library and not already freed.
@@ -187,7 +164,7 @@ void lm_linear_item_buffer_free(LmLinearItemBuffer buffer);
 /**
  * Frees a quadratic item buffer previously returned by LunaModel.
  *
- * A null/empty buffer is a no-op. Each ctype buffer must be freed at most once.
+ * A null/empty buffer is a no-op. Each quadratic item buffer must be freed at most once.
  *
  * # Safety
  * `buffer` must have been produced by this library and not already freed.
@@ -197,7 +174,7 @@ void lm_quadratic_item_buffer_free(LmQuadraticItemBuffer buffer);
 /**
  * Frees a u32 item buffer previously returned by LunaModel.
  *
- * A null/empty buffer is a no-op. Each ctype buffer must be freed at most once.
+ * A null/empty buffer is a no-op. Each u32 buffer must be freed at most once.
  *
  * # Safety
  * `buffer` must have been produced by this library and not already freed.
@@ -240,7 +217,7 @@ LmStatus lm_cc_vtypes(const LmCC *cc, LmVtypeBuffer *out);
  *
  * # Safety
  * `cc` must be a valid constraint-collection handle created by this library.
- * `out` must point to writable `LmCtypeBuffer` storage.
+ * `out` must point to writable `LmCmpBuffer` storage.
  */
 LmStatus lm_cc_ctypes(const LmCC *cc, LmCmpBuffer *out);
 
@@ -273,7 +250,8 @@ LmStatus lm_cc_vars(const LmCC *cc,
  * Returns `true` when the constraint-collection contains no constraints.
  *
  * # Safety
- * `cc` must be a valid handle and `out` must point to writable storage.
+ * `cc` must be a valid constraint-collection handle created by this library.
+ * `out` must point to writable `bool` storage.
  */
 LmStatus lm_cc_is_empty(const LmCC *cc, bool *out);
 
@@ -281,7 +259,8 @@ LmStatus lm_cc_is_empty(const LmCC *cc, bool *out);
  * Returns the number of constraints in the collection.
  *
  * # Safety
- * `cc` must be a valid handle and `out` must point to writable storage.
+ * `cc` must be a valid constraint-collection handle created by this library.
+ * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_cc_len(const LmCC *cc, uintptr_t *out);
 
@@ -289,9 +268,10 @@ LmStatus lm_cc_len(const LmCC *cc, uintptr_t *out);
  * Retrieves a constraint by name.
  *
  * # Safety
- * `cc` must be a valid handle and `out` must point to writable storage.
+ * `cc` must be a valid constraint-collection handle created by this library.
+ * `out` must point to writable `LmConstraint *` storage.
  * `key` must point to a valid NUL-terminated C string.
- * `out` must point to writable `LmConstraint` storage.
+ * `out` must point to writable `LmConstraint *` storage.
  */
 LmStatus lm_cc_get(const LmCC *cc, const char *key, LmConstraint **out);
 
@@ -321,7 +301,8 @@ LmCC *lm_cc_new(void);
  * Clones a constraint-collection into a new, independent handle written to `out`.
  *
  * # Safety
- * `cc` must be a valid handle and `out` must point to writable storage.
+ * `cc` must be a valid constraint-collection handle created by this library.
+ * `out` must point to writable `LmCC *` storage.
  */
 LmStatus lm_cc_clone(const LmCC *cc, LmCC **out);
 
@@ -329,7 +310,8 @@ LmStatus lm_cc_clone(const LmCC *cc, LmCC **out);
  * Deep clones a constraint-collection into a new, independent handle written to `out`.
  *
  * # Safety
- * `cc` must be a valid handle and `out` must point to writable storage.
+ * `cc` must be a valid constraint-collection handle created by this library.
+ * `out` must point to writable `LmCC *` storage.
  */
 LmStatus lm_cc_deep_clone(const LmCC *cc, const LmEnv *env, LmCC **out);
 
@@ -402,7 +384,7 @@ LmStatus lm_cc_set_constraint(LmCC *cc, const char *key, const LmConstraint *con
 LmStatus lm_cc_remove_constraint(LmCC *cc, const char *key);
 
 /**
- * Substitute the variable with a given expression.
+ * Substitutes every occurrence of `target` in the collection with `replacement`.
  *
  * # Safety
  * `cc` must be a valid mutable constraint-collection handle created by this library.
@@ -414,10 +396,11 @@ LmStatus lm_cc_substitute(LmCC *cc, const LmVref *target, const LmExpr *replacem
 /**
  * Serializes a constraint-collection to bytes, writing an owned buffer to `out`.
  *
- * The buffer must be released with [`crate::buffer::lm_buffer_free`].
+ * The buffer must be released with `lm_buffer_free`.
  *
  * # Safety
- * `cc` must be a valid handle and `out` must point to writable `LmBuffer` storage.
+ * `cc` must be a valid constraint-collection handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
  */
 LmStatus lm_cc_serialize(const LmCC *cc, LmBuffer *out);
 
@@ -427,9 +410,9 @@ LmStatus lm_cc_serialize(const LmCC *cc, LmBuffer *out);
  * The new handle must be released with [`lm_cc_free`].
  *
  * # Safety
- * `data` must point to `len` readable bytes
- * `env` must point to a valid environment handle
- * `out` must point to writable storage
+ * `data` must point to `len` readable bytes.
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable storage.
  */
 LmStatus lm_cc_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env, LmCC **out);
 
@@ -453,7 +436,7 @@ LmStatus lm_constr_name(const LmConstraint *constr, LmBuffer *out);
  *
  * # Safety
  * `constr` must be a valid constraint handle created by this library.
- * `out` must point to writable `LmExpr` storage.
+ * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_constr_lhs(const LmConstraint *constr, LmExpr **out);
 
@@ -462,7 +445,7 @@ LmStatus lm_constr_lhs(const LmConstraint *constr, LmExpr **out);
  *
  * # Safety
  * `constr` must be a valid constraint handle created by this library.
- * `out` must point to writable `f64` storage.
+ * `out` must point to writable `double` storage.
  */
 LmStatus lm_constr_rhs(const LmConstraint *constr, double *out);
 
@@ -504,10 +487,10 @@ void lm_constr_free(LmConstraint *constr);
  * `lhs` is cloned, not consumed: the caller keeps ownership of the handle.
  *
  * # Safety
- * `lhs`  must be a valid expression handle created by this library.
+ * `lhs` must be a valid expression handle created by this library.
  * `name` may be null (the constraint is then auto-named, e.g. `c0`);
  *        if non-null it must point to a NUL-terminated, valid UTF-8 C string.
- * `out`  must point to writable `*mut LmConstraint` storage.
+ * `out` must point to writable `LmConstraint *` storage.
  *        On `LmStatus::Ok` it receives an owned handle the caller must release with `lm_constr_free`.
  */
 LmStatus lm_constr_new(const LmExpr *lhs,
@@ -520,7 +503,7 @@ LmStatus lm_constr_new(const LmExpr *lhs,
  * Clones a constraint into a new, independent handle written to `out`.
  *
  * # Safety
- * `constraint` must be a valid handle and `out` must point to writable storage.
+ * `out` must point to writable `LmConstraint *` storage.
  */
 LmStatus lm_constr_clone(const LmConstraint *constr, LmConstraint **out);
 
@@ -528,12 +511,14 @@ LmStatus lm_constr_clone(const LmConstraint *constr, LmConstraint **out);
  * Deep-Clones a constraint into a new, independent handle written to `out`.
  *
  * # Safety
- * `constr` and `env` must be a valid handle and `out` must point to writable storage.
+ * `constr` must be a valid constraint handle created by this library.
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `LmConstraint *` storage.
  */
 LmStatus lm_constr_deep_clone(const LmConstraint *constr, const LmEnv *env, LmConstraint **out);
 
 /**
- * Substitute the variable with a given expression.
+ * Substitutes every occurrence of `target` in the constraint with `replacement`.
  *
  * # Safety
  * `constr` must be a valid mutable constraint handle created by this library.
@@ -568,7 +553,8 @@ LmStatus lm_constr_eq(const LmConstraint *constr, const LmConstraint *other, boo
  * Returns the number of variables in the environment.
  *
  * # Safety
- * `env` must be a valid handle and `out` must point to writable storage.
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_env_len(const LmEnv *env, uintptr_t *out);
 
@@ -576,7 +562,8 @@ LmStatus lm_env_len(const LmEnv *env, uintptr_t *out);
  * Returns `true` when the environment contains no variables.
  *
  * # Safety
- * `env` must be a valid handle and `out` must point to writable storage.
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `bool` storage.
  */
 LmStatus lm_env_is_empty(const LmEnv *env, bool *out);
 
@@ -584,7 +571,8 @@ LmStatus lm_env_is_empty(const LmEnv *env, bool *out);
  * Returns all variables as environment-bound references.
  *
  * # Safety
- * `env` must be a valid handle and `out` must point to writable storage.
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `LmVrefBuffer` storage.
  */
 LmStatus lm_env_vars(const LmEnv *env, LmVrefBuffer *out);
 
@@ -592,7 +580,8 @@ LmStatus lm_env_vars(const LmEnv *env, LmVrefBuffer *out);
  * Returns the unique id of the environment.
  *
  * # Safety
- * `env` must be a valid handle and `out` must point to writable `LmEnvId` storage.
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `LmEnvId` storage.
  */
 LmStatus lm_env_id(const LmEnv *env, LmEnvId *out);
 
@@ -602,7 +591,7 @@ LmStatus lm_env_id(const LmEnv *env, LmEnvId *out);
  * # Safety
  * `env` must be a valid environment handle created by this library.
  * `name` must point to a valid NUL-terminated C string.
- * `out` must point to writable `LmVref` storage.
+ * `out` must point to writable `LmVref *` storage.
  */
 LmStatus lm_env_lookup(const LmEnv *env, const char *name, LmVref **out);
 
@@ -614,8 +603,7 @@ LmStatus lm_env_lookup(const LmEnv *env, const char *name, LmVref **out);
  *
  * # Safety
  * `env` must be a valid environment handle created by this library.
- * `vid` must point to a valid vref id.
- * `out` must point to writable `LmVref` storage.
+ * `out` must point to writable `LmVref *` storage.
  */
 LmStatus lm_env_get(const LmEnv *env, uint32_t vid, LmVref **out);
 
@@ -643,7 +631,7 @@ LmStatus lm_env_vtype_of(const LmEnv *env, const char *name, LmVtype *out);
  * Frees an environment handle. Passing null is a no-op.
  *
  * # Safety
- * `model` must originate from this library and must not be used or freed again.
+ * `env` must originate from this library and must not be used or freed again.
  */
 void lm_env_free(LmEnv *env);
 
@@ -658,7 +646,8 @@ LmEnv *lm_env_default(void);
  * Clones an environment into a new, independent handle written to `out`.
  *
  * # Safety
- * `env` must be a valid handle and `out` must point to writable storage.
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `LmEnv *` storage.
  */
 LmStatus lm_env_clone(const LmEnv *env, LmEnv **out);
 
@@ -666,7 +655,8 @@ LmStatus lm_env_clone(const LmEnv *env, LmEnv **out);
  * Deep clones an environment into a new, independent handle written to `out`.
  *
  * # Safety
- * `env` must be a valid handle and `out` must point to writable storage.
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `LmEnv *` storage.
  */
 LmStatus lm_env_deep_clone(const LmEnv *env, LmEnv **out);
 
@@ -686,12 +676,11 @@ LmStatus lm_env_equal_contents(const LmEnv *env, const LmEnv *other, bool *out);
  * # Safety
  * `env` must be a valid mutable environment handle created by this library.
  * `name` must point to a valid NUL-terminated C string.
- * `vtype` must point to a valid `LmVtype`.
  * `bounds`, when non-null, must be a valid lazy-bounds handle created by this library.
  */
 LmStatus lm_env_insert(LmEnv *env,
                        const char *name,
-                       const LmVtype *vtype,
+                       LmVtype vtype,
                        const LmLazyBounds *bounds,
                        LmVref **out);
 
@@ -701,12 +690,11 @@ LmStatus lm_env_insert(LmEnv *env,
  * # Safety
  * `env` must be a valid mutable environment handle created by this library.
  * `name` must point to a valid NUL-terminated C string.
- * `vtype` must point to a valid `LmVtype`.
  * `bounds`, when non-null, must be a valid lazy-bounds handle created by this library.
  */
 LmStatus lm_env_insert_with_fallback(LmEnv *env,
                                      const char *name,
-                                     const LmVtype *vtype,
+                                     LmVtype vtype,
                                      const LmLazyBounds *bounds,
                                      LmVref **out);
 
@@ -716,7 +704,7 @@ LmStatus lm_env_insert_with_fallback(LmEnv *env,
  * # Safety
  * `env` must be a valid mutable environment handle created by this library.
  * `vref` must point to a valid `LmVref`.
- * `out` must point to writable `LmVref` storage.
+ * `out` must point to writable `LmVref *` storage.
  */
 LmStatus lm_env_insert_inverted(LmEnv *env, const LmVref *vref, LmVref **out);
 
@@ -725,28 +713,29 @@ LmStatus lm_env_insert_inverted(LmEnv *env, const LmVref *vref, LmVref **out);
  *
  * # Safety
  * `env` must be a valid mutable environment handle created by this library.
- * `vref` must point to a valid `lmvref`.
+ * `vref` must point to a valid `LmVref`.
  */
 LmStatus lm_env_remove(LmEnv *env, const LmVref *vref);
 
 /**
  * Serializes an environment to bytes, writing an owned buffer to `out`.
  *
- * The buffer must be released with [`crate::buffer::lm_buffer_free`].
+ * The buffer must be released with `lm_buffer_free`.
  *
  * # Safety
- * `env` must be a valid handle and `out` must point to writable `LmBuffer` storage.
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
  */
 LmStatus lm_env_serialize(const LmEnv *env, LmBuffer *out);
 
 /**
- * Deserializes a env from `len` bytes at `data`, writing a new handle to `out`.
+ * Deserializes an environment from `len` bytes at `data`, writing a new handle to `out`.
  *
  * The new handle must be released with [`lm_env_free`].
  *
  * # Safety
- * `data` must point to `len` readable bytes
- * `out` must point to writable storage
+ * `data` must point to `len` readable bytes.
+ * `out` must point to writable storage.
  */
 LmStatus lm_env_deserialize(const uint8_t *data, uintptr_t len, LmEnv **out);
 
@@ -766,7 +755,7 @@ const char *lm_last_error_message(void);
  *
  * # Safety
  * `expr` must be a valid expression handle created by this library.
- * `out` must point to writable `LmEnv` storage.
+ * `out` must point to writable `LmEnv *` storage.
  */
 LmStatus lm_expr_env(const LmExpr *expr, LmEnv **out);
 
@@ -784,7 +773,7 @@ LmStatus lm_expr_offset(const LmExpr *expr, double *out);
  *
  * # Safety
  * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `LmLinearTerm` storage.
+ * `out` must point to writable `LmLinear *` storage.
  */
 LmStatus lm_expr_linear(const LmExpr *expr, LmLinear **out);
 
@@ -793,7 +782,7 @@ LmStatus lm_expr_linear(const LmExpr *expr, LmLinear **out);
  *
  * # Safety
  * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `LmQuadraticTerm` storage.
+ * `out` must point to writable `LmQuadratic *` storage.
  */
 LmStatus lm_expr_quadratic(const LmExpr *expr, LmQuadratic **out);
 
@@ -802,7 +791,7 @@ LmStatus lm_expr_quadratic(const LmExpr *expr, LmQuadratic **out);
  *
  * # Safety
  * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `LmHigherOrderTerm` storage.
+ * `out` must point to writable `LmHigherOrder *` storage.
  */
 LmStatus lm_expr_higher_order(const LmExpr *expr, LmHigherOrder **out);
 
@@ -811,7 +800,7 @@ LmStatus lm_expr_higher_order(const LmExpr *expr, LmHigherOrder **out);
  *
  * # Safety
  * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `usize` storage.
+ * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_expr_num_vars(const LmExpr *expr, uintptr_t *out);
 
@@ -857,12 +846,12 @@ LmStatus lm_expr_complete_vars(const LmExpr *expr, LmVrefBuffer *out);
  *
  * # Safety
  * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `usize` storage.
+ * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_expr_degree(const LmExpr *expr, uintptr_t *out);
 
 /**
- * Returns if the expression is constant.
+ * Returns whether the expression is constant.
  *
  * # Safety
  * `expr` must be a valid expr handle created by this library.
@@ -871,7 +860,7 @@ LmStatus lm_expr_degree(const LmExpr *expr, uintptr_t *out);
 LmStatus lm_expr_is_constant(const LmExpr *expr, bool *out);
 
 /**
- * Returns if the expression has at least one quadratic term.
+ * Returns whether the expression has at least one quadratic term.
  *
  * # Safety
  * `expr` must be a valid expr handle created by this library.
@@ -880,7 +869,7 @@ LmStatus lm_expr_is_constant(const LmExpr *expr, bool *out);
 LmStatus lm_expr_has_quadratic(const LmExpr *expr, bool *out);
 
 /**
- * Returns if the expression has at least one higher-order term.
+ * Returns whether the expression has at least one higher-order term.
  *
  * # Safety
  * `expr` must be a valid expr handle created by this library.
@@ -907,6 +896,10 @@ LmExpr *lm_expr_default(void);
  * Creates a new empty expression with an environment.
  *
  * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ *
+ * # Safety
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_expr_new(const LmEnv *env, LmExpr **out);
 
@@ -914,6 +907,10 @@ LmStatus lm_expr_new(const LmEnv *env, LmExpr **out);
  * Creates a new constant expression with an environment.
  *
  * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ *
+ * # Safety
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_expr_new_constant(const LmEnv *env, double val, LmExpr **out);
 
@@ -921,6 +918,9 @@ LmStatus lm_expr_new_constant(const LmEnv *env, double val, LmExpr **out);
  * Creates a new expression from a constant double.
  *
  * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ *
+ * # Safety
+ * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_expr_from_double(double cnst, LmExpr **out);
 
@@ -928,6 +928,9 @@ LmStatus lm_expr_from_double(double cnst, LmExpr **out);
  * Creates a new expression from a constant size_t.
  *
  * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ *
+ * # Safety
+ * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_expr_from_size_t(uintptr_t cnst, LmExpr **out);
 
@@ -935,6 +938,10 @@ LmStatus lm_expr_from_size_t(uintptr_t cnst, LmExpr **out);
  * Creates a new expression from a linear term.
  *
  * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ *
+ * # Safety
+ * `lin` must be a valid linear handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_expr_from_linear(const LmLinear *lin, LmExpr **out);
 
@@ -942,6 +949,10 @@ LmStatus lm_expr_from_linear(const LmLinear *lin, LmExpr **out);
  * Creates a new expression from a quadratic term.
  *
  * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ *
+ * # Safety
+ * `quad` must be a valid quadratic handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_expr_from_quadratic(const LmQuadratic *quad, LmExpr **out);
 
@@ -949,6 +960,10 @@ LmStatus lm_expr_from_quadratic(const LmQuadratic *quad, LmExpr **out);
  * Creates a new expression from a higher-order term.
  *
  * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ *
+ * # Safety
+ * `ho` must be a valid higher-order handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_expr_from_higher_order(const LmHigherOrder *ho, LmExpr **out);
 
@@ -976,52 +991,56 @@ LmStatus lm_expr_equal_contents(const LmExpr *expr, const LmExpr *other, bool *o
  * Clones an expression into a new, independent handle written to `out`.
  *
  * # Safety
- * `expr` must be a valid handle and `out` must point to writable storage.
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_expr_clone(const LmExpr *expr, LmExpr **out);
 
 /**
- * Deep Clones an expression into a new, independent handle written to `out` for a new environment
- * `env`
+ * Deep-clones an expression into a new, independent handle written to `out`,
+ * rebinding it to the environment `env`.
  *
  * # Safety
- * `expr` and `env` must be a valid handle and `out` must point to writable storage.
+ * `expr` must be a valid expression handle created by this library.
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_expr_deep_clone(const LmExpr *expr, const LmEnv *env, LmExpr **out);
 
 /**
  * Serializes an expression to bytes, writing an owned buffer to `out`.
  *
- * The buffer must be released with [`crate::buffer::lm_buffer_free`].
+ * The buffer must be released with `lm_buffer_free`.
  *
  * # Safety
- * `expr` must be a valid handle and `out` must point to writable `LmBuffer` storage.
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
  */
 LmStatus lm_expr_serialize(const LmExpr *expr, LmBuffer *out);
 
 /**
- * Deserializes a expr from `len` bytes at `data`, writing a new handle to `out`.
+ * Deserializes an expression from `len` bytes at `data`, writing a new handle to `out`.
  *
  * The new handle must be released with [`lm_expr_free`].
  *
  * # Safety
- * `data` must point to `len` readable bytes
- * `env` must point to a valid environment handle
- * `out` must point to writable storage
+ * `data` must point to `len` readable bytes.
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable storage.
  */
 LmStatus lm_expr_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env, LmExpr **out);
 
 /**
- * Returns the len of the higher_order term.
+ * Returns the number of explicitly stored entries of the higher_order term.
  *
  * # Safety
  * `higher_order` must be a valid higher_order handle created by this library.
- * `out` must point to writable `usize` storage.
+ * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_higher_order_len(const LmHigherOrder *higher_order, uintptr_t *out);
 
 /**
- * Returns if the higher_order term is zero.
+ * Returns whether the higher_order term is zero.
  *
  * # Safety
  * `higher_order` must be a valid higher_order handle created by this library.
@@ -1030,7 +1049,7 @@ LmStatus lm_higher_order_len(const LmHigherOrder *higher_order, uintptr_t *out);
 LmStatus lm_higher_order_is_zero(const LmHigherOrder *higher_order, bool *out);
 
 /**
- * Returns if the higher_order term is empty.
+ * Returns whether the higher_order term is empty.
  *
  * # Safety
  * `higher_order` must be a valid higher_order handle created by this library.
@@ -1043,7 +1062,7 @@ LmStatus lm_higher_order_is_empty(const LmHigherOrder *higher_order, bool *out);
  *
  * # Safety
  * `higher_order` must be a valid higher_order handle created by this library.
- * `out` must point to writable `usize` storage.
+ * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_higher_order_degree(const LmHigherOrder *higher_order, uintptr_t *out);
 
@@ -1060,11 +1079,11 @@ LmStatus lm_higher_order_items(const LmHigherOrder *higher_order,
                                LmHigherOrderItemBuffer *out);
 
 /**
- * Returns the bias in the higher_order term for the var idx.
+ * Returns the bias stored in the higher_order term for the given variable index.
  *
  * # Safety
  * `higher_order` must be a valid higher_order handle created by this library.
- * `out` must point to writable `f64` storage.
+ * `out` must point to writable `double` storage.
  */
 LmStatus lm_higher_order_index(const LmHigherOrder *higher_order,
                                const uint32_t *indices,
@@ -1109,12 +1128,13 @@ LmStatus lm_higher_order_eq(const LmHigherOrder *higher_order,
  * Clones a higher_order term into a new, independent handle written to `out`.
  *
  * # Safety
- * `higher_order` must be a valid handle and `out` must point to writable storage.
+ * `higher_order` must be a valid higher-order handle created by this library.
+ * `out` must point to writable `LmHigherOrder *` storage.
  */
 LmStatus lm_higher_order_clone(const LmHigherOrder *higher_order, LmHigherOrder **out);
 
 /**
- * Add a new entry with it's bias to the higher_order term.
+ * Adds a new entry with its bias to the higher_order term.
  *
  * # Safety
  * `higher_order` must be a valid mutable higher_order handle created by this library.
@@ -1125,7 +1145,7 @@ LmStatus lm_higher_order_add_entry(LmHigherOrder *higher_order,
                                    double bias);
 
 /**
- * Add another higher_order term to this higher_order term.
+ * Adds another higher_order term to this higher_order term.
  *
  * # Safety
  * `higher_order` must be a valid mutable higher_order handle created by this library.
@@ -1134,29 +1154,31 @@ LmStatus lm_higher_order_add_entry(LmHigherOrder *higher_order,
 LmStatus lm_higher_order_add_higher_order(LmHigherOrder *higher_order, const LmHigherOrder *other);
 
 /**
- * Mul this higher_order term with some value.
+ * Multiplies every bias of this higher_order term by `bias`.
  *
  * # Safety
  * `higher_order` must be a valid mutable higher_order handle created by this library.
- * `bias` must be a valid f64.
  */
 LmStatus lm_higher_order_mul_bias(LmHigherOrder *higher_order, double bias);
 
 /**
- * Negate this higher_order term and writing the result to a new higher_order handle.
+ * Negates this higher_order term, writing the result to a new higher_order handle.
+ *
+ * On success, `out` receives an owned handle that must be released with
+ * [`lm_higher_order_free`].
  *
  * # Safety
- * `higher_order` must be a valid mutable higher_order handle created by this library.
- * `out` must point to writable `LmHigherOrder` storage.
+ * `higher_order` must be a valid higher_order handle created by this library.
+ * `out` must point to writable `LmHigherOrder *` storage.
  */
 LmStatus lm_higher_order_neg(const LmHigherOrder *higher_order, LmHigherOrder **out);
 
 /**
- * Set the bias for a specific entry (variable tuple) of the higher-order term.
+ * Sets the bias for a specific entry (variable tuple) of the higher-order term.
  *
  * # Safety
  * `higher_order` must be a valid mutable higher-order handle created by this library.
- * `indices` must point to `indices_len` readable `u32`s (may be null iff `indices_len == 0`).
+ * `indices` must point to `indices_len` readable `uint32_t`s (may be null iff `indices_len == 0`).
  */
 LmStatus lm_higher_order_set_bias(LmHigherOrder *higher_order,
                                   const uint32_t *indices,
@@ -1166,20 +1188,26 @@ LmStatus lm_higher_order_set_bias(LmHigherOrder *higher_order,
 /**
  * Returns a copy of the lazy-bounds' lower bound.
  *
- * # Safety
- * `lazy_bounds` must be a valid lazy-bounds handle created by this library.
- * `out` must point to writable `LmBound` storage.
- */
-LmStatus lm_lazy_bounds_lower(const LmLazyBounds *lazy_bounds, LmBound **out);
-
-/**
- * Returns a copy of the lazy-bounds' upper bound.
+ * Returns [`LmStatus::Absent`] (leaving `out` untouched) when no explicit
+ * lower bound is set.
  *
  * # Safety
  * `lazy_bounds` must be a valid lazy-bounds handle created by this library.
  * `out` must point to writable `LmBound` storage.
  */
-LmStatus lm_lazy_bounds_upper(const LmLazyBounds *lazy_bounds, LmBound **out);
+LmStatus lm_lazy_bounds_lower(const LmLazyBounds *lazy_bounds, LmBound *out);
+
+/**
+ * Returns a copy of the lazy-bounds' upper bound.
+ *
+ * Returns [`LmStatus::Absent`] (leaving `out` untouched) when no explicit
+ * upper bound is set.
+ *
+ * # Safety
+ * `lazy_bounds` must be a valid lazy-bounds handle created by this library.
+ * `out` must point to writable `LmBound` storage.
+ */
+LmStatus lm_lazy_bounds_upper(const LmLazyBounds *lazy_bounds, LmBound *out);
 
 /**
  * Frees a lazy-bounds handle. Passing null is a no-op.
@@ -1190,17 +1218,25 @@ LmStatus lm_lazy_bounds_upper(const LmLazyBounds *lazy_bounds, LmBound **out);
 void lm_lazy_bounds_free(LmLazyBounds *lazy_bounds);
 
 /**
- * Creates a default lazy-bounds.
+ * Creates a lazy-bounds with both endpoints unset.
+ *
+ * Returns a non-null handle that must be released with [`lm_lazy_bounds_free`].
  */
 LmLazyBounds *lm_lazy_bounds_default(void);
 
 /**
  * Creates a new lazy-bounds.
  *
+ * `lower == NULL` / `upper == NULL` mean "unset": the type-specific default
+ * is used for that endpoint when the lazy-bounds is concretized for a vtype.
+ *
+ * On success, `out` receives an owned handle that must be released with
+ * [`lm_lazy_bounds_free`].
+ *
  * # Safety
- * `lower == NULL`: use the default lower bounds when this lazy-bounds is concretized for a LmVtype.
- * `upper == NULL`: use the default lower bounds when this lazy-bounds is concretized for a LmVtype.
- * `out`  must point to writable `LmBounds` storage.
+ * `lower` must be null or point to a readable `LmBound`.
+ * `upper` must be null or point to a readable `LmBound`.
+ * `out` must point to writable `LmLazyBounds *` storage.
  */
 LmStatus lm_lazy_bounds_new(const LmBound *lower, const LmBound *upper, LmLazyBounds **out);
 
@@ -1212,7 +1248,7 @@ LmStatus lm_lazy_bounds_new(const LmBound *lower, const LmBound *upper, LmLazyBo
  *
  * # Safety
  * `lazy_bounds` must be a valid lazy-bounds handle created by this library.
- * `out` must point to writable `LmBound` storage.
+ * `out` must point to writable `LmBounds *` storage.
  */
 LmStatus lm_lazy_bounds_concretize(const LmLazyBounds *lazy_bounds, LmVtype vtype, LmBounds **out);
 
@@ -1220,21 +1256,22 @@ LmStatus lm_lazy_bounds_concretize(const LmLazyBounds *lazy_bounds, LmVtype vtyp
  * Clones a lazy-bounds into a new, independent handle written to `out`.
  *
  * # Safety
- * `lazy_bounds` must be a valid handle and `out` must point to writable storage.
+ * `lazy_bounds` must be a valid lazy-bounds handle created by this library.
+ * `out` must point to writable `LmLazyBounds *` storage.
  */
 LmStatus lm_lazy_bounds_clone(const LmLazyBounds *lazy_bounds, LmLazyBounds **out);
 
 /**
- * Returns the len of the linear term.
+ * Returns the number of explicitly stored entries of the linear term.
  *
  * # Safety
  * `linear` must be a valid linear handle created by this library.
- * `out` must point to writable `usize` storage.
+ * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_linear_len(const LmLinear *linear, uintptr_t *out);
 
 /**
- * Returns if the linear term is zero.
+ * Returns whether the linear term is zero.
  *
  * # Safety
  * `linear` must be a valid linear handle created by this library.
@@ -1243,7 +1280,7 @@ LmStatus lm_linear_len(const LmLinear *linear, uintptr_t *out);
 LmStatus lm_linear_is_zero(const LmLinear *linear, bool *out);
 
 /**
- * Returns if the linear term is empty.
+ * Returns whether the linear term is empty.
  *
  * # Safety
  * `linear` must be a valid linear handle created by this library.
@@ -1264,11 +1301,11 @@ LmStatus lm_linear_items(const LmLinear *linear,
                          LmLinearItemBuffer *out);
 
 /**
- * Returns the bias in the linear term for the var idx.
+ * Returns the bias stored in the linear term for the given variable index.
  *
  * # Safety
  * `linear` must be a valid linear handle created by this library.
- * `out` must point to writable `f64` storage.
+ * `out` must point to writable `double` storage.
  */
 LmStatus lm_linear_index(const LmLinear *linear, uint32_t index, double *out);
 
@@ -1291,6 +1328,9 @@ LmLinear *lm_linear_default(void);
  * Creates a new linear term for a variable index and bias.
  *
  * `out` receives an owned linear handle that must be freed with [`lm_linear_free`].
+ *
+ * # Safety
+ * `out` must point to writable `LmLinear *` storage.
  */
 LmStatus lm_linear_for_var(uint32_t var, double bias, LmLinear **out);
 
@@ -1308,12 +1348,13 @@ LmStatus lm_linear_eq(const LmLinear *linear, const LmLinear *other, bool *out);
  * Clones a linear term into a new, independent handle written to `out`.
  *
  * # Safety
- * `linear` must be a valid handle and `out` must point to writable storage.
+ * `linear` must be a valid linear handle created by this library.
+ * `out` must point to writable `LmLinear *` storage.
  */
 LmStatus lm_linear_clone(const LmLinear *linear, LmLinear **out);
 
 /**
- * Add a new entry with it's bias to the linear term.
+ * Adds a new entry with its bias to the linear term.
  *
  * # Safety
  * `linear` must be a valid mutable linear handle created by this library.
@@ -1321,7 +1362,7 @@ LmStatus lm_linear_clone(const LmLinear *linear, LmLinear **out);
 LmStatus lm_linear_add_entry(LmLinear *linear, uint32_t id, double bias);
 
 /**
- * Add another linear term to this linear term.
+ * Adds another linear term to this linear term.
  *
  * # Safety
  * `linear` must be a valid mutable linear handle created by this library.
@@ -1330,25 +1371,27 @@ LmStatus lm_linear_add_entry(LmLinear *linear, uint32_t id, double bias);
 LmStatus lm_linear_add_linear(LmLinear *linear, const LmLinear *other);
 
 /**
- * Mul this linear term with some value.
+ * Multiplies every bias of this linear term by `bias`.
  *
  * # Safety
  * `linear` must be a valid mutable linear handle created by this library.
- * `bias` must be a valid f64.
  */
 LmStatus lm_linear_mul_bias(LmLinear *linear, double bias);
 
 /**
- * Negate this linear term and writing the result to a new linear handle.
+ * Negates this linear term, writing the result to a new linear handle.
+ *
+ * On success, `out` receives an owned handle that must be released with
+ * [`lm_linear_free`].
  *
  * # Safety
- * `linear` must be a valid mutable linear handle created by this library.
- * `out` must point to writable `LmLinear` storage.
+ * `linear` must be a valid linear handle created by this library.
+ * `out` must point to writable `LmLinear *` storage.
  */
 LmStatus lm_linear_neg(const LmLinear *linear, LmLinear **out);
 
 /**
- * Set bias for a specific index of the linear term.
+ * Sets the bias for a specific index of the linear term.
  *
  * # Safety
  * `linear` must be a valid mutable linear handle created by this library.
@@ -1384,7 +1427,7 @@ LmStatus lm_model_sense(const LmModel *model, LmSense *out);
  *
  * # Safety
  * `model` must be a valid model handle created by this library.
- * `out` must point to writable `LmEnv` storage.
+ * `out` must point to writable `LmEnv *` storage.
  */
 LmStatus lm_model_env(const LmModel *model, LmEnv **out);
 
@@ -1393,7 +1436,7 @@ LmStatus lm_model_env(const LmModel *model, LmEnv **out);
  *
  * # Safety
  * `model` must be a valid model handle created by this library.
- * `out` must point to writable `LmSpecs` storage.
+ * `out` must point to writable `LmSpecs *` storage.
  */
 LmStatus lm_model_specs(const LmModel *model, LmSpecs **out);
 
@@ -1418,7 +1461,7 @@ LmStatus lm_model_vtypes(const LmModel *model, LmVtypeBuffer *out);
  *
  * # Safety
  * `model` must be a valid model handle created by this library.
- * `out` must point to writable `usize` storage.
+ * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_model_num_variables(const LmModel *model, uintptr_t *out);
 
@@ -1454,7 +1497,7 @@ LmStatus lm_model_var(const LmModel *model, const char *name, LmVref **out);
  *
  * # Safety
  * `model` must be a valid model handle created by this library.
- * `out` must point to writable `LmExpr` storage.
+ * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_model_objective(const LmModel *model, LmExpr **out);
 
@@ -1463,7 +1506,7 @@ LmStatus lm_model_objective(const LmModel *model, LmExpr **out);
  *
  * # Safety
  * `model` must be a valid model handle created by this library.
- * `out` must point to writable `LmCC` storage.
+ * `out` must point to writable `LmCC *` storage.
  */
 LmStatus lm_model_constraints(const LmModel *model, LmCC **out);
 
@@ -1488,14 +1531,26 @@ LmModel *lm_model_default(void);
  * `name == NULL` means use the default model name.
  * `sense == NULL` means use the default optimization sense.
  * `out` receives an owned model handle that must be freed with `lm_model_free`.
+ *
+ * # Safety
+ * `name` must be null or point to a valid NUL-terminated C string.
+ * `sense` must be null or point to a readable `LmSense`.
+ * `out` must point to writable `LmModel *` storage.
  */
 LmStatus lm_model_new(const char *name, const LmSense *sense, LmModel **out);
 
 /**
- * Creates a new model for an environment
+ * Creates a new model for an environment.
  *
  * `name == NULL` means use the default model name.
+ * `sense == NULL` means use the default optimization sense.
  * `out` receives an owned model handle that must be freed with `lm_model_free`.
+ *
+ * # Safety
+ * `name` must be null or point to a valid NUL-terminated C string.
+ * `sense` must be null or point to a readable `LmSense`.
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `LmModel *` storage.
  */
 LmStatus lm_model_with_env(const char *name, const LmSense *sense, const LmEnv *env, LmModel **out);
 
@@ -1523,7 +1578,8 @@ LmStatus lm_model_equal_contents(const LmModel *model, const LmModel *other, boo
  * Clones a model into a new, independent handle written to `out`.
  *
  * # Safety
- * `model` must be a valid handle and `out` must point to writable storage.
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `LmModel *` storage.
  */
 LmStatus lm_model_clone(const LmModel *model, LmModel **out);
 
@@ -1531,7 +1587,8 @@ LmStatus lm_model_clone(const LmModel *model, LmModel **out);
  * Deep-clones a model into a new, independent handle written to `out`.
  *
  * # Safety
- * `model` must be a valid handle and `out` must point to writable storage.
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `LmModel *` storage.
  */
 LmStatus lm_model_deep_clone(const LmModel *model, LmModel **out);
 
@@ -1559,13 +1616,12 @@ LmStatus lm_model_satisfies(const LmModel *model, const LmSpecs *specs, bool *ou
  * # Safety
  * `model` must be a valid mutable model handle created by this library.
  * `name` must point to a valid NUL-terminated C string.
- * `vtype` must point to a valid `LmVtype`.
  * `bounds`, when non-null, must be a valid bounds handle created by this library.
  * `out` must point to writable `LmVref *` storage.
  */
 LmStatus lm_model_add_var(LmModel *model,
                           const char *name,
-                          const LmVtype *vtype,
+                          LmVtype vtype,
                           const LmBounds *bounds,
                           LmVref **out);
 
@@ -1582,34 +1638,41 @@ LmStatus lm_model_add_var(LmModel *model,
  * # Safety
  * `model` must be a valid mutable model handle created by this library.
  * `name` must point to a valid NUL-terminated C string.
- * `vtype` must point to a valid `LmVtype`.
  * `bounds`, when non-null, must be a valid bounds handle created by this library.
  * `out` must point to writable `LmVref *` storage.
  */
 LmStatus lm_model_add_var_with_fallback(LmModel *model,
                                         const char *name,
-                                        const LmVtype *vtype,
+                                        LmVtype vtype,
                                         const LmBounds *bounds,
                                         LmVref **out);
 
 /**
- * Evaluate the model for a given solution.
+ * Evaluates the model for a given solution.
+ *
+ * On success, `out` receives an owned handle to the evaluated solution that
+ * must be released with [`lm_sol_free`].
  *
  * # Safety
  * `model` must be a valid model handle created by this library.
- * `solution` must be a valid model handle created by this library.
- * `out` must point to writable `LmSol` storage.
+ * `solution` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmSol *` storage.
  */
 LmStatus lm_model_evaluate_solution(const LmModel *model, const LmSol *solution, LmSol **out);
 
 /**
- * Evaluate the model for a given solution with a tolerance.
+ * Evaluates the model for a given solution with a feasibility tolerance.
+ *
+ * `tol == NULL` means use the default tolerance.
+ *
+ * On success, `out` receives an owned handle to the evaluated solution that
+ * must be released with [`lm_sol_free`].
  *
  * # Safety
  * `model` must be a valid model handle created by this library.
- * `solution` must be a valid model handle created by this library.
- * `tol` must be a valid `usize`, `tol == NULL` means use the default tolerance.
- * `out` must point to writable `LmSol` storage.
+ * `solution` must be a valid solution handle created by this library.
+ * `tol` must be null or point to a readable `double`.
+ * `out` must point to writable `LmSol *` storage.
  */
 LmStatus lm_model_evaluate_solution_with_tol(const LmModel *model,
                                              const LmSol *solution,
@@ -1617,7 +1680,7 @@ LmStatus lm_model_evaluate_solution_with_tol(const LmModel *model,
                                              LmSol **out);
 
 /**
- * Substitute the variable with a given expression.
+ * Substitutes every occurrence of `target` in the model with `replacement`.
  *
  * # Safety
  * `model` must be a valid mutable model handle created by this library.
@@ -1629,10 +1692,11 @@ LmStatus lm_model_substitute(LmModel *model, const LmVref *target, const LmExpr 
 /**
  * Serializes a model to bytes, writing an owned buffer to `out`.
  *
- * The buffer must be released with [`crate::buffer::lm_buffer_free`].
+ * The buffer must be released with `lm_buffer_free`.
  *
  * # Safety
- * `model` must be a valid handle and `out` must point to writable `LmBuffer` storage.
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
  */
 LmStatus lm_model_serialize(const LmModel *model, LmBuffer *out);
 
@@ -1660,16 +1724,13 @@ LmStatus lm_model_set_name(LmModel *model, const char *name);
 /**
  * Sets the model sense.
  *
- * `sense` must be non-null and valid UTF-8.
- *
  * # Safety
  * `model` must be a valid mutable model handle created by this library.
- * `sense` must point to a valid LmSense.
  */
-LmStatus lm_model_set_sense(LmModel *model, const LmSense *sense);
+LmStatus lm_model_set_sense(LmModel *model, LmSense sense);
 
 /**
- * Set the objective of the model.
+ * Sets the objective of the model.
  *
  * # Safety
  * `model` must be a valid mutable model handle created by this library.
@@ -1678,7 +1739,7 @@ LmStatus lm_model_set_sense(LmModel *model, const LmSense *sense);
 LmStatus lm_model_set_objective(LmModel *model, const LmExpr *expr);
 
 /**
- * Set the constraints of the model.
+ * Sets the constraints of the model.
  *
  * # Safety
  * `model` must be a valid mutable model handle created by this library.
@@ -1687,16 +1748,16 @@ LmStatus lm_model_set_objective(LmModel *model, const LmExpr *expr);
 LmStatus lm_model_set_constraints(LmModel *model, const LmCC *cc);
 
 /**
- * Returns the len of the quadratic term.
+ * Returns the number of explicitly stored entries of the quadratic term.
  *
  * # Safety
  * `quadratic` must be a valid quadratic handle created by this library.
- * `out` must point to writable `usize` storage.
+ * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_quadratic_len(const LmQuadratic *quadratic, uintptr_t *out);
 
 /**
- * Returns if the quadratic term is zero.
+ * Returns whether the quadratic term is zero.
  *
  * # Safety
  * `quadratic` must be a valid quadratic handle created by this library.
@@ -1705,7 +1766,7 @@ LmStatus lm_quadratic_len(const LmQuadratic *quadratic, uintptr_t *out);
 LmStatus lm_quadratic_is_zero(const LmQuadratic *quadratic, bool *out);
 
 /**
- * Returns if the quadratic term is empty.
+ * Returns whether the quadratic term is empty.
  *
  * # Safety
  * `quadratic` must be a valid quadratic handle created by this library.
@@ -1726,11 +1787,11 @@ LmStatus lm_quadratic_items(const LmQuadratic *quadratic,
                             LmQuadraticItemBuffer *out);
 
 /**
- * Returns the bias in the quadratic term for the var idx.
+ * Returns the bias stored in the quadratic term for the given variable index.
  *
  * # Safety
  * `quadratic` must be a valid quadratic handle created by this library.
- * `out` must point to writable `f64` storage.
+ * `out` must point to writable `double` storage.
  */
 LmStatus lm_quadratic_index(const LmQuadratic *quadratic, uint32_t u, uint32_t v, double *out);
 
@@ -1763,12 +1824,13 @@ LmStatus lm_quadratic_eq(const LmQuadratic *quadratic, const LmQuadratic *other,
  * Clones a quadratic term into a new, independent handle written to `out`.
  *
  * # Safety
- * `quadratic` must be a valid handle and `out` must point to writable storage.
+ * `quadratic` must be a valid quadratic handle created by this library.
+ * `out` must point to writable `LmQuadratic *` storage.
  */
 LmStatus lm_quadratic_clone(const LmQuadratic *quadratic, LmQuadratic **out);
 
 /**
- * Add a new entry with it's bias to the quadratic term.
+ * Adds a new entry with its bias to the quadratic term.
  *
  * # Safety
  * `quadratic` must be a valid mutable quadratic handle created by this library.
@@ -1776,7 +1838,7 @@ LmStatus lm_quadratic_clone(const LmQuadratic *quadratic, LmQuadratic **out);
 LmStatus lm_quadratic_add_entry(LmQuadratic *quadratic, uint32_t u, uint32_t v, double bias);
 
 /**
- * Add another quadratic term to this quadratic term.
+ * Adds another quadratic term to this quadratic term.
  *
  * # Safety
  * `quadratic` must be a valid mutable quadratic handle created by this library.
@@ -1785,25 +1847,27 @@ LmStatus lm_quadratic_add_entry(LmQuadratic *quadratic, uint32_t u, uint32_t v, 
 LmStatus lm_quadratic_add_quadratic(LmQuadratic *quadratic, const LmQuadratic *other);
 
 /**
- * Mul this quadratic term with some value.
+ * Multiplies every bias of this quadratic term by `bias`.
  *
  * # Safety
  * `quadratic` must be a valid mutable quadratic handle created by this library.
- * `bias` must be a valid f64.
  */
 LmStatus lm_quadratic_mul_bias(LmQuadratic *quadratic, double bias);
 
 /**
- * Negate this quadratic term and writing the result to a new quadratic handle.
+ * Negates this quadratic term, writing the result to a new quadratic handle.
+ *
+ * On success, `out` receives an owned handle that must be released with
+ * [`lm_quadratic_free`].
  *
  * # Safety
- * `quadratic` must be a valid mutable quadratic handle created by this library.
- * `out` must point to writable `LmQuadratic` storage.
+ * `quadratic` must be a valid quadratic handle created by this library.
+ * `out` must point to writable `LmQuadratic *` storage.
  */
 LmStatus lm_quadratic_neg(const LmQuadratic *quadratic, LmQuadratic **out);
 
 /**
- * Set bias for a specific index of the quadratic term.
+ * Sets the bias for a specific index of the quadratic term.
  *
  * # Safety
  * `quadratic` must be a valid mutable quadratic handle created by this library.
@@ -1872,7 +1936,7 @@ LmStatus lm_specs_ctypes(const LmSpecs *specs, LmCtypeBuffer *out);
  *
  * # Safety
  * `specs` must be a valid specs handle created by this library.
- * `out` must point to writable `usize` storage.
+ * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_specs_max_degree(const LmSpecs *specs, uintptr_t *out);
 
@@ -1884,7 +1948,7 @@ LmStatus lm_specs_max_degree(const LmSpecs *specs, uintptr_t *out);
  *
  * # Safety
  * `specs` must be a valid specs handle created by this library.
- * `out` must point to writable `usize` storage.
+ * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_specs_max_constraint_degree(const LmSpecs *specs, uintptr_t *out);
 
@@ -1896,7 +1960,7 @@ LmStatus lm_specs_max_constraint_degree(const LmSpecs *specs, uintptr_t *out);
  *
  * # Safety
  * `specs` must be a valid specs handle created by this library.
- * `out` must point to writable `usize` storage.
+ * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_specs_max_num_variables(const LmSpecs *specs, uintptr_t *out);
 
@@ -1909,23 +1973,30 @@ LmStatus lm_specs_max_num_variables(const LmSpecs *specs, uintptr_t *out);
 void lm_specs_free(LmSpecs *specs);
 
 /**
- * Creates a fully specified capability summary.
+ * Creates a capability summary.
  *
- * `vtypes` and `ctypes` are read but not consumed: the caller keeps ownership
- * and must still release them with `lm_vtype_buffer_free` / `lm_ctype_buffer_free`.
+ * Every property is optional, mirroring the Rust `Specs` struct: a null
+ * pointer means "unspecified / do not care" (`None`). For `vtypes` and
+ * `ctypes` a non-null pointer with `len == 0` is an explicit empty set,
+ * which is different from an unspecified (null) one. The arrays are read
+ * but not consumed: the caller keeps ownership.
  *
  * # Safety
- * `sense` must point to a readable `LmSense`.
- * `vtypes` must point to a readable `LmVtypeBuffer` created by this library.
- * `ctypes` must point to a readable `LmCtypeBuffer` created by this library.
- * `out` must point to writable `*mut LmSpecs` storage.
+ * `sense` must be null or point to a readable `LmSense`.
+ * `vtypes` must be null or point to `vtypes_len` readable `LmVtype` values.
+ * `ctypes` must be null or point to `ctypes_len` readable `LmCtype` values.
+ * `max_degree`, `max_constraint_degree` and `max_num_variables` must each be
+ * null or point to a readable `uintptr_t`.
+ * `out` must point to writable `LmSpecs *` storage.
  */
 LmStatus lm_specs_new(const LmSense *sense,
-                      const LmVtypeBuffer *vtypes,
-                      const LmCtypeBuffer *ctypes,
-                      uintptr_t max_degree,
-                      uintptr_t max_constraint_degree,
-                      uintptr_t max_num_variables,
+                      const LmVtype *vtypes,
+                      uintptr_t vtypes_len,
+                      const LmCtype *ctypes,
+                      uintptr_t ctypes_len,
+                      const uintptr_t *max_degree,
+                      const uintptr_t *max_constraint_degree,
+                      const uintptr_t *max_num_variables,
                       LmSpecs **out);
 
 /**
@@ -1933,17 +2004,70 @@ LmStatus lm_specs_new(const LmSense *sense,
  *
  * # Safety
  * `specs` must be a valid specs handle created by this library.
+ * `other` must be a valid specs handle created by this library.
  * `out` must point to writable `bool` storage.
  */
 LmStatus lm_specs_satisfies(const LmSpecs *specs, const LmSpecs *other, bool *out);
 
 /**
- * Clones a sepcs into a new, independent handle written to `out`.
+ * Clones a specs into a new, independent handle written to `out`.
  *
  * # Safety
- * `specs` must be a valid handle and `out` must point to writable storage.
+ * `specs` must be a valid specs handle created by this library.
+ * `out` must point to writable `LmSpecs *` storage.
  */
 LmStatus lm_specs_clone(const LmSpecs *specs, LmSpecs **out);
+
+/**
+ * Frees a timer handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `timer` must originate from this library and must not be used or freed again.
+ */
+void lm_timer_free(LmTimer *timer);
+
+/**
+ * Creates a new timer by starting it.
+ *
+ * Returns a non-null handle that must be released with [`lm_timer_free`].
+ */
+LmTimer *lm_timer_start(void);
+
+/**
+ * Stops a timer.
+ *
+ * Returns a non-null handle that must be released with [`lm_timing_free`].
+ *
+ * # Safety
+ * `timer` must be a valid timer handle created by this library.
+ * `out` must point to writable `LmTiming *` storage.
+ */
+LmStatus lm_timer_stop(const LmTimer *timer, LmTiming **out);
+
+/**
+ * Frees a timing handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `timing` must originate from this library and must not be used or freed again.
+ */
+void lm_timing_free(LmTiming *timing);
+
+/**
+ * Creates a new timing handle.
+ *
+ * `start_unix_ns` and `end_unix_ns` are wall-clock timestamps in nanoseconds
+ * since the UNIX epoch. `qpu` may be null to indicate no QPU time.
+ *
+ * Returns a non-null handle in `out` that must be released with [`lm_timing_free`].
+ *
+ * # Safety
+ * `qpu` must be null or point to readable `double` storage.
+ * `out` must point to writable `LmTiming *` storage.
+ */
+LmStatus lm_timing_new(uint64_t start_unix_ns,
+                       uint64_t end_unix_ns,
+                       const double *qpu,
+                       LmTiming **out);
 
 /**
  * Frees a variable handle. Passing null is a no-op.
@@ -1982,7 +2106,7 @@ LmStatus lm_var_vtype(const LmVar *var, LmVtype *out);
  *
  * # Safety
  * `var` must be a valid variable handle created by this library.
- * `out` must point to writable `LmBounds` storage.
+ * `out` must point to writable `LmBounds *` storage.
  */
 LmStatus lm_var_bounds(const LmVar *var, LmBounds **out);
 
@@ -1995,7 +2119,7 @@ LmStatus lm_var_bounds(const LmVar *var, LmBounds **out);
  *
  * # Safety
  * `var` must be a valid variable handle created by this library.
- * `out` must point to writable `u32` storage.
+ * `out` must point to writable `uint32_t` storage.
  */
 LmStatus lm_var_inverted(const LmVar *var, uint32_t *out);
 
@@ -2020,12 +2144,13 @@ uint32_t lm_abi_version(void);
  *
  * # Safety
  * `vref` must be a valid vref handle created by this library.
- * `out` must point to writable `u32` storage.
+ * `out` must point to writable `uint32_t` storage.
  */
 LmStatus lm_vref_id(const LmVref *vref, uint32_t *out);
 
 /**
- * Returns LmStatus::Errored the if the vref is not alive, else it returns OK.
+ * Writes `true` to `out` when the referenced variable still exists in its
+ * environment, `false` otherwise.
  *
  * # Safety
  * `vref` must be a valid vref handle created by this library.
@@ -2062,7 +2187,7 @@ LmStatus lm_vref_vtype(const LmVref *vref, LmVtype *out);
  *
  * # Safety
  * `vref` must be a valid vref handle created by this library.
- * `out` must point to writable `LmBounds` storage.
+ * `out` must point to writable `LmBounds *` storage.
  */
 LmStatus lm_vref_bounds(const LmVref *vref, LmBounds **out);
 
@@ -2076,7 +2201,7 @@ LmStatus lm_vref_bounds(const LmVref *vref, LmBounds **out);
  *
  * # Safety
  * `vref` must be a valid vref handle created by this library.
- * `out` must point to writable `*mut LmVref` storage.
+ * `out` must point to writable `LmVref *` storage.
  */
 LmStatus lm_vref_inverted(const LmVref *vref, LmVref **out);
 
@@ -2088,7 +2213,7 @@ LmStatus lm_vref_inverted(const LmVref *vref, LmVref **out);
  *
  * # Safety
  * `vref` must be a valid vref handle created by this library.
- * `out` must point to writable `u64` storage.
+ * `out` must point to writable `uint64_t` storage.
  */
 LmStatus lm_vref_hash(const LmVref *vref, uint64_t *out);
 
@@ -2103,7 +2228,14 @@ void lm_vref_free(LmVref *vref);
 /**
  * Creates a new vref for an id and an environment.
  *
+ * The id is not validated immediately: metadata access through the returned
+ * vref fails if the id does not exist in the environment.
+ *
  * `out` receives an owned vref handle that must be freed with `lm_vref_free`.
+ *
+ * # Safety
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `LmVref *` storage.
  */
 LmStatus lm_vref_new(uint32_t id, const LmEnv *env, LmVref **out);
 
@@ -2122,17 +2254,9 @@ LmStatus lm_vref_eq(const LmVref *vref, const LmVref *other, bool *out);
  *
  * # Safety
  * `vref` must be a valid vref handle created by this library.
- * `out` must point to writable `LmVar` storage.
+ * `out` must point to writable `LmVar *` storage.
  */
 LmStatus lm_vref_to_var(const LmVref *vref, LmVar **out);
-
-/**
- * Frees a timing handle. Passing null is a no-op.
- *
- * # Safety
- * `timing` must originate from this library and must not be used or freed again.
- */
-void lm_timing_free(LmTiming *timing);
 
 #ifdef __cplusplus
 }  // extern "C"

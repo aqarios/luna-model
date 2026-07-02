@@ -1,13 +1,11 @@
+use crate::utils::{handle_to_c, mut_from_c, opt_slice_from_c, out_from_c, ref_from_c};
 use std::ops::{AddAssign, MulAssign, Neg};
 
 use luna_model::core::prelude::HigherOrder;
 
-use crate::{
-    LmHigherOrder, LmStatus,
-    error::{CapiError, guard},
-};
+use crate::{LmHigherOrder, LmStatus, error::guard};
 
-/// Add a new entry with it's bias to the higher_order term.
+/// Adds a new entry with its bias to the higher_order term.
 ///
 /// # Safety
 /// `higher_order` must be a valid mutable higher_order handle created by this library.
@@ -19,22 +17,16 @@ pub unsafe extern "C" fn lm_higher_order_add_entry(
     bias: f64,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *mut HigherOrder).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
+        let higher_order = unsafe { mut_from_c(higher_order as *mut HigherOrder, "higher_order") }?;
 
-        // `from_raw_parts` requires a non-null pointer, so treat empty as no indices.
-        let indices: &[u32] = if indices.is_null() || indices_len == 0 {
-            &[]
-        } else {
-            unsafe { std::slice::from_raw_parts(indices, indices_len) }
-        };
+        let indices = unsafe { opt_slice_from_c(indices, indices_len) }.unwrap_or(&[]);
 
         higher_order.add_assign((indices, bias));
         Ok(())
     })
 }
 
-/// Add another higher_order term to this higher_order term.
+/// Adds another higher_order term to this higher_order term.
 ///
 /// # Safety
 /// `higher_order` must be a valid mutable higher_order handle created by this library.
@@ -45,57 +37,56 @@ pub unsafe extern "C" fn lm_higher_order_add_higher_order(
     other: *const LmHigherOrder,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *mut HigherOrder).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
-        let other = unsafe { (other as *const HigherOrder).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
+        let higher_order = unsafe { mut_from_c(higher_order as *mut HigherOrder, "higher_order") }?;
+        let other = unsafe { ref_from_c(other as *const HigherOrder, "other") }?;
         higher_order.add_assign(other);
         Ok(())
     })
 }
 
-/// Mul this higher_order term with some value.
+/// Multiplies every bias of this higher_order term by `bias`.
 ///
 /// # Safety
 /// `higher_order` must be a valid mutable higher_order handle created by this library.
-/// `bias` must be a valid f64.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_higher_order_mul_bias(
     higher_order: *mut LmHigherOrder,
     bias: f64,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *mut HigherOrder).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
+        let higher_order = unsafe { mut_from_c(higher_order as *mut HigherOrder, "higher_order") }?;
         higher_order.mul_assign(bias);
         Ok(())
     })
 }
 
-/// Negate this higher_order term and writing the result to a new higher_order handle.
+/// Negates this higher_order term, writing the result to a new higher_order handle.
+///
+/// On success, `out` receives an owned handle that must be released with
+/// [`lm_higher_order_free`].
 ///
 /// # Safety
-/// `higher_order` must be a valid mutable higher_order handle created by this library.
-/// `out` must point to writable `LmHigherOrder` storage.
+/// `higher_order` must be a valid higher_order handle created by this library.
+/// `out` must point to writable `LmHigherOrder *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_higher_order_neg(
     higher_order: *const LmHigherOrder,
     out: *mut *mut LmHigherOrder,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *const HigherOrder).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(higher_order.neg().clone())) as *mut LmHigherOrder;
+        let higher_order =
+            unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(higher_order.neg());
         Ok(())
     })
 }
 
-/// Set the bias for a specific entry (variable tuple) of the higher-order term.
+/// Sets the bias for a specific entry (variable tuple) of the higher-order term.
 ///
 /// # Safety
 /// `higher_order` must be a valid mutable higher-order handle created by this library.
-/// `indices` must point to `indices_len` readable `u32`s (may be null iff `indices_len == 0`).
+/// `indices` must point to `indices_len` readable `uint32_t`s (may be null iff `indices_len == 0`).
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_higher_order_set_bias(
     higher_order: *mut LmHigherOrder,
@@ -104,15 +95,9 @@ pub unsafe extern "C" fn lm_higher_order_set_bias(
     bias: f64,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *mut HigherOrder).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
+        let higher_order = unsafe { mut_from_c(higher_order as *mut HigherOrder, "higher_order") }?;
 
-        // `from_raw_parts` requires a non-null pointer, so treat empty as no indices.
-        let indices: &[u32] = if indices.is_null() || indices_len == 0 {
-            &[]
-        } else {
-            unsafe { std::slice::from_raw_parts(indices, indices_len) }
-        };
+        let indices = unsafe { opt_slice_from_c(indices, indices_len) }.unwrap_or(&[]);
 
         higher_order[indices] = bias;
         Ok(())

@@ -1,4 +1,5 @@
-use std::ffi::{CStr, c_char};
+use crate::utils::{handle_to_c, out_from_c, ref_from_c, str_from_c};
+use std::ffi::c_char;
 
 use luna_model::core::ConstraintCollection;
 
@@ -18,9 +19,8 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_vtypes(cc: *const LmCC, out: *mut LmVtypeBuffer) -> LmStatus {
     guard(|| {
-        let cc = unsafe { (cc as *const ConstraintCollection).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("cc"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let out = unsafe { out_from_c(out) }?;
         let vtypes = cc.vtypes().map(vtype_to_c).collect::<Vec<LmVtype>>();
         *out = vtype_buffer_from_vec(vtypes);
         Ok(())
@@ -31,13 +31,12 @@ pub unsafe extern "C" fn lm_cc_vtypes(cc: *const LmCC, out: *mut LmVtypeBuffer) 
 ///
 /// # Safety
 /// `cc` must be a valid constraint-collection handle created by this library.
-/// `out` must point to writable `LmCtypeBuffer` storage.
+/// `out` must point to writable `LmCmpBuffer` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_ctypes(cc: *const LmCC, out: *mut LmCmpBuffer) -> LmStatus {
     guard(|| {
-        let cc = unsafe { (cc as *const ConstraintCollection).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("cc"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let out = unsafe { out_from_c(out) }?;
         let ctypes = cc.ctypes().map(cmp_to_c).collect::<Vec<LmComparator>>();
         *out = cmp_buffer_from_vec(ctypes);
         Ok(())
@@ -55,12 +54,11 @@ pub unsafe extern "C" fn lm_cc_ctypes(cc: *const LmCC, out: *mut LmCmpBuffer) ->
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_complete_vars(cc: *const LmCC, out: *mut LmVrefBuffer) -> LmStatus {
     guard(|| {
-        let cc = unsafe { (cc as *const ConstraintCollection).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("cc"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let out = unsafe { out_from_c(out) }?;
         let vars = cc
             .vars()
-            .map(|v| Box::into_raw(Box::new(v)) as *mut LmVref)
+            .map(|v| handle_to_c(v))
             .collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
         Ok(())
@@ -78,12 +76,11 @@ pub unsafe extern "C" fn lm_cc_complete_vars(cc: *const LmCC, out: *mut LmVrefBu
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_vars(cc: *const LmCC, out: *mut LmVrefBuffer) -> LmStatus {
     guard(|| {
-        let cc = unsafe { (cc as *const ConstraintCollection).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("cc"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let out = unsafe { out_from_c(out) }?;
         let vars = cc
             .complete_vars()
-            .map(|v| Box::into_raw(Box::new(v)) as *mut LmVref)
+            .map(|v| handle_to_c(v))
             .collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
         Ok(())
@@ -93,13 +90,13 @@ pub unsafe extern "C" fn lm_cc_vars(cc: *const LmCC, out: *mut LmVrefBuffer) -> 
 /// Returns `true` when the constraint-collection contains no constraints.
 ///
 /// # Safety
-/// `cc` must be a valid handle and `out` must point to writable storage.
+/// `cc` must be a valid constraint-collection handle created by this library.
+/// `out` must point to writable `bool` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_is_empty(cc: *const LmCC, out: *mut bool) -> LmStatus {
     guard(|| {
-        let cc = unsafe { (cc as *const ConstraintCollection).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("cc"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = cc.is_empty();
         Ok(())
     })
@@ -108,13 +105,13 @@ pub unsafe extern "C" fn lm_cc_is_empty(cc: *const LmCC, out: *mut bool) -> LmSt
 /// Returns the number of constraints in the collection.
 ///
 /// # Safety
-/// `cc` must be a valid handle and `out` must point to writable storage.
+/// `cc` must be a valid constraint-collection handle created by this library.
+/// `out` must point to writable `uintptr_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_len(cc: *const LmCC, out: *mut usize) -> LmStatus {
     guard(|| {
-        let cc = unsafe { (cc as *const ConstraintCollection).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("cc"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = cc.len();
         Ok(())
     })
@@ -123,9 +120,10 @@ pub unsafe extern "C" fn lm_cc_len(cc: *const LmCC, out: *mut usize) -> LmStatus
 /// Retrieves a constraint by name.
 ///
 /// # Safety
-/// `cc` must be a valid handle and `out` must point to writable storage.
+/// `cc` must be a valid constraint-collection handle created by this library.
+/// `out` must point to writable `LmConstraint *` storage.
 /// `key` must point to a valid NUL-terminated C string.
-/// `out` must point to writable `LmConstraint` storage.
+/// `out` must point to writable `LmConstraint *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_get(
     cc: *const LmCC,
@@ -133,27 +131,15 @@ pub unsafe extern "C" fn lm_cc_get(
     out: *mut *mut LmConstraint,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { (cc as *const ConstraintCollection).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("cc"))?;
+        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
 
-        if key.is_null() {
-            return Err(CapiError::null_pointer("key"));
-        }
+        let key = unsafe { str_from_c(key, "key") }?;
 
-        let key = unsafe { CStr::from_ptr(key) }.to_str().map_err(|e| {
-            CapiError::new(
-                LmStatus::InvalidArgument,
-                format!("`key` must be valid UTF-8: {e}"),
-            )
-        })?;
+        let out = unsafe { out_from_c(out) }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let constr = cc.get(key).map_err(CapiError::errored)?;
 
-        let constr = cc
-            .get(key)
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
-
-        *out = Box::into_raw(Box::new(constr)) as *mut LmConstraint;
+        *out = handle_to_c(constr);
 
         Ok(())
     })

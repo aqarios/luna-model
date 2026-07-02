@@ -1,4 +1,4 @@
-//! Owned ctype-buffer helpers for the C ABI.
+//! Owned quadratic-item-buffer helpers for the C ABI.
 #![allow(dead_code)]
 
 use crate::{LmQuadraticItem, LmQuadraticItemBuffer};
@@ -26,7 +26,7 @@ pub(crate) fn quadratic_item_buffer_from_vec(
 
 /// Frees a quadratic item buffer previously returned by LunaModel.
 ///
-/// A null/empty buffer is a no-op. Each ctype buffer must be freed at most once.
+/// A null/empty buffer is a no-op. Each quadratic item buffer must be freed at most once.
 ///
 /// # Safety
 /// `buffer` must have been produced by this library and not already freed.

@@ -1,3 +1,4 @@
+use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::core::prelude::VarRef;
 
 use crate::{
@@ -11,19 +12,19 @@ use crate::{
 ///
 /// # Safety
 /// `vref` must be a valid vref handle created by this library.
-/// `out` must point to writable `u32` storage.
+/// `out` must point to writable `uint32_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_vref_id(vref: *const LmVref, out: *mut u32) -> LmStatus {
     guard(|| {
-        let vref = unsafe { (vref as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("vref"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = vref.id();
         Ok(())
     })
 }
 
-/// Returns LmStatus::Errored the if the vref is not alive, else it returns OK.
+/// Writes `true` to `out` when the referenced variable still exists in its
+/// environment, `false` otherwise.
 ///
 /// # Safety
 /// `vref` must be a valid vref handle created by this library.
@@ -31,9 +32,8 @@ pub unsafe extern "C" fn lm_vref_id(vref: *const LmVref, out: *mut u32) -> LmSta
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_vref_check_living(vref: *const LmVref, out: *mut bool) -> LmStatus {
     guard(|| {
-        let vref = unsafe { (vref as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("vref"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = vref.check_living().is_ok();
         Ok(())
     })
@@ -53,15 +53,12 @@ pub unsafe extern "C" fn lm_vref_check_living(vref: *const LmVref, out: *mut boo
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_vref_name(vref: *const LmVref, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let vref = unsafe { (vref as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("vref"))?;
+        let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
-        let name = vref
-            .name()
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
-        *out = buffer_from_vec(name.as_bytes().to_vec());
+        let name = vref.name().map_err(CapiError::errored)?;
+        *out = buffer_from_vec(name.into_bytes());
         Ok(())
     })
 }
@@ -74,14 +71,11 @@ pub unsafe extern "C" fn lm_vref_name(vref: *const LmVref, out: *mut LmBuffer) -
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_vref_vtype(vref: *const LmVref, out: *mut LmVtype) -> LmStatus {
     guard(|| {
-        let vref = unsafe { (vref as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("vref"))?;
+        let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
-        let vtype = vref
-            .vtype()
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+        let vtype = vref.vtype().map_err(CapiError::errored)?;
         *out = vtype_to_c(vtype);
 
         Ok(())
@@ -92,19 +86,16 @@ pub unsafe extern "C" fn lm_vref_vtype(vref: *const LmVref, out: *mut LmVtype) -
 ///
 /// # Safety
 /// `vref` must be a valid vref handle created by this library.
-/// `out` must point to writable `LmBounds` storage.
+/// `out` must point to writable `LmBounds *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_vref_bounds(vref: *const LmVref, out: *mut *mut LmBounds) -> LmStatus {
     guard(|| {
-        let vref = unsafe { (vref as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("vref"))?;
+        let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
-        let bounds = vref
-            .bounds()
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
-        *out = Box::into_raw(Box::new(bounds)) as *mut LmBounds;
+        let bounds = vref.bounds().map_err(CapiError::errored)?;
+        *out = handle_to_c(bounds);
 
         Ok(())
     })
@@ -119,21 +110,18 @@ pub unsafe extern "C" fn lm_vref_bounds(vref: *const LmVref, out: *mut *mut LmBo
 ///
 /// # Safety
 /// `vref` must be a valid vref handle created by this library.
-/// `out` must point to writable `*mut LmVref` storage.
+/// `out` must point to writable `LmVref *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_vref_inverted(vref: *const LmVref, out: *mut *mut LmVref) -> LmStatus {
     guard(|| {
-        let vref = unsafe { (vref as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("vref"))?;
+        let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
-        let companion = vref
-            .inverted()
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+        let companion = vref.inverted().map_err(CapiError::errored)?;
 
         *out = companion
-            .map(|c| Box::into_raw(Box::new(c)) as *mut LmVref)
+            .map(|c| handle_to_c(c))
             .unwrap_or(std::ptr::null_mut());
 
         Ok(())
@@ -147,18 +135,15 @@ pub unsafe extern "C" fn lm_vref_inverted(vref: *const LmVref, out: *mut *mut Lm
 ///
 /// # Safety
 /// `vref` must be a valid vref handle created by this library.
-/// `out` must point to writable `u64` storage.
+/// `out` must point to writable `uint64_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_vref_hash(vref: *const LmVref, out: *mut u64) -> LmStatus {
     guard(|| {
-        let vref = unsafe { (vref as *const VarRef).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("vref"))?;
+        let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
 
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let out = unsafe { out_from_c(out) }?;
 
-        *out = vref
-            .hash()
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+        *out = vref.hash().map_err(CapiError::errored)?;
 
         Ok(())
     })

@@ -1,3 +1,4 @@
+use crate::utils::{out_from_c, ref_from_c};
 use luna_model::types::Specs;
 
 use crate::{
@@ -18,9 +19,8 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_specs_sense(specs: *const LmSpecs, out: *mut LmSense) -> LmStatus {
     guard(|| {
-        let specs = unsafe { (specs as *const Specs).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("specs"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let specs = unsafe { ref_from_c(specs as *const Specs, "specs") }?;
+        let out = unsafe { out_from_c(out) }?;
         match specs.sense {
             Some(s) => {
                 *out = sense_to_c(s);
@@ -45,9 +45,8 @@ pub unsafe extern "C" fn lm_specs_vtypes(
     out: *mut LmVtypeBuffer,
 ) -> LmStatus {
     guard(|| {
-        let specs = unsafe { (specs as *const Specs).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("specs"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let specs = unsafe { ref_from_c(specs as *const Specs, "specs") }?;
+        let out = unsafe { out_from_c(out) }?;
         match specs.vtypes {
             Some(vs) => {
                 *out =
@@ -73,9 +72,8 @@ pub unsafe extern "C" fn lm_specs_ctypes(
     out: *mut LmCtypeBuffer,
 ) -> LmStatus {
     guard(|| {
-        let specs = unsafe { (specs as *const Specs).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("specs"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let specs = unsafe { ref_from_c(specs as *const Specs, "specs") }?;
+        let out = unsafe { out_from_c(out) }?;
         match specs.constraints {
             Some(cs) => {
                 *out =
@@ -94,13 +92,12 @@ pub unsafe extern "C" fn lm_specs_ctypes(
 ///
 /// # Safety
 /// `specs` must be a valid specs handle created by this library.
-/// `out` must point to writable `usize` storage.
+/// `out` must point to writable `uintptr_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_specs_max_degree(specs: *const LmSpecs, out: *mut usize) -> LmStatus {
     guard(|| {
-        let specs = unsafe { (specs as *const Specs).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("specs"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let specs = unsafe { ref_from_c(specs as *const Specs, "specs") }?;
+        let out = unsafe { out_from_c(out) }?;
         match specs.max_degree {
             Some(d) => {
                 *out = d;
@@ -118,16 +115,15 @@ pub unsafe extern "C" fn lm_specs_max_degree(specs: *const LmSpecs, out: *mut us
 ///
 /// # Safety
 /// `specs` must be a valid specs handle created by this library.
-/// `out` must point to writable `usize` storage.
+/// `out` must point to writable `uintptr_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_specs_max_constraint_degree(
     specs: *const LmSpecs,
     out: *mut usize,
 ) -> LmStatus {
     guard(|| {
-        let specs = unsafe { (specs as *const Specs).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("specs"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let specs = unsafe { ref_from_c(specs as *const Specs, "specs") }?;
+        let out = unsafe { out_from_c(out) }?;
         match specs.max_constraint_degree {
             Some(d) => {
                 *out = d;
@@ -148,16 +144,15 @@ pub unsafe extern "C" fn lm_specs_max_constraint_degree(
 ///
 /// # Safety
 /// `specs` must be a valid specs handle created by this library.
-/// `out` must point to writable `usize` storage.
+/// `out` must point to writable `uintptr_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_specs_max_num_variables(
     specs: *const LmSpecs,
     out: *mut usize,
 ) -> LmStatus {
     guard(|| {
-        let specs = unsafe { (specs as *const Specs).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("specs"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let specs = unsafe { ref_from_c(specs as *const Specs, "specs") }?;
+        let out = unsafe { out_from_c(out) }?;
         match specs.max_num_variables {
             Some(n) => {
                 *out = n;

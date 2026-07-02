@@ -1,31 +1,32 @@
+use crate::utils::{opt_slice_from_c, out_from_c, ref_from_c};
 use luna_model::core::prelude::HigherOrder;
 
 use crate::{
     LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer, LmStatus,
     buffer::{higher_order_item_buffer_from_vec, u32_buffer_from_vec},
-    error::{CapiError, guard},
+    error::guard,
 };
 
-/// Returns the len of the higher_order term.
+/// Returns the number of explicitly stored entries of the higher_order term.
 ///
 /// # Safety
 /// `higher_order` must be a valid higher_order handle created by this library.
-/// `out` must point to writable `usize` storage.
+/// `out` must point to writable `uintptr_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_higher_order_len(
     higher_order: *const LmHigherOrder,
     out: *mut usize,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *const HigherOrder).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let higher_order =
+            unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = higher_order.len();
         Ok(())
     })
 }
 
-/// Returns if the higher_order term is zero.
+/// Returns whether the higher_order term is zero.
 ///
 /// # Safety
 /// `higher_order` must be a valid higher_order handle created by this library.
@@ -36,15 +37,15 @@ pub unsafe extern "C" fn lm_higher_order_is_zero(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *const HigherOrder).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let higher_order =
+            unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = higher_order.is_zero();
         Ok(())
     })
 }
 
-/// Returns if the higher_order term is empty.
+/// Returns whether the higher_order term is empty.
 ///
 /// # Safety
 /// `higher_order` must be a valid higher_order handle created by this library.
@@ -55,9 +56,9 @@ pub unsafe extern "C" fn lm_higher_order_is_empty(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *const HigherOrder).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let higher_order =
+            unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = higher_order.is_empty();
         Ok(())
     })
@@ -67,16 +68,16 @@ pub unsafe extern "C" fn lm_higher_order_is_empty(
 ///
 /// # Safety
 /// `higher_order` must be a valid higher_order handle created by this library.
-/// `out` must point to writable `usize` storage.
+/// `out` must point to writable `uintptr_t` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_higher_order_degree(
     higher_order: *const LmHigherOrder,
     out: *mut usize,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *const HigherOrder).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let higher_order =
+            unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = higher_order.degree();
         Ok(())
     })
@@ -95,9 +96,9 @@ pub unsafe extern "C" fn lm_higher_order_items(
     out: *mut LmHigherOrderItemBuffer,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *const HigherOrder).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let higher_order =
+            unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
+        let out = unsafe { out_from_c(out) }?;
         let items = higher_order
             .iter_contrib()
             .map(|(indices, bias)| LmHigherOrderItem {
@@ -110,11 +111,11 @@ pub unsafe extern "C" fn lm_higher_order_items(
     })
 }
 
-/// Returns the bias in the higher_order term for the var idx.
+/// Returns the bias stored in the higher_order term for the given variable index.
 ///
 /// # Safety
 /// `higher_order` must be a valid higher_order handle created by this library.
-/// `out` must point to writable `f64` storage.
+/// `out` must point to writable `double` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_higher_order_index(
     higher_order: *const LmHigherOrder,
@@ -123,16 +124,11 @@ pub unsafe extern "C" fn lm_higher_order_index(
     out: *mut f64,
 ) -> LmStatus {
     guard(|| {
-        let higher_order = unsafe { (higher_order as *const HigherOrder).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("higher_order"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let higher_order =
+            unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
+        let out = unsafe { out_from_c(out) }?;
 
-        // `from_raw_parts` requires a non-null pointer, so treat empty as no indices.
-        let indices: &[u32] = if indices.is_null() || indices_len == 0 {
-            &[]
-        } else {
-            unsafe { std::slice::from_raw_parts(indices, indices_len) }
-        };
+        let indices = unsafe { opt_slice_from_c(indices, indices_len) }.unwrap_or(&[]);
 
         *out = higher_order[indices];
         Ok(())

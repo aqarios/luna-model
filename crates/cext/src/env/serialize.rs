@@ -1,3 +1,4 @@
+use crate::utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c};
 use luna_model::core::{ArcEnv, Environment};
 use luna_model::serializer::prelude::*;
 
@@ -7,32 +8,32 @@ use crate::{LmBuffer, LmEnv, LmStatus};
 
 /// Serializes an environment to bytes, writing an owned buffer to `out`.
 ///
-/// The buffer must be released with [`crate::buffer::lm_buffer_free`].
+/// The buffer must be released with `lm_buffer_free`.
 ///
 /// # Safety
-/// `env` must be a valid handle and `out` must point to writable `LmBuffer` storage.
+/// `env` must be a valid environment handle created by this library.
+/// `out` must point to writable `LmBuffer` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_serialize(env: *const LmEnv, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let env = unsafe { (env as *const ArcEnv).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("env"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let out = unsafe { out_from_c(out) }?;
         let bytes = env
             .read_arc()
             .encode(Some(true), None)
-            .map_err(|e| CapiError::new(LmStatus::Serialization, e.to_string()))?;
+            .map_err(CapiError::serialization)?;
         *out = buffer_from_vec(bytes);
         Ok(())
     })
 }
 
-/// Deserializes a env from `len` bytes at `data`, writing a new handle to `out`.
+/// Deserializes an environment from `len` bytes at `data`, writing a new handle to `out`.
 ///
 /// The new handle must be released with [`lm_env_free`].
 ///
 /// # Safety
-/// `data` must point to `len` readable bytes
-/// `out` must point to writable storage
+/// `data` must point to `len` readable bytes.
+/// `out` must point to writable storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_deserialize(
     data: *const u8,
@@ -40,19 +41,16 @@ pub unsafe extern "C" fn lm_env_deserialize(
     out: *mut *mut LmEnv,
 ) -> LmStatus {
     guard(|| {
-        if data.is_null() {
-            return Err(CapiError::null_pointer("data"));
-        }
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        let bytes = unsafe { std::slice::from_raw_parts(data, len) };
+        let out = unsafe { out_from_c(out) }?;
+        let bytes = unsafe { slice_from_c(data, len, "data") }?;
         let env: Environment = bytes
             .unversionize()
             .decompress()
-            .map_err(|e| CapiError::new(LmStatus::Deserialization, e.to_string()))?
+            .map_err(CapiError::deserialization)?
             .decode(())
-            .map_err(|e| CapiError::new(LmStatus::Deserialization, e.to_string()))?;
+            .map_err(CapiError::deserialization)?;
         let env = ArcEnv::from(env);
-        *out = Box::into_raw(Box::new(env)) as *mut LmEnv;
+        *out = handle_to_c(env);
         Ok(())
     })
 }

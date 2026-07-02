@@ -1,6 +1,10 @@
+use std::ffi::{CStr, c_char};
+
 use luna_model::types::{Bound, Comparator, Ctype, Sense, Vtype};
 
-use crate::{LmBound, LmBoundTag, LmComparator, LmCtype, LmSense, LmVtype};
+use crate::{
+    LmBound, LmBoundTag, LmComparator, LmCtype, LmSense, LmStatus, LmVtype, error::CapiError,
+};
 
 pub fn sense_from_c(sense: LmSense) -> Sense {
     match sense {
@@ -90,4 +94,125 @@ pub fn bound_to_c(bound: Bound) -> LmBound {
             value: val,
         },
     }
+}
+
+// ///////////////////////////// //
+// Pointer / FFI value mappings  //
+// ///////////////////////////// //
+
+/// Borrows the Rust value behind a C pointer, failing with `NullPointer`.
+///
+/// # Safety
+/// `ptr` must be null or valid for reads as a `T` for the returned lifetime.
+pub(crate) unsafe fn ref_from_c<'a, T>(ptr: *const T, what: &str) -> Result<&'a T, CapiError> {
+    unsafe { ptr.as_ref() }.ok_or_else(|| CapiError::null_pointer(what))
+}
+
+/// Mutably borrows the Rust value behind a C pointer, failing with `NullPointer`.
+///
+/// # Safety
+/// `ptr` must be null or valid for reads and writes as a `T` for the returned
+/// lifetime, without aliasing.
+pub(crate) unsafe fn mut_from_c<'a, T>(ptr: *mut T, what: &str) -> Result<&'a mut T, CapiError> {
+    unsafe { ptr.as_mut() }.ok_or_else(|| CapiError::null_pointer(what))
+}
+
+/// Dereferences an `out` parameter, failing with `NullPointer`.
+///
+/// # Safety
+/// `out` must be null or point to writable `T` storage.
+pub(crate) unsafe fn out_from_c<'a, T>(out: *mut T) -> Result<&'a mut T, CapiError> {
+    unsafe { mut_from_c(out, "out") }
+}
+
+/// Moves a Rust value to the heap and returns it as an owned C handle.
+pub(crate) fn handle_to_c<T, C>(value: T) -> *mut C {
+    Box::into_raw(Box::new(value)) as *mut C
+}
+
+/// Reclaims and drops a Rust value previously leaked as a C handle.
+///
+/// Passing null is a no-op.
+///
+/// # Safety
+/// `ptr` must be null or originate from [`handle_to_c`] (or an equivalent
+/// `Box::into_raw`) for `T` and must not be used or freed again.
+pub(crate) unsafe fn drop_from_c<T>(ptr: *mut T) {
+    if !ptr.is_null() {
+        drop(unsafe { Box::from_raw(ptr) });
+    }
+}
+
+/// Borrows a required NUL-terminated UTF-8 C string.
+///
+/// Fails with `NullPointer` when null and `InvalidArgument` when not UTF-8.
+///
+/// # Safety
+/// `ptr` must be null or point to a valid NUL-terminated C string.
+pub(crate) unsafe fn str_from_c<'a>(ptr: *const c_char, what: &str) -> Result<&'a str, CapiError> {
+    if ptr.is_null() {
+        return Err(CapiError::null_pointer(what));
+    }
+    unsafe { CStr::from_ptr(ptr) }.to_str().map_err(|e| {
+        CapiError::new(
+            LmStatus::InvalidArgument,
+            format!("`{what}` must be valid UTF-8: {e}"),
+        )
+    })
+}
+
+/// Borrows an optional NUL-terminated UTF-8 C string (null means `None`).
+///
+/// Fails with `InvalidArgument` when non-null but not UTF-8.
+///
+/// # Safety
+/// `ptr` must be null or point to a valid NUL-terminated C string.
+pub(crate) unsafe fn opt_str_from_c<'a>(
+    ptr: *const c_char,
+    what: &str,
+) -> Result<Option<&'a str>, CapiError> {
+    if ptr.is_null() {
+        return Ok(None);
+    }
+    unsafe { str_from_c(ptr, what) }.map(Some)
+}
+
+/// Borrows a required `(ptr, len)` C array, failing with `NullPointer`.
+///
+/// # Safety
+/// `data` must be null or point to `len` readable `T` values.
+pub(crate) unsafe fn slice_from_c<'a, T>(
+    data: *const T,
+    len: usize,
+    what: &str,
+) -> Result<&'a [T], CapiError> {
+    if data.is_null() {
+        return Err(CapiError::null_pointer(what));
+    }
+    Ok(unsafe { std::slice::from_raw_parts(data, len) })
+}
+
+/// Borrows an optional `(ptr, len)` C array.
+///
+/// Null means `None`; non-null with `len == 0` is an explicit empty slice.
+///
+/// # Safety
+/// `data` must be null or point to `len` readable `T` values.
+pub(crate) unsafe fn opt_slice_from_c<'a, T>(data: *const T, len: usize) -> Option<&'a [T]> {
+    if data.is_null() {
+        None
+    } else if len == 0 {
+        // `from_raw_parts` is only defined for non-null, well-aligned data.
+        Some(&[])
+    } else {
+        Some(unsafe { std::slice::from_raw_parts(data, len) })
+    }
+}
+
+/// Copies an optional scalar from a nullable C pointer (null means `None`).
+///
+/// # Safety
+/// `ptr` must be null or valid for reads as a `T`.
+pub(crate) unsafe fn opt_from_c<T: Copy>(ptr: *const T) -> Option<T> {
+    unsafe { ptr.as_ref() }.copied()
 }

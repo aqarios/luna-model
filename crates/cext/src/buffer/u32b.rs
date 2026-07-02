@@ -1,9 +1,9 @@
-//! Owned ctype-buffer helpers for the C ABI.
+//! Owned u32-buffer helpers for the C ABI.
 #![allow(dead_code)]
 
 use crate::LmU32Buffer;
 
-/// An empty U32Item buffer.
+/// An empty u32 buffer.
 pub(crate) fn empty_u32_buffer() -> LmU32Buffer {
     LmU32Buffer {
         data: std::ptr::null_mut(),
@@ -12,7 +12,7 @@ pub(crate) fn empty_u32_buffer() -> LmU32Buffer {
     }
 }
 
-/// Converts an owned `Vec<LmU32Item>` into a buffer the caller now owns.
+/// Converts an owned `Vec<u32>` into a buffer the caller now owns.
 pub(crate) fn u32_buffer_from_vec(mut vec: Vec<u32>) -> LmU32Buffer {
     if vec.is_empty() {
         return empty_u32_buffer();
@@ -24,7 +24,7 @@ pub(crate) fn u32_buffer_from_vec(mut vec: Vec<u32>) -> LmU32Buffer {
 
 /// Frees a u32 item buffer previously returned by LunaModel.
 ///
-/// A null/empty buffer is a no-op. Each ctype buffer must be freed at most once.
+/// A null/empty buffer is a no-op. Each u32 buffer must be freed at most once.
 ///
 /// # Safety
 /// `buffer` must have been produced by this library and not already freed.

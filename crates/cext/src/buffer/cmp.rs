@@ -12,7 +12,7 @@ pub(crate) fn empty_cmp_buffer() -> LmCmpBuffer {
     }
 }
 
-/// Converts an owned `Vec<u8>` into a buffer the caller now owns.
+/// Converts an owned `Vec<LmComparator>` into a buffer the caller now owns.
 pub(crate) fn cmp_buffer_from_vec(mut vec: Vec<LmComparator>) -> LmCmpBuffer {
     if vec.is_empty() {
         return empty_cmp_buffer();

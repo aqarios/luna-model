@@ -1,4 +1,5 @@
-use std::ffi::{CStr, c_char};
+use crate::utils::{handle_to_c, mut_from_c, out_from_c, ref_from_c, str_from_c};
+use std::ffi::c_char;
 
 use luna_model::core::prelude::Constraint;
 
@@ -26,9 +27,8 @@ pub unsafe extern "C" fn lm_constr_name(
     out: *mut LmBuffer,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { (constr as *const Constraint).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("constr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
+        let out = unsafe { out_from_c(out) }?;
         let name = constr.name();
         *out = buffer_from_vec(name.as_bytes().to_vec());
         Ok(())
@@ -39,17 +39,16 @@ pub unsafe extern "C" fn lm_constr_name(
 ///
 /// # Safety
 /// `constr` must be a valid constraint handle created by this library.
-/// `out` must point to writable `LmExpr` storage.
+/// `out` must point to writable `LmExpr *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_constr_lhs(
     constr: *const LmConstraint,
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { (constr as *const Constraint).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("constr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(constr.lhs.clone())) as *mut LmExpr;
+        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(constr.lhs.clone());
         Ok(())
     })
 }
@@ -58,13 +57,12 @@ pub unsafe extern "C" fn lm_constr_lhs(
 ///
 /// # Safety
 /// `constr` must be a valid constraint handle created by this library.
-/// `out` must point to writable `f64` storage.
+/// `out` must point to writable `double` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_constr_rhs(constr: *const LmConstraint, out: *mut f64) -> LmStatus {
     guard(|| {
-        let constr = unsafe { (constr as *const Constraint).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("constr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = constr.rhs;
         Ok(())
     })
@@ -81,9 +79,8 @@ pub unsafe extern "C" fn lm_constr_comparator(
     out: *mut LmComparator,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { (constr as *const Constraint).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("constr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = cmp_to_c(constr.comparator);
         Ok(())
     })
@@ -102,22 +99,12 @@ pub unsafe extern "C" fn lm_constr_set_name(
     name: *const c_char,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { (constr as *mut Constraint).as_mut() }
-            .ok_or_else(|| CapiError::null_pointer("constr"))?;
+        let constr = unsafe { mut_from_c(constr as *mut Constraint, "constr") }?;
 
-        if name.is_null() {
-            return Err(CapiError::null_pointer("name"));
-        }
-
-        let name = unsafe { CStr::from_ptr(name) }.to_str().map_err(|e| {
-            CapiError::new(
-                LmStatus::InvalidArgument,
-                format!("`name` must be valid UTF-8: {e}"),
-            )
-        })?;
+        let name = unsafe { str_from_c(name, "name") }?;
         constr
             .set_name(name.to_owned())
-            .map_err(|e| CapiError::new(LmStatus::Errored, e.to_string()))?;
+            .map_err(CapiError::errored)?;
         Ok(())
     })
 }

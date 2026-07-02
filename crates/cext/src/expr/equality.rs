@@ -1,9 +1,7 @@
+use crate::utils::{out_from_c, ref_from_c};
 use luna_model::core::{Expression, prelude::ContentEquality};
 
-use crate::{
-    LmExpr, LmStatus,
-    error::{CapiError, guard},
-};
+use crate::{LmExpr, LmStatus, error::guard};
 
 /// Compares two expressions for equality.
 ///
@@ -18,11 +16,9 @@ pub unsafe extern "C" fn lm_expr_eq(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
-        let other = unsafe { (other as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let other = unsafe { ref_from_c(other as *const Expression, "other") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = expr.eq(other);
         Ok(())
     })
@@ -41,11 +37,9 @@ pub unsafe extern "C" fn lm_expr_equal_contents(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
-        let other = unsafe { (other as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("other"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let other = unsafe { ref_from_c(other as *const Expression, "other") }?;
+        let out = unsafe { out_from_c(out) }?;
         *out = expr.equal_contents(other);
         Ok(())
     })

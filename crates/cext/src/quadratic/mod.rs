@@ -4,7 +4,8 @@ mod general;
 mod modification;
 
 pub use access::{
-    lm_quadratic_index, lm_quadratic_is_empty, lm_quadratic_is_zero, lm_quadratic_items, lm_quadratic_len,
+    lm_quadratic_index, lm_quadratic_is_empty, lm_quadratic_is_zero, lm_quadratic_items,
+    lm_quadratic_len,
 };
 pub use creation::{lm_quadratic_default, lm_quadratic_free};
 pub use general::{lm_quadratic_clone, lm_quadratic_eq};

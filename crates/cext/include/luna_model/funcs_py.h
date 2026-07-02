@@ -270,6 +270,7 @@ static inline int import_luna_model(void) {
 #define lm_timer_start(...) (lunamodel__vtable->timer_start(__VA_ARGS__))
 #define lm_timer_stop(...) (lunamodel__vtable->timer_stop(__VA_ARGS__))
 #define lm_timing_free(...) (lunamodel__vtable->timing_free(__VA_ARGS__))
+#define lm_timing_new(...) (lunamodel__vtable->timing_new(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

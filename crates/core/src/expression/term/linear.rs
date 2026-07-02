@@ -175,9 +175,10 @@ impl PartialEq for Linear {
 impl Neg for Linear {
     type Output = Self;
 
-    /// Negates every stored bias.
-    fn neg(self) -> Self::Output {
-        (&self).neg()
+    /// Negates every stored bias in place, reusing the existing storage.
+    fn neg(mut self) -> Self::Output {
+        self.biases.iter_mut().for_each(|(_, b)| *b = -*b);
+        self
     }
 }
 

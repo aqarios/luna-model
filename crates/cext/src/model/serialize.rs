@@ -1,3 +1,4 @@
+use crate::utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c};
 use luna_model::core::Model;
 use luna_model::serializer::prelude::*;
 
@@ -7,19 +8,19 @@ use crate::{LmBuffer, LmModel, LmStatus};
 
 /// Serializes a model to bytes, writing an owned buffer to `out`.
 ///
-/// The buffer must be released with [`crate::buffer::lm_buffer_free`].
+/// The buffer must be released with `lm_buffer_free`.
 ///
 /// # Safety
-/// `model` must be a valid handle and `out` must point to writable `LmBuffer` storage.
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `LmBuffer` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_serialize(model: *const LmModel, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let model = unsafe { (model as *const Model).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("model"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
+        let out = unsafe { out_from_c(out) }?;
         let bytes = model
             .encode(Some(true), None)
-            .map_err(|e| CapiError::new(LmStatus::Serialization, e.to_string()))?;
+            .map_err(CapiError::serialization)?;
         *out = buffer_from_vec(bytes);
         Ok(())
     })
@@ -38,18 +39,15 @@ pub unsafe extern "C" fn lm_model_deserialize(
     out: *mut *mut LmModel,
 ) -> LmStatus {
     guard(|| {
-        if data.is_null() {
-            return Err(CapiError::null_pointer("data"));
-        }
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        let bytes = unsafe { std::slice::from_raw_parts(data, len) };
+        let out = unsafe { out_from_c(out) }?;
+        let bytes = unsafe { slice_from_c(data, len, "data") }?;
         let model: Model = bytes
             .unversionize()
             .decompress()
-            .map_err(|e| CapiError::new(LmStatus::Deserialization, e.to_string()))?
+            .map_err(CapiError::deserialization)?
             .decode(())
-            .map_err(|e| CapiError::new(LmStatus::Deserialization, e.to_string()))?;
-        *out = Box::into_raw(Box::new(model)) as *mut LmModel;
+            .map_err(CapiError::deserialization)?;
+        *out = handle_to_c(model);
         Ok(())
     })
 }

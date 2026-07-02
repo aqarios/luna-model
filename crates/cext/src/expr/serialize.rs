@@ -1,3 +1,4 @@
+use crate::utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c};
 use luna_model::core::Expression;
 use luna_model::serializer::prelude::*;
 
@@ -8,32 +9,32 @@ use crate::{LmBuffer, LmEnv, LmExpr, LmStatus};
 
 /// Serializes an expression to bytes, writing an owned buffer to `out`.
 ///
-/// The buffer must be released with [`crate::buffer::lm_buffer_free`].
+/// The buffer must be released with `lm_buffer_free`.
 ///
 /// # Safety
-/// `expr` must be a valid handle and `out` must point to writable `LmBuffer` storage.
+/// `expr` must be a valid expression handle created by this library.
+/// `out` must point to writable `LmBuffer` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_serialize(expr: *const LmExpr, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let expr = unsafe { (expr as *const Expression).as_ref() }
-            .ok_or_else(|| CapiError::null_pointer("expr"))?;
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let out = unsafe { out_from_c(out) }?;
         let bytes = expr
             .encode(Some(true), None)
-            .map_err(|e| CapiError::new(LmStatus::Serialization, e.to_string()))?;
+            .map_err(CapiError::serialization)?;
         *out = buffer_from_vec(bytes);
         Ok(())
     })
 }
 
-/// Deserializes a expr from `len` bytes at `data`, writing a new handle to `out`.
+/// Deserializes an expression from `len` bytes at `data`, writing a new handle to `out`.
 ///
 /// The new handle must be released with [`lm_expr_free`].
 ///
 /// # Safety
-/// `data` must point to `len` readable bytes
-/// `env` must point to a valid environment handle
-/// `out` must point to writable storage
+/// `data` must point to `len` readable bytes.
+/// `env` must be a valid environment handle created by this library.
+/// `out` must point to writable storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_deserialize(
     data: *const u8,
@@ -42,19 +43,16 @@ pub unsafe extern "C" fn lm_expr_deserialize(
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        if data.is_null() {
-            return Err(CapiError::null_pointer("data"));
-        }
-        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        let bytes = unsafe { std::slice::from_raw_parts(data, len) };
+        let out = unsafe { out_from_c(out) }?;
+        let bytes = unsafe { slice_from_c(data, len, "data") }?;
         let env = unsafe { environment_from_c(env)? };
         let expr: Expression = bytes
             .unversionize()
             .decompress()
-            .map_err(|e| CapiError::new(LmStatus::Deserialization, e.to_string()))?
+            .map_err(CapiError::deserialization)?
             .decode(env.clone())
-            .map_err(|e| CapiError::new(LmStatus::Deserialization, e.to_string()))?;
-        *out = Box::into_raw(Box::new(expr)) as *mut LmExpr;
+            .map_err(CapiError::deserialization)?;
+        *out = handle_to_c(expr);
         Ok(())
     })
 }

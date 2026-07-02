@@ -181,22 +181,6 @@ typedef struct {
 } LmBound;
 
 /**
- * Opaque handle to a LunaModel timer reference.
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmTimer;
-
-/**
- * Opaque handle to a LunaModel timing reference.
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmTiming;
-
-/**
  * Opaque handle to a LunaModel bounds reference.
  *
  */
@@ -571,6 +555,22 @@ typedef struct {
 } LmSol;
 
 /**
+ * Opaque handle to a LunaModel timer reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmTimer;
+
+/**
+ * Opaque handle to a LunaModel timing reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmTiming;
+
+/**
  * Opaque handle to a LunaModel variable reference.
  *
  */
@@ -617,13 +617,13 @@ typedef struct {
     LmStatus (*model_objective)(const LmModel*, LmExpr**);
     LmStatus (*model_constraints)(const LmModel*, LmCC**);
     LmStatus (*model_set_name)(LmModel*, const char*);
-    LmStatus (*model_set_sense)(LmModel*, const LmSense*);
+    LmStatus (*model_set_sense)(LmModel*, LmSense);
     LmStatus (*model_set_objective)(LmModel*, const LmExpr*);
     LmStatus (*model_set_constraints)(LmModel*, const LmCC*);
-    LmStatus (*model_add_var)(LmModel*, const char*, const LmVtype*, const LmBounds*, LmVref**);
+    LmStatus (*model_add_var)(LmModel*, const char*, LmVtype, const LmBounds*, LmVref**);
     LmStatus (*model_add_var_with_fallback)(LmModel*,
                                             const char*,
-                                            const LmVtype*,
+                                            LmVtype,
                                             const LmBounds*,
                                             LmVref**);
     LmStatus (*model_satisfies)(const LmModel*, const LmSpecs*, bool*);
@@ -646,12 +646,8 @@ typedef struct {
     LmStatus (*env_id)(const LmEnv*, LmEnvId*);
     LmStatus (*env_is_empty)(const LmEnv*, bool*);
     LmStatus (*env_vars)(const LmEnv*, LmVrefBuffer*);
-    LmStatus (*env_insert)(LmEnv*, const char*, const LmVtype*, const LmLazyBounds*, LmVref**);
-    LmStatus (*env_insert_with_fallback)(LmEnv*,
-                                         const char*,
-                                         const LmVtype*,
-                                         const LmLazyBounds*,
-                                         LmVref**);
+    LmStatus (*env_insert)(LmEnv*, const char*, LmVtype, const LmLazyBounds*, LmVref**);
+    LmStatus (*env_insert_with_fallback)(LmEnv*, const char*, LmVtype, const LmLazyBounds*, LmVref**);
     LmStatus (*env_insert_inverted)(LmEnv*, const LmVref*, LmVref**);
     LmStatus (*env_remove)(LmEnv*, const LmVref*);
     LmStatus (*env_lookup)(const LmEnv*, const char*, LmVref**);
@@ -741,11 +737,13 @@ typedef struct {
     LmStatus (*var_inverted)(const LmVar*, uint32_t*);
     void (*specs_free)(LmSpecs*);
     LmStatus (*specs_new)(const LmSense*,
-                          const LmVtypeBuffer*,
-                          const LmCtypeBuffer*,
+                          const LmVtype*,
                           uintptr_t,
+                          const LmCtype*,
                           uintptr_t,
-                          uintptr_t,
+                          const uintptr_t*,
+                          const uintptr_t*,
+                          const uintptr_t*,
                           LmSpecs**);
     LmStatus (*specs_sense)(const LmSpecs*, LmSense*);
     LmStatus (*specs_vtypes)(const LmSpecs*, LmVtypeBuffer*);
@@ -764,14 +762,14 @@ typedef struct {
     LmStatus (*bounds_real)(LmBounds**);
     LmStatus (*bounds_default_for)(LmVtype, LmBounds**);
     LmStatus (*bounds_clone)(const LmBounds*, LmBounds**);
-    LmStatus (*bounds_lower)(const LmBounds*, LmBound**);
-    LmStatus (*bounds_upper)(const LmBounds*, LmBound**);
+    LmStatus (*bounds_lower)(const LmBounds*, LmBound*);
+    LmStatus (*bounds_upper)(const LmBounds*, LmBound*);
     void (*lazy_bounds_free)(LmLazyBounds*);
     LmLazyBounds *(*lazy_bounds_default)(void);
     LmStatus (*lazy_bounds_new)(const LmBound*, const LmBound*, LmLazyBounds**);
     LmStatus (*lazy_bounds_clone)(const LmLazyBounds*, LmLazyBounds**);
-    LmStatus (*lazy_bounds_lower)(const LmLazyBounds*, LmBound**);
-    LmStatus (*lazy_bounds_upper)(const LmLazyBounds*, LmBound**);
+    LmStatus (*lazy_bounds_lower)(const LmLazyBounds*, LmBound*);
+    LmStatus (*lazy_bounds_upper)(const LmLazyBounds*, LmBound*);
     LmStatus (*lazy_bounds_concretize)(const LmLazyBounds*, LmVtype, LmBounds**);
     void (*linear_free)(LmLinear*);
     LmLinear *(*linear_default)(void);
@@ -822,6 +820,7 @@ typedef struct {
     LmTimer *(*timer_start)(void);
     LmStatus (*timer_stop)(const LmTimer*, LmTiming**);
     void (*timing_free)(LmTiming*);
+    LmStatus (*timing_new)(uint64_t, uint64_t, const double*, LmTiming**);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */
