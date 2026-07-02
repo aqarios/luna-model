@@ -788,7 +788,10 @@ LmStatus lm_expr_offset(const LmExpr *expr, double *out);
 LmStatus lm_expr_linear(const LmExpr *expr, LmLinear **out);
 
 /**
- * Returns the quadratic terms of the expression.
+ * Returns a copy of the expression's quadratic terms.
+ *
+ * On success, `*out` is set to an owned quadratic handle, or to NULL when
+ * the expression has no quadratic terms.
  *
  * # Safety
  * `expr` must be a valid expr handle created by this library.
@@ -797,7 +800,10 @@ LmStatus lm_expr_linear(const LmExpr *expr, LmLinear **out);
 LmStatus lm_expr_quadratic(const LmExpr *expr, LmQuadratic **out);
 
 /**
- * Returns the higher-order terms of the expression.
+ * Returns a copy of the expression's higher-order terms.
+ *
+ * On success, `*out` is set to an owned higher-order handle, or to NULL when
+ * the expression has no higher-order terms.
  *
  * # Safety
  * `expr` must be a valid expr handle created by this library.

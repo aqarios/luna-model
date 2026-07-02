@@ -57,7 +57,10 @@ pub unsafe extern "C" fn lm_expr_linear(expr: *const LmExpr, out: *mut *mut LmLi
     })
 }
 
-/// Returns the quadratic terms of the expression.
+/// Returns a copy of the expression's quadratic terms.
+///
+/// On success, `*out` is set to an owned quadratic handle, or to NULL when
+/// the expression has no quadratic terms.
 ///
 /// # Safety
 /// `expr` must be a valid expr handle created by this library.
@@ -71,12 +74,19 @@ pub unsafe extern "C" fn lm_expr_quadratic(
         let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
 
         let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(expr.quadratic.clone());
+        *out = expr
+            .quadratic
+            .clone()
+            .map(|v| handle_to_c(v))
+            .unwrap_or(std::ptr::null_mut());
         Ok(())
     })
 }
 
-/// Returns the higher-order terms of the expression.
+/// Returns a copy of the expression's higher-order terms.
+///
+/// On success, `*out` is set to an owned higher-order handle, or to NULL when
+/// the expression has no higher-order terms.
 ///
 /// # Safety
 /// `expr` must be a valid expr handle created by this library.
@@ -90,7 +100,11 @@ pub unsafe extern "C" fn lm_expr_higher_order(
         let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
 
         let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(expr.higher_order.clone());
+        *out = expr
+            .higher_order
+            .clone()
+            .map(|v| handle_to_c(v))
+            .unwrap_or(std::ptr::null_mut());
         Ok(())
     })
 }

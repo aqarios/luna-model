@@ -9,6 +9,7 @@
  */
 
 #include <cstddef>
+#include <vector>
 
 #include <luna_model.h>
 
@@ -18,6 +19,21 @@
 
 namespace lm {
 
+namespace detail {
+/* Adopts every handle of an owned vref buffer into `Vref`s, then releases
+ * the outer array. Nulled slots are skipped by the buffer free. */
+inline std::vector<Vref> adopt_vref_buffer(LmVrefBuffer buf) {
+    std::vector<Vref> out;
+    out.reserve(buf.len);
+    for (std::size_t i = 0; i < buf.len; ++i) {
+        out.emplace_back(buf.data[i]);
+        buf.data[i] = nullptr;
+    }
+    lm_vref_buffer_free(buf);
+    return out;
+}
+} // namespace detail
+
 /* ///////////////////////////////////////////////////////////////////// */
 /* Out-of-line member definitions (declared in expr.hpp / vref.hpp).     */
 /* ///////////////////////////////////////////////////////////////////// */
@@ -25,6 +41,18 @@ namespace lm {
 inline Expression &Expression::operator+=(const Vref &rhs) {
     detail::check(lm_expr_add_vref(handle_, rhs.get()));
     return *this;
+}
+
+inline std::vector<Vref> Expression::vars() const {
+    LmVrefBuffer buf = {nullptr, 0, 0};
+    detail::check(lm_expr_vars(handle_, &buf));
+    return detail::adopt_vref_buffer(buf);
+}
+
+inline std::vector<Vref> Expression::complete_vars() const {
+    LmVrefBuffer buf = {nullptr, 0, 0};
+    detail::check(lm_expr_complete_vars(handle_, &buf));
+    return detail::adopt_vref_buffer(buf);
 }
 
 inline Expression Vref::pow(std::size_t n) const {

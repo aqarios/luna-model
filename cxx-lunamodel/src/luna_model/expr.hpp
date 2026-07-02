@@ -1,11 +1,22 @@
 #ifndef LUNA_MODEL_EXPRESSION_HPP
 #define LUNA_MODEL_EXPRESSION_HPP
 
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <vector>
+
 #include <luna_model.h>
+
+#include "luna_model/detail/capi.hpp"
+#include "luna_model/env.hpp"
+#include "luna_model/higher_order.hpp"
+#include "luna_model/linear.hpp"
+#include "luna_model/quadratic.hpp"
 
 namespace lm {
 
-class Vref; // defined in vref.hpp; ops are defined in ops.hpp
+class Vref; // defined in vref.hpp; cross-type bodies are defined in ops.hpp
 
 /* Owning handle to a LunaModel expression (frees on destruction).
  *
@@ -13,6 +24,63 @@ class Vref; // defined in vref.hpp; ops are defined in ops.hpp
  */
 class Expression {
   public:
+    /* Creates an empty expression with a fresh environment
+     * (Rust `Expression::default()`). */
+    Expression() : handle_(lm_expr_default()) {}
+
+    /* Creates an empty expression bound to `env` (Rust `Expression::empty(env)`). */
+    explicit Expression(const Env &env) {
+        LmExpr *out = nullptr;
+        detail::check(lm_expr_new(env.get(), &out));
+        handle_ = out;
+    }
+
+    /* Creates a constant expression bound to `env`
+     * (Rust `Expression::constant(env, value)`). */
+    Expression(const Env &env, double value) {
+        LmExpr *out = nullptr;
+        detail::check(lm_expr_new_constant(env.get(), value, &out));
+        handle_ = out;
+    }
+
+    /* Creates a constant expression from a double (Rust `Expression::from(f64)`). */
+    static Expression from_double(double value) {
+        LmExpr *out = nullptr;
+        detail::check(lm_expr_from_double(value, &out));
+        return Expression(out);
+    }
+
+    /* Creates a constant expression from a size_t (Rust `Expression::from(usize)`). */
+    static Expression from_size_t(std::size_t value) {
+        LmExpr *out = nullptr;
+        detail::check(lm_expr_from_size_t(value, &out));
+        return Expression(out);
+    }
+
+    /* Creates an expression from a linear term store
+     * (Rust `Expression::from(&linear)`). The store is copied, not consumed. */
+    static Expression from_linear(const Linear &linear) {
+        LmExpr *out = nullptr;
+        detail::check(lm_expr_from_linear(linear.get(), &out));
+        return Expression(out);
+    }
+
+    /* Creates an expression from a quadratic term store
+     * (Rust `Expression::from(&quadratic)`). The store is copied, not consumed. */
+    static Expression from_quadratic(const Quadratic &quadratic) {
+        LmExpr *out = nullptr;
+        detail::check(lm_expr_from_quadratic(quadratic.get(), &out));
+        return Expression(out);
+    }
+
+    /* Creates an expression from a higher-order term store
+     * (Rust `Expression::from(&ho)`). The store is copied, not consumed. */
+    static Expression from_higher_order(const HigherOrder &higher_order) {
+        LmExpr *out = nullptr;
+        detail::check(lm_expr_from_higher_order(higher_order.get(), &out));
+        return Expression(out);
+    }
+
     /* Adopts ownership of a raw C handle (for C interop). */
     explicit Expression(LmExpr *handle) noexcept : handle_(handle) {}
 
@@ -22,9 +90,7 @@ class Expression {
         }
     }
 
-    Expression(Expression &&other) noexcept : handle_(other.handle_) {
-        other.handle_ = nullptr;
-    }
+    Expression(Expression &&other) noexcept : handle_(other.handle_) { other.handle_ = nullptr; }
     Expression &operator=(Expression &&other) noexcept {
         if (this != &other) {
             if (handle_ != nullptr) {
@@ -38,8 +104,156 @@ class Expression {
     Expression(const Expression &) = delete;
     Expression &operator=(const Expression &) = delete;
 
+    /* Returns a handle to the expression's shared environment
+     * (Rust `expr.env`). */
+    Env env() const {
+        LmEnv *out = nullptr;
+        detail::check(lm_expr_env(handle_, &out));
+        return Env(out);
+    }
+
+    /* Returns the constant offset (Rust `expr.offset`). */
+    double offset() const {
+        double out = 0.0;
+        detail::check(lm_expr_offset(handle_, &out));
+        return out;
+    }
+
+    /* Returns a copy of the linear terms (Rust `expr.linear`). */
+    Linear linear() const {
+        LmLinear *out = nullptr;
+        detail::check(lm_expr_linear(handle_, &out));
+        return Linear(out);
+    }
+
+    /* Returns a copy of the quadratic terms if any (Rust `expr.quadratic`). */
+    std::optional<Quadratic> quadratic() const {
+        LmQuadratic *out = nullptr;
+        detail::check(lm_expr_quadratic(handle_, &out));
+        if (out == nullptr) {
+            return std::nullopt;
+        }
+        return Quadratic(out);
+    }
+
+    /* Returns a copy of the higher-order terms if any (Rust `expr.higher_order`). */
+    std::optional<HigherOrder> higher_order() const {
+        LmHigherOrder *out = nullptr;
+        detail::check(lm_expr_higher_order(handle_, &out));
+        if (out == nullptr) {
+            return std::nullopt;
+        }
+        return HigherOrder(out);
+    }
+
+    /* Returns the number of distinct variables (Rust `expr.num_vars()`). */
+    std::size_t num_vars() const {
+        std::size_t out = 0;
+        detail::check(lm_expr_num_vars(handle_, &out));
+        return out;
+    }
+
+    /* Returns the degree of the expression (Rust `expr.degree()`). */
+    std::size_t degree() const {
+        std::size_t out = 0;
+        detail::check(lm_expr_degree(handle_, &out));
+        return out;
+    }
+
+    /* Returns whether the expression is a plain constant
+     * (Rust `expr.is_constant()`). */
+    bool is_constant() const {
+        bool out = false;
+        detail::check(lm_expr_is_constant(handle_, &out));
+        return out;
+    }
+
+    /* Returns whether at least one quadratic term is present
+     * (Rust `expr.has_quadratic()`). */
+    bool has_quadratic() const {
+        bool out = false;
+        detail::check(lm_expr_has_quadratic(handle_, &out));
+        return out;
+    }
+
+    /* Returns whether at least one higher-order term is present
+     * (Rust `expr.has_higher_order()`). */
+    bool has_higher_order() const {
+        bool out = false;
+        detail::check(lm_expr_has_higher_order(handle_, &out));
+        return out;
+    }
+
+    /* Returns the distinct variable types used by the expression
+     * (Rust `expr.vtypes()`). */
+    std::vector<LmVtype> vtypes() const {
+        LmVtypeBuffer buf = {nullptr, 0, 0};
+        detail::check(lm_expr_vtypes(handle_, &buf));
+        std::vector<LmVtype> out(buf.data, buf.data + buf.len);
+        lm_vtype_buffer_free(buf);
+        return out;
+    }
+
+    /* Returns the distinct variables used by the expression
+     * (Rust `expr.vars()`). Defined in ops.hpp. */
+    std::vector<Vref> vars() const;
+
+    /* Returns the distinct variables including inverted binary companions
+     * (Rust `expr.complete_vars()`). Defined in ops.hpp. */
+    std::vector<Vref> complete_vars() const;
+
     /* expr += vref, in place (Rust `expr += &vref`). Defined in ops.hpp. */
     Expression &operator+=(const Vref &rhs);
+
+    /* Clones into a new handle that shares the environment (Rust `Clone`). */
+    Expression clone() const {
+        LmExpr *out = nullptr;
+        detail::check(lm_expr_clone(handle_, &out));
+        return Expression(out);
+    }
+
+    /* Deep-clones into an independent expression rebound to `env`
+     * (Rust `expr.deep_clone(env)`). */
+    Expression deep_clone(const Env &env) const {
+        LmExpr *out = nullptr;
+        detail::check(lm_expr_deep_clone(handle_, env.get(), &out));
+        return Expression(out);
+    }
+
+    /* Structural equality including environment identity (Rust `PartialEq`). */
+    bool operator==(const Expression &other) const {
+        bool out = false;
+        detail::check(lm_expr_eq(handle_, other.handle_, &out));
+        return out;
+    }
+    bool operator!=(const Expression &other) const { return !(*this == other); }
+
+    /* Content equality, ignoring environment identity
+     * (Rust `expr.equal_contents(&other)`). */
+    bool equal_contents(const Expression &other) const {
+        bool out = false;
+        detail::check(lm_expr_equal_contents(handle_, other.handle_, &out));
+        return out;
+    }
+
+    /* Serialize the expression to bytes. */
+    std::vector<std::uint8_t> serialize() const {
+        LmBuffer buf = {nullptr, 0, 0};
+        detail::check(lm_expr_serialize(handle_, &buf));
+        std::vector<std::uint8_t> bytes(buf.data, buf.data + buf.len);
+        lm_buffer_free(buf);
+        return bytes;
+    }
+
+    /* Deserialize an expression from bytes, rebinding it to `env`. */
+    static Expression deserialize(const std::uint8_t *data, std::size_t len, const Env &env) {
+        LmExpr *out = nullptr;
+        detail::check(lm_expr_deserialize(data, len, env.get(), &out));
+        return Expression(out);
+    }
+    static Expression deserialize(const std::vector<std::uint8_t> &bytes, const Env &env) {
+        return deserialize(bytes.data(), bytes.size(), env);
+    }
 
     LmExpr *get() const noexcept { return handle_; }
     LmExpr *release() noexcept {

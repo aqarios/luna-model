@@ -33,11 +33,10 @@ class Model {
      *
      * `std::nullopt` selects the default name ("unnamed") / sense (minimize).
      */
-    explicit Model(std::optional<std::string> name,
-                   std::optional<LmSense> sense = std::nullopt) {
+    explicit Model(std::optional<std::string> name, std::optional<LmSense> sense = std::nullopt) {
         LmModel *out = nullptr;
-        detail::check(lm_model_new(name ? name->c_str() : nullptr,
-                                   sense ? &*sense : nullptr, &out));
+        detail::check(
+            lm_model_new(name ? name->c_str() : nullptr, sense ? &*sense : nullptr, &out));
         handle_ = out;
     }
 
@@ -116,11 +115,10 @@ class Model {
      *
      * `std::nullopt` selects the default tolerance.
      */
-    Solution evaluate_solution_with_tol(const Solution &solution,
-                                        std::optional<double> tol) const {
+    Solution evaluate_solution_with_tol(const Solution &solution, std::optional<double> tol) const {
         LmSol *out = nullptr;
-        detail::check(lm_model_evaluate_solution_with_tol(
-            handle_, solution.get(), tol ? &*tol : nullptr, &out));
+        detail::check(lm_model_evaluate_solution_with_tol(handle_, solution.get(),
+                                                          tol ? &*tol : nullptr, &out));
         return Solution(out);
     }
 

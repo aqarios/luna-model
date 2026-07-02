@@ -149,6 +149,14 @@ class Vref {
     LmVref *handle_;
 };
 
+/* Out-of-line definition (declared in env.hpp): both Env and Vref are
+ * complete here. */
+inline Vref Env::insert(const std::string &name, LmVtype vtype) {
+    LmVref *out = nullptr;
+    detail::check(lm_env_insert(handle_, name.c_str(), vtype, nullptr, &out));
+    return Vref(out);
+}
+
 } // namespace lm
 
 template <> struct std::hash<lm::Vref> {
