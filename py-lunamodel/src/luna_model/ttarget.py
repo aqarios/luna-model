@@ -48,6 +48,7 @@ class TranslationTarget(Enum):
     MPS = "Mps"
     BQM = "Bqm"
     CQM = "Cqm"
+    OPT_MAPPER = "OptMapper"
 
     @property
     def _val(self) -> PyTranslationTarget:
@@ -63,6 +64,8 @@ class TranslationTarget(Enum):
                 return PyTranslationTarget.Bqm
             case TranslationTarget.CQM:
                 return PyTranslationTarget.Cqm
+            case TranslationTarget.OPT_MAPPER:
+                return PyTranslationTarget.OptMapper
 
     @classmethod
     def _from_pyttarget(cls, py_ttarget: PyTranslationTarget) -> TranslationTarget:
@@ -77,5 +80,7 @@ class TranslationTarget(Enum):
                 return TranslationTarget.BQM
             case PyTranslationTarget.Cqm:
                 return TranslationTarget.CQM
+            case PyTranslationTarget.OptMapper:
+                return TranslationTarget.OPT_MAPPER
         msg = f"unknown sense: {py_ttarget}"
         raise RuntimeError(msg)

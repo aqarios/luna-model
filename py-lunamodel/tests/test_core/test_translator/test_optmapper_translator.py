@@ -1,3 +1,4 @@
+from luna_model.ttarget import TranslationTarget
 import pytest
 
 qiskit_opt_mapper = pytest.importorskip("qiskit_addon_opt_mapper")
@@ -62,6 +63,59 @@ def test_lm_to_optmapper_to_lm_roundtrip():
     assert _lm_variables(model_back) == _lm_variables(model)
     assert _lm_expr(model_back.objective) == _lm_expr(model.objective)
     assert _lm_constraints(model_back) == _lm_constraints(model)
+
+def test_optmapper_to_lm_to_optmapper_roundtrip_fromto():
+    mod = OptimizationProblem("optmapper_model")
+    mod.binary_var("x")
+    mod.spin_var("s")
+    mod.integer_var(-2, 5, "i")
+    mod.continuous_var(-1.5, 3.5, "r")
+    mod.maximize(
+        constant=1.25,
+        linear={"x": 2.0, "i": -3.0},
+        quadratic={("x", "i"): 4.0},
+        higher_order={3: {("x", "i", "r"): -1.5}},
+    )
+    mod.linear_constraint({"x": 1.0, "i": 2.0}, "<=", 3.0, "lin")
+    mod.quadratic_constraint({"r": 1.0}, {("x", "i"): 2.0}, ">=", -1.0, "quad")
+    mod.higher_order_constraint(
+        {"s": -1.0},
+        {("x", "i"): 1.5},
+        {3: {("x", "i", "r"): 2.5}},
+        "==",
+        4.0,
+        "higher",
+    )
+
+    model = Model.from_(mod)
+    mod_back = model.to(TranslationTarget.OPT_MAPPER)
+
+    assert mod_back.name == mod.name
+    assert mod_back.objective.sense == mod.objective.sense
+    assert _optmapper_variables(mod_back) == _optmapper_variables(mod)
+    assert _optmapper_objective(mod_back) == _optmapper_objective(mod)
+    assert _optmapper_constraints(mod_back) == _optmapper_constraints(mod)
+
+def test_lm_to_optmapper_to_lm_roundtrip_fromto():
+    model = Model("luna_model", sense=Sense.MAX)
+    x = model.add_variable("x", vtype=Vtype.BINARY)
+    s = model.add_variable("s", vtype=Vtype.SPIN)
+    i = model.add_variable("i", vtype=Vtype.INTEGER, lower=-2, upper=5)
+    r = model.add_variable("r", vtype=Vtype.REAL, lower=-1.5, upper=3.5)
+    model.objective = 1.25 + 2.0 * x - 3.0 * i + 4.0 * x * i - 1.5 * x * i * r
+    model.add_constraint(x + 2.0 * i <= 3.0, name="lin")
+    model.add_constraint(2.0 * x * i + r >= -1.0, name="quad")
+    model.add_constraint(x * i * r - s == 4.0, name="higher")
+
+    mod = model.to(TranslationTarget.OPT_MAPPER)
+    model_back = Model.from_(mod)
+
+    assert model_back.name == model.name
+    assert model_back.sense == model.sense
+    assert _lm_variables(model_back) == _lm_variables(model)
+    assert _lm_expr(model_back.objective) == _lm_expr(model.objective)
+    assert _lm_constraints(model_back) == _lm_constraints(model)
+
 
 
 def _optmapper_variables(mod: OptimizationProblem) -> dict[str, tuple[object, float, float]]:

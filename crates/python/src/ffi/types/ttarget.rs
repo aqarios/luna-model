@@ -14,6 +14,7 @@ impl<'py> CapsuleFFI<'py, String> for PyTranslationTarget {
             Self::Mps => "builtins.capsule.translation_target.mps".to_owned(),
             Self::Bqm => "builtins.capsule.translation_target.bqm".to_owned(),
             Self::Cqm => "builtins.capsule.translation_target.cqm".to_owned(),
+            Self::OptMapper => "builtins.capsule.translation_target.opt_mapper".to_owned(),
         })
     }
 
@@ -24,6 +25,7 @@ impl<'py> CapsuleFFI<'py, String> for PyTranslationTarget {
             "builtins.capsule.translation_target.mps" => Ok(Self::Mps),
             "builtins.capsule.translation_target.bqm" => Ok(Self::Bqm),
             "builtins.capsule.translation_target.cqm" => Ok(Self::Cqm),
+            "builtins.capsule.translation_target.opt_mapper" => Ok(Self::OptMapper),
             _ => Err(LunaModelError::Internal(
                 format!("unknown translation_target capsule: {capsule}").into(),
             ))?,

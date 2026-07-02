@@ -34,6 +34,7 @@ if TYPE_CHECKING:
 
     from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel
     from numpy.typing import NDArray
+    from qiskit_addon_opt_mapper import OptimizationProblem
 
     from luna_model.constraint.collection import ConstraintCollection
     from luna_model.constraint.constr import Constraint
@@ -71,6 +72,16 @@ def _cqm_type() -> type[ConstrainedQuadraticModel]:
         raise RuntimeError(_msg) from e
     else:
         return ConstrainedQuadraticModel
+
+
+def _opt_mapper_type() -> type[OptimizationProblem]:
+    try:
+        from qiskit_addon_opt_mapper import OptimizationProblem  # noqa: PLC0415
+
+    except ImportError as e:
+        raise RuntimeError(_msg) from e
+    else:
+        return OptimizationProblem
 
 
 class Model:
@@ -947,7 +958,7 @@ class Model:
     @classmethod
     def from_(
         cls,
-        other: ConstrainedQuadraticModel | BinaryQuadraticModel | str | Path,
+        other: ConstrainedQuadraticModel | BinaryQuadraticModel | str | Path | OptimizationProblem,
         name: str | None = None,
     ) -> Model: ...
     @overload
@@ -962,7 +973,7 @@ class Model:
         vtype: Vtype | None = None,
     ) -> Model: ...
     @classmethod
-    def from_(  # noqa: PLR0911
+    def from_(  # noqa: PLR0911, C901
         cls,
         other: ConstrainedQuadraticModel | BinaryQuadraticModel | str | Path | NDArray,
         name: str | None = None,
@@ -1019,6 +1030,11 @@ class Model:
             from luna_model.translator.model.bqm import BqmTranslator  # noqa: PLC0415
 
             return BqmTranslator.to_lm(other, name=name)
+        if isinstance(other, _opt_mapper_type()):
+            from luna_model.translator.model.optmapper import QiskitOptMapperTranslator  # noqa: PLC0415
+
+            return QiskitOptMapperTranslator.to_lm(other, name=name)
+
         msg = f"Unexpected type of other: '{type(other)}'"
         raise ValueError(msg)
 
@@ -1038,6 +1054,8 @@ class Model:
     def to(self, target: Literal[TranslationTarget.LP]) -> str: ...
     @overload
     def to(self, target: Literal[TranslationTarget.MPS]) -> str: ...
+    @overload
+    def to(self, target: Literal[TranslationTarget.OPT_MAPPER]) -> OptimizationProblem: ...
     @overload
     def to(self, target: Literal[TranslationTarget.CQM]) -> ConstrainedQuadraticModel: ...
     @overload
@@ -1074,6 +1092,10 @@ class Model:
                 from luna_model.translator.model.mps import MpsTranslator  # noqa: PLC0415
 
                 return MpsTranslator.from_lm(self, filepath)
+            case TranslationTarget.OPT_MAPPER:
+                from luna_model.translator.model.optmapper import QiskitOptMapperTranslator  # noqa: PLC0415
+
+                return QiskitOptMapperTranslator.from_lm(self)
 
     def equal_contents(self, other: Model) -> bool:
         """Check whether two models have equal *contents*.

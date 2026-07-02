@@ -15,4 +15,6 @@ pub enum TranslationTarget {
     Bqm,
     /// Constrained quadratic model representation.
     Cqm,
+    /// Qiskit OptimizationProblem representation.
+    OptMapper,
 }
