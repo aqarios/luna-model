@@ -1024,6 +1024,223 @@ LmStatus lm_expr_clone(const LmExpr *expr, LmExpr **out);
 LmStatus lm_expr_deep_clone(const LmExpr *expr, const LmEnv *env, LmExpr **out);
 
 /**
+ * Adds a variable reference to the expression in place.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `vref` must be a valid vref handle created by this library.
+ */
+LmStatus lm_expr_iadd_vref(LmExpr *expr, const LmVref *vref);
+
+/**
+ * Adds a bias to the expression in place.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ */
+LmStatus lm_expr_iadd_bias(LmExpr *expr, double bias);
+
+/**
+ * Adds an expression reference to the expression in place.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `other` must be a valid expression handle created by this library.
+ */
+LmStatus lm_expr_iadd_expr(LmExpr *expr, const LmExpr *other);
+
+/**
+ * Adds a variable reference to the expression, resulting in a new expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_add_vref(const LmExpr *expr, const LmVref *vref, LmExpr **out);
+
+/**
+ * Adds a bias to the expression in place, resulting in a new expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_add_bias(const LmExpr *expr, double bias, LmExpr **out);
+
+/**
+ * Adds an expression reference to the expression in place, resulting in a new expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `other` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_add_expr(const LmExpr *expr, const LmExpr *other, LmExpr **out);
+
+/**
+ * Multiplies a variable reference to the expression in place.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `vref` must be a valid vref handle created by this library.
+ */
+LmStatus lm_expr_imul_vref(LmExpr *expr, const LmVref *vref);
+
+/**
+ * Multiplies a bias to the expression in place.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ */
+LmStatus lm_expr_imul_bias(LmExpr *expr, double bias);
+
+/**
+ * Multiplies an expression reference to the expression in place.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `other` must be a valid expression handle created by this library.
+ */
+LmStatus lm_expr_imul_expr(LmExpr *expr, const LmExpr *other);
+
+/**
+ * Multiplies a variable reference to the expression, resulting in a new expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_mul_vref(const LmExpr *expr, const LmVref *vref, LmExpr **out);
+
+/**
+ * Multiplies a bias to the expression in place, resulting in a new expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_mul_bias(const LmExpr *expr, double bias, LmExpr **out);
+
+/**
+ * Multiplies an expression reference to the expression in place, resulting in a new expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `other` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_mul_expr(const LmExpr *expr, const LmExpr *other, LmExpr **out);
+
+/**
+ * Negate an expression reference.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_neg(const LmExpr *expr, LmExpr **out);
+
+/**
+ * Raises the expression to a non-negative power in-place.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ */
+LmStatus lm_expr_ipow(LmExpr *expr, uintptr_t n);
+
+/**
+ * Raises the expression to a non-negative power, resulting in a new expression.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_pow(const LmExpr *expr, uintptr_t n, LmExpr **out);
+
+/**
+ * Splits an expression into terms that do and do not touch the given variables.
+ *
+ * The first returned expression contains every contribution involving at
+ * least one variable from `vrefs`. The second contains the remaining
+ * contributions.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `vars` must point to `vars_len` readable `LmVref *` handles created by this library.
+ * `first` and `second` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_separate(const LmExpr *expr,
+                          const LmVref *const *vars,
+                          uintptr_t vars_len,
+                          LmExpr **first,
+                          LmExpr **second);
+
+/**
+ * Subs a variable reference from the expression in place.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `vref` must be a valid vref handle created by this library.
+ */
+LmStatus lm_expr_isub_vref(LmExpr *expr, const LmVref *vref);
+
+/**
+ * Subs a bias from the expression in place.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ */
+LmStatus lm_expr_isub_bias(LmExpr *expr, double bias);
+
+/**
+ * Subs an expression reference from the expression in place.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `other` must be a valid expression handle created by this library.
+ */
+LmStatus lm_expr_isub_expr(LmExpr *expr, const LmExpr *other);
+
+/**
+ * Subs a variable reference from the expression, resulting in a new expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_sub_vref(const LmExpr *expr, const LmVref *vref, LmExpr **out);
+
+/**
+ * Subs a bias from the expression in place, resulting in a new expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_sub_bias(const LmExpr *expr, double bias, LmExpr **out);
+
+/**
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `other` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_sub_expr(const LmExpr *expr, const LmExpr *other, LmExpr **out);
+
+/**
+ * Subs a bias from the expression in place, resulting in a new expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_rsub_bias(const LmExpr *expr, double bias, LmExpr **out);
+
+/**
  * Serializes an expression to bytes, writing an owned buffer to `out`.
  *
  * The buffer must be released with `lm_buffer_free`.
@@ -1045,15 +1262,6 @@ LmStatus lm_expr_serialize(const LmExpr *expr, LmBuffer *out);
  * `out` must point to writable storage.
  */
 LmStatus lm_expr_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env, LmExpr **out);
-
-/**
- * Adds a variable reference to the expression in place (Rust `expr += &vref`).
- *
- * # Safety
- * `expr` must be a valid mutable expression handle created by this library.
- * `vref` must be a valid vref handle created by this library.
- */
-LmStatus lm_expr_add_vref(LmExpr *expr, const LmVref *vref);
 
 /**
  * Returns the number of explicitly stored entries of the higher_order term.
@@ -2330,6 +2538,16 @@ LmStatus lm_vref_add_bias(const LmVref *vref, double other, LmExpr **out);
  * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_vref_sub_vref(const LmVref *vref, const LmVref *other, LmExpr **out);
+
+/**
+ * Subtracts an expression from a variable references, promoting the result to an expression
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_vref_sub_expr(const LmVref *vref, const LmExpr *expr, LmExpr **out);
 
 /**
  * Subtract a double value to a variable reference, promoting the result to an expression

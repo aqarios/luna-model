@@ -1,5 +1,5 @@
 use crate::utils::{handle_to_c, opt_from_c, out_from_c, ref_from_c};
-use luna_model::core::{ops::LmPow, prelude::VarRef};
+use luna_model::core::{Expression, ops::LmPow, prelude::VarRef};
 
 use crate::{
     LmExpr, LmStatus, LmVref,
@@ -105,6 +105,28 @@ pub unsafe extern "C" fn lm_vref_sub_vref(
     guard(|| {
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
         let other = unsafe { ref_from_c(other as *const VarRef, "other") }?;
+        let out = unsafe { out_from_c(out) }?;
+        let expr = (vref - other).map_err(CapiError::errored)?;
+        *out = handle_to_c(expr);
+        Ok(())
+    })
+}
+
+/// Subtracts an expression from a variable references, promoting the result to an expression
+///
+/// # Safety
+/// `vref` must be a valid vref handle created by this library.
+/// `expr` must be a valid expression handle created by this library.
+/// `out` must point to writable `LmExpr *` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_vref_sub_expr(
+    vref: *const LmVref,
+    expr: *const LmExpr,
+    out: *mut *mut LmExpr,
+) -> LmStatus {
+    guard(|| {
+        let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
+        let other = unsafe { ref_from_c(expr as *const Expression, "other") }?;
         let out = unsafe { out_from_c(out) }?;
         let expr = (vref - other).map_err(CapiError::errored)?;
         *out = handle_to_c(expr);

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <tuple>
 #include <vector>
 
 #include <luna_model.h>
@@ -202,8 +203,52 @@ class Expression {
      * (Rust `expr.complete_vars()`). Defined in ops.hpp. */
     std::vector<Vref> complete_vars() const;
 
-    /* expr += vref, in place (Rust `expr += &vref`). Defined in ops.hpp. */
+    /* expr += bias, in place. Defined in ops.hpp. */
+    Expression &operator+=(double rhs);
+    /* expr += vref, in place. Defined in ops.hpp. */
     Expression &operator+=(const Vref &rhs);
+    /* expr += expr, in place. Defined in ops.hpp. */
+    Expression &operator+=(const Expression &rhs);
+    /* expr -= bias, in place. Defined in ops.hpp. */
+    Expression &operator-=(double rhs);
+    /* expr -= vref, in place. Defined in ops.hpp. */
+    Expression &operator-=(const Vref &rhs);
+    /* expr -= expr, in place. Defined in ops.hpp. */
+    Expression &operator-=(const Expression &rhs);
+    /* expr *= bias, in place. Defined in ops.hpp. */
+    Expression &operator*=(double rhs);
+    /* expr *= vref, in place. Defined in ops.hpp. */
+    Expression &operator*=(const Vref &rhs);
+    /* expr *= expr, in place. Defined in ops.hpp. */
+    Expression &operator*=(const Expression &rhs);
+    /* expr + bias, in place. Defined in ops.hpp. */
+    Expression &operator+(double rhs);
+    /* expr + vref, in place. Defined in ops.hpp. */
+    Expression &operator+(const Vref &rhs);
+    /* expr + expr, in place. Defined in ops.hpp. */
+    Expression &operator+(const Expression &rhs);
+    /* expr - bias, in place. Defined in ops.hpp. */
+    Expression &operator-(double rhs);
+    /* expr - vref, in place. Defined in ops.hpp. */
+    Expression &operator-(const Vref &rhs);
+    /* expr - expr, in place. Defined in ops.hpp. */
+    Expression &operator-(const Expression &rhs);
+    /* expr * bias, in place. Defined in ops.hpp. */
+    Expression &operator*(double rhs);
+    /* expr * vref, in place. Defined in ops.hpp. */
+    Expression &operator*(const Vref &rhs);
+    /* expr * expr, in place. Defined in ops.hpp. */
+    Expression &operator*(const Expression &rhs);
+
+    Expression pow(std::size_t n) const {
+        LmExpr *out = nullptr;
+        detail::check(lm_expr_pow(handle_, n, &out));
+        return Expression(out);
+    }
+
+    void ipow(std::size_t n) { detail::check(lm_expr_ipow(handle_, n)); }
+
+    std::tuple<Expression, Expression> separate(std::vector<Vref> &vars) const;
 
     /* Clones into a new handle that shares the environment (Rust `Clone`). */
     Expression clone() const {

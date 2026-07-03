@@ -130,8 +130,36 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_is_constant: crate::expr::lm_expr_is_constant,
     expr_has_quadratic: crate::expr::lm_expr_has_quadratic,
     expr_has_higher_order: crate::expr::lm_expr_has_higher_order,
-    // Expr -- ops
+    // Expr -- ops -- add
+    expr_add_bias: crate::expr::lm_expr_add_bias,
     expr_add_vref: crate::expr::lm_expr_add_vref,
+    expr_add_expr: crate::expr::lm_expr_add_expr,
+    // Expr -- ops -- sub
+    expr_sub_bias: crate::expr::lm_expr_sub_bias,
+    expr_rsub_bias: crate::expr::lm_expr_rsub_bias,
+    expr_sub_vref: crate::expr::lm_expr_sub_vref,
+    expr_sub_expr: crate::expr::lm_expr_sub_expr,
+    // Expr -- ops -- mul
+    expr_mul_bias: crate::expr::lm_expr_mul_bias,
+    expr_mul_vref: crate::expr::lm_expr_mul_vref,
+    expr_mul_expr: crate::expr::lm_expr_mul_expr,
+    // Expr -- ops -- iadd
+    expr_iadd_bias: crate::expr::lm_expr_iadd_bias,
+    expr_iadd_vref: crate::expr::lm_expr_iadd_vref,
+    expr_iadd_expr: crate::expr::lm_expr_iadd_expr,
+    // Expr -- ops -- isub
+    expr_isub_bias: crate::expr::lm_expr_isub_bias,
+    expr_isub_vref: crate::expr::lm_expr_isub_vref,
+    expr_isub_expr: crate::expr::lm_expr_isub_expr,
+    // Expr -- ops -- imul
+    expr_imul_bias: crate::expr::lm_expr_imul_bias,
+    expr_imul_vref: crate::expr::lm_expr_imul_vref,
+    expr_imul_expr: crate::expr::lm_expr_imul_expr,
+    // Expr -- ops
+    expr_neg: crate::expr::lm_expr_neg,
+    expr_pow: crate::expr::lm_expr_pow,
+    expr_ipow: crate::expr::lm_expr_ipow,
+    expr_separate: crate::expr::lm_expr_separate,
     // ////////// //
     // Constraint //
     // ////////// //
