@@ -167,6 +167,7 @@ static inline int import_luna_model(void) {
 #define lm_expr_pow(...) (lunamodel__vtable->expr_pow(__VA_ARGS__))
 #define lm_expr_ipow(...) (lunamodel__vtable->expr_ipow(__VA_ARGS__))
 #define lm_expr_separate(...) (lunamodel__vtable->expr_separate(__VA_ARGS__))
+#define lm_expr_substitute(...) (lunamodel__vtable->expr_substitute(__VA_ARGS__))
 #define lm_constr_free(...) (lunamodel__vtable->constr_free(__VA_ARGS__))
 #define lm_constr_clone(...) (lunamodel__vtable->constr_clone(__VA_ARGS__))
 #define lm_constr_deep_clone(...) (lunamodel__vtable->constr_deep_clone(__VA_ARGS__))

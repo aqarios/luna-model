@@ -25,4 +25,5 @@ pub use ops::{
     lm_expr_isub_bias, lm_expr_isub_expr, lm_expr_isub_vref, lm_expr_mul_bias, lm_expr_mul_expr,
     lm_expr_mul_vref, lm_expr_neg, lm_expr_pow, lm_expr_rsub_bias, lm_expr_separate,
     lm_expr_sub_bias, lm_expr_sub_expr, lm_expr_sub_vref,
+    lm_expr_substitute,
 };

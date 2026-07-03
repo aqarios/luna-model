@@ -1241,6 +1241,24 @@ LmStatus lm_expr_sub_expr(const LmExpr *expr, const LmExpr *other, LmExpr **out)
 LmStatus lm_expr_rsub_bias(const LmExpr *expr, double bias, LmExpr **out);
 
 /**
+ * Replaces every occurrence of `target` with `replacement`.
+ *
+ * The substitution is performed term-by-term and preserves the current
+ * environment. Any resulting higher-degree terms are rebuilt through the
+ * normal expression arithmetic APIs.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `target` must be a valid vref handle created by this library.
+ * `replacement` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_substitute(const LmExpr *expr,
+                            const LmVref *target,
+                            const LmExpr *replacement,
+                            LmExpr **out);
+
+/**
  * Serializes an expression to bytes, writing an owned buffer to `out`.
  *
  * The buffer must be released with `lm_buffer_free`.

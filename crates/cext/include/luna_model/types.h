@@ -709,6 +709,7 @@ typedef struct {
     LmStatus (*expr_pow)(const LmExpr*, uintptr_t, LmExpr**);
     LmStatus (*expr_ipow)(LmExpr*, uintptr_t);
     LmStatus (*expr_separate)(const LmExpr*, const LmVref*const *, uintptr_t, LmExpr**, LmExpr**);
+    LmStatus (*expr_substitute)(const LmExpr*, const LmVref*, const LmExpr*, LmExpr**);
     void (*constr_free)(LmConstraint*);
     LmStatus (*constr_clone)(const LmConstraint*, LmConstraint**);
     LmStatus (*constr_deep_clone)(const LmConstraint*, const LmEnv*, LmConstraint**);

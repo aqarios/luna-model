@@ -249,6 +249,7 @@ class Expression {
     void ipow(std::size_t n) { detail::check(lm_expr_ipow(handle_, n)); }
 
     std::tuple<Expression, Expression> separate(std::vector<Vref> &vars) const;
+    Expression substitute(const Vref &vref, const Expression &replacement) const;
 
     /* Clones into a new handle that shares the environment (Rust `Clone`). */
     Expression clone() const {

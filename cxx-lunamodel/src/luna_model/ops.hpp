@@ -184,6 +184,12 @@ inline std::tuple<Expression, Expression> Expression::separate(std::vector<Vref>
     return {Expression(first), Expression(second)};
 }
 
+inline Expression Expression::substitute(const Vref &vref, const Expression &replacement) const {
+    LmExpr *out = nullptr;
+    detail::check(lm_expr_substitute(handle_, vref.get(), replacement.get(), &out));
+    return Expression(out);
+}
+
 /* ///////////////////////////////////////////////////////////////////// */
 /* Vref ops (Rust `ops/vref/`).                                          */
 /* ///////////////////////////////////////////////////////////////////// */

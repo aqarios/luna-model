@@ -642,11 +642,16 @@ pub struct LunaModelCApi {
     pub expr_pow: unsafe extern "C" fn(*const LmExpr, usize, *mut *mut LmExpr) -> LmStatus,
     pub expr_ipow: unsafe extern "C" fn(*mut LmExpr, usize) -> LmStatus,
     pub expr_separate: unsafe extern "C" fn(
-        // todo
         *const LmExpr,
         *const *const LmVref,
         usize,
         *mut *mut LmExpr,
+        *mut *mut LmExpr,
+    ) -> LmStatus,
+    pub expr_substitute: unsafe extern "C" fn(
+        *const LmExpr,
+        *const LmVref,
+        *const LmExpr,
         *mut *mut LmExpr,
     ) -> LmStatus,
     // ////////// //

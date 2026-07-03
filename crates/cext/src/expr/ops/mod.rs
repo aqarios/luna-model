@@ -4,6 +4,7 @@ mod neg;
 mod pow;
 mod separate;
 mod sub;
+mod substitute;
 
 pub use add::{
     lm_expr_add_bias, lm_expr_add_expr, lm_expr_add_vref, lm_expr_iadd_bias, lm_expr_iadd_expr,
@@ -20,3 +21,4 @@ pub use sub::{
     lm_expr_isub_bias, lm_expr_isub_expr, lm_expr_isub_vref, lm_expr_rsub_bias, lm_expr_sub_bias,
     lm_expr_sub_expr, lm_expr_sub_vref,
 };
+pub use substitute::lm_expr_substitute;

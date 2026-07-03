@@ -160,6 +160,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_pow: crate::expr::lm_expr_pow,
     expr_ipow: crate::expr::lm_expr_ipow,
     expr_separate: crate::expr::lm_expr_separate,
+    expr_substitute: crate::expr::lm_expr_substitute,
     // ////////// //
     // Constraint //
     // ////////// //
