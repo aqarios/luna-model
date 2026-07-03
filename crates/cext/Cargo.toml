@@ -16,6 +16,7 @@ crate-type = ["rlib"]
 [dependencies]
 luna-model = { workspace = true, features = ["serializer"] }
 lunamodel-cext-vtable = { workspace = true }
+itertools = { workspace = true }
 
 [build-dependencies]
 cbindgen = "0.29.4"

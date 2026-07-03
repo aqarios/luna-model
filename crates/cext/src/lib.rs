@@ -49,5 +49,6 @@ pub mod timing;
 pub mod var;
 pub mod version;
 pub mod vref;
+pub mod sol;
 
 mod utils;

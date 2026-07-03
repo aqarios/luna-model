@@ -1,11 +1,34 @@
-//! `LmSolution` handle operations and solution deserialization.
-
-use crate::utils::{drop_from_c, handle_to_c, out_from_c, slice_from_c};
+use crate::{
+    buffer::buffer_from_vec,
+    utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c},
+};
 use luna_model::core::Solution;
 use luna_model::serializer::prelude::*;
 
-use crate::error::{CapiError, guard};
-use crate::{LmSol, LmStatus};
+use crate::{
+    LmBuffer, LmSol, LmStatus,
+    error::{CapiError, guard},
+};
+
+/// Serializes a solution to bytes, writing an owned buffer to `out`.
+///
+/// The buffer must be released with `lm_buffer_free`.
+///
+/// # Safety
+/// `sol` must be a valid solution handle created by this library.
+/// `out` must point to writable `LmBuffer` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_sol_serialize(sol: *const LmSol, out: *mut LmBuffer) -> LmStatus {
+    guard(|| {
+        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let out = unsafe { out_from_c(out) }?;
+        let bytes = sol
+            .encode(Some(true), None)
+            .map_err(CapiError::serialization)?;
+        *out = buffer_from_vec(bytes);
+        Ok(())
+    })
+}
 
 /// Deserializes a solution from `len` bytes at `data`, writing a new handle to `out`.
 ///
@@ -31,13 +54,4 @@ pub unsafe extern "C" fn lm_sol_deserialize(
         *out = handle_to_c(solution);
         Ok(())
     })
-}
-
-/// Frees a solution handle. Passing null is a no-op.
-///
-/// # Safety
-/// `solution` must originate from this library and must not be used or freed again.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn lm_sol_free(solution: *mut LmSol) {
-    unsafe { drop_from_c(solution as *mut Solution) }
 }
