@@ -31,3 +31,15 @@ pub trait Serialization: Sized {
     /// Deserializes from bytes.
     fn deserialize(data: &[u8], env: &Self::Payload) -> Result<Self>;
 }
+
+pub trait TryAddAssign<Rhs = Self> {
+    fn try_add_assign(&mut self, rhs: Rhs) -> Result<()>;
+}
+
+pub trait TrySubAssign<Rhs = Self> {
+    fn try_sub_assign(&mut self, rhs: Rhs) -> Result<()>;
+}
+
+pub trait TryMulAssign<Rhs = Self> {
+    fn try_mul_assign(&mut self, rhs: Rhs) -> Result<()>;
+}

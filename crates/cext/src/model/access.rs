@@ -156,10 +156,7 @@ pub unsafe extern "C" fn lm_model_vars(model: *const LmModel, out: *mut LmVrefBu
 
         let out = unsafe { out_from_c(out) }?;
 
-        let vars = model
-            .vars()
-            .map(handle_to_c)
-            .collect::<Vec<*mut LmVref>>();
+        let vars = model.vars().map(handle_to_c).collect::<Vec<*mut LmVref>>();
 
         *out = vref_buffer_from_vec(vars);
 

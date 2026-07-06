@@ -156,10 +156,7 @@ pub unsafe extern "C" fn lm_expr_vars(expr: *const LmExpr, out: *mut LmVrefBuffe
     guard(|| {
         let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
         let out = unsafe { out_from_c(out) }?;
-        let vars = expr
-            .vars()
-            .map(handle_to_c)
-            .collect::<Vec<*mut LmVref>>();
+        let vars = expr.vars().map(handle_to_c).collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
         Ok(())
     })

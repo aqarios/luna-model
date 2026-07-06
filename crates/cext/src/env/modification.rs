@@ -34,7 +34,7 @@ pub unsafe extern "C" fn lm_env_insert(
             None
         } else {
             let bounds = unsafe { ref_from_c(bounds as *const LazyBounds, "bounds") }?;
-            Some(*bounds )
+            Some(*bounds)
         };
         let out = unsafe { out_from_c(out) }?;
         let var = env
@@ -67,7 +67,7 @@ pub unsafe extern "C" fn lm_env_insert_with_fallback(
             None
         } else {
             let bounds = unsafe { ref_from_c(bounds as *const LazyBounds, "bounds") }?;
-            Some(*bounds )
+            Some(*bounds)
         };
         let out = unsafe { out_from_c(out) }?;
         let var = env
