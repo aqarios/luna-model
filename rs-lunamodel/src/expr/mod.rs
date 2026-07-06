@@ -3,19 +3,14 @@
 //! Mirrors the Rust `Expression`, dispatching every call through the installed
 //! [`LunaModelCApi`](lunamodel_cext_vtable::LunaModelCApi) table. Fallible ABI
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
-//! that are infallible on the native `Expression` still return `Result` here (the
-//! deliberate analog of `cxx-lunamodel` throwing on a non-`Ok` status).
-//!
+//! that are infallible on the native `Expression` still return `Result` here.
 
 mod access;
 mod arithmetic;
 mod creation;
 
 use crate::{
-    Env,
-    api::api,
-    error::check,
-    traits::{ContentEquality, Serialization, TryClone, TryDeepClone},
+    Env, api::api, traits::{ContentEquality, Serialization, TryClone, TryDeepClone, TryToVec},
 };
 
 use lunamodel_cext_vtable::{LmBuffer, LmExpr};
@@ -23,6 +18,12 @@ use lunamodel_cext_vtable::{LmBuffer, LmExpr};
 /// Owning handle to a LunaModel expression (frees on drop).
 pub struct Expression {
     handle: *mut LmExpr,
+}
+
+impl Drop for Expression {
+    fn drop(&mut self) {
+        free!(self, expr_free)
+    }
 }
 
 impl Expression {
@@ -46,7 +47,7 @@ impl Expression {
     /// Deep-clones into an independent expression rebound to `env`
     /// (Rust `expr.deep_clone(env)`).
     pub fn deep_clone(&self, env: &Env) -> crate::Result<Self> {
-        <Self as TryDeepClone>::try_deep_clone(self, env)
+        <Self as TryDeepClone>::deep_clone(self, env)
     }
 
     /// Content equality, ignoring environment identity
@@ -79,44 +80,27 @@ impl PartialEq for Expression {
     ///
     /// An FFI failure is treated as "not equal".
     fn eq(&self, other: &Self) -> bool {
-        let mut out = false;
-        unsafe { (api().expr_eq)(self.handle, other.handle, &mut out) };
-        out
-    }
-}
-
-impl Drop for Expression {
-    fn drop(&mut self) {
-        if !self.handle.is_null() {
-            // SAFETY: `handle` was produced by this library and is freed once.
-            unsafe { (api().expr_free)(self.handle) };
-        }
+        out_or!(expr_eq(@self, @other), false)
     }
 }
 
 impl TryClone for Expression {
     fn try_clone(&self) -> crate::Result<Self> {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_clone)(self.handle, &mut out) })?;
-        Ok(Self::from_raw(out))
+        out!(expr_clone(@self), |o| Ok(Self::from_raw(o)))
     }
 }
 
 impl TryDeepClone for Expression {
     type Target = Env;
 
-    fn try_deep_clone(&self, env: &Self::Target) -> crate::Result<Self> {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_deep_clone)(self.handle, env.as_ptr(), &mut out) })?;
-        Ok(Self::from_raw(out))
+    fn deep_clone(&self, env: &Self::Target) -> crate::Result<Self> {
+        out!(expr_deep_clone(@self, @env), |o| Ok(Self::from_raw(o)))
     }
 }
 
 impl ContentEquality for Expression {
     fn equal_contents(&self, other: &Self) -> crate::Result<bool> {
-        let mut out = false;
-        check(unsafe { (api().expr_equal_contents)(self.handle, other.handle, &mut out) })?;
-        Ok(out)
+        out!(expr_equal_contents(@self, @other))
     }
 }
 
@@ -124,26 +108,10 @@ impl Serialization for Expression {
     type Payload = Env;
 
     fn serialize(&self) -> crate::Result<Vec<u8>> {
-        let mut buf = LmBuffer {
-            data: std::ptr::null_mut(),
-            len: 0,
-            cap: 0,
-        };
-        check(unsafe { (api().expr_serialize)(self.handle, &mut buf) })?;
-        let bytes = if buf.data.is_null() {
-            Vec::new()
-        } else {
-            unsafe { std::slice::from_raw_parts(buf.data, buf.len) }.to_vec()
-        };
-        unsafe { (api().buffer_free)(buf) };
-        Ok(bytes)
+        out!(expr_serialize(@self), |o: LmBuffer| o.try_to_vec())
     }
 
     fn deserialize(data: &[u8], env: &Self::Payload) -> crate::Result<Self> {
-        let mut out = std::ptr::null_mut();
-        check(unsafe {
-            (api().expr_deserialize)(data.as_ptr(), data.len(), env.as_ptr(), &mut out)
-        })?;
-        Ok(Self::from_raw(out))
+        out!(expr_deserialize(@data, data.len(), @env), |o| Ok(Self::from_raw(o)))
     }
 }

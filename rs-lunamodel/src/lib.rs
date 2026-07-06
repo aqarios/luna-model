@@ -1,4 +1,4 @@
-//! Rust wrapper over the LunaModel C API — the Rust twin of `cxx-lunamodel`.
+//! Rust wrapper over the LunaModel C API for native Rust extensions.
 //!
 //! This crate mirrors the native `luna-model` API but routes every call through
 //! the stable C ABI. It depends only on [`lunamodel_cext_vtable`] for the
@@ -20,10 +20,14 @@
 //!
 //! let env = rs_lunamodel::Env::new();
 //! let x = rs_lunamodel::Expression::constant(&env, 2.0)?;
-//! let y = x.mul_bias(3.0)?;
+//! let y = (x * 3.0)?;
 //! assert_eq!(y.offset()?, 6.0);
 //! ```
 
+#[macro_use]
+mod macros;
+
+mod buffer;
 mod traits;
 
 mod api;
@@ -31,12 +35,14 @@ mod env;
 mod error;
 mod expr;
 mod types;
+mod vref;
 
 pub use api::{InitError, init, is_initialized};
 pub use env::Env;
 pub use error::{Error, Result, Status};
 pub use expr::Expression;
 pub use traits::{ContentEquality, Serialization, TryClone, TryDeepClone};
+pub use vref::VarRef;
 
 /// Re-export of the ABI dispatch-table type, for obtaining and passing it to
 /// [`init`].

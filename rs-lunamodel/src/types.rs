@@ -1,10 +1,10 @@
 use lunamodel_cext_vtable::LmVtype;
 use lunamodel_types::Vtype;
 
-use super::LmFrom;
+use crate::traits::LmFrom;
 
 impl LmFrom<LmVtype> for Vtype {
-    fn from(value: LmVtype) -> Self {
+    fn lm_from(value: LmVtype) -> Self {
         match value {
             LmVtype::Binary => Self::Binary,
             LmVtype::InvertedBinary => Self::InvertedBinary,

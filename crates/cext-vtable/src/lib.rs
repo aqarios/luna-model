@@ -176,6 +176,7 @@ pub struct LmEnvId {
 /// with [`lm_buffer_free`]. The fields mirror a `Vec<u8>` so it can be rebuilt for
 /// deallocation.
 #[repr(C)]
+#[derive(Default)]
 pub struct LmBuffer {
     /// Pointer to the first byte, or null for an empty buffer.
     pub data: *mut u8,
@@ -191,6 +192,7 @@ pub struct LmBuffer {
 /// [`lm_str_buffer_free`]. The fields mirror a `Vec<*mut c_char>` (each element
 /// an owned NUL-terminated C string) so it can be rebuilt for deallocation.
 #[repr(C)]
+#[derive(Default)]
 pub struct LmStrBuffer {
     /// Pointer to the first C string, or null for an empty buffer.
     pub data: *mut *mut c_char,
@@ -206,6 +208,7 @@ pub struct LmStrBuffer {
 /// with [`lm_vtype_buffer_free`]. The fields mirror a `Vec<Vtype>` so it can
 /// be rebuilt for deallocation.
 #[repr(C)]
+#[derive(Default)]
 pub struct LmVtypeBuffer {
     /// Pointer to the first Vtype, or null for an empty buffer.
     pub data: *mut LmVtype,
@@ -221,6 +224,7 @@ pub struct LmVtypeBuffer {
 /// with [`lm_ctype_buffer_free`]. The fields mirror a `Vec<Ctype>` so it can
 /// be rebuilt for deallocation.
 #[repr(C)]
+#[derive(Default)]
 pub struct LmCtypeBuffer {
     /// Pointer to the first Ctype, or null for an empty buffer.
     pub data: *mut LmCtype,
@@ -236,6 +240,7 @@ pub struct LmCtypeBuffer {
 /// with [`lm_cmp_buffer_free`]. The fields mirror a `Vec<Comparator>` so it can
 /// be rebuilt for deallocation.
 #[repr(C)]
+#[derive(Default)]
 pub struct LmCmpBuffer {
     /// Pointer to the first LmComparator, or null for an empty buffer.
     pub data: *mut LmComparator,
@@ -251,6 +256,7 @@ pub struct LmCmpBuffer {
 /// with [`lm_vref_buffer_free`]. The fields mirror a `Vec<VarRef>` so it can
 /// be rebuilt for deallocation.
 #[repr(C)]
+#[derive(Default)]
 pub struct LmVrefBuffer {
     /// Pointer to the first VarRef, or null for an empty buffer.
     pub data: *mut *mut LmVref,
@@ -266,6 +272,7 @@ pub struct LmVrefBuffer {
 /// with [`lm_u32_buffer_free`]. The fields mirror a `Vec<u32>` so it can
 /// be rebuilt for deallocation.
 #[repr(C)]
+#[derive(Default)]
 pub struct LmU32Buffer {
     /// Pointer to the first u32, or null for an empty buffer.
     pub data: *mut u32,
@@ -281,6 +288,7 @@ pub struct LmU32Buffer {
 /// with [`lm_result_view_buffer_free`]. The fields mirror a `Vec<ResultView>` so it can
 /// be rebuilt for deallocation.
 #[repr(C)]
+#[derive(Default)]
 pub struct LmResultViewBuffer {
     /// Pointer to the first ResultView, or null for an empty buffer.
     pub data: *mut *mut LmResultView,
@@ -296,6 +304,7 @@ pub struct LmResultViewBuffer {
 /// with [`lm_sample_view_buffer_free`]. The fields mirror a `Vec<SampleView>` so it can
 /// be rebuilt for deallocation.
 #[repr(C)]
+#[derive(Default)]
 pub struct LmSampleViewBuffer {
     /// Pointer to the first SampleView, or null for an empty buffer.
     pub data: *mut *mut LmSampleView,
@@ -320,6 +329,7 @@ pub struct LmLinearItem {
 /// with [`lm_linear_item_buffer_free`]. The fields mirror a `Vec<LmLinearItem>` so it can
 /// be rebuilt for deallocation.
 #[repr(C)]
+#[derive(Default)]
 pub struct LmLinearItemBuffer {
     /// Pointer to the first LmLinearItem, or null for an empty buffer.
     pub data: *mut LmLinearItem,
@@ -346,6 +356,7 @@ pub struct LmQuadraticItem {
 /// with [`lm_quadratic_item_buffer_free`]. The fields mirror a `Vec<LmQuadraticItem>` so it can
 /// be rebuilt for deallocation.
 #[repr(C)]
+#[derive(Default)]
 pub struct LmQuadraticItemBuffer {
     /// Pointer to the first LmQuadraticItem, or null for an empty buffer.
     pub data: *mut LmQuadraticItem,

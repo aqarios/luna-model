@@ -15,7 +15,7 @@ pub trait TryDeepClone: Sized {
     type Target: ?Sized;
 
     /// Deep-clones into a new handle.
-    fn try_deep_clone(&self, target: &Self::Target) -> Result<Self>;
+    fn deep_clone(&self, target: &Self::Target) -> Result<Self>;
 }
 
 pub trait ContentEquality: Sized {
@@ -42,4 +42,29 @@ pub trait TrySubAssign<Rhs = Self> {
 
 pub trait TryMulAssign<Rhs = Self> {
     fn try_mul_assign(&mut self, rhs: Rhs) -> Result<()>;
+}
+
+pub trait TryToString {
+    fn try_to_string(self) -> Result<String>;
+}
+
+pub trait TryToVec<T> {
+    fn try_to_vec(self) -> Result<Vec<T>>;
+}
+
+pub trait LmFrom<T> {
+    fn lm_from(value: T) -> Self;
+}
+
+impl<T, U> LmInto<U> for T
+where
+    U: LmFrom<T>,
+{
+    fn lm_into(self) -> U {
+        U::lm_from(self)
+    }
+}
+
+pub trait LmInto<T> {
+    fn lm_into(self) -> T;
 }
