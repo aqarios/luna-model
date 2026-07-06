@@ -24,15 +24,19 @@
 //! assert_eq!(y.offset()?, 6.0);
 //! ```
 
+mod traits;
+
 mod api;
 mod env;
 mod error;
 mod expr;
+mod types;
 
 pub use api::{InitError, init, is_initialized};
 pub use env::Env;
 pub use error::{Error, Result, Status};
-pub use expr::{Expression, Vtype};
+pub use expr::Expression;
+pub use traits::{ContentEquality, Serialization, TryClone, TryDeepClone};
 
 /// Re-export of the ABI dispatch-table type, for obtaining and passing it to
 /// [`init`].

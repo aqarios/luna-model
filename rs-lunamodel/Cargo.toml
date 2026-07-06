@@ -27,3 +27,4 @@ incremental = false
 # second copy of the library. The `LunaModelCApi` function pointers come from the
 # host's `_C_API` capsule at runtime.
 lunamodel-cext-vtable = { path = "../crates/cext-vtable" }
+lunamodel-types = { path = "../crates/types" }
