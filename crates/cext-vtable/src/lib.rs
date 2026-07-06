@@ -379,6 +379,30 @@ pub struct LmHigherOrderItemBuffer {
     pub cap: usize,
 }
 
+/// A index-map item.
+#[repr(C)]
+pub struct LmIndexMapItem {
+    pub index: usize,
+    pub key: usize,
+    /// An owned, heap-allocated column item the caller takes ownership of.
+    pub value: LmColumn,
+}
+
+/// An owned, heap-allocated higher-order items buffer the caller takes ownership of.
+///
+/// Comparator buffers returned by LunaModel must be released
+/// with [`lm_higher_order_item_buffer_free`]. The fields mirror a `Vec<LmHigherOrderItem>` so it can
+/// be rebuilt for deallocation.
+#[repr(C)]
+pub struct LmIndexMapItemBuffer {
+    /// Pointer to the first LmIndexMapItem, or null for an empty buffer.
+    pub data: *mut LmIndexMapItem,
+    /// Number of valid bytes.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
 /// Opaque handle to a LunaModel model.
 ///
 /// Created by [`lm_model_default`], [`lm_model_new`] or [`lm_model_deserialize`] and released with
@@ -399,6 +423,14 @@ pub struct LmModel {
 /// cbindgen:opaque
 #[repr(C)]
 pub struct LmSol {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a solution column (all values of one variable).
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmColumn {
     _private: [u8; 0],
 }
 
@@ -564,6 +596,7 @@ pub struct LunaModelCApi {
     pub higher_order_item_buffer_free: unsafe extern "C" fn(LmHigherOrderItemBuffer),
     pub result_view_buffer_free: unsafe extern "C" fn(LmResultViewBuffer),
     pub sample_view_buffer_free: unsafe extern "C" fn(LmSampleViewBuffer),
+    pub index_map_buffer_free: unsafe extern "C" fn(LmSampleViewBuffer),
     // ///// //
     // MODEL //
     // ///// //
@@ -656,6 +689,13 @@ pub struct LunaModelCApi {
     pub env_vtype_of: unsafe extern "C" fn(*const LmEnv, *const c_char, *mut LmVtype) -> LmStatus,
     pub env_serialize: unsafe extern "C" fn(*const LmEnv, *mut LmBuffer) -> LmStatus,
     pub env_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmEnv) -> LmStatus,
+    // ////// //
+    // COLUMN //
+    // ////// //
+    pub col_free: unsafe extern "C" fn(*mut LmColumn),
+    pub col_len: unsafe extern "C" fn(*const LmColumn, *mut usize) -> LmStatus,
+    pub col_is_empty: unsafe extern "C" fn(*const LmColumn, *mut bool) -> LmStatus,
+    pub col_assignment: unsafe extern "C" fn(*const LmColumn, usize, *mut LmAssignment) -> LmStatus,
     // //////// //
     // SOLUTION //
     // //////// //
@@ -707,6 +747,10 @@ pub struct LunaModelCApi {
     pub sol_remove_cols: unsafe extern "C" fn(*mut LmSol, *const *const c_char, usize) -> LmStatus,
     pub sol_aggregate: unsafe extern "C" fn(*mut LmSol) -> LmStatus,
 
+    pub sol_samples: unsafe extern "C" fn(*const LmSol, *mut LmIndexMapItemBuffer) -> LmStatus,
+    pub sol_counts: unsafe extern "C" fn(*const LmSol, *mut usize, usize) -> LmStatus,
+    pub sol_raw_energies: unsafe extern "C" fn(*const LmSol, *mut usize) -> LmStatus,
+
     pub sol_n_samples: unsafe extern "C" fn(*const LmSol, *mut usize) -> LmStatus,
     pub sol_len: unsafe extern "C" fn(*const LmSol, *mut usize) -> LmStatus,
     pub sol_variable_names: unsafe extern "C" fn(*const LmSol, *mut LmStrBuffer) -> LmStatus,
@@ -719,8 +763,9 @@ pub struct LunaModelCApi {
         unsafe extern "C" fn(*const LmSol, usize, usize, *mut LmAssignment) -> LmStatus,
     pub sol_result: unsafe extern "C" fn(*const LmSol, usize, *mut *mut LmResultView) -> LmStatus,
     pub sol_results: unsafe extern "C" fn(*const LmSol, *mut LmResultViewBuffer) -> LmStatus,
-    pub sol_sample: unsafe extern "C" fn(*const LmSol, usize, *mut *mut LmSampleView) -> LmStatus,
-    pub sol_samples: unsafe extern "C" fn(*const LmSol, *mut LmSampleViewBuffer) -> LmStatus,
+    pub sol_sample_view:
+        unsafe extern "C" fn(*const LmSol, usize, *mut *mut LmSampleView) -> LmStatus,
+    pub sol_sample_views: unsafe extern "C" fn(*const LmSol, *mut LmSampleViewBuffer) -> LmStatus,
     pub sol_best: unsafe extern "C" fn(*const LmSol, *mut LmResultViewBuffer) -> LmStatus,
     pub sol_extract: unsafe extern "C" fn(*const LmSol, usize, *mut *mut LmSol) -> LmStatus,
     pub sol_cvar:

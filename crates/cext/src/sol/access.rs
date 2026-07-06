@@ -3,8 +3,8 @@ use std::ffi::c_char;
 use luna_model::core::Solution;
 
 use crate::{
-    LmAssignment, LmResultView, LmResultViewBuffer, LmSampleView, LmSampleViewBuffer, LmSol,
-    LmStatus, LmStrBuffer,
+    LmAssignment, LmColumn, LmResultView, LmResultViewBuffer, LmSampleView, LmSampleViewBuffer,
+    LmSol, LmStatus, LmStrBuffer,
     buffer::{result_view_buffer_from_vec, sample_view_buffer_from_vec, str_buffer_from_vec},
     error::{CapiError, guard},
     res::ResultViewHandle,
@@ -246,7 +246,7 @@ pub unsafe extern "C" fn lm_sol_results(
 /// `sol` must be a valid solution handle created by this library.
 /// `out` must point to writable `LmSampleView *` storage.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn lm_sol_sample(
+pub unsafe extern "C" fn lm_sol_sample_view(
     sol: *const LmSol,
     index: usize,
     out: *mut *mut LmSampleView,
@@ -279,7 +279,7 @@ pub unsafe extern "C" fn lm_sol_sample(
 /// `sol` must be a valid solution handle created by this library.
 /// `out` must point to writable `LmSampleViewBuffer` storage.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn lm_sol_samples(
+pub unsafe extern "C" fn lm_sol_sample_views(
     sol: *const LmSol,
     out: *mut LmSampleViewBuffer,
 ) -> LmStatus {
@@ -351,6 +351,35 @@ pub unsafe extern "C" fn lm_sol_extract(
         let out = unsafe { out_from_c(out) }?;
         let ex = sol.extract(row);
         *out = handle_to_c(ex);
+        Ok(())
+    })
+}
+
+/// Returns a copy of the column stored for `var`.
+///
+/// The handle must be released with [`lm_column_free`].
+///
+/// # Safety
+/// `sol` must be a valid solution handle created by this library.
+/// `var` must point to a valid NUL-terminated C string.
+/// `out` must point to writable `LmColumn *` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_sol_column(
+    sol: *const LmSol,
+    var: *const c_char,
+    out: *mut *mut LmColumn,
+) -> LmStatus {
+    guard(|| {
+        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let var = unsafe { str_from_c(var, "var") }?;
+        let out = unsafe { out_from_c(out) }?;
+        let col = sol.samples.get(var).ok_or_else(|| {
+            CapiError::new(
+                LmStatus::Absent,
+                format!("solution has no column for variable '{var}'"),
+            )
+        })?;
+        *out = handle_to_c(col.clone());
         Ok(())
     })
 }

@@ -91,6 +91,10 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Env -- serializer
     env_serialize: crate::env::lm_env_serialize,
     env_deserialize: crate::env::lm_env_deserialize,
+    // ////// //
+    // COLUMN //
+    // ////// //
+    col_free: crate::col::lm_col_free,
     // //////// //
     // SOLUTION //
     // //////// //
@@ -106,6 +110,16 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     sol_equal_contents: crate::sol::lm_sol_equal_contents,
     sol_aggregate: crate::sol::lm_sol_aggregate,
     sol_merge_many: crate::sol::lm_sol_merge_many,
+    // Sol -- properties
+    sol_samples: crate::sol::lm_sol_samples,
+    sol_counts: crate::sol::lm_sol_counts,
+    sol_raw_energies: crate::sol::lm_sol_raw_energies,
+    sol_obj_values: crate::sol::lm_sol_obj_values,
+    sol_feasible: crate::sol::lm_sol_feasible,
+    sol_constraints: crate::sol::lm_sol_constraints,
+    sol_variable_bounds: crate::sol::lm_sol_variable_bounds,
+    sol_timing: crate::sol::lm_sol_timing,
+    sol_sense: crate::sol::lm_sol_sense,
     // Sol -- access
     sol_n_samples: crate::sol::lm_sol_n_samples,
     sol_len: crate::sol::lm_sol_len,
@@ -117,8 +131,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     sol_assignment_idx: crate::sol::lm_sol_assignment_idx,
     sol_result: crate::sol::lm_sol_result,
     sol_results: crate::sol::lm_sol_results,
-    sol_sample: crate::sol::lm_sol_sample,
-    sol_samples: crate::sol::lm_sol_samples,
+    sol_sample_view: crate::sol::lm_sol_sample_view,
+    sol_sample_views: crate::sol::lm_sol_sample_views,
     sol_best: crate::sol::lm_sol_best,
     sol_extract: crate::sol::lm_sol_extract,
     // Sol -- modification

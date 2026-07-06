@@ -2328,7 +2328,7 @@ LmStatus lm_sol_results(const LmSol *sol, LmResultViewBuffer *out);
  * `sol` must be a valid solution handle created by this library.
  * `out` must point to writable `LmSampleView *` storage.
  */
-LmStatus lm_sol_sample(const LmSol *sol, uintptr_t index, LmSampleView **out);
+LmStatus lm_sol_sample_view(const LmSol *sol, uintptr_t index, LmSampleView **out);
 
 /**
  * Returns sample-views over solution.
@@ -2340,7 +2340,7 @@ LmStatus lm_sol_sample(const LmSol *sol, uintptr_t index, LmSampleView **out);
  * `sol` must be a valid solution handle created by this library.
  * `out` must point to writable `LmSampleViewBuffer` storage.
  */
-LmStatus lm_sol_samples(const LmSol *sol, LmSampleViewBuffer *out);
+LmStatus lm_sol_sample_views(const LmSol *sol, LmSampleViewBuffer *out);
 
 /**
  * Returns the best results in the solution.
@@ -2362,6 +2362,18 @@ LmStatus lm_sol_best(const LmSol *sol, LmResultViewBuffer *out);
  * `out` must point to writable `LmSol *` storage.
  */
 LmStatus lm_sol_extract(const LmSol *sol, uintptr_t row, LmSol **out);
+
+/**
+ * Returns a copy of the column stored for `var`.
+ *
+ * The handle must be released with [`lm_column_free`].
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `var` must point to a valid NUL-terminated C string.
+ * `out` must point to writable `LmColumn *` storage.
+ */
+LmStatus lm_sol_column(const LmSol *sol, const char *var, LmColumn **out);
 
 /**
  * Computes the conditional value at risk (CVaR) of the selected value series.
@@ -3159,6 +3171,14 @@ LmStatus lm_vref_pow(const LmVref *vref, uintptr_t n, LmExpr **out);
  * `out` must point to writable `bool` storage.
  */
 LmStatus lm_vref_eval(const LmVref *vref, double value, const double *tol, bool *out);
+
+/**
+ * Frees a column handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `column` must originate from this library and must not be used or freed again.
+ */
+void lm_col_free(LmColumn *column);
 
 #ifdef __cplusplus
 }  // extern "C"

@@ -4,11 +4,12 @@ pub mod creation;
 pub mod general;
 pub mod modification;
 pub mod serialize;
+pub mod properties;
 
 pub use access::{
     lm_sol_assignment, lm_sol_assignment_idx, lm_sol_best, lm_sol_extract, lm_sol_is_empty,
-    lm_sol_len, lm_sol_n_samples, lm_sol_result, lm_sol_results, lm_sol_sample, lm_sol_sample_len,
-    lm_sol_samples, lm_sol_value, lm_sol_variable_names,
+    lm_sol_len, lm_sol_n_samples, lm_sol_result, lm_sol_results, lm_sol_sample_view, lm_sol_sample_len,
+    lm_sol_sample_views, lm_sol_value, lm_sol_variable_names,
 };
 pub use convenience::{
     lm_sol_cvar, lm_sol_expectation_value, lm_sol_feasibility_ratio,
