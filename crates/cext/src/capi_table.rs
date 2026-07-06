@@ -27,6 +27,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     str_buffer_free: crate::buffer::lm_str_buffer_free,
     result_view_buffer_free: crate::buffer::lm_result_view_buffer_free,
     sample_view_buffer_free: crate::buffer::lm_sample_view_buffer_free,
+    index_map_buffer_free: crate::buffer::lm_index_map_buffer_free,
+    bool_map_buffer_free: crate::buffer::lm_bool_map_buffer_free,
     // ///// //
     // MODEL //
     // ///// //
@@ -95,6 +97,9 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // COLUMN //
     // ////// //
     col_free: crate::col::lm_col_free,
+    col_len: crate::col::lm_col_len,
+    col_is_empty: crate::col::lm_col_is_empty,
+    col_assignment: crate::col::lm_col_assignment,
     // //////// //
     // SOLUTION //
     // //////// //

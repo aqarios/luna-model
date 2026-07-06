@@ -121,6 +121,18 @@ LmStatus lm_bounds_clone(const LmBounds *bounds, LmBounds **out);
 LmStatus lm_bounds_eval(const LmBounds *bounds, double value, const double *tol, bool *out);
 
 /**
+ * Frees a bool-map buffer previously returned by LunaModel.
+ *
+ * This frees the entry array plus each owned key string and flag array.
+ *
+ * A null/empty buffer is a no-op. Each buffer must be freed at most once.
+ *
+ * # Safety
+ * `buffer` must have been produced by this library and not already freed.
+ */
+void lm_bool_map_buffer_free(LmBoolMapBuffer buffer);
+
+/**
  * Frees a buffer previously returned by LunaModel.
  *
  * A null/empty buffer is a no-op. Each buffer must be freed at most once.
@@ -160,6 +172,18 @@ void lm_ctype_buffer_free(LmCtypeBuffer buffer);
  * `buffer` must have been produced by this library and not already freed.
  */
 void lm_higher_order_item_buffer_free(LmHigherOrderItemBuffer buffer);
+
+/**
+ * Frees an index-map-item buffer previously returned by LunaModel.
+ *
+ * This frees the entry array plus each owned key string and column handle.
+ *
+ * A null/empty buffer is a no-op. Each buffer must be freed at most once.
+ *
+ * # Safety
+ * `buffer` must have been produced by this library and not already freed.
+ */
+void lm_index_map_buffer_free(LmIndexMapItemBuffer buffer);
 
 /**
  * Frees a linear item buffer previously returned by LunaModel.
@@ -459,6 +483,41 @@ LmStatus lm_cc_serialize(const LmCC *cc, LmBuffer *out);
  * `out` must point to writable storage.
  */
 LmStatus lm_cc_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env, LmCC **out);
+
+/**
+ * Frees a column handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `column` must originate from this library and must not be used or freed again.
+ */
+void lm_col_free(LmColumn *column);
+
+/**
+ * Returns the number of stored values (sample rows) in the column.
+ *
+ * # Safety
+ * `column` must be a valid column handle created by this library.
+ * `out` must point to writable `uintptr_t` storage.
+ */
+LmStatus lm_col_len(const LmColumn *column, uintptr_t *out);
+
+/**
+ * Returns whether the column has no stored values.
+ *
+ * # Safety
+ * `column` must be a valid column handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_col_is_empty(const LmColumn *column, bool *out);
+
+/**
+ * Returns the typed assignment at a row position in the column.
+ *
+ * # Safety
+ * `column` must be a valid column handle created by this library.
+ * `out` must point to writable `LmAssignment` storage.
+ */
+LmStatus lm_col_assignment(const LmColumn *column, uintptr_t index, LmAssignment *out);
 
 /**
  * Returns a copy of the constraint's name as an owned UTF-8 byte buffer.
@@ -2673,6 +2732,115 @@ LmStatus lm_sol_remove_cols(LmSol *sol, const char *const *names, uintptr_t len)
 LmStatus lm_sol_aggregate(LmSol *sol);
 
 /**
+ * Returns the `(variable name, column)` entries of the solution's sample map.
+ *
+ * The returned buffer must be released with [`lm_index_map_buffer_free`].
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmIndexMapItemBuffer` storage.
+ */
+LmStatus lm_sol_samples(const LmSol *sol, LmIndexMapItemBuffer *out);
+
+/**
+ * Returns the per-sample occurrence counts as a slice borrowed from `sol`.
+ *
+ * On success `out_data`/`out_len` describe a slice into `sol`: the pointer is
+ * valid only while `sol` is alive and unmodified, and must not be freed.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out_data` must point to writable `const uintptr_t *` storage.
+ * `out_len` must point to writable `uintptr_t` storage.
+ */
+LmStatus lm_sol_counts(const LmSol *sol, const uintptr_t **out_data, uintptr_t *out_len);
+
+/**
+ * Returns the raw solver-provided energies as a slice borrowed from `sol`.
+ *
+ * On success `out_data`/`out_len` describe a slice into `sol`: the pointer is
+ * valid only while `sol` is alive and unmodified, and must not be freed.
+ * Returns `LmStatus::Absent` when raw energies were not evaluated.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out_data` must point to writable `const double *` storage.
+ * `out_len` must point to writable `uintptr_t` storage.
+ */
+LmStatus lm_sol_raw_energies(const LmSol *sol, const double **out_data, uintptr_t *out_len);
+
+/**
+ * Returns the model-evaluated objective values as a slice borrowed from `sol`.
+ *
+ * On success `out_data`/`out_len` describe a slice into `sol`: the pointer is
+ * valid only while `sol` is alive and unmodified, and must not be freed.
+ * Returns `LmStatus::Absent` when objective values were not evaluated.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out_data` must point to writable `const double *` storage.
+ * `out_len` must point to writable `uintptr_t` storage.
+ */
+LmStatus lm_sol_obj_values(const LmSol *sol, const double **out_data, uintptr_t *out_len);
+
+/**
+ * Returns the per-sample feasibility flags as a slice borrowed from `sol`.
+ *
+ * On success `out_data`/`out_len` describe a slice into `sol`: the pointer is
+ * valid only while `sol` is alive and unmodified, and must not be freed.
+ * Returns `LmStatus::Absent` when feasibility was not evaluated.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out_data` must point to writable `const bool *` storage.
+ * `out_len` must point to writable `uintptr_t` storage.
+ */
+LmStatus lm_sol_feasible(const LmSol *sol, const bool **out_data, uintptr_t *out_len);
+
+/**
+ * Returns the per-constraint feasibility flags keyed by constraint name.
+ *
+ * The returned buffer must be released with [`lm_bool_map_buffer_free`].
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmBoolMapBuffer` storage.
+ */
+LmStatus lm_sol_constraints(const LmSol *sol, LmBoolMapBuffer *out);
+
+/**
+ * Returns the per-variable bound-check flags keyed by variable name.
+ *
+ * The returned buffer must be released with [`lm_bool_map_buffer_free`].
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmBoolMapBuffer` storage.
+ */
+LmStatus lm_sol_variable_bounds(const LmSol *sol, LmBoolMapBuffer *out);
+
+/**
+ * Returns a copy of the solution's timing metadata as an owned handle.
+ *
+ * The handle must be released with [`lm_timing_free`]. Returns
+ * `LmStatus::Absent` when the solution has no timing metadata.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmTiming *` storage.
+ */
+LmStatus lm_sol_timing(const LmSol *sol, LmTiming **out);
+
+/**
+ * Returns the optimization sense the solution was created with.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmSense` storage.
+ */
+LmStatus lm_sol_sense(const LmSol *sol, LmSense *out);
+
+/**
  * Serializes a solution to bytes, writing an owned buffer to `out`.
  *
  * The buffer must be released with `lm_buffer_free`.
@@ -3171,14 +3339,6 @@ LmStatus lm_vref_pow(const LmVref *vref, uintptr_t n, LmExpr **out);
  * `out` must point to writable `bool` storage.
  */
 LmStatus lm_vref_eval(const LmVref *vref, double value, const double *tol, bool *out);
-
-/**
- * Frees a column handle. Passing null is a no-op.
- *
- * # Safety
- * `column` must originate from this library and must not be used or freed again.
- */
-void lm_col_free(LmColumn *column);
 
 #ifdef __cplusplus
 }  // extern "C"

@@ -379,25 +379,61 @@ pub struct LmHigherOrderItemBuffer {
     pub cap: usize,
 }
 
-/// A index-map item.
+/// One `(variable name, column)` entry of a solution's sample map.
 #[repr(C)]
 pub struct LmIndexMapItem {
+    /// Position of the entry in the underlying `IndexMap` (column order).
+    ///
+    /// Stable for a given solution and usable with index-based accessors such as
+    /// [`lm_sol_assignment_idx`].
     pub index: usize,
-    pub key: usize,
-    /// An owned, heap-allocated column item the caller takes ownership of.
-    pub value: LmColumn,
+    /// Owned, NUL-terminated variable name.
+    pub key: *mut c_char,
+    /// Owned column handle for the variable.
+    pub value: *mut LmColumn,
 }
 
-/// An owned, heap-allocated higher-order items buffer the caller takes ownership of.
+/// An owned, heap-allocated index-map-item buffer the caller takes ownership of.
 ///
-/// Comparator buffers returned by LunaModel must be released
-/// with [`lm_higher_order_item_buffer_free`]. The fields mirror a `Vec<LmHigherOrderItem>` so it can
-/// be rebuilt for deallocation.
+/// Returned by [`lm_sol_samples`] and released with [`lm_index_map_buffer_free`],
+/// which also frees each entry's owned key string and column handle. The fields
+/// mirror a `Vec<LmIndexMapItem>` so it can be rebuilt for deallocation.
 #[repr(C)]
 pub struct LmIndexMapItemBuffer {
     /// Pointer to the first LmIndexMapItem, or null for an empty buffer.
     pub data: *mut LmIndexMapItem,
-    /// Number of valid bytes.
+    /// Number of valid entries.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
+/// One `(name, boolean series)` entry of a per-name flag map.
+///
+/// Used for solution constraint and variable-bound feasibility flags. The `data`
+/// array holds one flag per sample row.
+#[repr(C)]
+pub struct LmBoolMapEntry {
+    /// Owned, NUL-terminated name (constraint or variable).
+    pub key: *mut c_char,
+    /// Pointer to the first flag, or null for an empty series.
+    pub data: *mut bool,
+    /// Number of flags.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
+/// An owned, heap-allocated bool-map buffer the caller takes ownership of.
+///
+/// Returned by [`lm_sol_constraints`] / [`lm_sol_variable_bounds`] and released
+/// with [`lm_bool_map_buffer_free`], which also frees each entry's owned key
+/// string and flag array. The fields mirror a `Vec<LmBoolMapEntry>`.
+#[repr(C)]
+pub struct LmBoolMapBuffer {
+    /// Pointer to the first LmBoolMapEntry, or null for an empty buffer.
+    pub data: *mut LmBoolMapEntry,
+    /// Number of valid entries.
     pub len: usize,
     /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
     pub cap: usize,
@@ -596,7 +632,8 @@ pub struct LunaModelCApi {
     pub higher_order_item_buffer_free: unsafe extern "C" fn(LmHigherOrderItemBuffer),
     pub result_view_buffer_free: unsafe extern "C" fn(LmResultViewBuffer),
     pub sample_view_buffer_free: unsafe extern "C" fn(LmSampleViewBuffer),
-    pub index_map_buffer_free: unsafe extern "C" fn(LmSampleViewBuffer),
+    pub index_map_buffer_free: unsafe extern "C" fn(LmIndexMapItemBuffer),
+    pub bool_map_buffer_free: unsafe extern "C" fn(LmBoolMapBuffer),
     // ///// //
     // MODEL //
     // ///// //
@@ -748,8 +785,15 @@ pub struct LunaModelCApi {
     pub sol_aggregate: unsafe extern "C" fn(*mut LmSol) -> LmStatus,
 
     pub sol_samples: unsafe extern "C" fn(*const LmSol, *mut LmIndexMapItemBuffer) -> LmStatus,
-    pub sol_counts: unsafe extern "C" fn(*const LmSol, *mut usize, usize) -> LmStatus,
-    pub sol_raw_energies: unsafe extern "C" fn(*const LmSol, *mut usize) -> LmStatus,
+    pub sol_counts: unsafe extern "C" fn(*const LmSol, *mut *const usize, *mut usize) -> LmStatus,
+    pub sol_raw_energies:
+        unsafe extern "C" fn(*const LmSol, *mut *const f64, *mut usize) -> LmStatus,
+    pub sol_obj_values: unsafe extern "C" fn(*const LmSol, *mut *const f64, *mut usize) -> LmStatus,
+    pub sol_feasible: unsafe extern "C" fn(*const LmSol, *mut *const bool, *mut usize) -> LmStatus,
+    pub sol_constraints: unsafe extern "C" fn(*const LmSol, *mut LmBoolMapBuffer) -> LmStatus,
+    pub sol_variable_bounds: unsafe extern "C" fn(*const LmSol, *mut LmBoolMapBuffer) -> LmStatus,
+    pub sol_timing: unsafe extern "C" fn(*const LmSol, *mut *mut LmTiming) -> LmStatus,
+    pub sol_sense: unsafe extern "C" fn(*const LmSol, *mut LmSense) -> LmStatus,
 
     pub sol_n_samples: unsafe extern "C" fn(*const LmSol, *mut usize) -> LmStatus,
     pub sol_len: unsafe extern "C" fn(*const LmSol, *mut usize) -> LmStatus,

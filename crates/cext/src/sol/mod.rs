@@ -3,13 +3,14 @@ pub mod convenience;
 pub mod creation;
 pub mod general;
 pub mod modification;
-pub mod serialize;
 pub mod properties;
+pub mod serialize;
 
 pub use access::{
-    lm_sol_assignment, lm_sol_assignment_idx, lm_sol_best, lm_sol_extract, lm_sol_is_empty,
-    lm_sol_len, lm_sol_n_samples, lm_sol_result, lm_sol_results, lm_sol_sample_view, lm_sol_sample_len,
-    lm_sol_sample_views, lm_sol_value, lm_sol_variable_names,
+    lm_sol_assignment, lm_sol_assignment_idx, lm_sol_best, lm_sol_column, lm_sol_extract,
+    lm_sol_is_empty, lm_sol_len, lm_sol_n_samples, lm_sol_result, lm_sol_results,
+    lm_sol_sample_len, lm_sol_sample_view, lm_sol_sample_views, lm_sol_value,
+    lm_sol_variable_names,
 };
 pub use convenience::{
     lm_sol_cvar, lm_sol_expectation_value, lm_sol_feasibility_ratio,
@@ -24,5 +25,9 @@ pub use modification::{
     lm_sol_add_binary, lm_sol_add_col, lm_sol_add_empty_binary, lm_sol_add_empty_integer,
     lm_sol_add_empty_real, lm_sol_add_empty_spin, lm_sol_add_integer, lm_sol_add_real,
     lm_sol_add_spin, lm_sol_aggregate, lm_sol_remove_col, lm_sol_remove_cols,
+};
+pub use properties::{
+    lm_sol_constraints, lm_sol_counts, lm_sol_feasible, lm_sol_obj_values, lm_sol_raw_energies,
+    lm_sol_samples, lm_sol_sense, lm_sol_timing, lm_sol_variable_bounds,
 };
 pub use serialize::{lm_sol_deserialize, lm_sol_serialize};

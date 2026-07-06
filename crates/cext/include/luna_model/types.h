@@ -205,6 +205,53 @@ typedef struct {
 } LmBounds;
 
 /**
+ * One `(name, boolean series)` entry of a per-name flag map.
+ *
+ * Used for solution constraint and variable-bound feasibility flags. The `data`
+ * array holds one flag per sample row.
+ */
+typedef struct {
+    /**
+     * Owned, NUL-terminated name (constraint or variable).
+     */
+    char *key;
+    /**
+     * Pointer to the first flag, or null for an empty series.
+     */
+    bool *data;
+    /**
+     * Number of flags.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmBoolMapEntry;
+
+/**
+ * An owned, heap-allocated bool-map buffer the caller takes ownership of.
+ *
+ * Returned by [`lm_sol_constraints`] / [`lm_sol_variable_bounds`] and released
+ * with [`lm_bool_map_buffer_free`], which also frees each entry's owned key
+ * string and flag array. The fields mirror a `Vec<LmBoolMapEntry>`.
+ */
+typedef struct {
+    /**
+     * Pointer to the first LmBoolMapEntry, or null for an empty buffer.
+     */
+    LmBoolMapEntry *data;
+    /**
+     * Number of valid entries.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmBoolMapBuffer;
+
+/**
  * An owned, heap-allocated byte buffer the caller takes ownership of.
  *
  * Buffers returned by LunaModel (e.g. from `lm_model_serialize`) must be released
@@ -327,6 +374,57 @@ typedef struct {
      */
     uintptr_t cap;
 } LmHigherOrderItemBuffer;
+
+/**
+ * Opaque handle to a solution column (all values of one variable).
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmColumn;
+
+/**
+ * One `(variable name, column)` entry of a solution's sample map.
+ */
+typedef struct {
+    /**
+     * Position of the entry in the underlying `IndexMap` (column order).
+     *
+     * Stable for a given solution and usable with index-based accessors such as
+     * [`lm_sol_assignment_idx`].
+     */
+    uintptr_t index;
+    /**
+     * Owned, NUL-terminated variable name.
+     */
+    char *key;
+    /**
+     * Owned column handle for the variable.
+     */
+    LmColumn *value;
+} LmIndexMapItem;
+
+/**
+ * An owned, heap-allocated index-map-item buffer the caller takes ownership of.
+ *
+ * Returned by [`lm_sol_samples`] and released with [`lm_index_map_buffer_free`],
+ * which also frees each entry's owned key string and column handle. The fields
+ * mirror a `Vec<LmIndexMapItem>` so it can be rebuilt for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first LmIndexMapItem, or null for an empty buffer.
+     */
+    LmIndexMapItem *data;
+    /**
+     * Number of valid entries.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmIndexMapItemBuffer;
 
 /**
  * A linear item.
@@ -582,6 +680,17 @@ typedef struct {
 } LmExpr;
 
 /**
+ * Typed assignment value used by the C API.
+ *
+ * C-ABI-stable mirror of LunaModel's Rust `Assignment` enum: `vtype` names the
+ * variable kind and `value` holds the numeric assignment (widened to `f64`).
+ */
+typedef struct {
+    LmVtype vtype;
+    double value;
+} LmAssignment;
+
+/**
  * A 128-bit environment identity token, split into two 64-bit halves because C
  * has no native 128-bit integer type. Use it only for identity comparison
  * (compare both fields); do not do arithmetic on the halves.
@@ -661,23 +770,12 @@ typedef struct {
 } LmSol;
 
 /**
- * Typed assignment value used by the C API.
- *
- * C-ABI-stable mirror of LunaModel's Rust `Assignment` enum: `vtype` names the
- * variable kind and `value` holds the numeric assignment (widened to `f64`).
- */
-typedef struct {
-    LmVtype vtype;
-    double value;
-} LmAssignment;
-
-/**
- * Opaque handle to a solution column (all values of one variable).
+ * Opaque handle to a LunaModel timing reference.
  *
  */
 typedef struct {
     uint8_t _private[0];
-} LmColumn;
+} LmTiming;
 
 /**
  * Opaque handle to a LunaModel timer reference.
@@ -688,54 +786,12 @@ typedef struct {
 } LmTimer;
 
 /**
- * Opaque handle to a LunaModel timing reference.
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmTiming;
-
-/**
  * Opaque handle to a LunaModel variable reference.
  *
  */
 typedef struct {
     uint8_t _private[0];
 } LmVar;
-
-/**
- * A index-map item.
- */
-typedef struct {
-    uintptr_t index;
-    uintptr_t key;
-    /**
-     * An owned, heap-allocated column item the caller takes ownership of.
-     */
-    LmColumn value;
-} LmIndexMapItem;
-
-/**
- * An owned, heap-allocated higher-order items buffer the caller takes ownership of.
- *
- * Comparator buffers returned by LunaModel must be released
- * with [`lm_higher_order_item_buffer_free`]. The fields mirror a `Vec<LmHigherOrderItem>` so it can
- * be rebuilt for deallocation.
- */
-typedef struct {
-    /**
-     * Pointer to the first LmIndexMapItem, or null for an empty buffer.
-     */
-    LmIndexMapItem *data;
-    /**
-     * Number of valid bytes.
-     */
-    uintptr_t len;
-    /**
-     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
-     */
-    uintptr_t cap;
-} LmIndexMapItemBuffer;
 
 /**
  * Stable, versioned table of LunaModel C API entry points.
@@ -762,7 +818,8 @@ typedef struct {
     void (*higher_order_item_buffer_free)(LmHigherOrderItemBuffer);
     void (*result_view_buffer_free)(LmResultViewBuffer);
     void (*sample_view_buffer_free)(LmSampleViewBuffer);
-    void (*index_map_buffer_free)(LmSampleViewBuffer);
+    void (*index_map_buffer_free)(LmIndexMapItemBuffer);
+    void (*bool_map_buffer_free)(LmBoolMapBuffer);
     void (*model_free)(LmModel*);
     LmModel *(*model_default)(void);
     LmStatus (*model_new)(const char*, const LmSense*, LmModel**);
@@ -856,8 +913,14 @@ typedef struct {
     LmStatus (*sol_remove_cols)(LmSol*, const char*const *, uintptr_t);
     LmStatus (*sol_aggregate)(LmSol*);
     LmStatus (*sol_samples)(const LmSol*, LmIndexMapItemBuffer*);
-    LmStatus (*sol_counts)(const LmSol*, uintptr_t*, uintptr_t);
-    LmStatus (*sol_raw_energies)(const LmSol*, uintptr_t*);
+    LmStatus (*sol_counts)(const LmSol*, const uintptr_t**, uintptr_t*);
+    LmStatus (*sol_raw_energies)(const LmSol*, const double**, uintptr_t*);
+    LmStatus (*sol_obj_values)(const LmSol*, const double**, uintptr_t*);
+    LmStatus (*sol_feasible)(const LmSol*, const bool**, uintptr_t*);
+    LmStatus (*sol_constraints)(const LmSol*, LmBoolMapBuffer*);
+    LmStatus (*sol_variable_bounds)(const LmSol*, LmBoolMapBuffer*);
+    LmStatus (*sol_timing)(const LmSol*, LmTiming**);
+    LmStatus (*sol_sense)(const LmSol*, LmSense*);
     LmStatus (*sol_n_samples)(const LmSol*, uintptr_t*);
     LmStatus (*sol_len)(const LmSol*, uintptr_t*);
     LmStatus (*sol_variable_names)(const LmSol*, LmStrBuffer*);

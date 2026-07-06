@@ -8,13 +8,13 @@
 
 pub use lunamodel_cext_vtable::LunaModelCApi;
 pub use lunamodel_cext_vtable::{
-    LmAssignment, LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC, LmCmpBuffer, LmColumn,
-    LmComparator, LmConstraint, LmCtype, LmCtypeBuffer, LmEnv, LmEnvId, LmExpr, LmHigherOrder,
-    LmHigherOrderItem, LmHigherOrderItemBuffer, LmLazyBounds, LmLinear, LmLinearItem,
-    LmLinearItemBuffer, LmModel, LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer, LmResultView,
-    LmResultViewBuffer, LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSpecs, LmStatus,
-    LmStrBuffer, LmTimer, LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref, LmVrefBuffer,
-    LmVtype, LmVtypeBuffer,
+    LmAssignment, LmBoolMapBuffer, LmBoolMapEntry, LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC,
+    LmCmpBuffer, LmColumn, LmComparator, LmConstraint, LmCtype, LmCtypeBuffer, LmEnv, LmEnvId,
+    LmExpr, LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer, LmIndexMapItem,
+    LmIndexMapItemBuffer, LmLazyBounds, LmLinear, LmLinearItem, LmLinearItemBuffer, LmModel,
+    LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer, LmResultView, LmResultViewBuffer,
+    LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSpecs, LmStatus, LmStrBuffer, LmTimer,
+    LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
 };
 
 /// ABI version of the C API table.
@@ -34,6 +34,7 @@ pub mod bounds;
 pub mod buffer;
 pub mod capi_table;
 pub mod cc;
+pub mod col;
 pub mod constr;
 pub mod env;
 pub mod error;
@@ -52,6 +53,5 @@ pub mod timing;
 pub mod var;
 pub mod version;
 pub mod vref;
-pub mod col;
 
 mod utils;
