@@ -11,6 +11,7 @@
 namespace lm {
 
 class Timer;
+class Solution;
 
 /* Owning handle to a LunaModel timing (frees on destruction). */
 class Timing {
@@ -53,6 +54,7 @@ class Timing {
 
   private:
     friend class Timer;
+    friend class Solution;
 
     LmTiming *handle_;
 };
