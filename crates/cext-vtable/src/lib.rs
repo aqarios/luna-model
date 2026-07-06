@@ -92,6 +92,17 @@ pub struct LmBound {
     pub value: f64,
 }
 
+/// Typed assignment value used by the C API.
+///
+/// C-ABI-stable mirror of LunaModel's Rust `Assignment` enum: `vtype` names the
+/// variable kind and `value` holds the numeric assignment (widened to `f64`).
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct LmAssignment {
+    pub vtype: LmVtype,
+    pub value: f64,
+}
+
 /// Discriminant for `LmBound`.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -174,6 +185,21 @@ pub struct LmBuffer {
     pub cap: usize,
 }
 
+/// An owned, heap-allocated string buffer the caller takes ownership of.
+///
+/// String buffers returned by LunaModel must be released with
+/// [`lm_str_buffer_free`]. The fields mirror a `Vec<*mut c_char>` (each element
+/// an owned NUL-terminated C string) so it can be rebuilt for deallocation.
+#[repr(C)]
+pub struct LmStrBuffer {
+    /// Pointer to the first C string, or null for an empty buffer.
+    pub data: *mut *mut c_char,
+    /// Number of valid strings.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
 /// An owned, heap-allocated Vtype buffer the caller takes ownership of.
 ///
 /// Vtype buffers returned by LunaModel must be released
@@ -244,6 +270,36 @@ pub struct LmU32Buffer {
     /// Pointer to the first u32, or null for an empty buffer.
     pub data: *mut u32,
     /// Number of valid u32s.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
+/// An owned, heap-allocated ResultView buffer the caller takes ownership of.
+///
+/// ResultView buffers returned by LunaModel must be released
+/// with [`lm_result_view_buffer_free`]. The fields mirror a `Vec<ResultView>` so it can
+/// be rebuilt for deallocation.
+#[repr(C)]
+pub struct LmResultViewBuffer {
+    /// Pointer to the first ResultView, or null for an empty buffer.
+    pub data: *mut *mut LmResultView,
+    /// Number of valid bytes.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
+/// An owned, heap-allocated SampleView buffer the caller takes ownership of.
+///
+/// SampleView buffers returned by LunaModel must be released
+/// with [`lm_sample_view_buffer_free`]. The fields mirror a `Vec<SampleView>` so it can
+/// be rebuilt for deallocation.
+#[repr(C)]
+pub struct LmSampleViewBuffer {
+    /// Pointer to the first SampleView, or null for an empty buffer.
+    pub data: *mut *mut LmSampleView,
+    /// Number of valid bytes.
     pub len: usize,
     /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
     pub cap: usize,
@@ -343,6 +399,30 @@ pub struct LmModel {
 /// cbindgen:opaque
 #[repr(C)]
 pub struct LmSol {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a borrowed LunaModel result-view.
+///
+/// Created by [`lm_sol_result`] and released with [`lm_result_view_free`]. It
+/// borrows the solution it was created from: the originating `LmSol` must
+/// outlive the view and must not be mutated while the view is alive.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmResultView {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a borrowed LunaModel sample-view.
+///
+/// Created by [`lm_sol_sample`] and released with [`lm_sample_view_free`]. It
+/// borrows the solution it was created from: the originating `LmSol` must
+/// outlive the view and must not be mutated while the view is alive.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmSampleView {
     _private: [u8; 0],
 }
 
@@ -473,6 +553,7 @@ pub struct LunaModelCApi {
     pub version: extern "C" fn() -> *const c_char,
     pub last_error_message: extern "C" fn() -> *const c_char,
     pub buffer_free: unsafe extern "C" fn(LmBuffer),
+    pub str_buffer_free: unsafe extern "C" fn(LmStrBuffer),
     pub vtype_buffer_free: unsafe extern "C" fn(LmVtypeBuffer),
     pub ctype_buffer_free: unsafe extern "C" fn(LmCtypeBuffer),
     pub cmp_buffer_free: unsafe extern "C" fn(LmCmpBuffer),
@@ -481,6 +562,8 @@ pub struct LunaModelCApi {
     pub linear_item_buffer_free: unsafe extern "C" fn(LmLinearItemBuffer),
     pub quadratic_item_buffer_free: unsafe extern "C" fn(LmQuadraticItemBuffer),
     pub higher_order_item_buffer_free: unsafe extern "C" fn(LmHigherOrderItemBuffer),
+    pub result_view_buffer_free: unsafe extern "C" fn(LmResultViewBuffer),
+    pub sample_view_buffer_free: unsafe extern "C" fn(LmSampleViewBuffer),
     // ///// //
     // MODEL //
     // ///// //
@@ -577,6 +660,79 @@ pub struct LunaModelCApi {
     // SOLUTION //
     // //////// //
     pub sol_free: unsafe extern "C" fn(*mut LmSol),
+    pub sol_clone: unsafe extern "C" fn(*const LmSol, *mut *mut LmSol) -> LmStatus,
+    pub sol_eq: unsafe extern "C" fn(*const LmSol, *const LmSol, *mut bool) -> LmStatus,
+    pub sol_equal_contents: unsafe extern "C" fn(*const LmSol, *const LmSol, *mut bool) -> LmStatus,
+    pub sol_default: extern "C" fn() -> *mut LmSol,
+    pub sol_with_sense: extern "C" fn(LmSense) -> *mut LmSol,
+    pub sol_with_capacity: extern "C" fn(usize) -> *mut LmSol,
+    pub sol_from_env: unsafe extern "C" fn(*const LmEnv, *mut *mut LmSol) -> LmStatus,
+    pub sol_from_random: unsafe extern "C" fn(
+        usize,
+        *const u64,
+        *const LmEnv,
+        *const LmModel,
+        *const LmSense,
+        *const f64,
+        *mut *mut LmSol,
+    ) -> LmStatus,
+    pub sol_merge_many: unsafe extern "C" fn(
+        *const *const LmSol,
+        usize,
+        *const LmModel,
+        *const f64,
+        *mut *mut LmSol,
+    ) -> LmStatus,
+    pub sol_add_empty_binary: unsafe extern "C" fn(*mut LmSol, *const c_char) -> LmStatus,
+    pub sol_add_empty_spin: unsafe extern "C" fn(*mut LmSol, *const c_char) -> LmStatus,
+    pub sol_add_empty_integer: unsafe extern "C" fn(*mut LmSol, *const c_char) -> LmStatus,
+    pub sol_add_empty_real: unsafe extern "C" fn(*mut LmSol, *const c_char) -> LmStatus,
+    pub sol_add_binary:
+        unsafe extern "C" fn(*mut LmSol, *const c_char, *const f64, usize, *const f64) -> LmStatus,
+    pub sol_add_spin:
+        unsafe extern "C" fn(*mut LmSol, *const c_char, *const f64, usize, *const f64) -> LmStatus,
+    pub sol_add_integer:
+        unsafe extern "C" fn(*mut LmSol, *const c_char, *const f64, usize, *const f64) -> LmStatus,
+    pub sol_add_real:
+        unsafe extern "C" fn(*mut LmSol, *const c_char, *const f64, usize) -> LmStatus,
+    pub sol_add_col: unsafe extern "C" fn(
+        *mut LmSol,
+        LmVtype,
+        *const c_char,
+        *const f64,
+        usize,
+        *const f64,
+    ) -> LmStatus,
+    pub sol_remove_col: unsafe extern "C" fn(*mut LmSol, *const c_char) -> LmStatus,
+    pub sol_remove_cols: unsafe extern "C" fn(*mut LmSol, *const *const c_char, usize) -> LmStatus,
+    pub sol_aggregate: unsafe extern "C" fn(*mut LmSol) -> LmStatus,
+
+    pub sol_n_samples: unsafe extern "C" fn(*const LmSol, *mut usize) -> LmStatus,
+    pub sol_len: unsafe extern "C" fn(*const LmSol, *mut usize) -> LmStatus,
+    pub sol_variable_names: unsafe extern "C" fn(*const LmSol, *mut LmStrBuffer) -> LmStatus,
+    pub sol_is_empty: unsafe extern "C" fn(*const LmSol, *mut bool) -> LmStatus,
+    pub sol_sample_len: unsafe extern "C" fn(*const LmSol, *mut usize) -> LmStatus,
+    pub sol_value: unsafe extern "C" fn(*const LmSol, usize, *const c_char, *mut f64) -> LmStatus,
+    pub sol_assignment:
+        unsafe extern "C" fn(*const LmSol, usize, *const c_char, *mut LmAssignment) -> LmStatus,
+    pub sol_assignment_idx:
+        unsafe extern "C" fn(*const LmSol, usize, usize, *mut LmAssignment) -> LmStatus,
+    pub sol_result: unsafe extern "C" fn(*const LmSol, usize, *mut *mut LmResultView) -> LmStatus,
+    pub sol_results: unsafe extern "C" fn(*const LmSol, *mut LmResultViewBuffer) -> LmStatus,
+    pub sol_sample: unsafe extern "C" fn(*const LmSol, usize, *mut *mut LmSampleView) -> LmStatus,
+    pub sol_samples: unsafe extern "C" fn(*const LmSol, *mut LmSampleViewBuffer) -> LmStatus,
+    pub sol_best: unsafe extern "C" fn(*const LmSol, *mut LmResultViewBuffer) -> LmStatus,
+    pub sol_extract: unsafe extern "C" fn(*const LmSol, usize, *mut *mut LmSol) -> LmStatus,
+    pub sol_cvar:
+        unsafe extern "C" fn(*const LmSol, f64, *const LmValueSource, *mut f64) -> LmStatus,
+    pub sol_expectation_value:
+        unsafe extern "C" fn(*const LmSol, *const LmValueSource, *mut f64) -> LmStatus,
+    pub sol_temperature_weighted:
+        unsafe extern "C" fn(*const LmSol, f64, *const LmValueSource, *mut f64) -> LmStatus,
+    pub sol_feasibility_ratio: unsafe extern "C" fn(*const LmSol, *mut f64) -> LmStatus,
+    pub sol_highest_constraint_violations:
+        unsafe extern "C" fn(*const LmSol, *mut LmBuffer) -> LmStatus,
+    pub sol_serialize: unsafe extern "C" fn(*const LmSol, *mut LmBuffer) -> LmStatus,
     pub sol_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmSol) -> LmStatus,
     // ////////// //
     // EXPRESSION //

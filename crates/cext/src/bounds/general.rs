@@ -16,7 +16,7 @@ pub unsafe extern "C" fn lm_bounds_clone(
     guard(|| {
         let bounds = unsafe { ref_from_c(bounds as *const Bounds, "bounds") }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(bounds.clone());
+        *out = handle_to_c(*bounds);
         Ok(())
     })
 }

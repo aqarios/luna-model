@@ -24,6 +24,9 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     linear_item_buffer_free: crate::buffer::lm_linear_item_buffer_free,
     quadratic_item_buffer_free: crate::buffer::lm_quadratic_item_buffer_free,
     higher_order_item_buffer_free: crate::buffer::lm_higher_order_item_buffer_free,
+    str_buffer_free: crate::buffer::lm_str_buffer_free,
+    result_view_buffer_free: crate::buffer::lm_result_view_buffer_free,
+    sample_view_buffer_free: crate::buffer::lm_sample_view_buffer_free,
     // ///// //
     // MODEL //
     // ///// //
@@ -91,9 +94,54 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // //////// //
     // SOLUTION //
     // //////// //
-    sol_free: crate::solution::lm_sol_free,
+    sol_free: crate::sol::lm_sol_free,
+    sol_default: crate::sol::lm_sol_default,
+    sol_with_sense: crate::sol::lm_sol_with_sense,
+    sol_with_capacity: crate::sol::lm_sol_with_capcity,
+    sol_from_env: crate::sol::lm_sol_from_env,
+    sol_from_random: crate::sol::lm_sol_from_random,
+    // Sol -- general
+    sol_clone: crate::sol::lm_sol_clone,
+    sol_eq: crate::sol::lm_sol_eq,
+    sol_equal_contents: crate::sol::lm_sol_equal_contents,
+    sol_aggregate: crate::sol::lm_sol_aggregate,
+    sol_merge_many: crate::sol::lm_sol_merge_many,
+    // Sol -- access
+    sol_n_samples: crate::sol::lm_sol_n_samples,
+    sol_len: crate::sol::lm_sol_len,
+    sol_variable_names: crate::sol::lm_sol_variable_names,
+    sol_is_empty: crate::sol::lm_sol_is_empty,
+    sol_sample_len: crate::sol::lm_sol_sample_len,
+    sol_value: crate::sol::lm_sol_value,
+    sol_assignment: crate::sol::lm_sol_assignment,
+    sol_assignment_idx: crate::sol::lm_sol_assignment_idx,
+    sol_result: crate::sol::lm_sol_result,
+    sol_results: crate::sol::lm_sol_results,
+    sol_sample: crate::sol::lm_sol_sample,
+    sol_samples: crate::sol::lm_sol_samples,
+    sol_best: crate::sol::lm_sol_best,
+    sol_extract: crate::sol::lm_sol_extract,
+    // Sol -- modification
+    sol_add_empty_binary: crate::sol::lm_sol_add_empty_binary,
+    sol_add_empty_spin: crate::sol::lm_sol_add_empty_spin,
+    sol_add_empty_integer: crate::sol::lm_sol_add_empty_integer,
+    sol_add_empty_real: crate::sol::lm_sol_add_empty_real,
+    sol_add_binary: crate::sol::lm_sol_add_binary,
+    sol_add_spin: crate::sol::lm_sol_add_spin,
+    sol_add_integer: crate::sol::lm_sol_add_integer,
+    sol_add_real: crate::sol::lm_sol_add_real,
+    sol_add_col: crate::sol::lm_sol_add_col,
+    sol_remove_col: crate::sol::lm_sol_remove_col,
+    sol_remove_cols: crate::sol::lm_sol_remove_cols,
+    // Sol -- convenience
+    sol_cvar: crate::sol::lm_sol_cvar,
+    sol_expectation_value: crate::sol::lm_sol_expectation_value,
+    sol_temperature_weighted: crate::sol::lm_sol_temperature_weighted,
+    sol_feasibility_ratio: crate::sol::lm_sol_feasibility_ratio,
+    sol_highest_constraint_violations: crate::sol::lm_sol_highest_constraint_violations,
     // Sol -- serializer
-    sol_deserialize: crate::solution::lm_sol_deserialize,
+    sol_serialize: crate::sol::lm_sol_serialize,
+    sol_deserialize: crate::sol::lm_sol_deserialize,
     // ////////// //
     // EXPRESSION //
     // ////////// //

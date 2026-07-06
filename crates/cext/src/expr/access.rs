@@ -77,7 +77,7 @@ pub unsafe extern "C" fn lm_expr_quadratic(
         *out = expr
             .quadratic
             .clone()
-            .map(|v| handle_to_c(v))
+            .map(handle_to_c)
             .unwrap_or(std::ptr::null_mut());
         Ok(())
     })
@@ -103,7 +103,7 @@ pub unsafe extern "C" fn lm_expr_higher_order(
         *out = expr
             .higher_order
             .clone()
-            .map(|v| handle_to_c(v))
+            .map(handle_to_c)
             .unwrap_or(std::ptr::null_mut());
         Ok(())
     })
@@ -158,7 +158,7 @@ pub unsafe extern "C" fn lm_expr_vars(expr: *const LmExpr, out: *mut LmVrefBuffe
         let out = unsafe { out_from_c(out) }?;
         let vars = expr
             .vars()
-            .map(|v| handle_to_c(v))
+            .map(handle_to_c)
             .collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
         Ok(())
@@ -184,7 +184,7 @@ pub unsafe extern "C" fn lm_expr_complete_vars(
         let out = unsafe { out_from_c(out) }?;
         let vars = expr
             .complete_vars()
-            .map(|v| handle_to_c(v))
+            .map(handle_to_c)
             .collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
         Ok(())

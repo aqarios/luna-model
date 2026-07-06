@@ -58,7 +58,7 @@ pub unsafe extern "C" fn lm_cc_complete_vars(cc: *const LmCC, out: *mut LmVrefBu
         let out = unsafe { out_from_c(out) }?;
         let vars = cc
             .complete_vars()
-            .map(|v| handle_to_c(v))
+            .map(handle_to_c)
             .collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
         Ok(())
@@ -78,10 +78,7 @@ pub unsafe extern "C" fn lm_cc_vars(cc: *const LmCC, out: *mut LmVrefBuffer) -> 
     guard(|| {
         let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
         let out = unsafe { out_from_c(out) }?;
-        let vars = cc
-            .vars()
-            .map(|v| handle_to_c(v))
-            .collect::<Vec<*mut LmVref>>();
+        let vars = cc.vars().map(handle_to_c).collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
         Ok(())
     })

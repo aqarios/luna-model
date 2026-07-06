@@ -1,9 +1,16 @@
 use std::ffi::{CStr, c_char};
 
-use luna_model::types::{Bound, Comparator, Ctype, Sense, Vtype};
+use luna_model::{
+    core::{
+        ValueSource,
+        solution::{Assignment, result::ResultView},
+    },
+    types::{Bound, Comparator, Ctype, Sense, Vtype},
+};
 
 use crate::{
-    LmBound, LmBoundTag, LmComparator, LmCtype, LmSense, LmStatus, LmVtype, error::CapiError,
+    LmAssignment, LmBound, LmBoundTag, LmComparator, LmCtype, LmResultView, LmSense, LmStatus,
+    LmValueSource, LmVtype, error::CapiError, res::ResultViewHandle,
 };
 
 pub fn sense_from_c(sense: LmSense) -> Sense {
@@ -96,6 +103,13 @@ pub fn bound_to_c(bound: Bound) -> LmBound {
     }
 }
 
+pub fn value_source_from_c(vs: LmValueSource) -> ValueSource {
+    match vs {
+        LmValueSource::Raw => ValueSource::Raw,
+        LmValueSource::Obj => ValueSource::Obj,
+    }
+}
+
 // ///////////////////////////// //
 // Pointer / FFI value mappings  //
 // ///////////////////////////// //
@@ -106,6 +120,14 @@ pub fn bound_to_c(bound: Bound) -> LmBound {
 /// `ptr` must be null or valid for reads as a `T` for the returned lifetime.
 pub(crate) unsafe fn ref_from_c<'a, T>(ptr: *const T, what: &str) -> Result<&'a T, CapiError> {
     unsafe { ptr.as_ref() }.ok_or_else(|| CapiError::null_pointer(what))
+}
+
+/// Borrows the Rust value behind a C pointer, returning None with `NullPointer`.
+///
+/// # Safety
+/// `ptr` must be null or valid for reads as a `T` for the returned lifetime.
+pub(crate) unsafe fn opt_ref_from_c<'a, T>(ptr: *const T) -> Option<&'a T> {
+    unsafe { ptr.as_ref() }
 }
 
 /// Mutably borrows the Rust value behind a C pointer, failing with `NullPointer`.
@@ -215,4 +237,38 @@ pub(crate) unsafe fn opt_slice_from_c<'a, T>(data: *const T, len: usize) -> Opti
 /// `ptr` must be null or valid for reads as a `T`.
 pub(crate) unsafe fn opt_from_c<T: Copy>(ptr: *const T) -> Option<T> {
     unsafe { ptr.as_ref() }.copied()
+}
+
+pub fn assignment_to_c(assignment: Assignment) -> LmAssignment {
+    match assignment {
+        Assignment::Binary(v) => LmAssignment {
+            vtype: LmVtype::Binary,
+            value: v as f64,
+        },
+        Assignment::Spin(v) => LmAssignment {
+            vtype: LmVtype::Spin,
+            value: v as f64,
+        },
+        Assignment::Integer(v) => LmAssignment {
+            vtype: LmVtype::Integer,
+            value: v as f64,
+        },
+        Assignment::Real(v) => LmAssignment {
+            vtype: LmVtype::Real,
+            value: v,
+        },
+    }
+}
+
+/// Rebuilds the borrowed `ResultView` backing an `LmResultView` handle.
+///
+/// # Safety
+/// `view` must be a valid result-view handle created by this library whose
+/// originating solution is still alive.
+pub unsafe fn result_view_from_c<'a>(
+    view: *const LmResultView,
+) -> Result<ResultView<'a>, CapiError> {
+    let handle = unsafe { ref_from_c(view as *const ResultViewHandle, "view") }?;
+    let sol = unsafe { ref_from_c(handle.sol, "sol") }?;
+    Ok(ResultView::new(sol, handle.index))
 }

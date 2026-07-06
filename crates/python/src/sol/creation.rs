@@ -659,7 +659,7 @@ impl PySolution {
             .map(|s| s.s.read_arc().clone())
             .collect::<Vec<_>>();
         let model = model.map(|m| m.m.read_arc().clone());
-        Ok(Solution::merge_many(&sols, &model, tol)?.into())
+        Ok(Solution::merge_many(&sols, model.as_ref(), tol)?.into())
     }
 }
 

@@ -182,6 +182,40 @@ void lm_linear_item_buffer_free(LmLinearItemBuffer buffer);
 void lm_quadratic_item_buffer_free(LmQuadraticItemBuffer buffer);
 
 /**
+ * Frees a higher-order item buffer previously returned by LunaModel.
+ *
+ * Also frees each item's owned `indices` buffer. A null/empty buffer is a
+ * no-op. Each buffer must be freed at most once.
+ *
+ * # Safety
+ * `buffer` must have been produced by this library and not already freed.
+ */
+void lm_result_view_buffer_free(LmResultViewBuffer buffer);
+
+/**
+ * Frees a higher-order item buffer previously returned by LunaModel.
+ *
+ * Also frees each item's owned `indices` buffer. A null/empty buffer is a
+ * no-op. Each buffer must be freed at most once.
+ *
+ * # Safety
+ * `buffer` must have been produced by this library and not already freed.
+ */
+void lm_sample_view_buffer_free(LmSampleViewBuffer buffer);
+
+/**
+ * Frees a string buffer previously returned by LunaModel.
+ *
+ * This frees both the pointer array and each owned C string inside it.
+ *
+ * A null/empty buffer is a no-op. Each string buffer must be freed at most once.
+ *
+ * # Safety
+ * `buffer` must have been produced by this library and not already freed.
+ */
+void lm_str_buffer_free(LmStrBuffer buffer);
+
+/**
  * Frees a u32 item buffer previously returned by LunaModel.
  *
  * A null/empty buffer is a no-op. Each u32 buffer must be freed at most once.
@@ -2126,6 +2160,528 @@ LmStatus lm_quadratic_neg(const LmQuadratic *quadratic, LmQuadratic **out);
 LmStatus lm_quadratic_set_bias(LmQuadratic *quadratic, uint32_t u, uint32_t v, double bias);
 
 /**
+ * Frees a result-view handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `view` must originate from [`lm_sol_result`] and must not be used or freed again.
+ */
+void lm_result_view_free(LmResultView *view);
+
+/**
+ * Returns how often the result row occurred in the solution.
+ *
+ * # Safety
+ * `view` must be a valid result-view handle whose originating solution is still alive.
+ * `out` must point to writable `uintptr_t` storage.
+ */
+LmStatus lm_result_view_counts(const LmResultView *view, uintptr_t *out);
+
+/**
+ * Returns the model-evaluated objective value for the result row.
+ *
+ * # Safety
+ * `view` must be a valid result-view handle whose originating solution is still alive.
+ * `out` must point to writable `double` storage.
+ */
+LmStatus lm_result_view_obj_value(const LmResultView *view, double *out);
+
+/**
+ * Returns the raw solver-provided energy for the result row.
+ *
+ * # Safety
+ * `view` must be a valid result-view handle whose originating solution is still alive.
+ * `out` must point to writable `double` storage.
+ */
+LmStatus lm_result_view_raw_energy(const LmResultView *view, double *out);
+
+/**
+ * Returns whether the result row is globally feasible.
+ *
+ * # Safety
+ * `view` must be a valid result-view handle whose originating solution is still alive.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_result_view_feasible(const LmResultView *view, bool *out);
+
+/**
+ * Frees a sample-view handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `view` must originate from [`lm_sol_sample`] and must not be used or freed again.
+ */
+void lm_sample_view_free(LmSampleView *view);
+
+/**
+ * Returns the number of samples stored in the solution.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `uintptr_t` storage.
+ */
+LmStatus lm_sol_n_samples(const LmSol *sol, uintptr_t *out);
+
+/**
+ * Returns the number of sample rows in the solution.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `uintptr_t` storage.
+ */
+LmStatus lm_sol_len(const LmSol *sol, uintptr_t *out);
+
+/**
+ * Returns the stored variable names in column order.
+ *
+ * The returned buffer must be released with [`lm_str_buffer_free`].
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmStrBuffer` storage.
+ */
+LmStatus lm_sol_variable_names(const LmSol *sol, LmStrBuffer *out);
+
+/**
+ * Returns if the solution is empty.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_sol_is_empty(const LmSol *sol, bool *out);
+
+/**
+ * Returns the number of variables represented in the solution.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `uintptr_t` storage.
+ */
+LmStatus lm_sol_sample_len(const LmSol *sol, uintptr_t *out);
+
+/**
+ * Returns the value for a variable in a row of the solution.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `var` must point to a valid NUL-terminated C string.
+ * `out` must point to writable `uintptr_t` storage.
+ */
+LmStatus lm_sol_value(const LmSol *sol, uintptr_t sample, const char *var, double *out);
+
+/**
+ * Returns the typed assignment for a variable in a row of the solution.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `var` must point to a valid NUL-terminated C string.
+ * `out` must point to writable `LmAssignment` storage.
+ */
+LmStatus lm_sol_assignment(const LmSol *sol, uintptr_t sample, const char *var, LmAssignment *out);
+
+/**
+ * Returns the typed assignment for a variable index in a row of the solution.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmAssignment` storage.
+ */
+LmStatus lm_sol_assignment_idx(const LmSol *sol,
+                               uintptr_t sample,
+                               uintptr_t var,
+                               LmAssignment *out);
+
+/**
+ * Returns a result-oriented view over the sample row at `index`.
+ *
+ * The returned handle borrows `sol`: it must be released with
+ * [`lm_result_view_free`] and must not outlive `sol`.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmResultView *` storage.
+ */
+LmStatus lm_sol_result(const LmSol *sol, uintptr_t index, LmResultView **out);
+
+/**
+ * Returns result-oriented views over solution.
+ *
+ * The returned handle borrows `sol`: it must be released with
+ * [`lm_result_view_buffer_free`] and must not outlive `sol`.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmResultViewBuffer` storage.
+ */
+LmStatus lm_sol_results(const LmSol *sol, LmResultViewBuffer *out);
+
+/**
+ * Returns a sample-oriented view over the sample row at `index`.
+ *
+ * The returned handle borrows `sol`: it must be released with
+ * [`lm_sample_view_free`] and must not outlive `sol`.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmSampleView *` storage.
+ */
+LmStatus lm_sol_sample(const LmSol *sol, uintptr_t index, LmSampleView **out);
+
+/**
+ * Returns sample-views over solution.
+ *
+ * The returned handle borrows `sol`: it must be released with
+ * [`lm_sample_view_buffer_free`] and must not outlive `sol`.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmSampleViewBuffer` storage.
+ */
+LmStatus lm_sol_samples(const LmSol *sol, LmSampleViewBuffer *out);
+
+/**
+ * Returns the best results in the solution.
+ *
+ * The returned handle borrows `sol`: it must be released with
+ * [`lm_result_view_buffer_free`] and must not outlive `sol`.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmResultViewBuffer` storage.
+ */
+LmStatus lm_sol_best(const LmSol *sol, LmResultViewBuffer *out);
+
+/**
+ * Extracts a single sample row as a standalone one-row solution.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmSol *` storage.
+ */
+LmStatus lm_sol_extract(const LmSol *sol, uintptr_t row, LmSol **out);
+
+/**
+ * Computes the conditional value at risk (CVaR) of the selected value series.
+ *
+ * The implementation follows the discrete empirical definition used for a
+ * finite set of sampled outcomes.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `doublbe` storage.
+ */
+LmStatus lm_sol_cvar(const LmSol *sol, double alpha, const LmValueSource *toggle, double *out);
+
+/**
+ * Computes the count-weighted expectation value of the selected series.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `doublbe` storage.
+ */
+LmStatus lm_sol_expectation_value(const LmSol *sol, const LmValueSource *toggle, double *out);
+
+/**
+ * Computes a Boltzmann-style temperature-weighted expectation value.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `doublbe` storage.
+ */
+LmStatus lm_sol_temperature_weighted(const LmSol *sol,
+                                     double beta,
+                                     const LmValueSource *toggle,
+                                     double *out);
+
+/**
+ * Returns the fraction of total sample mass marked as feasible.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `doublbe` storage.
+ */
+LmStatus lm_sol_feasibility_ratio(const LmSol *sol, double *out);
+
+/**
+ * Returns the name of the most frequently violated constraint, if available.
+ *
+ * On success the name is written to `out` as a byte buffer that must be released
+ * with [`lm_buffer_free`]. Returns `LmStatus::Absent` when no violated constraint
+ * is available.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_sol_highest_constraint_violations(const LmSol *sol, LmBuffer *out);
+
+/**
+ * Frees a solution handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `solution` must originate from this library and must not be used or freed again.
+ */
+void lm_sol_free(LmSol *solution);
+
+/**
+ * Creates a new, empty solution.
+ *
+ * Returns a non-null handle that must be released with [`lm_sol_free`].
+ */
+LmSol *lm_sol_default(void);
+
+/**
+ * Creates a new solution for a sense.
+ */
+LmSol *lm_sol_with_sense(LmSense sense);
+
+/**
+ * Creates a new solution with capacity.
+ */
+LmSol *lm_sol_with_capcity(uintptr_t capacity);
+
+/**
+ * Creates a new solution from an environment.
+ *
+ * # Safety
+ * `env` must be a valid environment handle created by this library.
+ * `out` must point to writable `LmSol *` storage.
+ */
+LmStatus lm_sol_from_env(const LmEnv *env, LmSol **out);
+
+/**
+ * Creates a new random solution.
+ *
+ * # Safety
+ * `out` must point to writable `LmSol *` storage.
+ */
+LmStatus lm_sol_from_random(uintptr_t n_samples,
+                            const uint64_t *seed,
+                            const LmEnv *context_a,
+                            const LmModel *context_b,
+                            const LmSense *sense,
+                            const double *tol,
+                            LmSol **out);
+
+/**
+ * Clones a solution into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmSol *` storage.
+ */
+LmStatus lm_sol_clone(const LmSol *sol, LmSol **out);
+
+/**
+ * Compares two solutions for equality.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `other` must be a valid solution handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_sol_eq(const LmSol *sol, const LmSol *other, bool *out);
+
+/**
+ * Compares two solutionss for equal contents.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `other` must be a valid solution handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_sol_equal_contents(const LmSol *sol, const LmSol *other, bool *out);
+
+/**
+ * Merges multiple solutions that share the same variable schema and sense.
+ *
+ * The merge is performed by appending the column-oriented storage for each
+ * participating solution and then aggregating duplicate rows. If `model` is
+ * provided, the merged solution is re-evaluated afterwards so derived fields
+ * such as objective values and feasibility reflect the final merged state.
+ * `tol` is only used during that optional re-evaluation, where it controls
+ * floating-point constraint comparisons.
+ *
+ * # Safety
+ * `sols` must be a valid solution handle buffer created by this library.
+ * `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_sol_merge_many(const LmSol *const *sols,
+                           uintptr_t sols_len,
+                           const LmModel *model,
+                           const double *tol,
+                           LmSol **out);
+
+/**
+ * Adds an empty binary column for a variable name.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ */
+LmStatus lm_sol_add_empty_binary(LmSol *sol, const char *name);
+
+/**
+ * Adds an empty spin column for a variable name.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ */
+LmStatus lm_sol_add_empty_spin(LmSol *sol, const char *name);
+
+/**
+ * Adds an empty integer column for a variable name.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ */
+LmStatus lm_sol_add_empty_integer(LmSol *sol, const char *name);
+
+/**
+ * Adds an empty real column for a variable name.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ */
+LmStatus lm_sol_add_empty_real(LmSol *sol, const char *name);
+
+/**
+ * Adds a binary column for a variable name.
+ *
+ * Values are cast to binary using `tol` as the near-integral tolerance.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ * `data` must be null or point to `len` readable `double` values.
+ * `tol` may be null; if non-null, it must point to a readable `double`.
+ */
+LmStatus lm_sol_add_binary(LmSol *sol,
+                           const char *name,
+                           const double *data,
+                           uintptr_t len,
+                           const double *tol);
+
+/**
+ * Adds a spin column for a variable name.
+ *
+ * Values are cast to binary using `tol` as the near-integral tolerance.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ * `data` must be null or point to `len` readable `double` values.
+ * `tol` may be null; if non-null, it must point to a readable `double`.
+ */
+LmStatus lm_sol_add_spin(LmSol *sol,
+                         const char *name,
+                         const double *data,
+                         uintptr_t len,
+                         const double *tol);
+
+/**
+ * Adds an integer column for a variable name.
+ *
+ * Values are cast to binary using `tol` as the near-integral tolerance.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ * `data` must be null or point to `len` readable `double` values.
+ * `tol` may be null; if non-null, it must point to a readable `double`.
+ */
+LmStatus lm_sol_add_integer(LmSol *sol,
+                            const char *name,
+                            const double *data,
+                            uintptr_t len,
+                            const double *tol);
+
+/**
+ * Adds a real column for a variable name.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ * `data` must be null or point to `len` readable `double` values.
+ */
+LmStatus lm_sol_add_real(LmSol *sol, const char *name, const double *data, uintptr_t len);
+
+/**
+ * Dispatches to the appropriate typed column insertion helper.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ * `data` must be null or point to `len` readable `double` values.
+ * `tol` may be null; if non-null, it must point to a readable `double`.
+ */
+LmStatus lm_sol_add_col(LmSol *sol,
+                        LmVtype vtype,
+                        const char *name,
+                        const double *data,
+                        uintptr_t len,
+                        const double *tol);
+
+/**
+ * Removes a column for a variable name.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ */
+LmStatus lm_sol_remove_col(LmSol *sol, const char *name);
+
+/**
+ * Removes columns for many variable names.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle created by this library.
+ * `names` must point to `len` readable `char *` values.
+ * Each entry in `names` must be non-null and point to a valid NUL-terminated UTF-8 C string.
+ */
+LmStatus lm_sol_remove_cols(LmSol *sol, const char *const *names, uintptr_t len);
+
+/**
+ * Combines duplicate sample rows into a single row and sums their counts.
+ *
+ * Duplicate detection is currently based on the stringified sample values in
+ * column order. That keeps the implementation simple, but it also means the
+ * exact behavior for floating-point heavy solutions depends on how those
+ * values stringify.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle created by this library.
+ */
+LmStatus lm_sol_aggregate(LmSol *sol);
+
+/**
+ * Serializes a solution to bytes, writing an owned buffer to `out`.
+ *
+ * The buffer must be released with `lm_buffer_free`.
+ *
+ * # Safety
+ * `sol` must be a valid solution handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_sol_serialize(const LmSol *sol, LmBuffer *out);
+
+/**
+ * Deserializes a solution from `len` bytes at `data`, writing a new handle to `out`.
+ *
+ * The new handle must be released with [`lm_sol_free`].
+ *
+ * # Safety
+ * `data` must point to `len` readable bytes and `out` must point to writable storage.
+ */
+LmStatus lm_sol_deserialize(const uint8_t *data, uintptr_t len, LmSol **out);
+
+/**
  * Returns the specs's sense, if one is set.
  *
  * On success (`LmStatus::Ok`), `*out` is set to the specs's sense. If the specs
@@ -2603,249 +3159,6 @@ LmStatus lm_vref_pow(const LmVref *vref, uintptr_t n, LmExpr **out);
  * `out` must point to writable `bool` storage.
  */
 LmStatus lm_vref_eval(const LmVref *vref, double value, const double *tol, bool *out);
-
-/**
- * Frees a solution handle. Passing null is a no-op.
- *
- * # Safety
- * `solution` must originate from this library and must not be used or freed again.
- */
-void lm_sol_free(LmSol *solution);
-
-/**
- * Creates a new, empty solution.
- *
- * Returns a non-null handle that must be released with [`lm_sol_free`].
- */
-LmSol *lm_sol_default(void);
-
-/**
- * Creates a new solution for a sense.
- */
-LmSol *lm_sol_with_sense(LmSense sense);
-
-/**
- * Creates a new solution with capacity.
- */
-LmSol *lm_sol_with_capcity(uintptr_t capacity);
-
-/**
- * Creates a new solution from an environment.
- *
- * # Safety
- * `env` must be a valid environment handle created by this library.
- * `out` must point to writable `LmSol *` storage.
- */
-LmStatus lm_sol_from_env(const LmEnv *env, LmSol **out);
-
-/**
- * Creates a new random solution.
- *
- * # Safety
- * `out` must point to writable `LmSol *` storage.
- */
-LmStatus lm_sol_from_random(uintptr_t n_samples,
-                            const uint64_t *seed,
-                            const LmEnv *context_a,
-                            const LmModel *context_b,
-                            const LmSense *sense,
-                            const double *tol,
-                            LmSol **out);
-
-/**
- * Clones a solution into a new, independent handle written to `out`.
- *
- * # Safety
- * `sol` must be a valid solution handle created by this library.
- * `out` must point to writable `LmSol *` storage.
- */
-LmStatus lm_sol_clone(const LmSol *sol, LmSol **out);
-
-/**
- * Compares two solutions for equality.
- *
- * # Safety
- * `sol` must be a valid solution handle created by this library.
- * `other` must be a valid solution handle created by this library.
- * `out` must point to writable `bool` storage.
- */
-LmStatus lm_sol_eq(const LmSol *sol, const LmSol *other, bool *out);
-
-/**
- * Compares two solutionss for equal contents.
- *
- * # Safety
- * `sol` must be a valid solution handle created by this library.
- * `other` must be a valid solution handle created by this library.
- * `out` must point to writable `bool` storage.
- */
-LmStatus lm_sol_equal_contents(const LmSol *sol, const LmSol *other, bool *out);
-
-/**
- * Adds an empty binary column for a variable name.
- *
- * # Safety
- * `sol` must be a valid mutable solution handle created by this library.
- * `name` must point to a valid NUL-terminated C string.
- */
-LmStatus lm_sol_add_empty_binary(LmSol *sol, const char *name);
-
-/**
- * Adds an empty spin column for a variable name.
- *
- * # Safety
- * `sol` must be a valid mutable solution handle created by this library.
- * `name` must point to a valid NUL-terminated C string.
- */
-LmStatus lm_sol_add_empty_spin(LmSol *sol, const char *name);
-
-/**
- * Adds an empty integer column for a variable name.
- *
- * # Safety
- * `sol` must be a valid mutable solution handle created by this library.
- * `name` must point to a valid NUL-terminated C string.
- */
-LmStatus lm_sol_add_empty_integer(LmSol *sol, const char *name);
-
-/**
- * Adds an empty real column for a variable name.
- *
- * # Safety
- * `sol` must be a valid mutable solution handle created by this library.
- * `name` must point to a valid NUL-terminated C string.
- */
-LmStatus lm_sol_add_empty_real(LmSol *sol, const char *name);
-
-/**
- * Adds a binary column for a variable name.
- *
- * Values are cast to binary using `tol` as the near-integral tolerance.
- *
- * # Safety
- * `sol` must be a valid mutable solution handle created by this library.
- * `name` must point to a valid NUL-terminated C string.
- * `data` must be null or point to `len` readable `double` values.
- * `tol` may be null; if non-null, it must point to a readable `double`.
- */
-LmStatus lm_sol_add_binary(LmSol *sol,
-                           const char *name,
-                           const double *data,
-                           uintptr_t len,
-                           const double *tol);
-
-/**
- * Adds a spin column for a variable name.
- *
- * Values are cast to binary using `tol` as the near-integral tolerance.
- *
- * # Safety
- * `sol` must be a valid mutable solution handle created by this library.
- * `name` must point to a valid NUL-terminated C string.
- * `data` must be null or point to `len` readable `double` values.
- * `tol` may be null; if non-null, it must point to a readable `double`.
- */
-LmStatus lm_sol_add_spin(LmSol *sol,
-                         const char *name,
-                         const double *data,
-                         uintptr_t len,
-                         const double *tol);
-
-/**
- * Adds an integer column for a variable name.
- *
- * Values are cast to binary using `tol` as the near-integral tolerance.
- *
- * # Safety
- * `sol` must be a valid mutable solution handle created by this library.
- * `name` must point to a valid NUL-terminated C string.
- * `data` must be null or point to `len` readable `double` values.
- * `tol` may be null; if non-null, it must point to a readable `double`.
- */
-LmStatus lm_sol_add_integer(LmSol *sol,
-                            const char *name,
-                            const double *data,
-                            uintptr_t len,
-                            const double *tol);
-
-/**
- * Adds a real column for a variable name.
- *
- * # Safety
- * `sol` must be a valid mutable solution handle created by this library.
- * `name` must point to a valid NUL-terminated C string.
- * `data` must be null or point to `len` readable `double` values.
- */
-LmStatus lm_sol_add_real(LmSol *sol, const char *name, const double *data, uintptr_t len);
-
-/**
- * Dispatches to the appropriate typed column insertion helper.
- *
- * # Safety
- * `sol` must be a valid mutable solution handle created by this library.
- * `name` must point to a valid NUL-terminated C string.
- * `data` must be null or point to `len` readable `double` values.
- * `tol` may be null; if non-null, it must point to a readable `double`.
- */
-LmStatus lm_sol_add_col(LmSol *sol,
-                        LmVtype vtype,
-                        const char *name,
-                        const double *data,
-                        uintptr_t len,
-                        const double *tol);
-
-/**
- * Removes a column for a variable name.
- *
- * # Safety
- * `sol` must be a valid mutable solution handle created by this library.
- * `name` must point to a valid NUL-terminated C string.
- */
-LmStatus lm_sol_remove_col(LmSol *sol, const char *name);
-
-/**
- * Removes columns for many variable names.
- *
- * # Safety
- * `sol` must be a valid mutable solution handle created by this library.
- * `names` must point to `len` readable `char *` values.
- * Each entry in `names` must be non-null and point to a valid NUL-terminated UTF-8 C string.
- */
-LmStatus lm_sol_remove_cols(LmSol *sol, const char *const *names, uintptr_t len);
-
-/**
- * Combines duplicate sample rows into a single row and sums their counts.
- *
- * Duplicate detection is currently based on the stringified sample values in
- * column order. That keeps the implementation simple, but it also means the
- * exact behavior for floating-point heavy solutions depends on how those
- * values stringify.
- *
- * # Safety
- * `sol` must be a valid mutable solution handle created by this library.
- */
-LmStatus lm_sol_aggregate(LmSol *sol);
-
-/**
- * Serializes a solution to bytes, writing an owned buffer to `out`.
- *
- * The buffer must be released with `lm_buffer_free`.
- *
- * # Safety
- * `sol` must be a valid solution handle created by this library.
- * `out` must point to writable `LmBuffer` storage.
- */
-LmStatus lm_sol_serialize(const LmSol *sol, LmBuffer *out);
-
-/**
- * Deserializes a solution from `len` bytes at `data`, writing a new handle to `out`.
- *
- * The new handle must be released with [`lm_sol_free`].
- *
- * # Safety
- * `data` must point to `len` readable bytes and `out` must point to writable storage.
- */
-LmStatus lm_sol_deserialize(const uint8_t *data, uintptr_t len, LmSol **out);
 
 #ifdef __cplusplus
 }  // extern "C"

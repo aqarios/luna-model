@@ -4,7 +4,7 @@ use luna_model::core::Solution;
 
 use crate::{
     LmSol, LmStatus, LmVtype,
-    error::guard,
+    error::{CapiError, guard},
     utils::{mut_from_c, opt_from_c, slice_from_c, str_from_c, vtype_from_c},
 };
 
@@ -93,7 +93,8 @@ pub unsafe extern "C" fn lm_sol_add_binary(
         let name = unsafe { str_from_c(name, "name") }?;
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         let tol = unsafe { opt_from_c(tol) };
-        sol.add_binary(name.to_owned(), data, tol);
+        sol.add_binary(name.to_owned(), data, tol)
+            .map_err(CapiError::errored)?;
         Ok(())
     })
 }
@@ -120,7 +121,8 @@ pub unsafe extern "C" fn lm_sol_add_spin(
         let name = unsafe { str_from_c(name, "name") }?;
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         let tol = unsafe { opt_from_c(tol) };
-        sol.add_spin(name.to_owned(), data, tol);
+        sol.add_spin(name.to_owned(), data, tol)
+            .map_err(CapiError::errored)?;
         Ok(())
     })
 }
@@ -147,7 +149,8 @@ pub unsafe extern "C" fn lm_sol_add_integer(
         let name = unsafe { str_from_c(name, "name") }?;
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         let tol = unsafe { opt_from_c(tol) };
-        sol.add_integer(name.to_owned(), data, tol);
+        sol.add_integer(name.to_owned(), data, tol)
+            .map_err(CapiError::errored)?;
         Ok(())
     })
 }
@@ -195,7 +198,8 @@ pub unsafe extern "C" fn lm_sol_add_col(
         let name = unsafe { str_from_c(name, "name") }?;
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         let tol = unsafe { opt_from_c(tol) };
-        sol.add_col(vtype_from_c(vtype), name.to_owned(), data, tol);
+        sol.add_col(vtype_from_c(vtype), name.to_owned(), data, tol)
+            .map_err(CapiError::errored)?;
         Ok(())
     })
 }
@@ -252,7 +256,7 @@ pub unsafe extern "C" fn lm_sol_remove_cols(
 pub unsafe extern "C" fn lm_sol_aggregate(sol: *mut LmSol) -> LmStatus {
     guard(|| {
         let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
-        sol.aggregate();
+        sol.aggregate().map_err(CapiError::errored)?;
         Ok(())
     })
 }

@@ -53,7 +53,7 @@ pub unsafe extern "C" fn lm_env_vars(env: *const LmEnv, out: *mut LmVrefBuffer) 
         let vars = env
             .vars()
             .into_iter()
-            .map(|v| handle_to_c(v))
+            .map(handle_to_c)
             .collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
         Ok(())
@@ -95,7 +95,7 @@ pub unsafe extern "C" fn lm_env_lookup(
         let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
         let name = unsafe { str_from_c(name, "name") }?;
         let out = unsafe { out_from_c(out) }?;
-        let var = env.lookup(&name).map_err(CapiError::errored)?;
+        let var = env.lookup(name).map_err(CapiError::errored)?;
         *out = handle_to_c(var);
         Ok(())
     })
@@ -140,7 +140,7 @@ pub unsafe extern "C" fn lm_env_contains(
         let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
         let name = unsafe { str_from_c(name, "name") }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = env.contains(&name);
+        *out = env.contains(name);
         Ok(())
     })
 }
@@ -161,7 +161,7 @@ pub unsafe extern "C" fn lm_env_vtype_of(
         let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
         let name = unsafe { str_from_c(name, "name") }?;
         let out = unsafe { out_from_c(out) }?;
-        let vt = env.vtype_of(&name).map_err(CapiError::errored)?;
+        let vt = env.vtype_of(name).map_err(CapiError::errored)?;
         *out = vtype_to_c(vt);
         Ok(())
     })

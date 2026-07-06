@@ -51,14 +51,14 @@ fn generate_funcs_py(crate_dir: &Path, out: &Path) {
 
     let mut fields = Vec::new();
     for item in &ast.items {
-        if let syn::Item::Struct(s) = item {
-            if s.ident == "LunaModelCApi" {
-                for field in &s.fields {
-                    if let Some(ident) = &field.ident {
-                        let name = ident.to_string();
-                        if name != "abi_version" {
-                            fields.push(name);
-                        }
+        if let syn::Item::Struct(s) = item
+            && s.ident == "LunaModelCApi"
+        {
+            for field in &s.fields {
+                if let Some(ident) = &field.ident {
+                    let name = ident.to_string();
+                    if name != "abi_version" {
+                        fields.push(name);
                     }
                 }
             }

@@ -45,7 +45,7 @@ pub unsafe extern "C" fn lm_lazy_bounds_clone(
     guard(|| {
         let lazy_bounds = unsafe { ref_from_c(lazy_bounds as *const LazyBounds, "lazy_bounds") }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(lazy_bounds.clone());
+        *out = handle_to_c(*lazy_bounds);
         Ok(())
     })
 }

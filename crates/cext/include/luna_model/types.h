@@ -167,6 +167,22 @@ typedef enum {
 } LmSense;
 
 /**
+ * ValueSource used by the C API.
+ *
+ * This is the C-ABI-stable mirror of LunaModel's Rust `ValueSource` enum.
+ */
+typedef enum {
+    /**
+     * Use the raw solver-provided energies.
+     */
+    LmValueSource_Raw = 0,
+    /**
+     * Use the model-evaluated objective values.
+     */
+    LmValueSource_Obj = 1,
+} LmValueSource;
+
+/**
  * Bound used by the C API.
  *
  * One side of a variable bound interval.
@@ -389,6 +405,96 @@ typedef struct {
 } LmQuadraticItemBuffer;
 
 /**
+ * Opaque handle to a borrowed LunaModel result-view.
+ *
+ * Created by [`lm_sol_result`] and released with [`lm_result_view_free`]. It
+ * borrows the solution it was created from: the originating `LmSol` must
+ * outlive the view and must not be mutated while the view is alive.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmResultView;
+
+/**
+ * An owned, heap-allocated ResultView buffer the caller takes ownership of.
+ *
+ * ResultView buffers returned by LunaModel must be released
+ * with [`lm_result_view_buffer_free`]. The fields mirror a `Vec<ResultView>` so it can
+ * be rebuilt for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first ResultView, or null for an empty buffer.
+     */
+    LmResultView **data;
+    /**
+     * Number of valid bytes.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmResultViewBuffer;
+
+/**
+ * Opaque handle to a borrowed LunaModel sample-view.
+ *
+ * Created by [`lm_sol_sample`] and released with [`lm_sample_view_free`]. It
+ * borrows the solution it was created from: the originating `LmSol` must
+ * outlive the view and must not be mutated while the view is alive.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmSampleView;
+
+/**
+ * An owned, heap-allocated SampleView buffer the caller takes ownership of.
+ *
+ * SampleView buffers returned by LunaModel must be released
+ * with [`lm_sample_view_buffer_free`]. The fields mirror a `Vec<SampleView>` so it can
+ * be rebuilt for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first SampleView, or null for an empty buffer.
+     */
+    LmSampleView **data;
+    /**
+     * Number of valid bytes.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmSampleViewBuffer;
+
+/**
+ * An owned, heap-allocated string buffer the caller takes ownership of.
+ *
+ * String buffers returned by LunaModel must be released with
+ * [`lm_str_buffer_free`]. The fields mirror a `Vec<*mut c_char>` (each element
+ * an owned NUL-terminated C string) so it can be rebuilt for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first C string, or null for an empty buffer.
+     */
+    char **data;
+    /**
+     * Number of valid strings.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmStrBuffer;
+
+/**
  * Opaque handle to a LunaModel variable reference.
  *
  */
@@ -555,6 +661,17 @@ typedef struct {
 } LmSol;
 
 /**
+ * Typed assignment value used by the C API.
+ *
+ * C-ABI-stable mirror of LunaModel's Rust `Assignment` enum: `vtype` names the
+ * variable kind and `value` holds the numeric assignment (widened to `f64`).
+ */
+typedef struct {
+    LmVtype vtype;
+    double value;
+} LmAssignment;
+
+/**
  * Opaque handle to a LunaModel timer reference.
  *
  */
@@ -592,6 +709,7 @@ typedef struct {
     const char *(*version)(void);
     const char *(*last_error_message)(void);
     void (*buffer_free)(LmBuffer);
+    void (*str_buffer_free)(LmStrBuffer);
     void (*vtype_buffer_free)(LmVtypeBuffer);
     void (*ctype_buffer_free)(LmCtypeBuffer);
     void (*cmp_buffer_free)(LmCmpBuffer);
@@ -600,6 +718,8 @@ typedef struct {
     void (*linear_item_buffer_free)(LmLinearItemBuffer);
     void (*quadratic_item_buffer_free)(LmQuadraticItemBuffer);
     void (*higher_order_item_buffer_free)(LmHigherOrderItemBuffer);
+    void (*result_view_buffer_free)(LmResultViewBuffer);
+    void (*sample_view_buffer_free)(LmSampleViewBuffer);
     void (*model_free)(LmModel*);
     LmModel *(*model_default)(void);
     LmStatus (*model_new)(const char*, const LmSense*, LmModel**);
@@ -657,6 +777,57 @@ typedef struct {
     LmStatus (*env_serialize)(const LmEnv*, LmBuffer*);
     LmStatus (*env_deserialize)(const uint8_t*, uintptr_t, LmEnv**);
     void (*sol_free)(LmSol*);
+    LmStatus (*sol_clone)(const LmSol*, LmSol**);
+    LmStatus (*sol_eq)(const LmSol*, const LmSol*, bool*);
+    LmStatus (*sol_equal_contents)(const LmSol*, const LmSol*, bool*);
+    LmSol *(*sol_default)(void);
+    LmSol *(*sol_with_sense)(LmSense);
+    LmSol *(*sol_with_capacity)(uintptr_t);
+    LmStatus (*sol_from_env)(const LmEnv*, LmSol**);
+    LmStatus (*sol_from_random)(uintptr_t,
+                                const uint64_t*,
+                                const LmEnv*,
+                                const LmModel*,
+                                const LmSense*,
+                                const double*,
+                                LmSol**);
+    LmStatus (*sol_merge_many)(const LmSol*const *,
+                               uintptr_t,
+                               const LmModel*,
+                               const double*,
+                               LmSol**);
+    LmStatus (*sol_add_empty_binary)(LmSol*, const char*);
+    LmStatus (*sol_add_empty_spin)(LmSol*, const char*);
+    LmStatus (*sol_add_empty_integer)(LmSol*, const char*);
+    LmStatus (*sol_add_empty_real)(LmSol*, const char*);
+    LmStatus (*sol_add_binary)(LmSol*, const char*, const double*, uintptr_t, const double*);
+    LmStatus (*sol_add_spin)(LmSol*, const char*, const double*, uintptr_t, const double*);
+    LmStatus (*sol_add_integer)(LmSol*, const char*, const double*, uintptr_t, const double*);
+    LmStatus (*sol_add_real)(LmSol*, const char*, const double*, uintptr_t);
+    LmStatus (*sol_add_col)(LmSol*, LmVtype, const char*, const double*, uintptr_t, const double*);
+    LmStatus (*sol_remove_col)(LmSol*, const char*);
+    LmStatus (*sol_remove_cols)(LmSol*, const char*const *, uintptr_t);
+    LmStatus (*sol_aggregate)(LmSol*);
+    LmStatus (*sol_n_samples)(const LmSol*, uintptr_t*);
+    LmStatus (*sol_len)(const LmSol*, uintptr_t*);
+    LmStatus (*sol_variable_names)(const LmSol*, LmStrBuffer*);
+    LmStatus (*sol_is_empty)(const LmSol*, bool*);
+    LmStatus (*sol_sample_len)(const LmSol*, uintptr_t*);
+    LmStatus (*sol_value)(const LmSol*, uintptr_t, const char*, double*);
+    LmStatus (*sol_assignment)(const LmSol*, uintptr_t, const char*, LmAssignment*);
+    LmStatus (*sol_assignment_idx)(const LmSol*, uintptr_t, uintptr_t, LmAssignment*);
+    LmStatus (*sol_result)(const LmSol*, uintptr_t, LmResultView**);
+    LmStatus (*sol_results)(const LmSol*, LmResultViewBuffer*);
+    LmStatus (*sol_sample)(const LmSol*, uintptr_t, LmSampleView**);
+    LmStatus (*sol_samples)(const LmSol*, LmSampleViewBuffer*);
+    LmStatus (*sol_best)(const LmSol*, LmResultViewBuffer*);
+    LmStatus (*sol_extract)(const LmSol*, uintptr_t, LmSol**);
+    LmStatus (*sol_cvar)(const LmSol*, double, const LmValueSource*, double*);
+    LmStatus (*sol_expectation_value)(const LmSol*, const LmValueSource*, double*);
+    LmStatus (*sol_temperature_weighted)(const LmSol*, double, const LmValueSource*, double*);
+    LmStatus (*sol_feasibility_ratio)(const LmSol*, double*);
+    LmStatus (*sol_highest_constraint_violations)(const LmSol*, LmBuffer*);
+    LmStatus (*sol_serialize)(const LmSol*, LmBuffer*);
     LmStatus (*sol_deserialize)(const uint8_t*, uintptr_t, LmSol**);
     void (*expr_free)(LmExpr*);
     LmExpr *(*expr_default)(void);

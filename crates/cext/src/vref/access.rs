@@ -121,7 +121,7 @@ pub unsafe extern "C" fn lm_vref_inverted(vref: *const LmVref, out: *mut *mut Lm
         let companion = vref.inverted().map_err(CapiError::errored)?;
 
         *out = companion
-            .map(|c| handle_to_c(c))
+            .map(handle_to_c)
             .unwrap_or(std::ptr::null_mut());
 
         Ok(())

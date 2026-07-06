@@ -8,12 +8,12 @@
 
 pub use lunamodel_cext_vtable::LunaModelCApi;
 pub use lunamodel_cext_vtable::{
-    LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC, LmCmpBuffer, LmComparator, LmConstraint,
-    LmCtype, LmCtypeBuffer, LmEnv, LmEnvId, LmExpr, LmHigherOrder, LmHigherOrderItem,
+    LmAssignment, LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC, LmCmpBuffer, LmComparator,
+    LmConstraint, LmCtype, LmCtypeBuffer, LmEnv, LmEnvId, LmExpr, LmHigherOrder, LmHigherOrderItem,
     LmHigherOrderItemBuffer, LmLazyBounds, LmLinear, LmLinearItem, LmLinearItemBuffer, LmModel,
-    LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer, LmSense, LmSol, LmSpecs, LmStatus,
-    LmTimer, LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype,
-    LmVtypeBuffer,
+    LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer, LmResultView, LmResultViewBuffer,
+    LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSpecs, LmStatus, LmStrBuffer, LmTimer,
+    LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
 };
 
 /// ABI version of the C API table.
@@ -42,13 +42,14 @@ pub mod lazy_bounds;
 pub mod linear;
 pub mod model;
 pub mod quadratic;
-pub mod solution;
+pub mod res;
+pub mod sample;
+pub mod sol;
 pub mod specs;
 pub mod timer;
 pub mod timing;
 pub mod var;
 pub mod version;
 pub mod vref;
-pub mod sol;
 
 mod utils;
