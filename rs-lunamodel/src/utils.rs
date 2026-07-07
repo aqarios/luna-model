@@ -1,8 +1,10 @@
 use std::ffi::{CString, c_char};
 
+use lunamodel_cext_vtable::LmEnvId;
+
 use crate::{
     Error, Result, Status,
-    traits::{TryToCString, TryToOptCString},
+    traits::{LmTryFrom, TryToCString, TryToOptCString},
 };
 
 fn interior_nul() -> Error {
@@ -42,4 +44,10 @@ impl TryToOptCString for Option<&str> {
 /// macro sigil ensures this by keeping it alive as a statement-scoped temporary.
 pub(crate) fn opt_cstring_ptr(opt: &Option<CString>) -> *const c_char {
     opt.as_ref().map_or(std::ptr::null(), |c| c.as_ptr())
+}
+
+impl LmTryFrom<LmEnvId> for u128 {
+    fn lm_try_from(value: LmEnvId) -> Result<Self> {
+        Ok(((value.hi as u128) << 64) | (value.lo as u128))
+    }
 }
