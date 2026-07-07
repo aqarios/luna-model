@@ -177,6 +177,11 @@ impl ConstraintCollection {
             .get(key)
             .ok_or_else(|| LunaModelError::NoConstraintForKey(key.to_string().into()))
     }
+
+    /// Check if the collection contains a constraint with the specified name.
+    pub fn contains(&self, key: &str) -> bool {
+        self.data.contains_key(key)
+    }
 }
 
 impl ContentEquality for ConstraintCollection {

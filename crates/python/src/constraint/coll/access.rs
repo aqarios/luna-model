@@ -44,4 +44,8 @@ impl PyConstraintCollection {
     fn __iter__(&self) -> PyConstraintCollectionIterator {
         PyConstraintCollectionIterator::new(self)
     }
+
+    fn __contains__(&self, cname: String) -> bool {
+        self.read().contains(&cname)
+    }
 }
