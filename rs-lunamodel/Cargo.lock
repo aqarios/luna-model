@@ -349,6 +349,15 @@ version = "0.0.1"
 dependencies = [
  "lunamodel-cext-vtable",
  "lunamodel-types",
+ "rs-lunamodel-derive",
+]
+
+[[package]]
+name = "rs-lunamodel-derive"
+version = "0.0.1"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]

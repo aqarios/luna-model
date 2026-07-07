@@ -2,8 +2,6 @@ use std::ops::{Add, Mul, Neg, Sub};
 
 use crate::{
     Expression, Result,
-    api::api,
-    error::check,
     traits::{TryAddAssign, TryMulAssign, TrySubAssign},
 };
 
@@ -15,7 +13,7 @@ impl TryAddAssign<Expression> for Expression {
 
 impl TryAddAssign<&Expression> for Expression {
     fn try_add_assign(&mut self, rhs: &Expression) -> Result<()> {
-        check(unsafe { (api().expr_iadd_expr)(self.handle, rhs.as_ptr()) })
+        check!(expr_iadd_expr(@mut self, @rhs))
     }
 }
 
@@ -43,9 +41,7 @@ impl Add<Expression> for &Expression {
     type Output = Result<Expression>;
 
     fn add(self, rhs: Expression) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_add_expr)(self.as_ptr(), rhs.as_ptr(), &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_add_expr(@self, @rhs), |o| Ok(Expression::from_raw(o)))
     }
 }
 
@@ -53,9 +49,7 @@ impl Add<&Expression> for &Expression {
     type Output = Result<Expression>;
 
     fn add(self, rhs: &Expression) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_add_expr)(self.as_ptr(), rhs.as_ptr(), &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_add_expr(@self, @rhs), |o| Ok(Expression::from_raw(o)))
     }
 }
 
@@ -99,7 +93,7 @@ impl TrySubAssign<Expression> for Expression {
 
 impl TrySubAssign<&Expression> for Expression {
     fn try_sub_assign(&mut self, rhs: &Expression) -> Result<()> {
-        check(unsafe { (api().expr_isub_expr)(self.handle, rhs.as_ptr()) })
+        check!(expr_isub_expr(@mut self, @rhs))
     }
 }
 
@@ -127,9 +121,7 @@ impl Sub<Expression> for &Expression {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: Expression) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_sub_expr)(self.as_ptr(), rhs.as_ptr(), &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_sub_expr(@self, @rhs), |o| Ok(Expression::from_raw(o)))
     }
 }
 
@@ -137,9 +129,7 @@ impl Sub<&Expression> for &Expression {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: &Expression) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_sub_expr)(self.as_ptr(), rhs.as_ptr(), &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_sub_expr(@self, @rhs), |o| Ok(Expression::from_raw(o)))
     }
 }
 
@@ -183,7 +173,7 @@ impl TryMulAssign<Expression> for Expression {
 
 impl TryMulAssign<&Expression> for Expression {
     fn try_mul_assign(&mut self, rhs: &Expression) -> Result<()> {
-        check(unsafe { (api().expr_imul_expr)(self.handle, rhs.as_ptr()) })
+        check!(expr_imul_expr(@mut self, @rhs))
     }
 }
 
@@ -211,9 +201,7 @@ impl Mul<Expression> for &Expression {
     type Output = Result<Expression>;
 
     fn mul(self, rhs: Expression) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_mul_expr)(self.as_ptr(), rhs.as_ptr(), &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_mul_expr(@self, @rhs), |o| Ok(Expression::from_raw(o)))
     }
 }
 
@@ -221,9 +209,7 @@ impl Mul<&Expression> for &Expression {
     type Output = Result<Expression>;
 
     fn mul(self, rhs: &Expression) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_mul_expr)(self.as_ptr(), rhs.as_ptr(), &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_mul_expr(@self, @rhs), |o| Ok(Expression::from_raw(o)))
     }
 }
 
@@ -263,9 +249,7 @@ impl Neg for Expression {
     type Output = Result<Self>;
 
     fn neg(self) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_neg)(self.as_ptr(), &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_neg(@self), |o| Ok(Expression::from_raw(o)))
     }
 }
 
@@ -273,8 +257,6 @@ impl Neg for &Expression {
     type Output = Result<Expression>;
 
     fn neg(self) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_neg)(self.as_ptr(), &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_neg(@self), |o| Ok(Expression::from_raw(o)))
     }
 }

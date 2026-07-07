@@ -6,14 +6,14 @@ use crate::api::api;
 
 /// Owning handle to a LunaModel environment (frees on drop).
 ///
-/// Mirrors the Rust `ArcEnv`/`Environment`: the shared context that resolves the
-/// variables referenced by an [`crate::Expression`].
+/// The shared context that resolves the variables referenced by an
+/// [`crate::Expression`].
 pub struct Env {
     handle: *mut LmEnv,
 }
 
 impl Env {
-    /// Creates a fresh, empty environment (Rust `Environment::default()`).
+    /// Creates a fresh, empty environment.
     pub fn new() -> Self {
         // `env_default` returns a non-null handle.
         Env {

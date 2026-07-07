@@ -8,14 +8,19 @@
 mod access;
 mod arithmetic;
 mod creation;
+mod general;
 
 use crate::{
-    Env, api::api, traits::{ContentEquality, Serialization, TryClone, TryDeepClone, TryToVec},
+    Env,
+    api::api,
+    traits::{ContentEquality, Serialization, TryClone, TryDeepClone, TryToVec},
 };
 
 use lunamodel_cext_vtable::{LmBuffer, LmExpr};
+use rs_lunamodel_derive::RawHandle;
 
 /// Owning handle to a LunaModel expression (frees on drop).
+#[derive(RawHandle)]
 pub struct Expression {
     handle: *mut LmExpr,
 }
@@ -27,31 +32,19 @@ impl Drop for Expression {
 }
 
 impl Expression {
-    /// Wraps a raw handle owned by the caller.
-    pub(crate) fn from_raw(handle: *mut LmExpr) -> Self {
-        Expression { handle }
-    }
-
-    /// Borrows the raw handle for C interop.
-    pub fn as_ptr(&self) -> *const LmExpr {
-        self.handle
-    }
-
-    /// Clones into a new handle sharing the environment (Rust `Clone`).
+    /// Clones into a new handle sharing the environment.
     ///
     /// Named `try_clone` because the fallible C call cannot satisfy `Clone`.
     pub fn try_clone(&self) -> crate::Result<Self> {
         <Self as TryClone>::try_clone(self)
     }
 
-    /// Deep-clones into an independent expression rebound to `env`
-    /// (Rust `expr.deep_clone(env)`).
+    /// Deep-clones into an independent expression rebound to `env`.
     pub fn deep_clone(&self, env: &Env) -> crate::Result<Self> {
         <Self as TryDeepClone>::deep_clone(self, env)
     }
 
-    /// Content equality, ignoring environment identity
-    /// (Rust `expr.equal_contents(&other)`).
+    /// Content equality, ignoring environment identity.
     pub fn equal_contents(&self, other: &Self) -> crate::Result<bool> {
         <Self as ContentEquality>::equal_contents(self, other)
     }
@@ -68,15 +61,14 @@ impl Expression {
 }
 
 impl Default for Expression {
-    /// Creates an empty expression with a fresh environment
-    /// (Rust `Expression::default()`).
+    /// Creates an empty expression with a fresh environment.
     fn default() -> Self {
         Self::from_raw((api().expr_default)())
     }
 }
 
 impl PartialEq for Expression {
-    /// Structural equality including environment identity (Rust `PartialEq`).
+    /// Structural equality including environment identity.
     ///
     /// An FFI failure is treated as "not equal".
     fn eq(&self, other: &Self) -> bool {

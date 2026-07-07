@@ -31,16 +31,25 @@ mod buffer;
 mod traits;
 
 mod api;
+mod bounds;
 mod env;
 mod error;
 mod expr;
+mod higher_order;
+mod linear;
+mod quadratic;
 mod types;
+mod variable;
 mod vref;
 
 pub use api::{InitError, init, is_initialized};
+pub use bounds::Bounds;
 pub use env::Env;
 pub use error::{Error, Result, Status};
 pub use expr::Expression;
+pub use higher_order::HigherOrder;
+pub use linear::Linear;
+pub use quadratic::Quadratic;
 pub use traits::{ContentEquality, Serialization, TryClone, TryDeepClone};
 pub use vref::VarRef;
 

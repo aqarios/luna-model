@@ -21,6 +21,7 @@ incremental = false
 
 # Keep out of workspace
 [workspace]
+members = ["derive"]
 
 [dependencies]
 # Table type + ABI structs only — no luna-model core, so consumers never link a
@@ -28,3 +29,4 @@ incremental = false
 # host's `_C_API` capsule at runtime.
 lunamodel-cext-vtable = { path = "../crates/cext-vtable" }
 lunamodel-types = { path = "../crates/types" }
+rs-lunamodel-derive = { path = "./derive" }

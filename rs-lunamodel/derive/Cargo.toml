@@ -1,0 +1,12 @@
+[package]
+name = "rs-lunamodel-derive"
+version = "0.0.1"
+edition = "2024"
+license = "Apache-2.0"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1.0.46"
+syn = "2.0.118"

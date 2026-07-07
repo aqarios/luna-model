@@ -68,7 +68,7 @@ impl Status {
 }
 
 /// Turns a status code into `Ok(())` or an [`Error`] carrying the thread-local
-/// last-error message. The Rust analog of the C++ `detail::check`.
+/// last-error message.
 pub(crate) fn check(status: LmStatus) -> Result<()> {
     match Status::from_code(status) {
         None => Ok(()),

@@ -3,16 +3,18 @@
 //! Mirrors the Rust `VarRef`, dispatching every call through the installed
 //! [`LunaModelCApi`](lunamodel_cext_vtable::LunaModelCApi) table. Fallible ABI
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
-//! that are infallible on the native `Expression` still return `Result` here.
+//! that are infallible on the native `VarRef` still return `Result` here.
 
 mod access;
 mod creation;
+mod general;
+mod arithmetic;
 
 use lunamodel_cext_vtable::LmVref;
+use rs_lunamodel_derive::RawHandle;
 
-use crate::api::api;
-
-/// Owning handle to a LunaModel expression (frees on drop).
+/// Owning handle to a LunaModel vref (frees on drop).
+#[derive(RawHandle)]
 pub struct VarRef {
     handle: *mut LmVref,
 }
@@ -20,20 +22,16 @@ pub struct VarRef {
 impl Drop for VarRef {
     fn drop(&mut self) {
         if !self.handle.is_null() {
-            // SAFETY: `handle` was produced by this library and is freed once.
-            unsafe { (api().vref_free)(self.handle) };
+            free!(self, vref_free)
         }
     }
 }
 
-impl VarRef {
-    /// Wraps a raw handle owned by the caller.
-    pub(crate) fn from_raw(handle: *mut LmVref) -> Self {
-        VarRef { handle }
-    }
-
-    /// Borrows the raw handle for C interop.
-    pub fn as_ptr(&self) -> *const LmVref {
-        self.handle
+impl PartialEq for VarRef {
+    /// Structural equality including environment identity.
+    ///
+    /// An FFI failure is treated as "not equal".
+    fn eq(&self, other: &Self) -> bool {
+        out_or!(vref_eq(@self, @other), false)
     }
 }

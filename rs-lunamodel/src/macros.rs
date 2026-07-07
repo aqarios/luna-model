@@ -8,6 +8,18 @@
 /// function-pointer call syntax, `unsafe` block, and explicit call to
 /// [`crate::error::check`].
 ///
+/// This accepts the same argument syntax as [`out!`], the only difference being
+/// that there is no trailing out pointer and the result is `Result<()>`:
+/// - `@arg` passes `arg.as_ptr()` (a `*const` handle pointer), identical to
+///   [`out!`]. Use this for read-only wrapper handles such as `Env`,
+///   `Expression`, or `VarRef`.
+/// - `@mut arg` passes `arg.as_mut_ptr()` (a `*mut` handle pointer). Use this
+///   for the in-place receiver of mutating ABI functions like `expr_iadd_expr`.
+/// - `?arg` passes `arg.as_opt_ptr()` (a nullable `*const`): `Some(v)` becomes a
+///   pointer to `v`, `None` becomes null. Use this for optional ABI arguments
+///   such as `tol: Option<f64>`.
+/// - plain `arg` is passed by value.
+///
 /// # Safety
 /// The caller must ensure all pointers and buffers passed to the ABI call are
 /// valid for that function. This macro centralizes the `unsafe` syntax; it does
@@ -21,11 +33,67 @@
 /// })?;
 ///
 /// // Write:
-/// check!(expr_iadd_expr(self.handle, rhs.as_ptr()))?;
+/// check!(expr_iadd_expr(@mut self, @rhs))
+/// ```
+///
+/// Automatically passing wrapper handles as pointers. `@mut` marks the mutable
+/// in-place receiver (`.as_mut_ptr()`); `@` marks read-only handles
+/// (`.as_ptr()`):
+///
+/// ```ignore
+/// // Instead of:
+/// crate::error::check(unsafe {
+///     (crate::api::api().expr_iadd_expr)(self.as_mut_ptr(), rhs.as_ptr())
+/// })
+///
+/// // Write:
+/// check!(expr_iadd_expr(@mut self, @rhs))
+/// ```
+///
+/// Mixing pointer-converted handles with by-value arguments:
+///
+/// ```ignore
+/// check!(expr_set_offset(@mut self, value))
 /// ```
 macro_rules! check {
-    ($func:ident ( $($arg:expr),* $(,)? )) => {
-        crate::error::check(unsafe { (crate::api::api().$func)($($arg),*) })
+    ($func:ident ( $($arg:tt)* )) => {
+        crate::error::check(unsafe { check!(@call $func, [] $($arg)*) })
+    };
+
+    (@call $func:ident, [$($built:expr,)*]) => {
+        (crate::api::api().$func)($($built,)*)
+    };
+
+    (@call $func:ident, [$($built:expr,)*] @ mut $arg:expr, $($rest:tt)*) => {
+        check!(@call $func, [$($built,)* ($arg).as_mut_ptr(),] $($rest)*)
+    };
+
+    (@call $func:ident, [$($built:expr,)*] @ mut $arg:expr $(,)?) => {
+        check!(@call $func, [$($built,)* ($arg).as_mut_ptr(),])
+    };
+
+    (@call $func:ident, [$($built:expr,)*] @ $arg:expr, $($rest:tt)*) => {
+        check!(@call $func, [$($built,)* ($arg).as_ptr(),] $($rest)*)
+    };
+
+    (@call $func:ident, [$($built:expr,)*] @ $arg:expr $(,)?) => {
+        check!(@call $func, [$($built,)* ($arg).as_ptr(),])
+    };
+
+    (@call $func:ident, [$($built:expr,)*] ? $arg:expr, $($rest:tt)*) => {
+        check!(@call $func, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&($arg)),] $($rest)*)
+    };
+
+    (@call $func:ident, [$($built:expr,)*] ? $arg:expr $(,)?) => {
+        check!(@call $func, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&($arg)),])
+    };
+
+    (@call $func:ident, [$($built:expr,)*] $arg:expr, $($rest:tt)*) => {
+        check!(@call $func, [$($built,)* $arg,] $($rest)*)
+    };
+
+    (@call $func:ident, [$($built:expr,)*] $arg:expr $(,)?) => {
+        check!(@call $func, [$($built,)* $arg,])
     };
 }
 
@@ -65,9 +133,11 @@ macro_rules! abi {
 /// form passes the initialized out value into a mapper closure, which should
 /// itself return a `Result`.
 ///
-/// Prefix an argument with `@` to pass `arg.as_ptr()` to the ABI function.
-/// Unprefixed arguments are passed by value. Use this for wrapper handles such
-/// as `Env`, `Expression`, or `VarRef`.
+/// Prefix an argument with `@` to pass `arg.as_ptr()` to the ABI function. Use
+/// this for wrapper handles such as `Env`, `Expression`, or `VarRef`. Prefix an
+/// argument with `?` to pass `arg.as_opt_ptr()`, mapping `Option<T>` to a
+/// nullable `*const T` (`None` -> null). Unprefixed arguments are passed by
+/// value.
 ///
 /// # Safety
 /// The ABI function must initialize the out pointer on `LmStatus::Ok`. The
@@ -83,7 +153,7 @@ macro_rules! abi {
 /// let env = unsafe { out.assume_init() };
 ///
 /// // Write:
-/// let env = out!(model_env(model.as_ptr()))?;
+/// let env = out!(model_env(@model))?;
 /// ```
 ///
 /// Automatically passing leading wrapper handles as `.as_ptr()`:
@@ -153,6 +223,14 @@ macro_rules! out {
 
     (@call $func:ident $out:ident, [$($built:expr,)*] @ $arg:expr $(,)?) => {
         out!(@call $func $out, [$($built,)* ($arg).as_ptr(),])
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? $arg:expr, $($rest:tt)*) => {
+        out!(@call $func $out, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&($arg)),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? $arg:expr $(,)?) => {
+        out!(@call $func $out, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&($arg)),])
     };
 
     (@call $func:ident $out:ident, [$($built:expr,)*] $arg:expr, $($rest:tt)*) => {
@@ -227,6 +305,14 @@ macro_rules! out_or {
 
     (@call $func:ident $out:ident, [$($built:expr,)*] @ $arg:expr $(,)?) => {
         out_or!(@call $func $out, [$($built,)* ($arg).as_ptr(),])
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? $arg:expr, $($rest:tt)*) => {
+        out_or!(@call $func $out, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&($arg)),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? $arg:expr $(,)?) => {
+        out_or!(@call $func $out, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&($arg)),])
     };
 
     (@call $func:ident $out:ident, [$($built:expr,)*] $arg:expr, $($rest:tt)*) => {

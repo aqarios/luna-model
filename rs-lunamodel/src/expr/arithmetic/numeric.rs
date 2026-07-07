@@ -2,14 +2,12 @@ use std::ops::{Add, Mul, Sub};
 
 use crate::{
     Expression, Result,
-    api::api,
-    error::check,
     traits::{TryAddAssign, TryMulAssign, TrySubAssign},
 };
 
 impl TryAddAssign<f64> for Expression {
     fn try_add_assign(&mut self, rhs: f64) -> Result<()> {
-        check(unsafe { (api().expr_iadd_bias)(self.handle, rhs) })
+        check!(expr_iadd_bias(@mut self, rhs))
     }
 }
 
@@ -27,9 +25,7 @@ impl Add<f64> for &Expression {
     type Output = Result<Expression>;
 
     fn add(self, rhs: f64) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_add_bias)(self.as_ptr(), rhs, &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_add_bias(@self, rhs), |o| Ok(Expression::from_raw(o)))
     }
 }
 
@@ -89,7 +85,7 @@ impl Add<&Expression> for usize {
 
 impl TrySubAssign<f64> for Expression {
     fn try_sub_assign(&mut self, rhs: f64) -> Result<()> {
-        check(unsafe { (api().expr_isub_bias)(self.handle, rhs) })
+        check!(expr_isub_bias(@mut self, rhs))
     }
 }
 
@@ -107,9 +103,7 @@ impl Sub<f64> for &Expression {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: f64) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_sub_bias)(self.as_ptr(), rhs, &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_sub_bias(@self, rhs), |o| Ok(Expression::from_raw(o)))
     }
 }
 
@@ -139,9 +133,7 @@ impl Sub<Expression> for f64 {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: Expression) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_rsub_bias)(rhs.as_ptr(), self, &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_rsub_bias(@rhs, self), |o| Ok(Expression::from_raw(o)))
     }
 }
 
@@ -149,9 +141,7 @@ impl Sub<&Expression> for f64 {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: &Expression) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_rsub_bias)(rhs.as_ptr(), self, &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_rsub_bias(@rhs, self), |o| Ok(Expression::from_raw(o)))
     }
 }
 
@@ -173,7 +163,7 @@ impl Sub<&Expression> for usize {
 
 impl TryMulAssign<f64> for Expression {
     fn try_mul_assign(&mut self, rhs: f64) -> Result<()> {
-        check(unsafe { (api().expr_imul_bias)(self.handle, rhs) })
+        check!(expr_imul_bias(@mut self, rhs))
     }
 }
 
@@ -191,9 +181,7 @@ impl Mul<f64> for &Expression {
     type Output = Result<Expression>;
 
     fn mul(self, rhs: f64) -> Self::Output {
-        let mut out = std::ptr::null_mut();
-        check(unsafe { (api().expr_mul_bias)(self.as_ptr(), rhs, &mut out) })?;
-        Ok(Expression::from_raw(out))
+        out!(expr_mul_bias(@self, rhs), |o| Ok(Expression::from_raw(o)))
     }
 }
 

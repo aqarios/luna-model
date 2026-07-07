@@ -1,40 +1,57 @@
-use lunamodel_cext_vtable::{LmBuffer, LmVtype};
+use lunamodel_cext_vtable::{LmBuffer, LmVref, LmVtype};
 use lunamodel_types::Vtype;
 
 use super::VarRef;
+use crate::bounds::Bounds;
 use crate::traits::LmInto;
 
-use crate::{Result, traits::TryToString};
+use crate::{Error, Result, Status, traits::TryToString};
 
 impl VarRef {
+    /// Returns the raw variable index inside the environment.
     pub fn id(&self) -> Result<u32> {
         out!(vref_id(@self))
     }
 
-    pub fn check_living(&self) -> Result<bool> {
-        out!(vref_check_living(@self))
+    /// Checks that the variable is still live in its environment, failing early
+    /// if it is not.
+    pub fn check_living(&self) -> Result<()> {
+        let living: bool = out!(vref_check_living(@self))?;
+        if living {
+            Ok(())
+        } else {
+            Err(Error {
+                status: Status::Absent,
+                message: "variable is not live in its environment".to_string(),
+            })
+        }
     }
 
     /// Returns the variable name.
-    ///
-    /// Mirrors the native Rust `VarRef::name()` API, but returns `Result` because
-    /// the C ABI can fail while resolving the name.
     pub fn name(&self) -> Result<String> {
         out!(vref_name(@self), |out: LmBuffer| out.try_to_string())
     }
 
     /// Returns the variable type.
-    ///
-    /// Mirrors the native Rust `VarRef::vtype()` API, converting the C ABI enum into
-    /// the shared `lunamodel_types::Vtype`.
     pub fn vtype(&self) -> Result<Vtype> {
         out!(vref_vtype(@self), |out: LmVtype| Ok(out.lm_into()))
     }
 
+    /// Returns a stable hash derived from the variable's resolved name.
     pub fn hash(&self) -> Result<u64> {
         out!(vref_hash(@self))
     }
 
-    // pub vref_bounds: unsafe extern "C" fn(*const LmVref, *mut *mut LmBounds) -> LmStatus,
-    // pub vref_inverted: unsafe extern "C" fn(*const LmVref, *mut *mut LmVref) -> LmStatus,
+    /// Returns a copy of the variable's bounds.
+    pub fn bounds(&self) -> Result<Bounds> {
+        out!(vref_bounds(@self), |o| Ok(Bounds::from_raw(o)))
+    }
+
+    /// Returns the inverted companion variable, or `None` if the variable has no
+    /// inverted companion.
+    pub fn inverted(&self) -> Result<Option<VarRef>> {
+        out!(vref_inverted(@self), |o: *mut LmVref| Ok(
+            (!o.is_null()).then(|| VarRef::from_raw(o))
+        ))
+    }
 }

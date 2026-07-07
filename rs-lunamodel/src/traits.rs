@@ -68,3 +68,35 @@ where
 pub trait LmInto<T> {
     fn lm_into(self) -> T;
 }
+
+pub trait LmTryInto<T> {
+    fn lm_try_into(self) -> Result<T>;
+}
+
+pub trait LmTryFrom<T>: Sized {
+    fn lm_try_from(value: T) -> Result<Self>;
+}
+
+impl<T, U> LmTryInto<U> for T
+where
+    U: LmTryFrom<T>,
+{
+    fn lm_try_into(self) -> Result<U> {
+        U::lm_try_from(self)
+    }
+}
+
+/// Converts an optional value into a nullable C pointer:
+/// `Some(v)` yields a pointer to `v`, `None` yields null.
+pub(crate) trait AsOptPtr<T> {
+    fn as_opt_ptr(&self) -> *const T;
+}
+
+impl<T> AsOptPtr<T> for Option<T> {
+    fn as_opt_ptr(&self) -> *const T {
+        match self {
+            Some(v) => std::ptr::from_ref(v),
+            None => std::ptr::null(),
+        }
+    }
+}
