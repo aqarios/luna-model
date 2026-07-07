@@ -373,3 +373,18 @@ class ConstraintCollection:
             String representation of the constraint collection.
         """
         return self._cc.__str__()
+
+    def __contains__(self, constr: str) -> bool:
+        """Check if a constraint name exists in this constraint collection.
+
+        Parameters
+        ----------
+        constr : str
+            The constraint name to check.
+
+        Returns
+        -------
+        bool
+            True if a constraint with the given name exists.
+        """
+        return self._cc.__contains__(constr)
