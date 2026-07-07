@@ -29,6 +29,13 @@
 //! | `?~x`     | `(x.map(|v| v.lm_into())).as_opt_ptr()`                | `Option<value>` needing conversion → nullable `*const LmX` (e.g. `Option<Sense>` → `const LmSense*`) |
 //! | `?x`      | `x.as_opt_ptr()`                                       | `Option<value>` → nullable `*const T` (e.g. `Option<f64>` → `const double*`) |
 //! | `x`       | `x` (by value)                                         | scalars, already-correct raw pointers, `&mut out` args, etc. |
+//! | `*xs`     | `xs.to_ptr_list()?.as_ptr(), xs.len()`                 | a slice `&[String]` / `&[VarRef]` → **two** args: `*const *const T` array + `usize` length |
+//!
+//! `*xs` is the one sigil that expands to *two* ABI arguments (array pointer then
+//! length). It marshals `&[String]` (into owned `CString`s) or `&[VarRef]` (into
+//! handle pointers) via [`ToPtrList`](crate::traits::ToPtrList); the owned array
+//! lives as a statement-scoped temporary and the length comes from the slice. Pass
+//! a genuine leading-deref value as `(*p)` so it isn't taken as this sigil.
 //!
 //! The `?`-family splits on the second character — `?` = pointer to a value, `?@` = handle,
 //! `?!` = C string, `?~` = converted value — mirroring the non-optional `@` / `!` / `~`.
@@ -173,6 +180,14 @@ macro_rules! check {
 
     (@call $func:ident, [$($built:expr,)*] ~ $arg:expr $(,)?) => {
         check!(@call $func, [$($built,)* crate::traits::LmInto::lm_into($arg),])
+    };
+
+    (@call $func:ident, [$($built:expr,)*] * $arg:expr, $($rest:tt)*) => {
+        check!(@call $func, [$($built,)* crate::traits::ToPtrList::to_ptr_list($arg)?.as_ptr(), ($arg).len(),] $($rest)*)
+    };
+
+    (@call $func:ident, [$($built:expr,)*] * $arg:expr $(,)?) => {
+        check!(@call $func, [$($built,)* crate::traits::ToPtrList::to_ptr_list($arg)?.as_ptr(), ($arg).len(),])
     };
 
     (@call $func:ident, [$($built:expr,)*] $arg:expr, $($rest:tt)*) => {
@@ -368,6 +383,14 @@ macro_rules! out {
         out!(@call $func $out, [$($built,)* crate::traits::LmInto::lm_into($arg),])
     };
 
+    (@call $func:ident $out:ident, [$($built:expr,)*] * $arg:expr, $($rest:tt)*) => {
+        out!(@call $func $out, [$($built,)* crate::traits::ToPtrList::to_ptr_list($arg)?.as_ptr(), ($arg).len(),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] * $arg:expr $(,)?) => {
+        out!(@call $func $out, [$($built,)* crate::traits::ToPtrList::to_ptr_list($arg)?.as_ptr(), ($arg).len(),])
+    };
+
     (@call $func:ident $out:ident, [$($built:expr,)*] $arg:expr, $($rest:tt)*) => {
         out!(@call $func $out, [$($built,)* $arg,] $($rest)*)
     };
@@ -496,6 +519,14 @@ macro_rules! out_or {
 
     (@call $func:ident $out:ident, [$($built:expr,)*] ~ $arg:expr $(,)?) => {
         out_or!(@call $func $out, [$($built,)* crate::traits::LmInto::lm_into($arg),])
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] * $arg:expr, $($rest:tt)*) => {
+        out_or!(@call $func $out, [$($built,)* crate::traits::ToPtrList::to_ptr_list($arg)?.as_ptr(), ($arg).len(),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] * $arg:expr $(,)?) => {
+        out_or!(@call $func $out, [$($built,)* crate::traits::ToPtrList::to_ptr_list($arg)?.as_ptr(), ($arg).len(),])
     };
 
     (@call $func:ident $out:ident, [$($built:expr,)*] $arg:expr, $($rest:tt)*) => {

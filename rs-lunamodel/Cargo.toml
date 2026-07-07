@@ -24,9 +24,11 @@ incremental = false
 members = ["derive"]
 
 [dependencies]
+itertools = "0.15.0"
 # Table type + ABI structs only — no luna-model core, so consumers never link a
 # second copy of the library. The `LunaModelCApi` function pointers come from the
 # host's `_C_API` capsule at runtime.
 lunamodel-cext-vtable = { path = "../crates/cext-vtable" }
 lunamodel-types = { path = "../crates/types" }
+num = "0.4.3"
 rs-lunamodel-derive = { path = "./derive" }

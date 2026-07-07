@@ -1,10 +1,11 @@
 use std::ffi::{CString, c_char};
 
-use lunamodel_cext_vtable::LmEnvId;
+use lunamodel_cext_vtable::{LmEnvId, LmVref};
+use num::ToPrimitive;
 
 use crate::{
-    Error, Result, Status,
-    traits::{LmTryFrom, TryToCString, TryToOptCString},
+    Error, Result, Status, VarRef,
+    traits::{LmTryFrom, PtrList, ToPtrList, TryToCString, TryToOptCString},
 };
 
 fn interior_nul() -> Error {
@@ -46,8 +47,79 @@ pub(crate) fn opt_cstring_ptr(opt: &Option<CString>) -> *const c_char {
     opt.as_ref().map_or(std::ptr::null(), |c| c.as_ptr())
 }
 
+impl ToPtrList for &[VarRef] {
+    type Elem = LmVref;
+    fn to_ptr_list(self) -> Result<PtrList<LmVref>> {
+        // The handle pointers are owned by the borrowed slice, so no extra
+        // backing is needed.
+        Ok(PtrList::from_ptrs(
+            self.iter().map(|v| v.as_ptr()).collect(),
+            Vec::new(),
+        ))
+    }
+}
+
+impl ToPtrList for &[String] {
+    type Elem = c_char;
+    fn to_ptr_list(self) -> Result<PtrList<c_char>> {
+        // The CStrings own the bytes; the pointers borrow from them, so they are
+        // stored alongside the pointer array and kept alive together.
+        let owners: Vec<CString> = self
+            .iter()
+            .map(|s| s.as_str().try_to_cstring())
+            .collect::<Result<_>>()?;
+        let ptrs = owners.iter().map(|c| c.as_ptr()).collect();
+        Ok(PtrList::from_ptrs(ptrs, owners))
+    }
+}
+
 impl LmTryFrom<LmEnvId> for u128 {
     fn lm_try_from(value: LmEnvId) -> Result<Self> {
         Ok(((value.hi as u128) << 64) | (value.lo as u128))
+    }
+}
+
+impl LmTryFrom<f64> for u8 {
+    fn lm_try_from(value: f64) -> Result<Self> {
+        if value.fract() != 0.0 {
+            return Err(Error {
+                status: Status::InvalidArgument,
+                message: format!("{value} is not an integer"),
+            });
+        }
+        value.to_u8().ok_or_else(|| Error {
+            status: Status::InvalidArgument,
+            message: format!("{value} is out of range for u8"),
+        })
+    }
+}
+
+impl LmTryFrom<f64> for i8 {
+    fn lm_try_from(value: f64) -> Result<Self> {
+        if value.fract() != 0.0 {
+            return Err(Error {
+                status: Status::InvalidArgument,
+                message: format!("{value} is not an integer"),
+            });
+        }
+        value.to_i8().ok_or_else(|| Error {
+            status: Status::InvalidArgument,
+            message: format!("{value} is out of range for i8"),
+        })
+    }
+}
+
+impl LmTryFrom<f64> for i64 {
+    fn lm_try_from(value: f64) -> Result<Self> {
+        if value.fract() != 0.0 {
+            return Err(Error {
+                status: Status::InvalidArgument,
+                message: format!("{value} is not an integer"),
+            });
+        }
+        value.to_i64().ok_or_else(|| Error {
+            status: Status::InvalidArgument,
+            message: format!("{value} is out of range for i64"),
+        })
     }
 }

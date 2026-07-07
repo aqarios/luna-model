@@ -7,8 +7,8 @@
 
 mod access;
 mod creation;
-mod modification;
 mod general;
+mod modification;
 
 use lunamodel_cext_vtable::LmModel;
 use rs_lunamodel_derive::RawHandle;

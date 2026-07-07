@@ -124,3 +124,39 @@ pub trait TryToCString {
 pub(crate) trait TryToOptCString {
     fn try_to_opt_cstring(self) -> Result<Option<std::ffi::CString>>;
 }
+
+/// A contiguous array of `*const T` C pointers, plus any owned backing the
+/// pointers borrow from (e.g. the `CString`s for a `&[String]`).
+///
+/// Built by [`ToPtrList`] and kept alive as a statement-scoped temporary across
+/// the FFI call; dropping it frees both the pointer array and its backing.
+pub struct PtrList<T> {
+    ptrs: Vec<*const T>,
+    /// Owned C strings the pointers borrow from; empty when the elements are
+    /// handles (whose pointers are owned by the borrowed slice instead).
+    _owners: Vec<std::ffi::CString>,
+}
+
+impl<T> PtrList<T> {
+    pub(crate) fn from_ptrs(ptrs: Vec<*const T>, owners: Vec<std::ffi::CString>) -> Self {
+        Self {
+            ptrs,
+            _owners: owners,
+        }
+    }
+
+    /// Pointer to the start of the `*const T` array. The length is passed
+    /// separately by the `*` sigil, taken from the source slice's `.len()`.
+    pub fn as_ptr(&self) -> *const *const T {
+        self.ptrs.as_ptr()
+    }
+}
+
+/// Marshals a slice into a [`PtrList`] of C pointers. Used by the `*` macro
+/// sigil, which passes the list's `.as_ptr()` and the slice's `.len()` as two
+/// consecutive ABI arguments.
+pub trait ToPtrList {
+    /// The pointee type of the produced pointers (e.g. `LmVref`, `c_char`).
+    type Elem;
+    fn to_ptr_list(self) -> Result<PtrList<Self::Elem>>;
+}

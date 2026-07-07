@@ -32,8 +32,10 @@ mod traits;
 mod utils;
 
 mod api;
+mod assignment;
 mod bounds;
 mod cc;
+mod column;
 mod env;
 mod error;
 mod expr;
@@ -49,8 +51,10 @@ mod variable;
 mod vref;
 
 pub use api::{InitError, init, is_initialized};
+pub use assignment::Assignment;
 pub use bounds::Bounds;
 pub use cc::ConstraintCollection;
+pub use column::Column;
 pub use env::Env;
 pub use error::{Error, Result, Status};
 pub use expr::Expression;
