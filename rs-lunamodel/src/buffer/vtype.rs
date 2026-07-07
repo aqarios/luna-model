@@ -4,7 +4,7 @@ use lunamodel_types::Vtype;
 use crate::{
     Result,
     api::api,
-    traits::{LmFrom, TryToVec},
+    traits::{LmFrom, LmTryInto, TryToVec},
 };
 
 impl TryToVec<Vtype> for LmVtypeBuffer {
@@ -20,5 +20,11 @@ impl TryToVec<Vtype> for LmVtypeBuffer {
         };
         unsafe { (api().vtype_buffer_free)(self) };
         Ok(out)
+    }
+}
+
+impl LmTryInto<Vec<Vtype>> for LmVtypeBuffer {
+    fn lm_try_into(self) -> Result<Vec<Vtype>> {
+        self.try_to_vec()
     }
 }

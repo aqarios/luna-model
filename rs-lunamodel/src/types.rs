@@ -1,7 +1,7 @@
-use lunamodel_cext_vtable::LmVtype;
-use lunamodel_types::Vtype;
+use lunamodel_cext_vtable::{LmSense, LmVtype};
+use lunamodel_types::{Sense, Vtype};
 
-use crate::traits::LmFrom;
+use crate::traits::{LmFrom, LmTryFrom};
 
 impl LmFrom<LmVtype> for Vtype {
     fn lm_from(value: LmVtype) -> Self {
@@ -12,5 +12,35 @@ impl LmFrom<LmVtype> for Vtype {
             LmVtype::Integer => Self::Integer,
             LmVtype::Real => Self::Real,
         }
+    }
+}
+
+impl LmTryFrom<LmVtype> for Vtype {
+    fn lm_try_from(value: LmVtype) -> crate::Result<Self> {
+        Ok(Self::lm_from(value))
+    }
+}
+
+impl LmFrom<Sense> for LmSense {
+    fn lm_from(value: Sense) -> Self {
+        match value {
+            Sense::Min => Self::Min,
+            Sense::Max => Self::Max,
+        }
+    }
+}
+
+impl LmFrom<LmSense> for Sense {
+    fn lm_from(value: LmSense) -> Self {
+        match value {
+            LmSense::Min => Self::Min,
+            LmSense::Max => Self::Max,
+        }
+    }
+}
+
+impl LmTryFrom<LmSense> for Sense {
+    fn lm_try_from(value: LmSense) -> crate::Result<Self> {
+        Ok(Self::lm_from(value))
     }
 }

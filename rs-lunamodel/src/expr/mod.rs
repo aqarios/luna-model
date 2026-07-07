@@ -13,10 +13,10 @@ mod general;
 use crate::{
     Env,
     api::api,
-    traits::{ContentEquality, Serialization, TryClone, TryDeepClone, TryToVec},
+    traits::{ContentEquality, Serialization, TryClone, TryDeepClone},
 };
 
-use lunamodel_cext_vtable::{LmBuffer, LmExpr};
+use lunamodel_cext_vtable::LmExpr;
 use rs_lunamodel_derive::RawHandle;
 
 /// Owning handle to a LunaModel expression (frees on drop).
@@ -41,7 +41,7 @@ impl Expression {
 
     /// Deep-clones into an independent expression rebound to `env`.
     pub fn deep_clone(&self, env: &Env) -> crate::Result<Self> {
-        <Self as TryDeepClone>::deep_clone(self, env)
+        <Self as TryDeepClone>::try_deep_clone(self, env)
     }
 
     /// Content equality, ignoring environment identity.
@@ -78,15 +78,15 @@ impl PartialEq for Expression {
 
 impl TryClone for Expression {
     fn try_clone(&self) -> crate::Result<Self> {
-        out!(expr_clone(@self), |o| Ok(Self::from_raw(o)))
+        out!(expr_clone(@self))
     }
 }
 
-impl TryDeepClone for Expression {
-    type Target = Env;
+impl<'e> TryDeepClone<'e> for Expression {
+    type Target = &'e Env;
 
-    fn deep_clone(&self, env: &Self::Target) -> crate::Result<Self> {
-        out!(expr_deep_clone(@self, @env), |o| Ok(Self::from_raw(o)))
+    fn try_deep_clone(&self, env: Self::Target) -> crate::Result<Self> {
+        out!(expr_deep_clone(@self, @env))
     }
 }
 
@@ -96,14 +96,14 @@ impl ContentEquality for Expression {
     }
 }
 
-impl Serialization for Expression {
-    type Payload = Env;
+impl<'s> Serialization<'s> for Expression {
+    type Payload = &'s Env;
 
     fn serialize(&self) -> crate::Result<Vec<u8>> {
-        out!(expr_serialize(@self), |o: LmBuffer| o.try_to_vec())
+        out!(expr_serialize(@self))
     }
 
-    fn deserialize(data: &[u8], env: &Self::Payload) -> crate::Result<Self> {
-        out!(expr_deserialize(@data, data.len(), @env), |o| Ok(Self::from_raw(o)))
+    fn deserialize(data: &[u8], env: Self::Payload) -> crate::Result<Self> {
+        out!(expr_deserialize(@data, data.len(), @env))
     }
 }

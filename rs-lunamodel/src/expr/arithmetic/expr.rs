@@ -41,7 +41,7 @@ impl Add<Expression> for &Expression {
     type Output = Result<Expression>;
 
     fn add(self, rhs: Expression) -> Self::Output {
-        out!(expr_add_expr(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_add_expr(@self, @rhs))
     }
 }
 
@@ -49,7 +49,7 @@ impl Add<&Expression> for &Expression {
     type Output = Result<Expression>;
 
     fn add(self, rhs: &Expression) -> Self::Output {
-        out!(expr_add_expr(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_add_expr(@self, @rhs))
     }
 }
 
@@ -121,7 +121,7 @@ impl Sub<Expression> for &Expression {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: Expression) -> Self::Output {
-        out!(expr_sub_expr(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_sub_expr(@self, @rhs))
     }
 }
 
@@ -129,7 +129,7 @@ impl Sub<&Expression> for &Expression {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: &Expression) -> Self::Output {
-        out!(expr_sub_expr(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_sub_expr(@self, @rhs))
     }
 }
 
@@ -201,7 +201,7 @@ impl Mul<Expression> for &Expression {
     type Output = Result<Expression>;
 
     fn mul(self, rhs: Expression) -> Self::Output {
-        out!(expr_mul_expr(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_mul_expr(@self, @rhs))
     }
 }
 
@@ -209,7 +209,7 @@ impl Mul<&Expression> for &Expression {
     type Output = Result<Expression>;
 
     fn mul(self, rhs: &Expression) -> Self::Output {
-        out!(expr_mul_expr(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_mul_expr(@self, @rhs))
     }
 }
 
@@ -249,7 +249,7 @@ impl Neg for Expression {
     type Output = Result<Self>;
 
     fn neg(self) -> Self::Output {
-        out!(expr_neg(@self), |o| Ok(Expression::from_raw(o)))
+        out!(expr_neg(@self))
     }
 }
 
@@ -257,6 +257,6 @@ impl Neg for &Expression {
     type Output = Result<Expression>;
 
     fn neg(self) -> Self::Output {
-        out!(expr_neg(@self), |o| Ok(Expression::from_raw(o)))
+        out!(expr_neg(@self))
     }
 }

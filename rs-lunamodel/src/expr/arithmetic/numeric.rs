@@ -25,7 +25,7 @@ impl Add<f64> for &Expression {
     type Output = Result<Expression>;
 
     fn add(self, rhs: f64) -> Self::Output {
-        out!(expr_add_bias(@self, rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_add_bias(@self, rhs))
     }
 }
 
@@ -103,7 +103,7 @@ impl Sub<f64> for &Expression {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: f64) -> Self::Output {
-        out!(expr_sub_bias(@self, rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_sub_bias(@self, rhs))
     }
 }
 
@@ -133,7 +133,7 @@ impl Sub<Expression> for f64 {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: Expression) -> Self::Output {
-        out!(expr_rsub_bias(@rhs, self), |o| Ok(Expression::from_raw(o)))
+        out!(expr_rsub_bias(@rhs, self))
     }
 }
 
@@ -141,7 +141,7 @@ impl Sub<&Expression> for f64 {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: &Expression) -> Self::Output {
-        out!(expr_rsub_bias(@rhs, self), |o| Ok(Expression::from_raw(o)))
+        out!(expr_rsub_bias(@rhs, self))
     }
 }
 
@@ -181,7 +181,7 @@ impl Mul<f64> for &Expression {
     type Output = Result<Expression>;
 
     fn mul(self, rhs: f64) -> Self::Output {
-        out!(expr_mul_bias(@self, rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_mul_bias(@self, rhs))
     }
 }
 

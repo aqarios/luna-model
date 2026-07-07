@@ -1,14 +1,13 @@
-use lunamodel_cext_vtable::{LmVrefBuffer, LmVtypeBuffer};
 use lunamodel_types::Vtype;
 
-use crate::{Env, HigherOrder, Linear, Quadratic, VarRef, error::Result, traits::TryToVec};
+use crate::{Env, HigherOrder, Linear, Quadratic, VarRef, error::Result};
 
 use super::Expression;
 
 impl Expression {
     /// Returns a handle to the shared environment.
     pub fn env(&self) -> Result<Env> {
-        out!(expr_env(@self), |out| Ok(unsafe { Env::from_raw(out) }))
+        out!(expr_env(@self))
     }
 
     /// Returns the constant offset.
@@ -43,33 +42,33 @@ impl Expression {
 
     /// Returns the distinct variable types used by the expression.
     pub fn vtypes(&self) -> Result<Vec<Vtype>> {
-        out!(expr_vtypes(@self), |o: LmVtypeBuffer| o.try_to_vec())
+        out!(expr_vtypes(@self))
     }
 
     /// Returns the linear terms of the expression.
     pub fn linear(&self) -> Result<Linear> {
-        out!(expr_linear(@self), |o| Ok(Linear::from_raw(o)))
+        out!(expr_linear(@self))
     }
 
     /// Returns the quadratic terms of the expression.
     pub fn quadratic(&self) -> Result<Quadratic> {
-        out!(expr_quadratic(@self), |o| Ok(Quadratic::from_raw(o)))
+        out!(expr_quadratic(@self))
     }
 
     /// Returns the higher-order terms of the expression.
     pub fn higher_order(&self) -> Result<HigherOrder> {
-        out!(expr_higher_order(@self), |o| Ok(HigherOrder::from_raw(o)))
+        out!(expr_higher_order(@self))
     }
 
     /// Returns the distinct variables referenced by the expression, excluding
     /// inverted binary helper variables.
     pub fn vars(&self) -> Result<Vec<VarRef>> {
-        out!(expr_vars(@self), |o: LmVrefBuffer| o.try_to_vec())
+        out!(expr_vars(@self))
     }
 
     /// Returns every variable referenced by the expression, including the
     /// inverted binary helper variables that [`vars`](Self::vars) filters out.
     pub fn complete_vars(&self) -> Result<Vec<VarRef>> {
-        out!(expr_complete_vars(@self), |o: LmVrefBuffer| o.try_to_vec())
+        out!(expr_complete_vars(@self))
     }
 }

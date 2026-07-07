@@ -7,7 +7,7 @@ pub trait TryClone: Sized {
     fn try_clone(&self) -> Result<Self>;
 }
 
-pub trait TryDeepClone: Sized {
+pub trait TryDeepClone<'a>: Sized {
     /// Context needed to deep-clone this value.
     ///
     /// Some LunaModel types, such as models and environments, can deep-clone
@@ -15,7 +15,7 @@ pub trait TryDeepClone: Sized {
     type Target: ?Sized;
 
     /// Deep-clones into a new handle.
-    fn deep_clone(&self, target: &Self::Target) -> Result<Self>;
+    fn try_deep_clone(&self, target: Self::Target) -> Result<Self>;
 }
 
 pub trait ContentEquality: Sized {
@@ -23,13 +23,13 @@ pub trait ContentEquality: Sized {
     fn equal_contents(&self, other: &Self) -> Result<bool>;
 }
 
-pub trait Serialization: Sized {
+pub trait Serialization<'s>: Sized {
     type Payload;
 
     /// Serializes to bytes.
     fn serialize(&self) -> Result<Vec<u8>>;
     /// Deserializes from bytes.
-    fn deserialize(data: &[u8], env: &Self::Payload) -> Result<Self>;
+    fn deserialize(data: &[u8], env: Self::Payload) -> Result<Self>;
 }
 
 pub trait TryAddAssign<Rhs = Self> {
@@ -86,6 +86,14 @@ where
     }
 }
 
+/// Identity conversion so that scalar ABI out-values (e.g. `f64`, `bool`,
+/// `usize`) pass through `out!`'s `lm_try_into()` unchanged.
+impl<T> LmTryFrom<T> for T {
+    fn lm_try_from(value: T) -> Result<Self> {
+        Ok(value)
+    }
+}
+
 /// Converts an optional value into a nullable C pointer:
 /// `Some(v)` yields a pointer to `v`, `None` yields null.
 pub(crate) trait AsOptPtr<T> {
@@ -99,4 +107,12 @@ impl<T> AsOptPtr<T> for Option<T> {
             None => std::ptr::null(),
         }
     }
+}
+
+pub trait TryAsPtr<T> {
+    fn try_as_ptr(self) -> Result<*const T>;
+}
+
+pub(crate) trait TryAsOptPtr<T> {
+    fn try_as_opt_ptr(self) -> Result<*const T>;
 }

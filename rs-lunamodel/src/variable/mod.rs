@@ -8,7 +8,6 @@
 use lunamodel_cext_vtable::LmVar;
 use rs_lunamodel_derive::RawHandle;
 
-use crate::{VarRef, traits::LmFrom};
 
 /// Owning handle to a LunaModel var (frees on drop).
 #[derive(RawHandle)]

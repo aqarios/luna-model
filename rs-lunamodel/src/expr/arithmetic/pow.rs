@@ -3,7 +3,7 @@ use crate::{Expression, Result};
 impl Expression {
     /// `self.pow(n)` (Rust core expression exponentiation).
     pub fn pow(&self, n: usize) -> Result<Self> {
-        out!(expr_pow(@self, n), |o| Ok(Self::from_raw(o)))
+        out!(expr_pow(@self, n))
     }
 
     /// `self = self.pow(n)`, in place.

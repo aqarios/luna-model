@@ -3,7 +3,7 @@ use lunamodel_cext_vtable::LmBuffer;
 use crate::{
     Result,
     api::api,
-    traits::{TryToString, TryToVec},
+    traits::{LmTryInto, TryToString, TryToVec},
 };
 
 impl TryToString for LmBuffer {
@@ -32,5 +32,17 @@ impl TryToVec<u8> for LmBuffer {
         };
         unsafe { (api().buffer_free)(self) };
         Ok(bytes)
+    }
+}
+
+impl LmTryInto<String> for LmBuffer {
+    fn lm_try_into(self) -> Result<String> {
+        self.try_to_string()
+    }
+}
+
+impl LmTryInto<Vec<u8>> for LmBuffer {
+    fn lm_try_into(self) -> Result<Vec<u8>> {
+        self.try_to_vec()
     }
 }

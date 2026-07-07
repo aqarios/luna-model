@@ -6,6 +6,6 @@ use crate::variable::Variable;
 
 impl LmTryInto<Variable> for VarRef {
     fn lm_try_into(self) -> Result<Variable> {
-        out!(vref_to_var(@self), |o| Ok(Variable::from_raw(o)))
+        out!(vref_to_var(@self))
     }
 }

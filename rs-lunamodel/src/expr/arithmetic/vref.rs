@@ -11,7 +11,7 @@ impl Add<VarRef> for Expression {
     type Output = Result<Expression>;
 
     fn add(self, rhs: VarRef) -> Self::Output {
-        out!(expr_add_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_add_vref(@self, @rhs))
     }
 }
 
@@ -19,7 +19,7 @@ impl Add<&VarRef> for Expression {
     type Output = Result<Expression>;
 
     fn add(self, rhs: &VarRef) -> Self::Output {
-        out!(expr_add_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_add_vref(@self, @rhs))
     }
 }
 
@@ -27,7 +27,7 @@ impl Add<VarRef> for &Expression {
     type Output = Result<Expression>;
 
     fn add(self, rhs: VarRef) -> Self::Output {
-        out!(expr_add_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_add_vref(@self, @rhs))
     }
 }
 
@@ -35,7 +35,7 @@ impl Add<&VarRef> for &Expression {
     type Output = Result<Expression>;
 
     fn add(self, rhs: &VarRef) -> Self::Output {
-        out!(expr_add_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_add_vref(@self, @rhs))
     }
 }
 
@@ -44,7 +44,7 @@ impl Add<VarRef> for Result<Expression> {
 
     fn add(self, rhs: VarRef) -> Self::Output {
         let slf = self?;
-        out!(expr_add_vref(@slf, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_add_vref(@slf, @rhs))
     }
 }
 
@@ -53,7 +53,7 @@ impl Add<&VarRef> for Result<Expression> {
 
     fn add(self, rhs: &VarRef) -> Self::Output {
         let slf = self?;
-        out!(expr_add_vref(@slf, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_add_vref(@slf, @rhs))
     }
 }
 
@@ -62,7 +62,7 @@ impl Add<Result<VarRef>> for Expression {
 
     fn add(self, rhs: Result<VarRef>) -> Self::Output {
         let rhs = rhs?;
-        out!(expr_add_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_add_vref(@self, @rhs))
     }
 }
 
@@ -71,7 +71,7 @@ impl Add<Result<VarRef>> for &Expression {
 
     fn add(self, rhs: Result<VarRef>) -> Self::Output {
         let rhs = rhs?;
-        out!(expr_add_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_add_vref(@self, @rhs))
     }
 }
 
@@ -81,7 +81,7 @@ impl Sub<VarRef> for Expression {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: VarRef) -> Self::Output {
-        out!(expr_sub_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_sub_vref(@self, @rhs))
     }
 }
 
@@ -89,7 +89,7 @@ impl Sub<&VarRef> for Expression {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: &VarRef) -> Self::Output {
-        out!(expr_sub_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_sub_vref(@self, @rhs))
     }
 }
 
@@ -97,7 +97,7 @@ impl Sub<VarRef> for &Expression {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: VarRef) -> Self::Output {
-        out!(expr_sub_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_sub_vref(@self, @rhs))
     }
 }
 
@@ -105,7 +105,7 @@ impl Sub<&VarRef> for &Expression {
     type Output = Result<Expression>;
 
     fn sub(self, rhs: &VarRef) -> Self::Output {
-        out!(expr_sub_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_sub_vref(@self, @rhs))
     }
 }
 
@@ -114,7 +114,7 @@ impl Sub<VarRef> for Result<Expression> {
 
     fn sub(self, rhs: VarRef) -> Self::Output {
         let slf = self?;
-        out!(expr_sub_vref(@slf, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_sub_vref(@slf, @rhs))
     }
 }
 
@@ -123,7 +123,7 @@ impl Sub<&VarRef> for Result<Expression> {
 
     fn sub(self, rhs: &VarRef) -> Self::Output {
         let slf = self?;
-        out!(expr_sub_vref(@slf, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_sub_vref(@slf, @rhs))
     }
 }
 
@@ -132,7 +132,7 @@ impl Sub<Result<VarRef>> for Expression {
 
     fn sub(self, rhs: Result<VarRef>) -> Self::Output {
         let rhs = rhs?;
-        out!(expr_sub_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_sub_vref(@self, @rhs))
     }
 }
 
@@ -141,7 +141,7 @@ impl Sub<Result<VarRef>> for &Expression {
 
     fn sub(self, rhs: Result<VarRef>) -> Self::Output {
         let rhs = rhs?;
-        out!(expr_sub_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_sub_vref(@self, @rhs))
     }
 }
 
@@ -151,7 +151,7 @@ impl Mul<VarRef> for Expression {
     type Output = Result<Expression>;
 
     fn mul(self, rhs: VarRef) -> Self::Output {
-        out!(expr_mul_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_mul_vref(@self, @rhs))
     }
 }
 
@@ -159,7 +159,7 @@ impl Mul<&VarRef> for Expression {
     type Output = Result<Expression>;
 
     fn mul(self, rhs: &VarRef) -> Self::Output {
-        out!(expr_mul_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_mul_vref(@self, @rhs))
     }
 }
 
@@ -167,7 +167,7 @@ impl Mul<VarRef> for &Expression {
     type Output = Result<Expression>;
 
     fn mul(self, rhs: VarRef) -> Self::Output {
-        out!(expr_mul_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_mul_vref(@self, @rhs))
     }
 }
 
@@ -175,7 +175,7 @@ impl Mul<&VarRef> for &Expression {
     type Output = Result<Expression>;
 
     fn mul(self, rhs: &VarRef) -> Self::Output {
-        out!(expr_mul_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_mul_vref(@self, @rhs))
     }
 }
 
@@ -184,7 +184,7 @@ impl Mul<VarRef> for Result<Expression> {
 
     fn mul(self, rhs: VarRef) -> Self::Output {
         let slf = self?;
-        out!(expr_mul_vref(@slf, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_mul_vref(@slf, @rhs))
     }
 }
 
@@ -193,7 +193,7 @@ impl Mul<&VarRef> for Result<Expression> {
 
     fn mul(self, rhs: &VarRef) -> Self::Output {
         let slf = self?;
-        out!(expr_mul_vref(@slf, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_mul_vref(@slf, @rhs))
     }
 }
 
@@ -202,7 +202,7 @@ impl Mul<Result<VarRef>> for Expression {
 
     fn mul(self, rhs: Result<VarRef>) -> Self::Output {
         let rhs = rhs?;
-        out!(expr_mul_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_mul_vref(@self, @rhs))
     }
 }
 
@@ -211,7 +211,7 @@ impl Mul<Result<VarRef>> for &Expression {
 
     fn mul(self, rhs: Result<VarRef>) -> Self::Output {
         let rhs = rhs?;
-        out!(expr_mul_vref(@self, @rhs), |o| Ok(Expression::from_raw(o)))
+        out!(expr_mul_vref(@self, @rhs))
     }
 }
 

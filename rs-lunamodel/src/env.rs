@@ -26,13 +26,21 @@ impl Env {
     /// # Safety
     /// `handle` must be non-null, originate from this library, and not be owned
     /// elsewhere.
-    pub(crate) unsafe fn from_raw(handle: *mut LmEnv) -> Self {
+    pub(crate) fn from_raw(handle: *mut LmEnv) -> Self {
         Env { handle }
     }
 
     /// Borrows the raw handle for passing to C ABI calls.
     pub(crate) fn as_ptr(&self) -> *const LmEnv {
         self.handle
+    }
+}
+
+// Lets `out!` convert a raw `*mut LmEnv` out value straight into `Env` via
+// `lm_try_into()`, matching the `RawHandle`-derived wrappers.
+impl crate::traits::LmTryFrom<*mut LmEnv> for Env {
+    fn lm_try_from(handle: *mut LmEnv) -> crate::Result<Self> {
+        Ok(Self::from_raw(handle))
     }
 }
 
@@ -45,8 +53,7 @@ impl Default for Env {
 impl Drop for Env {
     fn drop(&mut self) {
         if !self.handle.is_null() {
-            // SAFETY: `handle` was produced by this library and is freed once.
-            unsafe { (api().env_free)(self.handle) };
+            free!(self, env_free)
         }
     }
 }

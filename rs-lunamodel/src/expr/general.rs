@@ -6,7 +6,7 @@ impl Expression {
     /// Replaces every occurrence of `target` with `replacement`, preserving the
     /// environment.
     pub fn substitute(&self, target: &VarRef, replacement: &Expression) -> Result<Expression> {
-        out!(expr_substitute(@self, @target, @replacement), |o| Ok(Expression::from_raw(o)))
+        out!(expr_substitute(@self, @target, @replacement))
     }
 
     /// Splits the expression by `vrefs` into two: the first holds every

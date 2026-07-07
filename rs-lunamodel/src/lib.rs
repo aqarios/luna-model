@@ -29,27 +29,34 @@ mod macros;
 
 mod buffer;
 mod traits;
+mod utils;
 
 mod api;
 mod bounds;
+mod cc;
 mod env;
 mod error;
 mod expr;
 mod higher_order;
 mod linear;
+mod model;
 mod quadratic;
+mod specs;
 mod types;
 mod variable;
 mod vref;
 
 pub use api::{InitError, init, is_initialized};
 pub use bounds::Bounds;
+pub use cc::ConstraintCollection;
 pub use env::Env;
 pub use error::{Error, Result, Status};
 pub use expr::Expression;
 pub use higher_order::HigherOrder;
 pub use linear::Linear;
+pub use model::Model;
 pub use quadratic::Quadratic;
+pub use specs::Specs;
 pub use traits::{ContentEquality, Serialization, TryClone, TryDeepClone};
 pub use vref::VarRef;
 

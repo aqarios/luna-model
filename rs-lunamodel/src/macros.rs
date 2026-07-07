@@ -210,7 +210,7 @@ macro_rules! out {
 
         crate::error::check(unsafe { out!(@call $func out, [] $($arg)*) })?;
 
-        Ok(unsafe { out.assume_init() })
+        crate::traits::LmTryInto::lm_try_into(unsafe { out.assume_init() })
     }};
 
     (@call $func:ident $out:ident, [$($built:expr,)*]) => {

@@ -39,6 +39,14 @@ pub fn derive_raw_handle(input: TokenStream) -> TokenStream {
                 self.handle
             }
         }
+
+        // Lets `out!` convert a raw `*mut #pointee` out value straight into the
+        // wrapper via `lm_try_into()`, so call sites need no mapper closure.
+        impl crate::traits::LmTryFrom<*mut #pointee> for #name {
+            fn lm_try_from(handle: *mut #pointee) -> crate::Result<Self> {
+                Ok(Self::from_raw(handle))
+            }
+        }
     }
     .into()
 }

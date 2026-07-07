@@ -6,12 +6,14 @@
 //! that are infallible on the native `VarRef` still return `Result` here.
 
 mod access;
+mod arithmetic;
 mod creation;
 mod general;
-mod arithmetic;
 
 use lunamodel_cext_vtable::LmVref;
 use rs_lunamodel_derive::RawHandle;
+
+use crate::{Result, traits::LmTryFrom};
 
 /// Owning handle to a LunaModel vref (frees on drop).
 #[derive(RawHandle)]
@@ -33,5 +35,11 @@ impl PartialEq for VarRef {
     /// An FFI failure is treated as "not equal".
     fn eq(&self, other: &Self) -> bool {
         out_or!(vref_eq(@self, @other), false)
+    }
+}
+
+impl LmTryFrom<*mut LmVref> for Option<VarRef> {
+    fn lm_try_from(value: *mut LmVref) -> Result<Self> {
+        Ok((!value.is_null()).then(|| VarRef::from_raw(value)))
     }
 }
