@@ -2,6 +2,15 @@
 
 //! ABI-call macros ([`check!`], [`out!`], [`out_or!`]) and the argument sigils they share.
 //!
+//! TL;DR
+//!  ┌─────────┬───────────┬─────────┬────────┬──────────┬─────────┬──────────┬──────────┬────────┐
+//!  │    @    │   @mut    │   ?@    │   !    │    ?!    │    ~    │    ?~    │    ?     │ plain  │
+//!  ├─────────┼───────────┼─────────┼────────┼──────────┼─────────┼──────────┼──────────┼────────┤
+//!  │ handle  │ mut       │ opt     │ C      │ opt C    │ value   │ opt      │ opt      │ by     │
+//!  │ ptr     │ receiver  │ handle  │ string │ string   │ conv    │ value    │ value    │ value  │
+//!  │         │           │         │        │          │         │ conv     │ ptr      │        │
+//!  └─────────┴───────────┴─────────┴────────┴──────────┴─────────┴──────────┴──────────┴────────┘
+//!
 //! Each argument to these macros may be prefixed with a sigil that says how to turn the Rust value
 //! into the C-ABI argument the function expects. The sigil encodes an *operation* (take a pointer,
 //! allocate a C string, convert a value, ...), not just a type. That is why inputs are marked
