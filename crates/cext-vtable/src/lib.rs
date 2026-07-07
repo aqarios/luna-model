@@ -679,14 +679,14 @@ pub struct LunaModelCApi {
         *mut LmModel,
         *const c_char,
         LmVtype,
-        *const LmBounds,
+        *const LmLazyBounds,
         *mut *mut LmVref,
     ) -> LmStatus,
     pub model_add_var_with_fallback: unsafe extern "C" fn(
         *mut LmModel,
         *const c_char,
         LmVtype,
-        *const LmBounds,
+        *const LmLazyBounds,
         *mut *mut LmVref,
     ) -> LmStatus,
     pub model_satisfies:

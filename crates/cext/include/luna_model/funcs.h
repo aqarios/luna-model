@@ -1966,7 +1966,7 @@ LmStatus lm_model_satisfies(const LmModel *model, const LmSpecs *specs, bool *ou
 LmStatus lm_model_add_var(LmModel *model,
                           const char *name,
                           LmVtype vtype,
-                          const LmBounds *bounds,
+                          const LmLazyBounds *bounds,
                           LmVref **out);
 
 /**
@@ -1988,7 +1988,7 @@ LmStatus lm_model_add_var(LmModel *model,
 LmStatus lm_model_add_var_with_fallback(LmModel *model,
                                         const char *name,
                                         LmVtype vtype,
-                                        const LmBounds *bounds,
+                                        const LmLazyBounds *bounds,
                                         LmVref **out);
 
 /**

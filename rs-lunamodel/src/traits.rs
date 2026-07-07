@@ -109,10 +109,18 @@ impl<T> AsOptPtr<T> for Option<T> {
     }
 }
 
-pub trait TryAsPtr<T> {
-    fn try_as_ptr(self) -> Result<*const T>;
+/// Converts a value into an owned C string.
+///
+/// Returns the owning [`CString`], not a raw pointer: the bytes must stay alive
+/// across the FFI call, so the caller keeps the owner. The `!` macro sigil does
+/// this by calling `.as_ptr()` on the temporary it produces, whose lifetime
+/// extends to the end of the enclosing ABI-call statement.
+pub trait TryToCString {
+    fn try_to_cstring(self) -> Result<std::ffi::CString>;
 }
 
-pub(crate) trait TryAsOptPtr<T> {
-    fn try_as_opt_ptr(self) -> Result<*const T>;
+/// Optional variant of [`TryToCString`]; a `None` input maps to a null pointer
+/// at the call site (via the `?!` macro sigil).
+pub(crate) trait TryToOptCString {
+    fn try_to_opt_cstring(self) -> Result<Option<std::ffi::CString>>;
 }

@@ -840,11 +840,11 @@ typedef struct {
     LmStatus (*model_set_sense)(LmModel*, LmSense);
     LmStatus (*model_set_objective)(LmModel*, const LmExpr*);
     LmStatus (*model_set_constraints)(LmModel*, const LmCC*);
-    LmStatus (*model_add_var)(LmModel*, const char*, LmVtype, const LmBounds*, LmVref**);
+    LmStatus (*model_add_var)(LmModel*, const char*, LmVtype, const LmLazyBounds*, LmVref**);
     LmStatus (*model_add_var_with_fallback)(LmModel*,
                                             const char*,
                                             LmVtype,
-                                            const LmBounds*,
+                                            const LmLazyBounds*,
                                             LmVref**);
     LmStatus (*model_satisfies)(const LmModel*, const LmSpecs*, bool*);
     LmStatus (*model_serialize)(const LmModel*, LmBuffer*);

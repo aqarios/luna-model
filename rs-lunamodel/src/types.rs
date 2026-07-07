@@ -15,6 +15,18 @@ impl LmFrom<LmVtype> for Vtype {
     }
 }
 
+impl LmFrom<Vtype> for LmVtype {
+    fn lm_from(value: Vtype) -> Self {
+        match value {
+            Vtype::Binary => Self::Binary,
+            Vtype::InvertedBinary => Self::InvertedBinary,
+            Vtype::Spin => Self::Spin,
+            Vtype::Integer => Self::Integer,
+            Vtype::Real => Self::Real,
+        }
+    }
+}
+
 impl LmTryFrom<LmVtype> for Vtype {
     fn lm_try_from(value: LmVtype) -> crate::Result<Self> {
         Ok(Self::lm_from(value))

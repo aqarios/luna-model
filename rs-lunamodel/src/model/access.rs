@@ -1,8 +1,6 @@
 use lunamodel_types::{Sense, Vtype};
 
-use crate::{
-    ConstraintCollection, Env, Expression, Model, Result, Specs, VarRef, traits::TryAsPtr,
-};
+use crate::{ConstraintCollection, Env, Expression, Model, Result, Specs, VarRef};
 
 impl Model {
     pub fn name(&self) -> Result<String> {
@@ -34,7 +32,7 @@ impl Model {
     }
 
     pub fn var(&self, name: &str) -> Result<VarRef> {
-        out!(model_var(@self, name.try_as_ptr()?))
+        out!(model_var(@self, !name))
     }
 
     pub fn objective(&self) -> Result<Expression> {

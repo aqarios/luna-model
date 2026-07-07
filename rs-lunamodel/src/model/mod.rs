@@ -7,6 +7,7 @@
 
 mod access;
 mod creation;
+mod modification;
 
 use lunamodel_cext_vtable::LmModel;
 use rs_lunamodel_derive::RawHandle;
@@ -74,24 +75,6 @@ impl Serialization<'_> for Model {
     }
 }
 
-// pub model_set_name: unsafe extern "C" fn(*mut LmModel, *const c_char) -> LmStatus,
-// pub model_set_sense: unsafe extern "C" fn(*mut LmModel, LmSense) -> LmStatus,
-// pub model_set_objective: unsafe extern "C" fn(*mut LmModel, *const LmExpr) -> LmStatus,
-// pub model_set_constraints: unsafe extern "C" fn(*mut LmModel, *const LmCC) -> LmStatus,
-// pub model_add_var: unsafe extern "C" fn(
-//     *mut LmModel,
-//     *const c_char,
-//     LmVtype,
-//     *const LmBounds,
-//     *mut *mut LmVref,
-// ) -> LmStatus,
-// pub model_add_var_with_fallback: unsafe extern "C" fn(
-//     *mut LmModel,
-//     *const c_char,
-//     LmVtype,
-//     *const LmBounds,
-//     *mut *mut LmVref,
-// ) -> LmStatus,
 // pub model_satisfies: unsafe extern "C" fn(*const LmModel, *const LmSpecs, *mut bool) -> LmStatus,
 //
 // pub model_evaluate_solution: unsafe extern "C" fn(*const LmModel, *const LmSol, *mut *mut LmSol) -> LmStatus,

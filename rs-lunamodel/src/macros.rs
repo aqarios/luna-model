@@ -1,5 +1,41 @@
 #![allow(unused_macros)]
 
+//! ABI-call macros ([`check!`], [`out!`], [`out_or!`]) and the argument sigils they share.
+//!
+//! Each argument to these macros may be prefixed with a sigil that says how to turn the Rust value
+//! into the C-ABI argument the function expects. The sigil encodes an *operation* (take a pointer,
+//! allocate a C string, convert a value, ...), not just a type.Tthat is why inputs are marked
+//! per-argument while the single out-value is converted automatically.
+//!
+//! # Argument sigils
+//!
+//! | Sigil     | Expands to                                             | Use for |
+//! |-----------|--------------------------------------------------------|---------|
+//! | `@x`      | `x.as_ptr()`                                           | a handle wrapper → `*const LmX` |
+//! | `@mut x`  | `x.as_mut_ptr()`                                       | the in-place receiver of a mutating call → `*mut LmX` |
+//! | `?@x`     | `match &x { Some(v) => v.as_ptr(), None => null() }`   | `Option<handle>` → nullable `*const LmX` |
+//! | `!x`      | `(x.try_to_cstring()?).as_ptr()`                       | `&str` / `String` → `*const c_char` (allocates a NUL-terminated `CString`; fails on an interior NUL) |
+//! | `?!x`     | `opt_cstring_ptr(&(x.try_to_opt_cstring()?))`          | `Option<&str/String>` → nullable `*const c_char` |
+//! | `~x`      | `x.lm_into()`                                          | an infallible value conversion to the C-ABI type (e.g. `Vtype` → `LmVtype`, `Sense` → `LmSense`) |
+//! | `?x`      | `x.as_opt_ptr()`                                       | `Option<value>` → nullable `*const T` (e.g. `Option<f64>` → `const double*`) |
+//! | `x`       | `x` (by value)                                         | scalars, already-correct raw pointers, `&mut out` args, etc. |
+//!
+//! The `?`-family splits on the second character — `?` = pointer to a value, `?@` = handle, `?!` = C string — mirroring the non-optional `@` / `!`.
+//!
+//! ## Why `!`/`~` are separate from `@`
+//!
+//! `@`/`?@` borrow a pointer the wrapper already owns: infallible, nothing to keep alive. They stay
+//! usable in infallible contexts such as [`out_or!`] (used in `PartialEq::eq`).
+//! `!`/`?!` instead *allocate* a `CString` that must outlive the call and can fail on an interior NUL,
+//! so they carry a `?` and produce an owner temporary. `~` is a plain infallible value conversion.
+//! Keeping them distinct is what lets `@` remain infallible.
+//!
+//! ## Why the out-value needs no sigil
+//!
+//! There is exactly one out-value and its target is the return type, so [`out!`] converts it automatically
+//! via `lm_try_into()` (identity for scalars). Inputs are many arguments needing *different* operations,
+//! so each is marked.
+
 /// Calls a LunaModel C ABI function from the installed API table and converts
 /// its returned `LmStatus` into `Result<()>`.
 ///
@@ -80,12 +116,44 @@ macro_rules! check {
         check!(@call $func, [$($built,)* ($arg).as_ptr(),])
     };
 
+    (@call $func:ident, [$($built:expr,)*] ? @ $arg:expr, $($rest:tt)*) => {
+        check!(@call $func, [$($built,)* match &($arg) { Some(v) => v.as_ptr(), None => ::std::ptr::null() },] $($rest)*)
+    };
+
+    (@call $func:ident, [$($built:expr,)*] ? @ $arg:expr $(,)?) => {
+        check!(@call $func, [$($built,)* match &($arg) { Some(v) => v.as_ptr(), None => ::std::ptr::null() },])
+    };
+
+    (@call $func:ident, [$($built:expr,)*] ? ! $arg:expr, $($rest:tt)*) => {
+        check!(@call $func, [$($built,)* crate::utils::opt_cstring_ptr(&(crate::traits::TryToOptCString::try_to_opt_cstring($arg)?)),] $($rest)*)
+    };
+
+    (@call $func:ident, [$($built:expr,)*] ? ! $arg:expr $(,)?) => {
+        check!(@call $func, [$($built,)* crate::utils::opt_cstring_ptr(&(crate::traits::TryToOptCString::try_to_opt_cstring($arg)?)),])
+    };
+
     (@call $func:ident, [$($built:expr,)*] ? $arg:expr, $($rest:tt)*) => {
         check!(@call $func, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&($arg)),] $($rest)*)
     };
 
     (@call $func:ident, [$($built:expr,)*] ? $arg:expr $(,)?) => {
         check!(@call $func, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&($arg)),])
+    };
+
+    (@call $func:ident, [$($built:expr,)*] ! $arg:expr, $($rest:tt)*) => {
+        check!(@call $func, [$($built,)* (crate::traits::TryToCString::try_to_cstring($arg)?).as_ptr(),] $($rest)*)
+    };
+
+    (@call $func:ident, [$($built:expr,)*] ! $arg:expr $(,)?) => {
+        check!(@call $func, [$($built,)* (crate::traits::TryToCString::try_to_cstring($arg)?).as_ptr(),])
+    };
+
+    (@call $func:ident, [$($built:expr,)*] ~ $arg:expr, $($rest:tt)*) => {
+        check!(@call $func, [$($built,)* crate::traits::LmInto::lm_into($arg),] $($rest)*)
+    };
+
+    (@call $func:ident, [$($built:expr,)*] ~ $arg:expr $(,)?) => {
+        check!(@call $func, [$($built,)* crate::traits::LmInto::lm_into($arg),])
     };
 
     (@call $func:ident, [$($built:expr,)*] $arg:expr, $($rest:tt)*) => {
@@ -217,6 +285,14 @@ macro_rules! out {
         (crate::api::api().$func)($($built,)* $out.as_mut_ptr())
     };
 
+    (@call $func:ident $out:ident, [$($built:expr,)*] @ mut $arg:expr, $($rest:tt)*) => {
+        out!(@call $func $out, [$($built,)* ($arg).as_mut_ptr(),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] @ mut $arg:expr $(,)?) => {
+        out!(@call $func $out, [$($built,)* ($arg).as_mut_ptr(),])
+    };
+
     (@call $func:ident $out:ident, [$($built:expr,)*] @ $arg:expr, $($rest:tt)*) => {
         out!(@call $func $out, [$($built,)* ($arg).as_ptr(),] $($rest)*)
     };
@@ -225,12 +301,44 @@ macro_rules! out {
         out!(@call $func $out, [$($built,)* ($arg).as_ptr(),])
     };
 
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? @ $arg:expr, $($rest:tt)*) => {
+        out!(@call $func $out, [$($built,)* match &($arg) { Some(v) => v.as_ptr(), None => ::std::ptr::null() },] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? @ $arg:expr $(,)?) => {
+        out!(@call $func $out, [$($built,)* match &($arg) { Some(v) => v.as_ptr(), None => ::std::ptr::null() },])
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? ! $arg:expr, $($rest:tt)*) => {
+        out!(@call $func $out, [$($built,)* crate::utils::opt_cstring_ptr(&(crate::traits::TryToOptCString::try_to_opt_cstring($arg)?)),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? ! $arg:expr $(,)?) => {
+        out!(@call $func $out, [$($built,)* crate::utils::opt_cstring_ptr(&(crate::traits::TryToOptCString::try_to_opt_cstring($arg)?)),])
+    };
+
     (@call $func:ident $out:ident, [$($built:expr,)*] ? $arg:expr, $($rest:tt)*) => {
         out!(@call $func $out, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&($arg)),] $($rest)*)
     };
 
     (@call $func:ident $out:ident, [$($built:expr,)*] ? $arg:expr $(,)?) => {
         out!(@call $func $out, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&($arg)),])
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ! $arg:expr, $($rest:tt)*) => {
+        out!(@call $func $out, [$($built,)* (crate::traits::TryToCString::try_to_cstring($arg)?).as_ptr(),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ! $arg:expr $(,)?) => {
+        out!(@call $func $out, [$($built,)* (crate::traits::TryToCString::try_to_cstring($arg)?).as_ptr(),])
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ~ $arg:expr, $($rest:tt)*) => {
+        out!(@call $func $out, [$($built,)* crate::traits::LmInto::lm_into($arg),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ~ $arg:expr $(,)?) => {
+        out!(@call $func $out, [$($built,)* crate::traits::LmInto::lm_into($arg),])
     };
 
     (@call $func:ident $out:ident, [$($built:expr,)*] $arg:expr, $($rest:tt)*) => {
@@ -299,6 +407,14 @@ macro_rules! out_or {
         (crate::api::api().$func)($($built,)* $out.as_mut_ptr())
     };
 
+    (@call $func:ident $out:ident, [$($built:expr,)*] @ mut $arg:expr, $($rest:tt)*) => {
+        out_or!(@call $func $out, [$($built,)* ($arg).as_mut_ptr(),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] @ mut $arg:expr $(,)?) => {
+        out_or!(@call $func $out, [$($built,)* ($arg).as_mut_ptr(),])
+    };
+
     (@call $func:ident $out:ident, [$($built:expr,)*] @ $arg:expr, $($rest:tt)*) => {
         out_or!(@call $func $out, [$($built,)* ($arg).as_ptr(),] $($rest)*)
     };
@@ -307,12 +423,44 @@ macro_rules! out_or {
         out_or!(@call $func $out, [$($built,)* ($arg).as_ptr(),])
     };
 
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? @ $arg:expr, $($rest:tt)*) => {
+        out_or!(@call $func $out, [$($built,)* match &($arg) { Some(v) => v.as_ptr(), None => ::std::ptr::null() },] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? @ $arg:expr $(,)?) => {
+        out_or!(@call $func $out, [$($built,)* match &($arg) { Some(v) => v.as_ptr(), None => ::std::ptr::null() },])
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? ! $arg:expr, $($rest:tt)*) => {
+        out_or!(@call $func $out, [$($built,)* crate::utils::opt_cstring_ptr(&(crate::traits::TryToOptCString::try_to_opt_cstring($arg)?)),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? ! $arg:expr $(,)?) => {
+        out_or!(@call $func $out, [$($built,)* crate::utils::opt_cstring_ptr(&(crate::traits::TryToOptCString::try_to_opt_cstring($arg)?)),])
+    };
+
     (@call $func:ident $out:ident, [$($built:expr,)*] ? $arg:expr, $($rest:tt)*) => {
         out_or!(@call $func $out, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&($arg)),] $($rest)*)
     };
 
     (@call $func:ident $out:ident, [$($built:expr,)*] ? $arg:expr $(,)?) => {
         out_or!(@call $func $out, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&($arg)),])
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ! $arg:expr, $($rest:tt)*) => {
+        out_or!(@call $func $out, [$($built,)* (crate::traits::TryToCString::try_to_cstring($arg)?).as_ptr(),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ! $arg:expr $(,)?) => {
+        out_or!(@call $func $out, [$($built,)* (crate::traits::TryToCString::try_to_cstring($arg)?).as_ptr(),])
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ~ $arg:expr, $($rest:tt)*) => {
+        out_or!(@call $func $out, [$($built,)* crate::traits::LmInto::lm_into($arg),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ~ $arg:expr $(,)?) => {
+        out_or!(@call $func $out, [$($built,)* crate::traits::LmInto::lm_into($arg),])
     };
 
     (@call $func:ident $out:ident, [$($built:expr,)*] $arg:expr, $($rest:tt)*) => {

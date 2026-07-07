@@ -3,10 +3,11 @@ use std::ffi::c_char;
 
 use luna_model::core::{Bounds, Model};
 use luna_model::types::Specs;
+use lunamodel_cext_vtable::LmLazyBounds;
 
 use crate::error::{CapiError, guard};
 use crate::utils::vtype_from_c;
-use crate::{LmBounds, LmModel, LmSpecs, LmStatus, LmVref, LmVtype};
+use crate::{LmModel, LmSpecs, LmStatus, LmVref, LmVtype};
 
 /// Clones a model into a new, independent handle written to `out`.
 ///
@@ -86,7 +87,7 @@ pub unsafe extern "C" fn lm_model_add_var(
     model: *mut LmModel,
     name: *const c_char,
     vtype: LmVtype,
-    bounds: *const LmBounds,
+    bounds: *const LmLazyBounds,
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
@@ -134,7 +135,7 @@ pub unsafe extern "C" fn lm_model_add_var_with_fallback(
     model: *mut LmModel,
     name: *const c_char,
     vtype: LmVtype,
-    bounds: *const LmBounds,
+    bounds: *const LmLazyBounds,
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
