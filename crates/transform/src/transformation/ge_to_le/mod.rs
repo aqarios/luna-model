@@ -12,7 +12,6 @@ mod tests {
         ops::LmAddAssign,
         prelude::{Constraint, ContentEquality},
     };
-    use lunamodel_error::LunaModelResult;
     use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
     use lunamodel_transpiler::{PassManager, TransformationRecord, register_backward};
     use lunamodel_types::{Comparator, Sense, Vtype};

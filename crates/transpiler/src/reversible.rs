@@ -1,9 +1,8 @@
 //! Traits for passes that support backwards execution on solutions.
 
 use lunamodel_core::Solution;
-use lunamodel_error::LunaModelResult;
 
-use crate::Artifact;
+use crate::{Artifact, error::TranspileKindResult};
 
 /// Trait for passes that can invert their forward transformation on solutions.
 pub trait Reversible {
@@ -18,5 +17,8 @@ pub trait Reversible {
     ///
     /// All configuration needed for reversal must already be encoded in the
     /// artifact produced during forward execution.
-    fn backward(artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution>;
+    fn backward(
+        artifact: &Self::Artifact,
+        solution: Solution,
+    ) -> TranspileKindResult<Solution>;
 }

@@ -9,7 +9,6 @@ pub use pass::ChangeSensePass;
 #[cfg(test)]
 mod tests {
     use lunamodel_core::{Model, Solution, ops::LmAddAssign, prelude::ContentEquality};
-    use lunamodel_error::LunaModelResult;
     use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
     use lunamodel_transpiler::{PassManager, TransformationRecord, register_backward};
     use lunamodel_types::{Sense, Vtype};

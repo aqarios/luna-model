@@ -1,8 +1,6 @@
 //! Artifact traits and erased artifact storage.
 
-use lunamodel_error::LunaModelResult;
-
-use crate::error::TransformationError;
+use crate::error::{TranspileErrorKind, TranspileKindResult};
 
 /// An artifact encodes the inverse transformation.
 ///
@@ -21,10 +19,10 @@ pub trait Artifact: Send + Sync + 'static {
         Self: Sized;
 
     /// Serialize this artifact
-    fn serialize(&self) -> LunaModelResult<Vec<u8>>;
+    fn serialize(&self) -> TranspileKindResult<Vec<u8>>;
 
     /// Deserialize this artifact type
-    fn deserialize(bytes: &[u8]) -> LunaModelResult<Self>
+    fn deserialize(bytes: &[u8]) -> TranspileKindResult<Self>
     where
         Self: Sized;
 }
@@ -43,7 +41,7 @@ impl ErasedArtifact {
     }
 
     /// Serializes a typed artifact into its erased representation.
-    pub fn new<A: Artifact>(artifact: &A) -> LunaModelResult<Self> {
+    pub fn new<A: Artifact>(artifact: &A) -> TranspileKindResult<Self> {
         Ok(Self {
             type_tag: artifact.type_tag().to_string(),
             data: artifact.serialize()?,
@@ -51,9 +49,9 @@ impl ErasedArtifact {
     }
 
     /// Restores a typed artifact from the erased representation.
-    pub fn restore<A: Artifact>(&self) -> LunaModelResult<A> {
+    pub fn restore<A: Artifact>(&self) -> TranspileKindResult<A> {
         if self.type_tag != A::static_type_tag() {
-            return Err(TransformationError::ArtifactTypeMismatch {
+            return Err(TranspileErrorKind::ArtifactTypeMismatch {
                 expected: A::static_type_tag().to_string(),
                 found: self.type_tag.clone(),
             }

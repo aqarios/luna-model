@@ -3,9 +3,8 @@
 use std::any::Any;
 
 use lunamodel_core::Model;
-use lunamodel_error::LunaModelResult;
 
-use crate::{ControlFlowPass, ControlFlowPlan, PassContext};
+use crate::{ControlFlowPass, ControlFlowPlan, PassContext, error::TranspileKindResult};
 
 /// Object-safe erased control flow pass used by the pipeline runtime.
 pub trait ErasedControlFlowPass: Send + Sync {
@@ -18,7 +17,7 @@ pub trait ErasedControlFlowPass: Send + Sync {
     /// Invalidated analysis names.
     fn invalidates(&self) -> &[String];
     /// Runs the pass and returns the selected control-flow plan.
-    fn run_erased(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan>;
+    fn run_erased(&self, model: &mut Model, ctx: &PassContext) -> TranspileKindResult<ControlFlowPlan>;
     /// Human-readable display string.
     fn display(&self) -> String;
     /// Downcasts to the concrete pass type when needed.
@@ -46,7 +45,7 @@ where
         self.invalidates()
     }
 
-    fn run_erased(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan> {
+    fn run_erased(&self, model: &mut Model, ctx: &PassContext) -> TranspileKindResult<ControlFlowPlan> {
         self.run(model, ctx)
     }
 

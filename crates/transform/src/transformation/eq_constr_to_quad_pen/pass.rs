@@ -4,7 +4,6 @@ use lunamodel_core::{
     Model, Solution,
     ops::{LmAddAssign, LmPowAssign},
 };
-use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{
     AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, transformation,
 };

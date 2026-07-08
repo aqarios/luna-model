@@ -1,7 +1,6 @@
 //! Pass logic for rewriting `>=` constraints into `<=` form.
 
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
-use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{
     PassContext, PipelineStep, Reversible, TransformationPass, transformation,
 };

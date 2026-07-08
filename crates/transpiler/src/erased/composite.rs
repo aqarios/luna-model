@@ -3,9 +3,8 @@
 use std::any::Any;
 
 use lunamodel_core::Model;
-use lunamodel_error::LunaModelResult;
 
-use crate::{AnalysisKey, AnalysisManager, CompositePass, ErasedArtifact, PassContext};
+use crate::{AnalysisKey, AnalysisManager, CompositePass, ErasedArtifact, PassContext, error::TranspileKindResult};
 
 /// Object-safe erased composite pass used by the pipeline runtime.
 pub trait ErasedCompositePass: Send + Sync {
@@ -25,7 +24,7 @@ pub trait ErasedCompositePass: Send + Sync {
         model: &mut Model,
         ctx: &PassContext,
         analyses: &mut AnalysisManager,
-    ) -> LunaModelResult<ErasedArtifact>;
+    ) -> TranspileKindResult<ErasedArtifact>;
     /// Human-readable display string.
     fn display(&self) -> String;
     /// Downcasts to the concrete pass type when needed.
@@ -62,7 +61,7 @@ where
         model: &mut Model,
         ctx: &PassContext,
         analyses: &mut AnalysisManager,
-    ) -> LunaModelResult<ErasedArtifact> {
+    ) -> TranspileKindResult<ErasedArtifact> {
         let (artifact, result) = self.forward(model, ctx)?;
         let key = AnalysisKey::<P::Result>::new(self.provides().into());
         analyses.insert(&key, result);

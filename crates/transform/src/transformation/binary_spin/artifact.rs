@@ -2,7 +2,6 @@
 
 use std::collections::HashMap;
 
-use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
 use lunamodel_transpiler::Artifact;
 use lunamodel_types::Vtype;

@@ -1,7 +1,6 @@
 //! Pass logic for objective-sense normalization.
 
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
-use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{
     AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, transformation,
 };

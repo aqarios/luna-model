@@ -4,6 +4,8 @@
 //! `lunamodel-transpiler`. The implementations here are domain-aware: they know
 //! about model structure, variable domains, constraint normalization, and the
 //! reversible artifacts needed for backward execution.
+mod error;
+
 pub mod analysis;
 pub mod composite;
 pub mod control_flow;

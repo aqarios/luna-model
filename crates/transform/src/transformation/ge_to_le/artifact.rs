@@ -1,6 +1,5 @@
 //! Artifact types for `>=` to `<=` constraint normalization.
 
-use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::Artifact;
 
 pub struct GeToLeConstraintsArtifact;

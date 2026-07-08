@@ -1,9 +1,8 @@
 //! Trait definitions for composite passes.
 
 use lunamodel_core::Model;
-use lunamodel_error::LunaModelResult;
 
-use crate::{AnalysisKey, PassContext, reversible::Reversible};
+use crate::{AnalysisKey, PassContext, error::TranspileKindResult, reversible::Reversible};
 
 /// A composite pass.
 ///
@@ -24,7 +23,7 @@ pub trait CompositePass: Send + Sync + Reversible {
         &self,
         model: &mut Model,
         ctx: &PassContext,
-    ) -> LunaModelResult<(Self::Artifact, Self::Result)>;
+    ) -> TranspileKindResult<(Self::Artifact, Self::Result)>;
 
     /// Which pass/analysis keys must be satisfied before this pass can execute?
     fn requires(&self) -> &[String] {

@@ -1,9 +1,13 @@
 //! Analysis pass that checks a model against requested specs.
 
 use lunamodel_core::Model;
-use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, PipelineStep, analysis};
+use lunamodel_transpiler::{
+    AnalysisKey, AnalysisPass, PassContext, PipelineStep, TranspileErrorKind, TranspileKindResult,
+    analysis,
+};
 use lunamodel_types::Specs;
+
+use crate::error::TransformError;
 
 #[analysis]
 #[derive(Clone)]
@@ -32,16 +36,15 @@ impl AnalysisPass for CheckModelSpecsAnalysis {
         AnalysisKey::new(Self::PROVIDES.to_string())
     }
 
-    fn run(&self, model: &Model, _ctx: &PassContext) -> LunaModelResult<Self::Result> {
+    fn run(&self, model: &Model, _ctx: &PassContext) -> TranspileKindResult<Self::Result> {
         if !model.specs().satisfies(&self.specs) {
-            return Err(LunaModelError::AnalysisPass(
-                self.name().to_string(),
-                format!(
+            return Err(TransformError::Analysis {
+                name: self.name().to_string(),
+                msg: format!(
                     "model specs do not match the requirements:\n{}",
                     model.specs().diff(&self.specs)?
-                )
-                .into(),
-            ));
+                ),
+            })?;
         }
         Ok(())
     }

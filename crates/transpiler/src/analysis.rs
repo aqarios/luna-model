@@ -2,9 +2,7 @@
 
 use std::{any::Any, collections::HashMap, fmt::Debug, marker::PhantomData, sync::Arc};
 
-use lunamodel_error::LunaModelResult;
-
-use crate::error::TransformationError;
+use crate::error::{TranspileErrorKind, TranspileKindResult};
 
 /// Typed key for accessing analysis results.
 /// The type parameter ensures compile-time type safety.
@@ -39,9 +37,12 @@ impl AnalysisManager {
     }
 
     /// Get an analysis result (error if not available)
-    pub fn require<T: Send + Sync + 'static>(&self, key: &AnalysisKey<T>) -> LunaModelResult<&T> {
+    pub fn require<T: Send + Sync + 'static>(
+        &self,
+        key: &AnalysisKey<T>,
+    ) -> TranspileKindResult<&T> {
         self.get(key).ok_or_else(|| {
-            TransformationError::MissingAnalysis {
+            TranspileErrorKind::MissingAnalysis {
                 name: key.name.clone(),
             }
             .into()

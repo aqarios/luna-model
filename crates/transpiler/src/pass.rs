@@ -1,9 +1,8 @@
 //! Trait definitions for reversible transformation and analysis passes.
 
 use lunamodel_core::Model;
-use lunamodel_error::LunaModelResult;
 
-use crate::{AnalysisKey, Reversible, context::PassContext};
+use crate::{AnalysisKey, Reversible, context::PassContext, error::TranspileKindResult};
 
 /// A reversible transformation pass.
 ///
@@ -14,7 +13,11 @@ pub trait TransformationPass: Send + Sync + Reversible {
     fn name(&self) -> &str;
 
     /// Runs the forward transformation and returns the artifact needed for reversal.
-    fn forward(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<Self::Artifact>;
+    fn forward(
+        &self,
+        model: &mut Model,
+        ctx: &PassContext,
+    ) -> TranspileKindResult<Self::Artifact>;
 
     /// Which pass/analysis keys must be satisfied before this pass can execute?
     fn requires(&self) -> &[String] {
@@ -56,7 +59,7 @@ pub trait AnalysisPass: Send + Sync {
     }
 
     /// Computes the analysis result without mutating the model.
-    fn run(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<Self::Result>;
+    fn run(&self, model: &Model, ctx: &PassContext) -> TranspileKindResult<Self::Result>;
 
     /// Human-readable display string used by pipeline visualization.
     fn display(&self) -> String {
