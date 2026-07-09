@@ -93,3 +93,8 @@ def test_multi_branch_downstream_fail():
 def test_multi_branch_invalidate_and_provides_for_downstream_ok():
     then = [build_transform("A", invalidates=["BASE"]), build_pass("BASE")]
     PassManager([build_pass("BASE"), IfElsePass(always, then=then, otherwise=[]), build_pass("REQ_BASE", requires=["BASE"])]).run(model())
+
+def test_multi_branch_invalidate_for_downstream_fail():
+    then = [build_transform("A", invalidates=["BASE"])]
+    with pytest.raises(LunaModelError):
+        PassManager([build_pass("BASE"), IfElsePass(always, then=then, otherwise=[]), build_pass("REQ_BASE", requires=["BASE"])]).run(model())
