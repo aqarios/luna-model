@@ -5,7 +5,7 @@ use std::any::Any;
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 
-use crate::{ControlFlowPass, ControlFlowPlan, PassContext};
+use crate::{ControlFlowPass, ControlFlowPlan, PassContext, PipelineStep};
 
 /// Object-safe erased control flow pass used by the pipeline runtime.
 pub trait ErasedControlFlowPass: Send + Sync {
@@ -17,6 +17,8 @@ pub trait ErasedControlFlowPass: Send + Sync {
     fn provides(&self) -> &[String];
     /// Invalidated analysis names.
     fn invalidates(&self) -> &[String];
+    /// All possible branches (sub-steps) this pass may branch into, for static validation.
+    fn branches(&self) -> Vec<&[PipelineStep]>;
     /// Runs the pass and returns the selected control-flow plan.
     fn run_erased(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan>;
     /// Human-readable display string.
@@ -44,6 +46,10 @@ where
 
     fn invalidates(&self) -> &[String] {
         self.invalidates()
+    }
+
+    fn branches(&self) -> Vec<&[PipelineStep]> {
+        self.branches()
     }
 
     fn run_erased(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan> {
