@@ -1,7 +1,7 @@
 import pytest
 
 from luna_model import Model
-from luna_model.transformation import analyze, PassContext, PassManager
+from luna_model.transformation import analyze, PassContext, PassManager, transform, NothingArtifact
 from luna_model.transformation.passes import IfElsePass
 from luna_model.errors import LunaModelError
 
@@ -16,6 +16,14 @@ def build_pass(name: str, *, requires: list[str] = []):
     def mock_analysis(model: Model, ctx: PassContext) -> int:
         _ = model, ctx
         return 0
+
+    return mock_analysis
+
+def build_transform(name: str, *, requires: list[str] = [], invalidates: list[str] = []):
+    @transform(name=name, requires=requires, invalidates=invalidates)
+    def mock_analysis(model: Model, ctx: PassContext) -> tuple[Model, NothingArtifact]:
+        _ = ctx
+        return model, NothingArtifact()
 
     return mock_analysis
 
@@ -82,4 +90,6 @@ def test_multi_branch_downstream_fail():
     with pytest.raises(LunaModelError):
         PassManager([IfElsePass(always, then=then, otherwise=otherwise), build_pass("D", requires=["A"])]).run(model())
 
-
+def test_multi_branch_invalidate_and_provides_for_downstream_ok():
+    then = [build_transform("A", invalidates=["BASE"]), build_pass("BASE")]
+    PassManager([build_pass("BASE"), IfElsePass(always, then=then, otherwise=[]), build_pass("REQ_BASE", requires=["BASE"])]).run(model())
