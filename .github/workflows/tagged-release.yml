@@ -122,7 +122,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Update npm (trusted publishing needs >= 11.5.1)
-        run: npm install -g npm@latest && npm --version
+        run: npm install -g npm@11.18.0 && npm --version
 
       - name: Install JS dependencies
         run: bun install --frozen-lockfile

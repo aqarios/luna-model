@@ -84,10 +84,6 @@ impl PassManager {
         if let Some(m) = merged {
             *satisfied = m;
         }
-        for inv in pass.invalidates() {
-            satisfied.remove(inv);
-        }
-        satisfied.insert(pass.name().to_string());
         Ok(())
     }
 }
@@ -111,7 +107,6 @@ fn check_leaf<'l>(
     for inv in invalidates {
         satisfied.remove(inv);
     }
-    satisfied.insert(name.to_string());
     satisfied.extend(provides.into_iter().map(|s| s.to_owned()));
     Ok(())
 }

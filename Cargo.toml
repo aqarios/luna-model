@@ -15,7 +15,7 @@ default-members = [
 ]
 
 [workspace.package]
-version = "0.6.7"
+version = "0.6.9"
 # Cargo has no maintainers field; Aqarios GmbH as steward is expressed via
 # the crates.io crate owners (and homepage/repository) instead.
 authors = [
@@ -76,22 +76,22 @@ napi-derive = "3.5.6"
 napi-build = "2.3.2"
 uuid = "1.23.3"
 
-luna-model = { path = "crates/lunamodel", version = "0.6.7", default-features = false }
-lunamodel-types = { path = "crates/types", version = "0.6.7", default-features = false }
-lunamodel-error = { path = "crates/error", version = "0.6.7", default-features = false }
-lunamodel-core = { path = "crates/core", version = "0.6.7", default-features = false }
-lunamodel-io = { path = "crates/io", version = "0.6.7", default-features = false }
-lunamodel-hashing = { path = "crates/hashing", version = "0.6.7", default-features = false }
-lunamodel-serializer = { path = "crates/serializer", version = "0.6.7", default-features = false }
-lunamodel-transform = { path = "crates/transform", version = "0.6.7", default-features = false }
-lunamodel-transpiler = { path = "crates/transpiler", version = "0.6.7", default-features = false }
-lunamodel-translate = { path = "crates/translate", version = "0.6.7", default-features = false }
-lunamodel-python = { path = "crates/python", version = "0.6.7", default-features = false }
-lunamodel-utils = { path = "crates/utils", version = "0.6.7", default-features = false }
-lunamodel-unwind = { path = "crates/unwind", version = "0.6.7", default-features = false }
+luna-model = { path = "crates/lunamodel", version = "0.6.9", default-features = false }
+lunamodel-types = { path = "crates/types", version = "0.6.9", default-features = false }
+lunamodel-error = { path = "crates/error", version = "0.6.9", default-features = false }
+lunamodel-core = { path = "crates/core", version = "0.6.9", default-features = false }
+lunamodel-io = { path = "crates/io", version = "0.6.9", default-features = false }
+lunamodel-hashing = { path = "crates/hashing", version = "0.6.9", default-features = false }
+lunamodel-serializer = { path = "crates/serializer", version = "0.6.9", default-features = false }
+lunamodel-transform = { path = "crates/transform", version = "0.6.9", default-features = false }
+lunamodel-transpiler = { path = "crates/transpiler", version = "0.6.9", default-features = false }
+lunamodel-translate = { path = "crates/translate", version = "0.6.9", default-features = false }
+lunamodel-python = { path = "crates/python", version = "0.6.9", default-features = false }
+lunamodel-utils = { path = "crates/utils", version = "0.6.9", default-features = false }
+lunamodel-unwind = { path = "crates/unwind", version = "0.6.9", default-features = false }
 
-lunamodel-unwindable = { path = "crates/unwind/unwindable", version = "0.6.7", default-features = false }
-lunamodel-unwinder = { path = "crates/unwind/unwinder", version = "0.6.7", default-features = false }
+lunamodel-unwindable = { path = "crates/unwind/unwindable", version = "0.6.9", default-features = false }
+lunamodel-unwinder = { path = "crates/unwind/unwinder", version = "0.6.9", default-features = false }
 
-lunamodel-transpiler-macros = { path = "crates/transpiler/transpiler_macros", version = "0.6.7", default-features = false }
-lunamodel-python-macros = { path = "crates/python/python_macros", version = "0.6.7", default-features = false }
+lunamodel-transpiler-macros = { path = "crates/transpiler/transpiler_macros", version = "0.6.9", default-features = false }
+lunamodel-python-macros = { path = "crates/python/python_macros", version = "0.6.9", default-features = false }
