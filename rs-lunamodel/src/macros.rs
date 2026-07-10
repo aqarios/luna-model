@@ -400,6 +400,82 @@ macro_rules! out {
     };
 }
 
+/// Like [`out!`], but for ABI functions that report "no value" as
+/// `LmStatus::Absent`: maps `Absent` to `Ok(None)` and returns `Result<Option<T>>`.
+///
+/// On `Ok`, the out value is converted exactly as [`out!`] does — via
+/// `lm_try_into()` (first form) or the mapper closure (second form) — and wrapped
+/// in `Some`. On `Absent`, the out pointer is left untouched and `Ok(None)` is
+/// returned. Accepts the same [argument sigils](self) as `out!`.
+///
+/// # Example
+/// ```ignore
+/// pub fn best(&self) -> Result<Option<Vec<ResultView>>> {
+///     out_opt!(sol_best(@self))
+/// }
+/// ```
+macro_rules! out_opt {
+    ($func:ident ( $($arg:tt)* ), $map:expr $(,)?) => {{
+        let mut out = std::mem::MaybeUninit::uninit();
+
+        if crate::error::present(unsafe { out!(@call $func out, [] $($arg)*) })? {
+            let out = unsafe { out.assume_init() };
+            Ok(Some(($map)(out)?))
+        } else {
+            Ok(None)
+        }
+    }};
+
+    ($func:ident ( $($arg:tt)* )) => {{
+        let mut out = std::mem::MaybeUninit::uninit();
+
+        if crate::error::present(unsafe { out!(@call $func out, [] $($arg)*) })? {
+            Ok(Some(crate::traits::LmTryInto::lm_try_into(unsafe {
+                out.assume_init()
+            })?))
+        } else {
+            Ok(None)
+        }
+    }};
+}
+
+/// Calls an ABI function of the "pointer + size" shape — one that writes a
+/// **borrowed** `(*const T, usize)` slice through a trailing data-pointer and
+/// length out-pointer — and copies it into an owned `Vec<T>`.
+///
+/// Unlike [`out!`] (single owned out-value) this appends *two* out-pointers and
+/// copies the borrowed slice, since the data stays owned by the source object
+/// (e.g. `sol_counts`/`sol_raw_energies` borrow from the `Solution`). The leading
+/// arguments accept the same [argument sigils](self) as `out!`.
+///
+/// # Safety
+/// The ABI function must, on `LmStatus::Ok`, write a pointer valid for `len`
+/// elements that lives at least until this call returns (a borrow of the source
+/// is sufficient, since the slice is copied immediately).
+///
+/// # Example
+/// ```ignore
+/// pub fn counts(&self) -> Result<Vec<usize>> {
+///     out_slice!(sol_counts(@self))
+/// }
+/// ```
+macro_rules! out_slice {
+    ($func:ident ( $($arg:tt)* )) => {{
+        let mut ptr = std::ptr::null();
+        let mut len: usize = 0;
+
+        crate::error::check(unsafe {
+            check!(@call $func, [] $($arg)* , &mut ptr, &mut len)
+        })?;
+
+        Ok(if ptr.is_null() {
+            Vec::new()
+        } else {
+            unsafe { std::slice::from_raw_parts(ptr, len) }.to_vec()
+        })
+    }};
+}
+
 /// Frees `$self.handle` with the given LunaModel ABI free function if it is non-null.
 ///
 /// Use this in `Drop` impls for wrapper types that own a `handle` field.

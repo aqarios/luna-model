@@ -8,16 +8,21 @@ impl Solution {
         out!(sol_samples(@self))
     }
 
-    // pub sol_counts: unsafe extern "C" fn(*const LmSol, *mut *const usize, *mut usize) -> LmStatus,
-    // pub fn counts(&self) -> Result<Vec<usize>> {
-    //     out!(sol_counts(@self))
-    // }
+    pub fn counts(&self) -> Result<Vec<usize>> {
+        out_slice!(sol_counts(@self))
+    }
 
-    // pub sol_raw_energies: unsafe extern "C" fn(*const LmSol, *mut *const f64, *mut usize) -> LmStatus,
-    // pub sol_obj_values: unsafe extern "C" fn(*const LmSol, *mut *const f64, *mut usize) -> LmStatus,
-    // pub sol_feasible: unsafe extern "C" fn(*const LmSol, *mut *const bool, *mut usize) -> LmStatus,
-    // pub sol_constraints: unsafe extern "C" fn(*const LmSol, *mut LmBoolMapBuffer) -> LmStatus,
-    // pub sol_variable_bounds: unsafe extern "C" fn(*const LmSol, *mut LmBoolMapBuffer) -> LmStatus,
+    pub fn raw_energies(&self) -> Result<Vec<f64>> {
+        out_slice!(sol_raw_energies(@self))
+    }
+
+    pub fn obj_values(&self) -> Result<Vec<f64>> {
+        out_slice!(sol_obj_values(@self))
+    }
+
+    pub fn feasible(&self) -> Result<Vec<bool>> {
+        out_slice!(sol_feasible(@self))
+    }
 
     pub fn timing(&self) -> Result<Timing> {
         out!(sol_timing(@self))
@@ -76,7 +81,7 @@ impl Solution {
     }
 
     pub fn best(&self) -> Result<Option<Vec<ResultView>>> {
-        out!(sol_best(@self))
+        out_opt!(sol_best(@self))
     }
 
     pub fn extract(&self, row: usize) -> Result<Self> {

@@ -11,10 +11,17 @@ impl TryToVec<VarRef> for LmVrefBuffer {
         let out = if self.data.is_null() {
             Vec::new()
         } else {
-            unsafe { std::slice::from_raw_parts(self.data, self.len) }
-                .iter()
-                .copied()
-                .map(VarRef::from_raw)
+            // The buffer owns each vref handle, and `vref_buffer_free` would free
+            // them. Take each into an owning `VarRef` and null the slot so the
+            // free releases only the array (freeing a handle we now own would be
+            // a double-free).
+            unsafe { std::slice::from_raw_parts_mut(self.data, self.len) }
+                .iter_mut()
+                .map(|slot| {
+                    let vref = VarRef::from_raw(*slot);
+                    *slot = std::ptr::null_mut();
+                    vref
+                })
                 .collect()
         };
         unsafe { (api().vref_buffer_free)(self) };

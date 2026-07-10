@@ -79,6 +79,17 @@ pub(crate) fn check(status: LmStatus) -> Result<()> {
     }
 }
 
+/// Like [`check`], but treats `Absent` as a successful "not present".
+///
+/// Returns `Ok(true)` for `Ok`, `Ok(false)` for `Absent`, and `Err` for any real
+/// failure. Used by `out_opt!` to map an absent value to `Ok(None)`.
+pub(crate) fn present(status: LmStatus) -> Result<bool> {
+    match status {
+        LmStatus::Absent => Ok(false),
+        other => check(other).map(|()| true),
+    }
+}
+
 /// Reads the thread-local last-error message set by the most recent C call.
 fn last_error_message() -> String {
     let ptr = (api().last_error_message)();
