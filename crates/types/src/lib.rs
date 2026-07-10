@@ -20,6 +20,7 @@ mod value_source;
 use std::sync::LazyLock;
 
 pub use bound::Bound;
+pub use enumset::EnumSet;
 pub use cmp::Comparator;
 pub use dtypes::{
     Bias, BinaryAssignment, EnvIdx, IntegerAssignment, RealAssignment, SpinAssignment, VarIdx,

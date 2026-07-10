@@ -30,15 +30,21 @@
 //! | `?x`      | `x.as_opt_ptr()`                                       | `Option<value>` → nullable `*const T` (e.g. `Option<f64>` → `const double*`) |
 //! | `x`       | `x` (by value)                                         | scalars, already-correct raw pointers, `&mut out` args, etc. |
 //! | `*xs`     | `xs.to_ptr_list()?.as_ptr(), xs.len()`                 | a slice `&[String]` / `&[VarRef]` → **two** args: `*const *const T` array + `usize` length |
+//! | `?*xs`    | `opt_vec_ptr(&xs), opt_vec_len(&xs)`                   | `Option<Vec<T>>` → **two** args: nullable `*const T` array + `usize` length |
 //!
-//! `*xs` is the one sigil that expands to *two* ABI arguments (array pointer then
-//! length). It marshals `&[String]` (into owned `CString`s) or `&[VarRef]` (into
-//! handle pointers) via [`ToPtrList`](crate::traits::ToPtrList); the owned array
-//! lives as a statement-scoped temporary and the length comes from the slice. Pass
-//! a genuine leading-deref value as `(*p)` so it isn't taken as this sigil.
+//! `*xs` and `?*xs` are the sigils that expand to *two* ABI arguments (array
+//! pointer then length). `*xs` marshals `&[String]` (into owned `CString`s) or
+//! `&[VarRef]` (into handle pointers) via [`ToPtrList`](crate::traits::ToPtrList);
+//! the owned array lives as a statement-scoped temporary and the length comes
+//! from the slice. `?*xs` borrows an `Option<Vec<T>>` of already-ABI-ready
+//! values: `None` becomes `(null, 0)` while `Some(vec)` keeps its non-null data
+//! pointer even when empty, preserving the ABI's "explicit empty set" vs
+//! "unspecified" distinction. Pass a genuine leading-deref value as `(*p)` so it
+//! isn't taken as one of these sigils.
 //!
 //! The `?`-family splits on the second character — `?` = pointer to a value, `?@` = handle,
-//! `?!` = C string, `?~` = converted value — mirroring the non-optional `@` / `!` / `~`.
+//! `?!` = C string, `?~` = converted value, `?*` = value array — mirroring the
+//! non-optional `@` / `!` / `~` / `*`.
 //!
 //! ## Why `!`/`~` are separate from `@`
 //!
@@ -156,6 +162,14 @@ macro_rules! check {
 
     (@call $func:ident, [$($built:expr,)*] ? ~ $arg:expr $(,)?) => {
         check!(@call $func, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&(($arg).map(|v| crate::traits::LmInto::lm_into(v)))),])
+    };
+
+    (@call $func:ident, [$($built:expr,)*] ? * $arg:expr, $($rest:tt)*) => {
+        check!(@call $func, [$($built,)* crate::utils::opt_vec_ptr(&($arg)), crate::utils::opt_vec_len(&($arg)),] $($rest)*)
+    };
+
+    (@call $func:ident, [$($built:expr,)*] ? * $arg:expr $(,)?) => {
+        check!(@call $func, [$($built,)* crate::utils::opt_vec_ptr(&($arg)), crate::utils::opt_vec_len(&($arg)),])
     };
 
     (@call $func:ident, [$($built:expr,)*] ? $arg:expr, $($rest:tt)*) => {
@@ -357,6 +371,14 @@ macro_rules! out {
 
     (@call $func:ident $out:ident, [$($built:expr,)*] ? ~ $arg:expr $(,)?) => {
         out!(@call $func $out, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&(($arg).map(|v| crate::traits::LmInto::lm_into(v)))),])
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? * $arg:expr, $($rest:tt)*) => {
+        out!(@call $func $out, [$($built,)* crate::utils::opt_vec_ptr(&($arg)), crate::utils::opt_vec_len(&($arg)),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? * $arg:expr $(,)?) => {
+        out!(@call $func $out, [$($built,)* crate::utils::opt_vec_ptr(&($arg)), crate::utils::opt_vec_len(&($arg)),])
     };
 
     (@call $func:ident $out:ident, [$($built:expr,)*] ? $arg:expr, $($rest:tt)*) => {
@@ -571,6 +593,14 @@ macro_rules! out_or {
 
     (@call $func:ident $out:ident, [$($built:expr,)*] ? ~ $arg:expr $(,)?) => {
         out_or!(@call $func $out, [$($built,)* crate::traits::AsOptPtr::as_opt_ptr(&(($arg).map(|v| crate::traits::LmInto::lm_into(v)))),])
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? * $arg:expr, $($rest:tt)*) => {
+        out_or!(@call $func $out, [$($built,)* crate::utils::opt_vec_ptr(&($arg)), crate::utils::opt_vec_len(&($arg)),] $($rest)*)
+    };
+
+    (@call $func:ident $out:ident, [$($built:expr,)*] ? * $arg:expr $(,)?) => {
+        out_or!(@call $func $out, [$($built,)* crate::utils::opt_vec_ptr(&($arg)), crate::utils::opt_vec_len(&($arg)),])
     };
 
     (@call $func:ident $out:ident, [$($built:expr,)*] ? $arg:expr, $($rest:tt)*) => {

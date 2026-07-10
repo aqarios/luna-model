@@ -47,6 +47,21 @@ pub(crate) fn opt_cstring_ptr(opt: &Option<CString>) -> *const c_char {
     opt.as_ref().map_or(std::ptr::null(), |c| c.as_ptr())
 }
 
+/// Borrows an optional owned array as a nullable data pointer.
+///
+/// `None` yields null; `Some` yields the vec's data pointer, which is non-null
+/// even for an empty vec — the ABI distinguishes an explicit empty set
+/// (non-null, len 0) from an unspecified one (null). The `Option<Vec<T>>` must
+/// outlive the FFI call.
+pub(crate) fn opt_vec_ptr<T>(opt: &Option<Vec<T>>) -> *const T {
+    opt.as_ref().map_or(std::ptr::null(), |v| v.as_ptr())
+}
+
+/// Length companion to [`opt_vec_ptr`]; `None` yields 0.
+pub(crate) fn opt_vec_len<T>(opt: &Option<Vec<T>>) -> usize {
+    opt.as_ref().map_or(0, |v| v.len())
+}
+
 impl ToPtrList for &[VarRef] {
     type Elem = LmVref;
     fn to_ptr_list(self) -> Result<PtrList<LmVref>> {

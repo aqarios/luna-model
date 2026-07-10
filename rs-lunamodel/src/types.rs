@@ -1,5 +1,5 @@
-use lunamodel_cext_vtable::{LmComparator, LmSense, LmValueSource, LmVtype};
-use lunamodel_types::{Comparator, Sense, ValueSource, Vtype};
+use lunamodel_cext_vtable::{LmComparator, LmCtype, LmSense, LmValueSource, LmVtype};
+use lunamodel_types::{Comparator, Ctype, Sense, ValueSource, Vtype};
 
 use crate::traits::{LmFrom, LmTryFrom};
 
@@ -29,6 +29,36 @@ impl LmFrom<Vtype> for LmVtype {
 
 impl LmTryFrom<LmVtype> for Vtype {
     fn lm_try_from(value: LmVtype) -> crate::Result<Self> {
+        Ok(Self::lm_from(value))
+    }
+}
+
+impl LmFrom<Ctype> for LmCtype {
+    fn lm_from(value: Ctype) -> Self {
+        match value {
+            Ctype::Unconstrained => Self::Unconstrained,
+            Ctype::Equality => Self::Equality,
+            Ctype::Inequality => Self::Inequality,
+            Ctype::LessEqual => Self::LessEqual,
+            Ctype::GreaterEqual => Self::GreaterEqual,
+        }
+    }
+}
+
+impl LmFrom<LmCtype> for Ctype {
+    fn lm_from(value: LmCtype) -> Self {
+        match value {
+            LmCtype::Unconstrained => Self::Unconstrained,
+            LmCtype::Equality => Self::Equality,
+            LmCtype::Inequality => Self::Inequality,
+            LmCtype::LessEqual => Self::LessEqual,
+            LmCtype::GreaterEqual => Self::GreaterEqual,
+        }
+    }
+}
+
+impl LmTryFrom<LmCtype> for Ctype {
+    fn lm_try_from(value: LmCtype) -> crate::Result<Self> {
         Ok(Self::lm_from(value))
     }
 }

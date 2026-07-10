@@ -24,6 +24,7 @@ incremental = false
 members = ["derive"]
 
 [dependencies]
+enumset = "1.1.13"
 indexmap = "2.14.0"
 itertools = "0.15.0"
 # Table type + ABI structs only — no luna-model core, so consumers never link a
