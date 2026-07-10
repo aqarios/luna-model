@@ -1,7 +1,7 @@
 import pytest
 
 from luna_model import Model, Sense, Vtype
-from luna_model.errors import AnalysisPassError
+from luna_model.errors import AnalysisPassError, TransformError
 from luna_model.transformation import PassManager, pipelines
 
 def test_very_simple_model():
@@ -179,5 +179,5 @@ def test_illegal_model():
     
     penalty_scaling = 13
     pm = PassManager([pipelines.ToUnconstrainedBinaryPipeline(penalty_scaling=penalty_scaling)])
-    with pytest.raises(AnalysisPassError):
+    with pytest.raises(TransformError):
         _ = pm.run(model)
