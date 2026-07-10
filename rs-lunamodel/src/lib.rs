@@ -75,6 +75,7 @@ pub use specs::Specs;
 pub use timing::Timing;
 pub use traits::{ContentEquality, Serialization, TryClone, TryDeepClone};
 pub use vref::VarRef;
+pub use variable::Variable;
 
 /// Re-export of the ABI dispatch-table type, for obtaining and passing it to
 /// [`init`].
