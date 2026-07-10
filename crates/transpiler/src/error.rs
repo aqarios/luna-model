@@ -126,10 +126,7 @@ impl From<TranspilerError> for LunaModelError {
     fn from(value: TranspilerError) -> Self {
         let msg: ErrString = value.to_string().into();
         match value.record {
-            None => LunaModelError::Transformation {
-                msg,
-                record: None,
-            },
+            None => LunaModelError::Transformation { msg, record: None },
             Some(r) => LunaModelError::Transformation {
                 msg,
                 record: Some(ErasedRecord::new(r)),

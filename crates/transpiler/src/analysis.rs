@@ -41,11 +41,10 @@ impl AnalysisManager {
         &self,
         key: &AnalysisKey<T>,
     ) -> TranspileKindResult<&T> {
-        self.get(key).ok_or_else(|| {
-            TranspileErrorKind::MissingAnalysis {
+        self.get(key)
+            .ok_or_else(|| TranspileErrorKind::MissingAnalysis {
                 name: key.name.clone(),
-            }
-        })
+            })
     }
 
     /// Stores an analysis result under its typed key.
