@@ -21,6 +21,7 @@ mod record;
 mod registry;
 mod reversible;
 mod step;
+mod validation;
 
 pub use analysis::{AnalysisKey, AnalysisManager};
 pub use artifact::{Artifact, ErasedArtifact};

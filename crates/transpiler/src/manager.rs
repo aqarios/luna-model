@@ -11,7 +11,7 @@ use crate::{
     erased::{
         ErasedAnalysisPass, ErasedCompositePass, ErasedMetaAnalysisPass, ErasedTransformPass,
     },
-    error::{TranspileErrorKind, TranspilerResult, record},
+    error::{TranspilerResult, record},
     output::TransformationOutput,
     record::{PassEntry, TransformationRecord},
     step::PipelineStep,
@@ -104,83 +104,6 @@ impl PassManager {
     fn validate_requirements(&self) -> TranspilerResult<()> {
         let mut satisfied: HashSet<String> = HashSet::new();
         self.validate_steps(&self.passes, &mut satisfied)
-    }
-
-    fn validate_steps(
-        &self,
-        steps: &[PipelineStep],
-        satisfied: &mut HashSet<String>,
-    ) -> TranspilerResult<()> {
-        for step in steps {
-            match step {
-                PipelineStep::Transform(pass) => {
-                    for requirement in pass.requires() {
-                        if !satisfied.contains(requirement) {
-                            return Err(TranspileErrorKind::UnsatisfiedRequirement {
-                                pass_name: pass.name().to_string(),
-                                requirement: requirement.to_string(),
-                            }
-                            .into());
-                        }
-                    }
-                    for invalidated in pass.invalidates() {
-                        satisfied.remove(invalidated);
-                    }
-                    satisfied.insert(pass.name().to_string());
-                }
-                PipelineStep::Analysis(pass) => {
-                    for requirement in pass.requires() {
-                        if !satisfied.contains(requirement) {
-                            return Err(TranspileErrorKind::UnsatisfiedRequirement {
-                                pass_name: pass.name().to_string(),
-                                requirement: requirement.to_string(),
-                            }
-                            .into());
-                        }
-                    }
-                    satisfied.insert(pass.name().to_string());
-                    satisfied.insert(pass.provides().to_string());
-                }
-                PipelineStep::MetaAnalysis(pass) => {
-                    satisfied.insert(pass.name().to_string());
-                    satisfied.insert(pass.provides().to_string());
-                }
-                PipelineStep::ControlFlow(pass) => {
-                    for requirement in pass.requires() {
-                        if !satisfied.contains(requirement) {
-                            return Err(TranspileErrorKind::UnsatisfiedRequirement {
-                                pass_name: pass.name().to_string(),
-                                requirement: requirement.to_string(),
-                            }
-                            .into());
-                        }
-                    }
-                    for invalidated in pass.invalidates() {
-                        satisfied.remove(invalidated);
-                    }
-                    satisfied.insert(pass.name().to_string());
-                    satisfied.extend(pass.provides().to_owned());
-                }
-                PipelineStep::Composite(pass) => {
-                    for requirement in pass.requires() {
-                        if !satisfied.contains(requirement) {
-                            return Err(TranspileErrorKind::UnsatisfiedRequirement {
-                                pass_name: pass.name().to_string(),
-                                requirement: requirement.to_string(),
-                            }
-                            .into());
-                        }
-                    }
-                    for invalidated in pass.invalidates() {
-                        satisfied.remove(invalidated);
-                    }
-                    satisfied.insert(pass.name().to_string());
-                    satisfied.insert(pass.provides().to_string());
-                }
-                PipelineStep::Pipeline(p) => self.validate_steps(&p.steps, satisfied)?,
-            }
-        }
-        Ok(())
     }
 }
 

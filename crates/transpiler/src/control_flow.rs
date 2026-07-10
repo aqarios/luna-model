@@ -55,6 +55,11 @@ pub trait ControlFlowPass: Send + Sync {
         &[]
     }
 
+    /// All possible branches (sub-steps) this pass may branch into, for static validation.
+    fn branches(&self) -> Vec<&[PipelineStep]> {
+        Vec::new()
+    }
+
     /// Human-readable display string used by pipeline visualization.
     fn display(&self) -> String {
         format!("🔀 {}", self.name())

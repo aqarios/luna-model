@@ -96,6 +96,10 @@ impl ControlFlowPass for IfElsePass {
         &self.invalidates
     }
 
+    fn branches(&self) -> Vec<&[PipelineStep]> {
+        vec![&self.then_steps, &self.else_steps]
+    }
+
     fn display(&self) -> String {
         let mut out = String::default();
 
