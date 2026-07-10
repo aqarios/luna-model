@@ -322,7 +322,7 @@ create_exception!(
 
 create_exception!(
     builtins.errors,
-    PyCompilationError,
+    PyTransformError,
     PyTransformationError,
     "Raised when an error occured during compilation."
 );
@@ -367,7 +367,7 @@ impl From<Lme> for PyErr {
             Lme::AnalysisPass(_, _) => PyAnalysisPassError::new_err,
             Lme::IfElsePass(_) => PyIfElsePassError::new_err,
             Lme::MetaAnalysisPass(_, _) => PyMetaAnalysisPassError::new_err,
-            Lme::Compilation(_) => PyCompilationError::new_err,
+            Lme::Transformation { .. } => PyTransformError::new_err,
             Lme::RandomSampling(_) => PyRandomSamplingError::new_err,
             Lme::InvalidTolerance(_) => PyInvalidToleranceError::new_err,
             Lme::WithCause(e, cause) => {

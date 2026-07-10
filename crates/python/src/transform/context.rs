@@ -16,6 +16,7 @@ use crate::{
     transform::{
         adapter::{PyAnalysisPassAdapterResult, PyMetaAnalysisPassAdapterResult},
         builtin::analysis::{PyMaxBias, PyMinConstraintValues},
+        error::to_pyerr,
     },
 };
 
@@ -68,29 +69,41 @@ impl PyPassContext {
     fn require_analysis(&self, py: Python, key: String) -> PyResult<Py<PyAny>> {
         let res = match key.as_str() {
             x if x == CheckModelSpecsAnalysis::PROVIDES => {
-                let _: &() = self.manager.require(&CheckModelSpecsAnalysis::key())?;
+                let _: &() = self
+                    .manager
+                    .require(&CheckModelSpecsAnalysis::key())
+                    .map_err(to_pyerr)?;
                 &py.None()
             }
             x if x == MaxBiasAnalysis::PROVIDES => {
-                let a: &MaxBias = self.manager.require(&MaxBiasAnalysis::key())?;
+                let a: &MaxBias = self
+                    .manager
+                    .require(&MaxBiasAnalysis::key())
+                    .map_err(to_pyerr)?;
                 &PyMaxBias(*a).into_py_any(py)?
             }
             x if x == MinValueForConstraintAnalysis::PROVIDES => {
                 let a: &MinConstraintValues = self
                     .manager
-                    .require(&MinValueForConstraintAnalysis::key())?;
+                    .require(&MinValueForConstraintAnalysis::key())
+                    .map_err(to_pyerr)?;
                 &PyMinConstraintValues(a.clone()).into_py_any(py)?
             }
             x if x == SpecsAnalysis::PROVIDES => {
-                let a: &Specs = self.manager.require(&SpecsAnalysis::key())?;
+                let a: &Specs = self
+                    .manager
+                    .require(&SpecsAnalysis::key())
+                    .map_err(to_pyerr)?;
                 &PyModelSpecs::from(a.clone()).into_py_any(py)?
             }
             _ => {
                 // It can either be a PyAnalysisPassAdapterResult or a PyMetaAnalysisPassAdapaterResult.
-                let from_analysis = &self.manager.require(&AnalysisKey::<
-                    PyAnalysisPassAdapterResult,
-                >::new(key.clone()));
-                let from_meta = &self
+                let from_analysis =
+                    self.manager
+                        .require(&AnalysisKey::<PyAnalysisPassAdapterResult>::new(
+                            key.clone(),
+                        ));
+                let from_meta = self
                     .manager
                     .require(&AnalysisKey::<PyMetaAnalysisPassAdapterResult>::new(key));
                 match (from_analysis, from_meta) {
@@ -102,7 +115,7 @@ impl PyPassContext {
                         ))?;
                     }
                     (Err(ea), Err(_)) => {
-                        return Err(ea.clone())?;
+                        return Err(ea).map_err(to_pyerr)?;
                     }
                 }
             }

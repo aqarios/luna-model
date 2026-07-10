@@ -1,6 +1,6 @@
 //! Artifact types for equality-to-quadratic-penalty conversion.
 
-use lunamodel_transpiler::Artifact;
+use lunamodel_transpiler::{Artifact, TranspileKindResult};
 
 pub struct EqualityConstraintsToQuadraticPenaltyArtifact;
 
@@ -12,11 +12,11 @@ impl Artifact for EqualityConstraintsToQuadraticPenaltyArtifact {
         "luna_model::equality-constraints-to-quadratic-penalty"
     }
 
-    fn serialize(&self) -> LunaModelResult<Vec<u8>> {
+    fn serialize(&self) -> TranspileKindResult<Vec<u8>> {
         Ok(Vec::new())
     }
 
-    fn deserialize(_: &[u8]) -> LunaModelResult<Self>
+    fn deserialize(_: &[u8]) -> TranspileKindResult<Self>
     where
         Self: Sized,
     {

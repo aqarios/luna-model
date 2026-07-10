@@ -12,25 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Exception types for LunaModel.
-
-This module defines all exception types that can be raised by LunaModel
-operations. All exceptions inherit from the base LunaModelError.
-
-Exception hierarchy:
-    - LunaModelError: Base exception for all LunaModel errors
-    - ComputationError: Errors during mathematical computations
-    - DecodeError: Errors during decoding/deserialization
-    - DifferentEnvsError: Operations on objects from different environments
-    - EvaluationError: Errors during expression evaluation
-    - TranslationError: Errors during model translation
-    - VariableCreationError: Errors during variable creation
-    - And many more specific error types...
-"""
-
-import warnings
-from typing import Any
-
+from luna_model._deprecated import deprecated
 from luna_model._lm import (
     PyAnalysisPassError as AnalysisPassError,
 )
@@ -119,9 +101,6 @@ from luna_model._lm import (
     PyTransformationPassError as TransformationPassError,
 )
 from luna_model._lm import (
-    PyTransformError as TransformError,
-)
-from luna_model._lm import (
     PyTranslationError as TranslationError,
 )
 from luna_model._lm import (
@@ -145,23 +124,18 @@ from luna_model._lm import (
 from luna_model._lm import (
     PyVariablesFromDifferentEnvsError as VariablesFromDifferentEnvsError,
 )
+from luna_model.transformation.record import TransformationRecord
 
+class TransformError(TransformationError):
+    record: TransformationRecord | None
+    """Transformation record recovered up to the point of failure, if available."""
 
-def __getattr__(name: str) -> Any:  # noqa: ANN401
-    if name == "CompilationError":
-        warnings.warn(
-            "CompilationError is deprecated and will be removed in the next release; use TransformError instead.",
-            FutureWarning,
-            stacklevel=2,
-        )
-        return TransformError
-    msg = f"module {__name__!r} has no attribute {name!r}"
-    raise AttributeError(msg)
-
+@deprecated("CompilationError is deprecated. Use TransformError instead.")  # noqa: PYI053
+class CompilationError(TransformError): ...
 
 __all__ = [
     "AnalysisPassError",
-    "CompilationError",  # noqa: F822 # type: ignore[reportUnsupportedDunderAll]
+    "CompilationError",
     "CompressionError",
     "ComputationError",
     "DecodeError",

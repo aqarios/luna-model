@@ -4,8 +4,7 @@ use std::collections::HashMap;
 
 use lunamodel_core::{Model, prelude::Bounds};
 use lunamodel_transpiler::{
-    AnalysisKey, AnalysisPass, PassContext, PipelineStep, TranspileErrorKind, TranspileKindResult,
-    analysis,
+    AnalysisKey, AnalysisPass, PassContext, PipelineStep, TranspileKindResult, analysis,
 };
 use lunamodel_types::Bound;
 
@@ -42,7 +41,7 @@ impl AnalysisPass for MinValueForConstraintAnalysis {
                 .lhs
                 .linear_items()
                 .map(|(v, bias)| {
-                    let Bounds { lower, upper } = v.bounds().map_err(TransformError::external)?;
+                    let Bounds { lower, upper } = v.bounds()?;
                     // positive coef minimized at lower bound, negative at upper bound
                     match if bias >= 0.0 { lower } else { upper } {
                         Bound::Bounded(value) => Ok(bias * value),
@@ -51,7 +50,7 @@ impl AnalysisPass for MinValueForConstraintAnalysis {
                             msg: format!(
                                 "constraint '{name}' contains variable '{}' that is unbounded \
                        in the minimizing direction; its minimum value cannot be determined.",
-                                v.name().map_err(TranspileErrorKind::external)?,
+                                v.name()?
                             ),
                         })?,
                     }

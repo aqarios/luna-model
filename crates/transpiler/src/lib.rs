@@ -28,7 +28,7 @@ pub use composite::CompositePass;
 pub use context::PassContext;
 pub use control_flow::{ControlFlowPass, ControlFlowPlan};
 pub use error::{
-    TranspileError, TranspileErrorKind, TranspileKindResult, TranspileResult,
+    TranspilerError, TranspileErrorKind, TranspileKindResult, TranspilerResult,
 };
 pub use manager::PassManager;
 pub use meta::MetaAnalysisPass;
@@ -48,7 +48,7 @@ pub mod prelude {
     pub use crate::{
         AnalysisKey, AnalysisManager, AnalysisPass, Artifact, BackwardRegistry, CompositePass,
         ControlFlowPass, ControlFlowPlan, ErasedArtifact, MetaAnalysisPass, PassContext, PassEntry,
-        PassManager, Pipeline, PipelineStep, PipelineStepMethods, Reversible, TranspileError,
+        PassManager, Pipeline, PipelineStep, PipelineStepMethods, Reversible, TranspilerError,
         TransformationOutput, TransformationPass, TransformationRecord, apply_backward,
         register_backward,
     };

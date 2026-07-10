@@ -1,7 +1,6 @@
 //! Artifact wrapper types for Python-defined transformation passes.
 
-use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::Artifact;
+use lunamodel_transpiler::{Artifact, TranspileKindResult};
 use pyo3::{
     Py, PyAny, PyErr, Python, pyclass,
     types::{PyAnyMethods, PyBytes, PyBytesMethods, PyModule},
@@ -29,7 +28,7 @@ impl Artifact for PyTransformationPassAdapterArtifact {
         "luna_model::PyTransformationPassAdapterArtifact"
     }
 
-    fn serialize(&self) -> LunaModelResult<Vec<u8>> {
+    fn serialize(&self) -> TranspileKindResult<Vec<u8>> {
         Python::attach(|py| {
             let obj = self.artifact.bind(py);
             let cls = obj.getattr("__class__").map_err(map_pyerr)?;
@@ -66,7 +65,7 @@ impl Artifact for PyTransformationPassAdapterArtifact {
         })
     }
 
-    fn deserialize(bytes: &[u8]) -> LunaModelResult<Self>
+    fn deserialize(bytes: &[u8]) -> TranspileKindResult<Self>
     where
         Self: Sized,
     {

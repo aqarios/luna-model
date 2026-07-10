@@ -8,6 +8,7 @@ mod pass;
 mod pipeline;
 mod record;
 mod utils;
+mod error;
 
 mod adapter;
 pub mod builtin;

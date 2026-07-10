@@ -6,7 +6,7 @@ use lunamodel_unwind::*;
 use pyo3::{FromPyObject, PyResult, Python, pyclass, pymethods};
 
 use super::{output::PyTransformationOutput, pass::PyPass};
-use crate::{PyModel, PySolution};
+use crate::{PyModel, PySolution, transform::error::to_pyerr};
 
 #[derive(FromPyObject)]
 pub enum PassIn {
@@ -61,7 +61,11 @@ impl PyPassManager {
     /// The Python binding does not mutate the caller's model in place; the
     /// returned [`PyTransformationOutput`] contains the transformed model.
     fn run(&self, model: PyModel) -> PyResult<PyTransformationOutput> {
-        Ok(self.pm.run(model.m.read_arc().deep_clone())?.into())
+        Ok(self
+            .pm
+            .run(model.m.read_arc().deep_clone())
+            .map_err(to_pyerr)?
+            .into())
     }
 
     /// Deprecated compatibility wrapper around [`PyTransformationOutput::backward`].

@@ -10,7 +10,10 @@ use pyo3::{
     types::{PyBytes, PyType},
 };
 
-use crate::{PyModel, PySolution, PyVtype, transform::PyPassContext};
+use crate::{
+    PyModel, PySolution, PyVtype,
+    transform::{PyPassContext, error::to_pyerr},
+};
 
 #[pyclass]
 pub struct PyBinarySpinPassArtifact(pub BinarySpinPassArtifact);
@@ -33,12 +36,14 @@ impl PyBinarySpinPassArtifact {
     }
 
     fn serialize(&self, py: Python) -> PyResult<Py<PyAny>> {
-        Ok(PyBytes::new(py, self.0.serialize()?.as_slice()).into())
+        Ok(PyBytes::new(py, self.0.serialize().map_err(to_pyerr)?.as_slice()).into())
     }
 
     #[classmethod]
     fn deserialize(_cls: &Bound<'_, PyType>, py: Python, buf: Py<PyBytes>) -> PyResult<Self> {
-        Ok(Self(BinarySpinPassArtifact::deserialize(buf.as_bytes(py))?))
+        Ok(Self(
+            BinarySpinPassArtifact::deserialize(buf.as_bytes(py)).map_err(to_pyerr)?,
+        ))
     }
 }
 

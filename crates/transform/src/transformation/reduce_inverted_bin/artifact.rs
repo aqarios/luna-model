@@ -1,7 +1,6 @@
 //! Artifact types for inverted-binary reduction.
 
-use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::Artifact;
+use lunamodel_transpiler::{Artifact, TranspileKindResult};
 
 pub struct ReduceInvertedBinaryPassArtifact {}
 
@@ -13,11 +12,11 @@ impl Artifact for ReduceInvertedBinaryPassArtifact {
         "luna_model::reduce-inverted-binary"
     }
 
-    fn serialize(&self) -> LunaModelResult<Vec<u8>> {
+    fn serialize(&self) -> TranspileKindResult<Vec<u8>> {
         Ok(Vec::new())
     }
 
-    fn deserialize(_bytes: &[u8]) -> LunaModelResult<Self>
+    fn deserialize(_bytes: &[u8]) -> TranspileKindResult<Self>
     where
         Self: Sized,
     {

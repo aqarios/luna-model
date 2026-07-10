@@ -10,7 +10,10 @@ use pyo3::{
     types::{PyBytes, PyType},
 };
 
-use crate::{PyModel, PySolution, transform::PyPassContext};
+use crate::{
+    PyModel, PySolution,
+    transform::{PyPassContext, error::to_pyerr},
+};
 
 #[pyclass]
 pub struct PyReduceInvertedBinaryPassArtifact(pub ReduceInvertedBinaryPassArtifact);
@@ -18,14 +21,14 @@ pub struct PyReduceInvertedBinaryPassArtifact(pub ReduceInvertedBinaryPassArtifa
 #[pymethods]
 impl PyReduceInvertedBinaryPassArtifact {
     fn serialize(&self, py: Python) -> PyResult<Py<PyAny>> {
-        Ok(PyBytes::new(py, self.0.serialize()?.as_slice()).into())
+        Ok(PyBytes::new(py, self.0.serialize().map_err(to_pyerr)?.as_slice()).into())
     }
 
     #[classmethod]
     fn deserialize(_cls: &Bound<'_, PyType>, py: Python, buf: Py<PyBytes>) -> PyResult<Self> {
-        Ok(Self(ReduceInvertedBinaryPassArtifact::deserialize(
-            buf.as_bytes(py),
-        )?))
+        Ok(Self(
+            ReduceInvertedBinaryPassArtifact::deserialize(buf.as_bytes(py)).map_err(to_pyerr)?,
+        ))
     }
 }
 

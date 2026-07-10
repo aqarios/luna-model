@@ -1,8 +1,7 @@
 //! Artifact types for `<=` to equality conversion.
 
-use lunamodel_error::LunaModelResult;
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
-use lunamodel_transpiler::Artifact;
+use lunamodel_transpiler::{Artifact, TranspileErrorKind, TranspileKindResult};
 
 #[derive(Default)]
 pub struct LeToEqConstraintsArtifact {
@@ -24,14 +23,18 @@ impl Artifact for LeToEqConstraintsArtifact {
         "luna_model::equality-constraints-to-quadratic-penalty"
     }
 
-    fn serialize(&self) -> LunaModelResult<Vec<u8>> {
-        self.encode(Some(true), Some(3))
+    fn serialize(&self) -> TranspileKindResult<Vec<u8>> {
+        Ok(self.encode(Some(true), Some(3))?)
     }
 
-    fn deserialize(bytes: &[u8]) -> LunaModelResult<Self>
+    fn deserialize(bytes: &[u8]) -> TranspileKindResult<Self>
     where
         Self: Sized,
     {
-        bytes.unversionize().decompress()?.decode(())
+        Ok(bytes
+            .unversionize()
+            .decompress()
+            .map_err(TranspileErrorKind::external)?
+            .decode(())?)
     }
 }

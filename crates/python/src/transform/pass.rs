@@ -147,7 +147,7 @@ macro_rules! define_py_pass {
                         if let Some(a) = p.as_any().downcast_ref::<PyAnalysisPassAdapter>() {
                             return a.inner(py).into_py_any(py).map_err(map_pyerr);
                         }
-                        Err(LunaModelError::Compilation(
+                        Err(LunaModelError::Internal(
                             format!(
                                 "cannot convert analysis pass '{}' to a python pass.",
                                 p.name()
@@ -167,7 +167,7 @@ macro_rules! define_py_pass {
                         if let Some(t) = p.as_any().downcast_ref::<PyTransformationPassAdapter>() {
                             return t.inner(py).into_py_any(py).map_err(map_pyerr);
                         }
-                        Err(LunaModelError::Compilation(
+                        Err(LunaModelError::Internal(
                             format!(
                                 "cannot convert transformation pass '{}' to a python pass.",
                                 p.name()
@@ -187,7 +187,7 @@ macro_rules! define_py_pass {
                         if let Some(c) = p.as_any().downcast_ref::<PyControlFlowPassAdapter>() {
                             return c.inner(py).into_py_any(py).map_err(map_pyerr);
                         }
-                        Err(LunaModelError::Compilation(
+                        Err(LunaModelError::Internal (
                             format!(
                                 "cannot convert control-flow pass '{}' to a python pass.",
                                 p.name()
@@ -202,7 +202,7 @@ macro_rules! define_py_pass {
                         if let Some(m) = p.as_any().downcast_ref::<PyMetaAnalysisPassAdapter>() {
                             return m.inner(py).into_py_any(py).map_err(map_pyerr);
                         }
-                        Err(LunaModelError::Compilation(
+                        Err(LunaModelError::Internal(
                             format!(
                                 "cannot convert meta-analysis pass '{}' to a python pass.",
                                 p.name()
@@ -214,7 +214,7 @@ macro_rules! define_py_pass {
                         if let Some(c) = p.as_any().downcast_ref::<PyCompositePassAdapter>() {
                             return c.inner(py).into_py_any(py).map_err(map_pyerr);
                         }
-                        Err(LunaModelError::Compilation(
+                        Err(LunaModelError::Internal(
                             format!(
                                 "cannot convert composite pass '{}' to a python pass.",
                                 p.name()

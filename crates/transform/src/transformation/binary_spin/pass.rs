@@ -4,10 +4,12 @@ use std::ops::{Add, Mul};
 
 use lunamodel_core::{Environment, Model, Solution, solution::Column};
 use lunamodel_transpiler::{
-    PassContext, PipelineStep, Reversible, TransformationPass, transformation,
+    PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult, transformation,
 };
 use lunamodel_types::Vtype;
 use sqids::Sqids;
+
+use crate::error::{TransformError, TransformResult};
 
 use super::artifact::BinarySpinPassArtifact;
 
@@ -37,7 +39,7 @@ impl BinarySpinPass {
         &self,
         model: &Model,
         artifact: &mut <Self as Reversible>::Artifact,
-    ) -> LunaModelResult<()> {
+    ) -> TransformResult<()> {
         let pref = self.prefix.clone().unwrap_or_else(|| match self.vtype {
             Vtype::Binary => "x".to_string(),
             Vtype::Spin => "s".to_string(),
@@ -51,7 +53,10 @@ impl BinarySpinPass {
             if env.lookup(&new_name).is_ok() {
                 // New name already exists
                 let suffix = Sqids::default().encode(&[x.into()]).map_err(|e| {
-                    LunaModelError::TransformationPass(self.name().into(), e.to_string().into())
+                    TransformError::Transformation {
+                        name: self.name().to_owned(),
+                        msg: e.to_string(),
+                    }
                 })?;
                 new_name = format!("{}_{}", new_name, suffix);
             }
@@ -73,7 +78,11 @@ impl TransformationPass for BinarySpinPass {
         "binary-spin"
     }
 
-    fn forward(&self, model: &mut Model, _ctx: &PassContext) -> LunaModelResult<Self::Artifact> {
+    fn forward(
+        &self,
+        model: &mut Model,
+        _ctx: &PassContext,
+    ) -> TranspileKindResult<Self::Artifact> {
         let mut artifact = BinarySpinPassArtifact::try_new(self.vtype)?;
         Self::fill_artifact(self, model, &mut artifact)?;
         if artifact.map.is_empty() {
@@ -81,14 +90,19 @@ impl TransformationPass for BinarySpinPass {
         }
 
         for (s, t) in artifact.map.iter() {
-            let v = model.environment.lookup(s).map_err(|e| {
-                LunaModelError::Compilation(format!("binary-spin lookup ('{s}'): {e}").into())
-            })?;
+            let v = model
+                .environment
+                .lookup(s)
+                .map_err(|e| TransformError::Transformation {
+                    name: self.name().to_owned(),
+                    msg: format!("binary-spin lookup ('{s}'): {e}"),
+                })?;
             let var = model
                 .environment
                 .insert(t, artifact.new_vtype, None)
-                .map_err(|e| {
-                    LunaModelError::Compilation(format!("binary-spin insert ('{t}'): {e}").into())
+                .map_err(|e| TransformError::Transformation {
+                    name: self.name().to_owned(),
+                    msg: format!("binary-spin insert ('{t}'): {e}"),
                 })?;
 
             let expr = match artifact.new_vtype {
@@ -97,9 +111,12 @@ impl TransformationPass for BinarySpinPass {
                 _ => unreachable!("unexpected target vtype in binary-spin"),
             };
 
-            model.substitute(&v, &expr).map_err(|e| {
-                LunaModelError::Compilation(format!("binary-spin substitute: {e}").into())
-            })?;
+            model
+                .substitute(&v, &expr)
+                .map_err(|e| TransformError::Transformation {
+                    name: self.name().to_owned(),
+                    msg: format!("binary-spin substitute: {e}"),
+                })?;
         }
 
         Ok(artifact)
@@ -111,7 +128,10 @@ impl Reversible for BinarySpinPass {
 
     const ID: &'static str = "luna_model::binary-spin";
 
-    fn backward(artifact: &Self::Artifact, mut solution: Solution) -> LunaModelResult<Solution> {
+    fn backward(
+        artifact: &Self::Artifact,
+        mut solution: Solution,
+    ) -> TranspileKindResult<Solution> {
         if artifact.map.is_empty() {
             return Ok(solution);
         }

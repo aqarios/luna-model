@@ -1,8 +1,8 @@
-//! Runtime adapter for Python analysis passes.
+//t Runtime adapter for Python analysis passes.
 
 use lunamodel_core::Model;
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext};
+use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, TranspileKindResult};
 use pyo3::{Py, PyAny, Python, types::PyAnyMethods};
 
 use super::{PyAnalysisPass, PyAnalysisPassAdapterResult};
@@ -73,7 +73,7 @@ impl AnalysisPass for PyAnalysisPassAdapter {
         )
     }
 
-    fn run(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<Self::Result> {
+    fn run(&self, model: &Model, ctx: &PassContext) -> TranspileKindResult<Self::Result> {
         let py_result: Py<PyAny> = Python::attach(|py| {
             let obj = self.inner.bind(py);
             let res = obj

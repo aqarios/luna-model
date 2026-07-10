@@ -11,7 +11,7 @@ use crate::{
     erased::{
         ErasedAnalysisPass, ErasedCompositePass, ErasedMetaAnalysisPass, ErasedTransformPass,
     },
-    error::{TranspileErrorKind, TranspileResult, record},
+    error::{TranspileErrorKind, TranspilerResult, record},
     output::TransformationOutput,
     record::{PassEntry, TransformationRecord},
     step::PipelineStep,
@@ -89,7 +89,7 @@ impl PassManager {
     }
 
     /// Validates and executes the configured steps against a model.
-    pub fn run(&self, mut model: Model) -> TranspileResult<TransformationOutput> {
+    pub fn run(&self, mut model: Model) -> TranspilerResult<TransformationOutput> {
         self.validate_requirements()?;
         let mut analysis = AnalysisManager::default();
         let record = execute_steps(&mut model, &self.passes, &mut analysis)?;
@@ -101,7 +101,7 @@ impl PassManager {
     }
 
     /// Validates pass requirements against the configured execution order.
-    fn validate_requirements(&self) -> TranspileResult<()> {
+    fn validate_requirements(&self) -> TranspilerResult<()> {
         let mut satisfied: HashSet<String> = HashSet::new();
         self.validate_steps(&self.passes, &mut satisfied)
     }
@@ -110,7 +110,7 @@ impl PassManager {
         &self,
         steps: &[PipelineStep],
         satisfied: &mut HashSet<String>,
-    ) -> TranspileResult<()> {
+    ) -> TranspilerResult<()> {
         for step in steps {
             match step {
                 PipelineStep::Transform(pass) => {
@@ -189,7 +189,7 @@ fn execute_steps(
     model: &mut Model,
     passes: &[PipelineStep],
     analysis_manager: &mut AnalysisManager,
-) -> TranspileResult<TransformationRecord> {
+) -> TranspilerResult<TransformationRecord> {
     record(|entries| {
         for (pos, step) in passes.iter().enumerate() {
             match step {

@@ -1,13 +1,16 @@
 //! Pass logic for rewriting `<=` constraints into equalities.
 
 use lunamodel_core::{Model, Solution, ops::LmSubAssign, prelude::LazyBounds};
-use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{
-    AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, transformation,
+    AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult,
+    transformation,
 };
 use lunamodel_types::{Bound, Comparator, Vtype};
 
-use crate::analysis::{MinConstraintValues, MinValueForConstraintAnalysis};
+use crate::{
+    analysis::{MinConstraintValues, MinValueForConstraintAnalysis},
+    error::TransformError,
+};
 
 use super::artifact::LeToEqConstraintsArtifact;
 
@@ -34,18 +37,21 @@ impl TransformationPass for LeToEqConstraintsPass {
         &self.req
     }
 
-    fn forward(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<Self::Artifact> {
+    fn forward(&self, model: &mut Model, ctx: &PassContext) -> TranspileKindResult<Self::Artifact> {
         let mut artifact = LeToEqConstraintsArtifact::default();
         let minvaldata: &MinConstraintValues =
             ctx.require_analysis(&MinValueForConstraintAnalysis::key())?;
 
         for (name, constr) in model.constraints.iter_mut() {
             if constr.comparator == Comparator::Le {
-                let minval = *minvaldata.vals.get(name).ok_or_else(|| {
-                    LunaModelError::NoConstraintForKey(
-                        format!("cache does not contain an entry for constraint '{name}'").into(),
-                    )
-                })?;
+                let minval =
+                    *minvaldata
+                        .vals
+                        .get(name)
+                        .ok_or_else(|| TransformError::Transformation {
+                            name: self.name().to_owned(),
+                            msg: format!("cache does not contain an entry for constraint '{name}'"),
+                        })?;
                 let slack_var = model.environment.insert_with_fallback(
                     &format!("slack_{}", name),
                     Vtype::Integer,
@@ -73,7 +79,10 @@ impl Reversible for LeToEqConstraintsPass {
 
     const ID: &'static str = "luna_model::le-to-eq-constraints";
 
-    fn backward(artifact: &Self::Artifact, mut solution: Solution) -> LunaModelResult<Solution> {
+    fn backward(
+        artifact: &Self::Artifact,
+        mut solution: Solution,
+    ) -> TranspileKindResult<Solution> {
         solution.remove_cols(&artifact.slackvars);
         solution.aggregate()?;
         Ok(solution)

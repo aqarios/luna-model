@@ -5,7 +5,10 @@ use lunamodel_transform::analysis::{MaxBias, MaxBiasAnalysis};
 use lunamodel_transpiler::AnalysisPass;
 use pyo3::{pyclass, pymethods};
 
-use crate::{PyModel, transform::PyPassContext};
+use crate::{
+    PyModel,
+    transform::{PyPassContext, error::to_pyerr},
+};
 
 #[pyclass]
 pub struct PyMaxBias(pub MaxBias);

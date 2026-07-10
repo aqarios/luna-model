@@ -2,7 +2,7 @@
 
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{ControlFlowPass, ControlFlowPlan, PassContext};
+use lunamodel_transpiler::{ControlFlowPass, ControlFlowPlan, PassContext, TranspileKindResult};
 use pyo3::{Py, PyErr, Python, types::PyAnyMethods};
 
 use super::{PyControlFlowPass, PyControlFlowPlan};
@@ -60,7 +60,7 @@ impl ControlFlowPass for PyControlFlowPassAdapter {
         &self.name
     }
 
-    fn run(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan> {
+    fn run(&self, model: &Model, ctx: &PassContext) -> TranspileKindResult<ControlFlowPlan> {
         Python::attach(|py| {
             let obj = self.inner.bind(py);
 

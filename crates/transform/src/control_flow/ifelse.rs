@@ -3,13 +3,14 @@
 use std::{collections::BTreeSet, sync::Arc};
 
 use lunamodel_core::Model;
+use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{
     ControlFlowPass, ControlFlowPlan, DisplaySteps, PassContext, PipelineStep, PipelineStepMethods,
     TranspileKindResult, control_flow,
 };
 use pad::PadStr;
 
-use crate::{error::TransformError, utils::unique_name};
+use crate::utils::unique_name;
 
 pub trait ConditionPredicate: Send + Sync {
     fn eval(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<bool>;
@@ -72,10 +73,7 @@ impl ControlFlowPass for IfElsePass {
     }
 
     fn run(&self, model: &Model, ctx: &PassContext) -> TranspileKindResult<ControlFlowPlan> {
-        let cond = self
-            .predicate
-            .eval(model, ctx)
-            .map_err(TransformError::external)?;
+        let cond = self.predicate.eval(model, ctx)?;
 
         let (steps, name) = if cond {
             (self.then_steps.clone(), format!("{}-then", self.name))

@@ -2,16 +2,18 @@
 
 use std::{error::Error, fmt::Display};
 
+use lunamodel_error::{ErasedRecord, ErrString, LunaModelError};
+
 use crate::{PassEntry, TransformationRecord};
 
 #[derive(Debug)]
-pub struct TranspileError {
+pub struct TranspilerError {
     pub kind: TranspileErrorKind,
     pub record: Option<TransformationRecord>,
 }
-impl Error for TranspileError {}
+impl Error for TranspilerError {}
 
-pub type TranspileResult<T> = Result<T, TranspileError>;
+pub type TranspilerResult<T> = Result<T, TranspilerError>;
 pub type TranspileKindResult<T> = Result<T, TranspileErrorKind>;
 
 /// Errors originating from pass orchestration rather than domain modeling itself.
@@ -40,7 +42,7 @@ pub enum TranspileErrorKind {
 }
 impl Error for TranspileErrorKind {}
 
-impl Display for TranspileError {
+impl Display for TranspilerError {
     /// Formats the orchestration error for developers.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.kind)
@@ -84,29 +86,69 @@ impl Display for TranspileErrorKind {
     }
 }
 
-impl From<TranspileErrorKind> for TranspileError {
-    fn from(kind: TranspileErrorKind) -> Self {
-        Self { kind, record: None }
-    }
-}
-
 pub fn record(
-    f: impl FnOnce(&mut Vec<PassEntry>) -> TranspileResult<()>,
-) -> TranspileResult<TransformationRecord> {
+    f: impl FnOnce(&mut Vec<PassEntry>) -> TranspilerResult<()>,
+) -> TranspilerResult<TransformationRecord> {
     let mut entries = Vec::new();
     let res = f(&mut entries);
     let record = TransformationRecord { entries };
     match res {
         Ok(_) => Ok(record),
-        Err(TranspileError { kind, .. }) => Err(TranspileError {
+        Err(TranspilerError { kind, .. }) => Err(TranspilerError {
             kind,
             record: Some(record),
         }),
     }
 }
 
-impl<E: Error + 'static> From<E> for TransformError {
-    fn from(value: E) -> Self {
+impl TranspileErrorKind {
+    pub fn external<E: Error + 'static>(e: E) -> Self {
+        Self::External { e: Box::new(e) }
+    }
+}
+
+impl From<LunaModelError> for TranspileErrorKind {
+    fn from(value: LunaModelError) -> Self {
         Self::External { e: Box::new(value) }
+    }
+}
+
+impl From<TranspileErrorKind> for LunaModelError {
+    fn from(value: TranspileErrorKind) -> Self {
+        Self::Transformation {
+            msg: value.to_string().into(),
+            record: None,
+        }
+    }
+}
+
+impl From<TranspilerError> for LunaModelError {
+    fn from(value: TranspilerError) -> Self {
+        let msg: ErrString = value.to_string().into();
+        match value.record {
+            None => LunaModelError::Transformation {
+                msg: msg,
+                record: None,
+            },
+            Some(r) => LunaModelError::Transformation {
+                msg: msg,
+                record: Some(ErasedRecord::new(r)),
+            },
+        }
+    }
+}
+
+impl From<TranspileErrorKind> for TranspilerError {
+    fn from(kind: TranspileErrorKind) -> Self {
+        Self { kind, record: None }
+    }
+}
+
+impl From<LunaModelError> for TranspilerError {
+    fn from(value: LunaModelError) -> Self {
+        TranspilerError {
+            kind: value.into(),
+            record: None,
+        }
     }
 }

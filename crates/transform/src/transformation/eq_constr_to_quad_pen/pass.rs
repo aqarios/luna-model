@@ -5,11 +5,15 @@ use lunamodel_core::{
     ops::{LmAddAssign, LmPowAssign},
 };
 use lunamodel_transpiler::{
-    AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, transformation,
+    AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult,
+    transformation,
 };
 use lunamodel_types::Comparator;
 
-use crate::analysis::{MaxBias, MaxBiasAnalysis};
+use crate::{
+    analysis::{MaxBias, MaxBiasAnalysis},
+    error::TransformError,
+};
 
 use super::artifact::EqualityConstraintsToQuadraticPenaltyArtifact as ECTQPArtifact;
 
@@ -38,7 +42,7 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
         "equality-constraints-to-quadratic-penalty"
     }
 
-    fn forward(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<Self::Artifact> {
+    fn forward(&self, model: &mut Model, ctx: &PassContext) -> TranspileKindResult<Self::Artifact> {
         let max_bias: &MaxBias = ctx.require_analysis(&MaxBiasAnalysis::key())?;
         let max_bias = if max_bias.val == 0.0 {
             1.0
@@ -50,9 +54,10 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
 
         for (name, constr) in constrs.iter() {
             if constr.comparator != Comparator::Eq {
-                return Err(LunaModelError::Internal(
-                    "cannot move inequality constraints to objective. Transform inequality constraints to equality constraints first.".into(),
-                ));
+                return Err(TransformError::Transformation {
+                    name: self.name().to_owned(),
+                    msg: "cannot move inequality constraints to objective. Transform inequality constraints to equality constraints first.".into(),
+                })?;
             }
             let mut expr = (&constr.lhs - constr.rhs)?;
             expr.pow_assign(2)?;
@@ -75,7 +80,7 @@ impl Reversible for EqualityConstraintsToQuadraticPenaltyPass {
 
     const ID: &'static str = "luna_model::equality-constraints-to-quadratic-penalty";
 
-    fn backward(_artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
+    fn backward(_artifact: &Self::Artifact, solution: Solution) -> TranspileKindResult<Solution> {
         Ok(solution)
     }
 }

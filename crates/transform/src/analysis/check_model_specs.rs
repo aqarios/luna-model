@@ -2,8 +2,7 @@
 
 use lunamodel_core::Model;
 use lunamodel_transpiler::{
-    AnalysisKey, AnalysisPass, PassContext, PipelineStep, TranspileErrorKind, TranspileKindResult,
-    analysis,
+    AnalysisKey, AnalysisPass, PassContext, PipelineStep, TranspileKindResult, analysis,
 };
 use lunamodel_types::Specs;
 

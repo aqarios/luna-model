@@ -13,6 +13,7 @@ use crate::{
     PyModel,
     transform::{
         PyControlFlowPlan, PyPassContext,
+        error::to_pyerr,
         utils::{PipelineOrPassVec, map_pyerr},
     },
 };

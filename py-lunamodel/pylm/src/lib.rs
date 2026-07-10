@@ -230,8 +230,8 @@ fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
         m.py().get_type::<PyMetaAnalysisPassError>(),
     )?;
     m.add(
-        PyCompilationError::type_object(py).name()?,
-        m.py().get_type::<PyCompilationError>(),
+        PyTransformError::type_object(py).name()?,
+        m.py().get_type::<PyTransformError>(),
     )?;
     m.add(
         PyRandomSamplingError::type_object(py).name()?,

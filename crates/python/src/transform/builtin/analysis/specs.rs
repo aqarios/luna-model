@@ -5,7 +5,10 @@ use lunamodel_transform::analysis::SpecsAnalysis;
 use lunamodel_transpiler::AnalysisPass;
 use pyo3::pymethods;
 
-use crate::{PyModel, PyModelSpecs, transform::PyPassContext};
+use crate::{
+    PyModel, PyModelSpecs,
+    transform::{PyPassContext, error::to_pyerr},
+};
 
 #[pyanalysis(PyModelSpecs)]
 #[derive(Default)]
