@@ -1,5 +1,5 @@
 use derive_more::Deref;
-use luna_model::core::ValueSource;
+use luna_model::types::ValueSource;
 use luna_model::python::PyValueSource as PyVS;
 
 #[repr(transparent)]
