@@ -14,7 +14,7 @@ mod tests {
         prelude::{ContentEquality, LazyBounds},
     };
     use lunamodel_error::LunaModelResult;
-use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
+    use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
     use lunamodel_transpiler::{PassManager, TransformationRecord, register_backward};
     use lunamodel_types::{Bound, Vtype};
 

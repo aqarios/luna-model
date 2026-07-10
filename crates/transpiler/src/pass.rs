@@ -13,11 +13,7 @@ pub trait TransformationPass: Send + Sync + Reversible {
     fn name(&self) -> &str;
 
     /// Runs the forward transformation and returns the artifact needed for reversal.
-    fn forward(
-        &self,
-        model: &mut Model,
-        ctx: &PassContext,
-    ) -> TranspileKindResult<Self::Artifact>;
+    fn forward(&self, model: &mut Model, ctx: &PassContext) -> TranspileKindResult<Self::Artifact>;
 
     /// Which pass/analysis keys must be satisfied before this pass can execute?
     fn requires(&self) -> &[String] {

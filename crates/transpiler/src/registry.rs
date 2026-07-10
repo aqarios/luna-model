@@ -40,11 +40,12 @@ impl BackwardRegistry {
         artifact: &ErasedArtifact,
         solution: Solution,
     ) -> TranspileKindResult<Solution> {
-        let backward_fn = self.functions.get(pass_name).ok_or_else(|| {
-            TranspileErrorKind::UnregisteredPass {
-                name: pass_name.to_string(),
-            }
-        })?;
+        let backward_fn =
+            self.functions
+                .get(pass_name)
+                .ok_or_else(|| TranspileErrorKind::UnregisteredPass {
+                    name: pass_name.to_string(),
+                })?;
 
         backward_fn(artifact, solution)
     }

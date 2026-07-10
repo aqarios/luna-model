@@ -2,13 +2,13 @@
 mod context;
 mod entry;
 mod envelope;
+mod error;
 mod manager;
 mod output;
 mod pass;
 mod pipeline;
 mod record;
 mod utils;
-mod error;
 
 mod adapter;
 pub mod builtin;

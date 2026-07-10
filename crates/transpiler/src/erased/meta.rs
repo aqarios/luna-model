@@ -2,7 +2,9 @@
 
 use std::any::Any;
 
-use crate::{AnalysisKey, AnalysisManager, MetaAnalysisPass, PipelineStep, error::TranspileKindResult};
+use crate::{
+    AnalysisKey, AnalysisManager, MetaAnalysisPass, PipelineStep, error::TranspileKindResult,
+};
 
 /// Object-safe wrapper for [`crate::MetaAnalysisPass`].
 pub trait ErasedMetaAnalysisPass: Send + Sync {

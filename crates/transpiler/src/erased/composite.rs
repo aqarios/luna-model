@@ -4,7 +4,10 @@ use std::any::Any;
 
 use lunamodel_core::Model;
 
-use crate::{AnalysisKey, AnalysisManager, CompositePass, ErasedArtifact, PassContext, error::TranspileKindResult};
+use crate::{
+    AnalysisKey, AnalysisManager, CompositePass, ErasedArtifact, PassContext,
+    error::TranspileKindResult,
+};
 
 /// Object-safe erased composite pass used by the pipeline runtime.
 pub trait ErasedCompositePass: Send + Sync {

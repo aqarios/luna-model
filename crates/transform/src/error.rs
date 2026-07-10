@@ -29,7 +29,7 @@ impl Display for TransformError {
             Self::Transformation { name, msg } => {
                 write!(f, "transformation '{name}' errored: {msg}")
             }
-            Self::External { e } => write!(f, "external: {}", e.to_string()),
+            Self::External { e } => write!(f, "external: {}", e),
         }
     }
 }

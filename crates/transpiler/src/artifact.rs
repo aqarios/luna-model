@@ -54,8 +54,7 @@ impl ErasedArtifact {
             return Err(TranspileErrorKind::ArtifactTypeMismatch {
                 expected: A::static_type_tag().to_string(),
                 found: self.type_tag.clone(),
-            }
-            .into());
+            });
         }
         A::deserialize(&self.data)
     }

@@ -45,7 +45,6 @@ impl AnalysisManager {
             TranspileErrorKind::MissingAnalysis {
                 name: key.name.clone(),
             }
-            .into()
         })
     }
 

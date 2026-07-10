@@ -17,8 +17,5 @@ pub trait Reversible {
     ///
     /// All configuration needed for reversal must already be encoded in the
     /// artifact produced during forward execution.
-    fn backward(
-        artifact: &Self::Artifact,
-        solution: Solution,
-    ) -> TranspileKindResult<Solution>;
+    fn backward(artifact: &Self::Artifact, solution: Solution) -> TranspileKindResult<Solution>;
 }

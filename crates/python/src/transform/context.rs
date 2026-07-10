@@ -115,7 +115,7 @@ impl PyPassContext {
                         ))?;
                     }
                     (Err(ea), Err(_)) => {
-                        return Err(ea).map_err(to_pyerr)?;
+                        return Err(to_pyerr(ea))?;
                     }
                 }
             }

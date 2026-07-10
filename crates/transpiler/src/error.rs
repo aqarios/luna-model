@@ -81,7 +81,7 @@ impl Display for TranspileErrorKind {
                 Some(q) => write!(f, "query failed: {msg} for '{q}'"),
                 None => write!(f, "query failed: {msg}"),
             },
-            Self::External { e } => write!(f, "external: {}", e.to_string()),
+            Self::External { e } => write!(f, "external: {}", e),
         }
     }
 }
@@ -127,11 +127,11 @@ impl From<TranspilerError> for LunaModelError {
         let msg: ErrString = value.to_string().into();
         match value.record {
             None => LunaModelError::Transformation {
-                msg: msg,
+                msg,
                 record: None,
             },
             Some(r) => LunaModelError::Transformation {
-                msg: msg,
+                msg,
                 record: Some(ErasedRecord::new(r)),
             },
         }
