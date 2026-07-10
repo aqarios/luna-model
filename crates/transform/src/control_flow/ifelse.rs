@@ -6,7 +6,7 @@ use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{
     ControlFlowPass, ControlFlowPlan, DisplaySteps, PassContext, PipelineStep, PipelineStepMethods,
-    control_flow,
+    TranspileKindResult, control_flow,
 };
 use pad::PadStr;
 
@@ -72,7 +72,7 @@ impl ControlFlowPass for IfElsePass {
         &self.name
     }
 
-    fn run(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan> {
+    fn run(&self, model: &Model, ctx: &PassContext) -> TranspileKindResult<ControlFlowPlan> {
         let cond = self.predicate.eval(model, ctx)?;
 
         let (steps, name) = if cond {

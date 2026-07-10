@@ -2,9 +2,9 @@
 
 use std::any::Any;
 
-use lunamodel_error::LunaModelResult;
-
-use crate::{AnalysisKey, AnalysisManager, MetaAnalysisPass, PipelineStep};
+use crate::{
+    AnalysisKey, AnalysisManager, MetaAnalysisPass, PipelineStep, error::TranspileKindResult,
+};
 
 /// Object-safe wrapper for [`crate::MetaAnalysisPass`].
 pub trait ErasedMetaAnalysisPass: Send + Sync {
@@ -17,7 +17,7 @@ pub trait ErasedMetaAnalysisPass: Send + Sync {
         &self,
         steps: &[PipelineStep],
         analyses: &mut AnalysisManager,
-    ) -> LunaModelResult<()>;
+    ) -> TranspileKindResult<()>;
     /// Human-readable display string.
     fn display(&self) -> String;
     /// Downcasts to the concrete pass type when needed.
@@ -40,7 +40,7 @@ where
         &self,
         steps: &[PipelineStep],
         analyses: &mut AnalysisManager,
-    ) -> LunaModelResult<()> {
+    ) -> TranspileKindResult<()> {
         let value = self.run(steps)?;
         let key = AnalysisKey::<P::Result>::new(self.provides().into());
         analyses.insert(&key, value);

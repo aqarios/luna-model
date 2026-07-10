@@ -3,7 +3,6 @@
 use std::{collections::HashSet, sync::Arc};
 
 use lunamodel_core::Model;
-use lunamodel_error::LunaModelResult;
 
 use crate::{
     Pipeline,
@@ -12,6 +11,7 @@ use crate::{
     erased::{
         ErasedAnalysisPass, ErasedCompositePass, ErasedMetaAnalysisPass, ErasedTransformPass,
     },
+    error::{TranspilerResult, record},
     output::TransformationOutput,
     record::{PassEntry, TransformationRecord},
     step::PipelineStep,
@@ -89,7 +89,7 @@ impl PassManager {
     }
 
     /// Validates and executes the configured steps against a model.
-    pub fn run(&self, mut model: Model) -> LunaModelResult<TransformationOutput> {
+    pub fn run(&self, mut model: Model) -> TranspilerResult<TransformationOutput> {
         self.validate_requirements()?;
         let mut analysis = AnalysisManager::default();
         let record = execute_steps(&mut model, &self.passes, &mut analysis)?;
@@ -101,7 +101,7 @@ impl PassManager {
     }
 
     /// Validates pass requirements against the configured execution order.
-    fn validate_requirements(&self) -> LunaModelResult<()> {
+    fn validate_requirements(&self) -> TranspilerResult<()> {
         let mut satisfied: HashSet<String> = HashSet::new();
         self.validate_steps(&self.passes, &mut satisfied)
     }
@@ -112,63 +112,64 @@ fn execute_steps(
     model: &mut Model,
     passes: &[PipelineStep],
     analysis_manager: &mut AnalysisManager,
-) -> LunaModelResult<TransformationRecord> {
-    let mut entries = Vec::new();
-    for (pos, step) in passes.iter().enumerate() {
-        match step {
-            PipelineStep::Transform(pass) => {
-                let ctx = PassContext::new(analysis_manager);
-                let artifact = pass.forward_erased(model, &ctx)?;
-                entries.push(PassEntry::Transform {
-                    pass_id: pass.id().to_string(),
-                    pass_name: pass.name().to_string(),
-                    artifact,
-                });
-                analysis_manager.invalidate_many(pass.invalidates());
-            }
-            PipelineStep::Analysis(pass) => {
-                let analysis_snapshot = analysis_manager.clone();
-                let ctx = PassContext::new(&analysis_snapshot);
-                pass.run_erased(model, &ctx, analysis_manager)?;
-                entries.push(PassEntry::Analysis {
-                    pass_name: pass.name().to_string(),
-                });
-            }
-            PipelineStep::MetaAnalysis(pass) => {
-                pass.run_erased(&passes[pos..], analysis_manager)?;
-                entries.push(PassEntry::MetaAnalysis {
-                    pass_name: pass.name().to_string(),
-                });
-            }
-            PipelineStep::ControlFlow(pass) => {
-                let ctx = PassContext::new(analysis_manager);
-                let plan = pass.run_erased(model, &ctx)?;
-                let sub_record = execute_steps(model, &plan.pipeline.steps, analysis_manager)?;
-                entries.push(PassEntry::ControlFlow {
-                    name: plan.pipeline.name,
-                    pass_name: pass.name().to_string(),
-                    record: sub_record,
-                });
-            }
-            PipelineStep::Composite(pass) => {
-                let analysis_snapshot = analysis_manager.clone();
-                let ctx = PassContext::new(&analysis_snapshot);
-                let artifact = pass.forward_erased(model, &ctx, analysis_manager)?;
-                entries.push(PassEntry::Composite {
-                    pass_id: pass.id().to_string(),
-                    pass_name: pass.name().to_string(),
-                    artifact,
-                });
-                analysis_manager.invalidate_many(pass.invalidates());
-            }
-            PipelineStep::Pipeline(p) => {
-                let sub_record = execute_steps(model, &p.steps, analysis_manager)?;
-                entries.push(PassEntry::Pipeline {
-                    name: p.name.clone(),
-                    record: sub_record,
-                });
+) -> TranspilerResult<TransformationRecord> {
+    record(|entries| {
+        for (pos, step) in passes.iter().enumerate() {
+            match step {
+                PipelineStep::Transform(pass) => {
+                    let ctx = PassContext::new(analysis_manager);
+                    let artifact = pass.forward_erased(model, &ctx)?;
+                    entries.push(PassEntry::Transform {
+                        pass_id: pass.id().to_string(),
+                        pass_name: pass.name().to_string(),
+                        artifact,
+                    });
+                    analysis_manager.invalidate_many(pass.invalidates());
+                }
+                PipelineStep::Analysis(pass) => {
+                    let analysis_snapshot = analysis_manager.clone();
+                    let ctx = PassContext::new(&analysis_snapshot);
+                    pass.run_erased(model, &ctx, analysis_manager)?;
+                    entries.push(PassEntry::Analysis {
+                        pass_name: pass.name().to_string(),
+                    });
+                }
+                PipelineStep::MetaAnalysis(pass) => {
+                    pass.run_erased(&passes[pos..], analysis_manager)?;
+                    entries.push(PassEntry::MetaAnalysis {
+                        pass_name: pass.name().to_string(),
+                    });
+                }
+                PipelineStep::ControlFlow(pass) => {
+                    let ctx = PassContext::new(analysis_manager);
+                    let plan = pass.run_erased(model, &ctx)?;
+                    let sub_record = execute_steps(model, &plan.pipeline.steps, analysis_manager)?;
+                    entries.push(PassEntry::ControlFlow {
+                        name: plan.pipeline.name,
+                        pass_name: pass.name().to_string(),
+                        record: sub_record,
+                    });
+                }
+                PipelineStep::Composite(pass) => {
+                    let analysis_snapshot = analysis_manager.clone();
+                    let ctx = PassContext::new(&analysis_snapshot);
+                    let artifact = pass.forward_erased(model, &ctx, analysis_manager)?;
+                    entries.push(PassEntry::Composite {
+                        pass_id: pass.id().to_string(),
+                        pass_name: pass.name().to_string(),
+                        artifact,
+                    });
+                    analysis_manager.invalidate_many(pass.invalidates());
+                }
+                PipelineStep::Pipeline(p) => {
+                    let sub_record = execute_steps(model, &p.steps, analysis_manager)?;
+                    entries.push(PassEntry::Pipeline {
+                        name: p.name.clone(),
+                        record: sub_record,
+                    });
+                }
             }
         }
-    }
-    Ok(TransformationRecord { entries })
+        Ok(())
+    })
 }

@@ -3,11 +3,12 @@
 use std::collections::HashMap;
 
 use lunamodel_core::{Expression, Model, Solution, ops::LmAddAssign, prelude::Bounds};
-use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{
-    PassContext, PipelineStep, Reversible, TransformationPass, transformation,
+    PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult, transformation,
 };
 use lunamodel_types::{Bound, Vtype};
+
+use crate::error::{TransformError, TransformResult};
 
 use super::artifact::IntegerToBinaryArtifact;
 
@@ -20,7 +21,11 @@ impl TransformationPass for IntegerToBinaryPass {
         "integer-to-binary"
     }
 
-    fn forward(&self, model: &mut Model, _ctx: &PassContext) -> LunaModelResult<Self::Artifact> {
+    fn forward(
+        &self,
+        model: &mut Model,
+        _ctx: &PassContext,
+    ) -> TranspileKindResult<Self::Artifact> {
         let mut artifact = IntegerToBinaryArtifact::default();
 
         let vars = model.environment.read_arc().vars().collect::<Vec<_>>();
@@ -31,7 +36,7 @@ impl TransformationPass for IntegerToBinaryPass {
             }
 
             let vname = v.name()?;
-            let (new_upper, offset) = make_new_bounds(&vname, v.bounds()?)?;
+            let (new_upper, offset) = self.make_new_bounds(&vname, v.bounds()?)?;
 
             let base_name = format!("{}_b", vname);
             // We allow our ``mu`` to be as large as it can be in standard binary encoding.
@@ -65,7 +70,10 @@ impl Reversible for IntegerToBinaryPass {
 
     const ID: &'static str = "luna_model::integer-to-binary";
 
-    fn backward(artifact: &Self::Artifact, mut solution: Solution) -> LunaModelResult<Solution> {
+    fn backward(
+        artifact: &Self::Artifact,
+        mut solution: Solution,
+    ) -> TranspileKindResult<Solution> {
         for (intvar, binaries) in artifact.varmap.iter() {
             let mut intcol = vec![artifact.offsetmap[intvar] as f64; solution.len()];
             for (binary_name, coef) in binaries {
@@ -88,35 +96,32 @@ impl Reversible for IntegerToBinaryPass {
     }
 }
 
-/// Converts bounded integer bounds into the encoded range plus offset.
-fn make_new_bounds(vname: &str, bounds: Bounds) -> LunaModelResult<(usize, i64)> {
-    match bounds {
-        Bounds {
-            lower: Bound::Bounded(lower),
-            upper: Bound::Bounded(upper),
-        } => Ok(((upper - lower) as usize, lower as i64)),
-        Bounds {
-            lower: Bound::Unbounded,
-            upper: Bound::Bounded(_),
-        } => Err("lower"),
-        Bounds {
-            lower: Bound::Bounded(_),
-            upper: Bound::Unbounded,
-        } => Err("upper"),
-        Bounds {
-            lower: Bound::Unbounded,
-            upper: Bound::Unbounded,
-        } => Err("lower and upper"),
+impl IntegerToBinaryPass {
+    /// Converts bounded integer bounds into the encoded range plus offset.
+    fn make_new_bounds(&self, vname: &str, bounds: Bounds) -> TransformResult<(usize, i64)> {
+        match bounds {
+            Bounds {
+                lower: Bound::Bounded(lower),
+                upper: Bound::Bounded(upper),
+            } => Ok(((upper - lower) as usize, lower as i64)),
+            Bounds {
+                lower: Bound::Unbounded,
+                upper: Bound::Bounded(_),
+            } => Err("lower"),
+            Bounds {
+                lower: Bound::Bounded(_),
+                upper: Bound::Unbounded,
+            } => Err("upper"),
+            Bounds {
+                lower: Bound::Unbounded,
+                upper: Bound::Unbounded,
+            } => Err("lower and upper"),
+        }
+        .map_err(|what| TransformError::Transformation {
+            name: self.name().to_owned(),
+            msg: format!("Integer variable '{vname}' cannot be unbounded at {what} for this pass."),
+        })
     }
-    .map_err(|what| {
-        LunaModelError::Internal(
-            format!(
-                "Integer variable '{}' cannot be unbounded at {what} for this pass.",
-                vname,
-            )
-            .into(),
-        )
-    })
 }
 
 /// Bounded Coefficient Ecoding <https://arxiv.org/pdf/1706.01945>

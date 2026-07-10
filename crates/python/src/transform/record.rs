@@ -5,7 +5,10 @@ use lunamodel_transpiler::TransformationRecord;
 use lunamodel_unwind::*;
 use pyo3::{Bound, Py, PyAny, PyResult, Python, pyclass, pymethods, types::PyBytes, types::PyType};
 
-use crate::{PySolution, transform::entry::PyPassEntry};
+use crate::{
+    PySolution,
+    transform::{entry::PyPassEntry, error::to_pyerr},
+};
 
 #[pyclass(from_py_object)]
 #[derive(Clone)]
@@ -28,7 +31,11 @@ impl PyTransformationRecord {
     }
 
     fn backward(&self, solution: PySolution) -> PyResult<PySolution> {
-        Ok(self.tr.backward(solution.s.read_arc().clone())?.into())
+        Ok(self
+            .tr
+            .backward(solution.s.read_arc().clone())
+            .map_err(to_pyerr)?
+            .into())
     }
 
     #[pyo3(signature=(compress=true, level=3))]
@@ -50,6 +57,6 @@ impl PyTransformationRecord {
     }
 
     fn find(&self, query: String, exact: bool) -> PyResult<PyPassEntry> {
-        Ok(self.tr.find(&query, exact)?.into())
+        Ok(self.tr.find(&query, exact).map_err(to_pyerr)?.into())
     }
 }

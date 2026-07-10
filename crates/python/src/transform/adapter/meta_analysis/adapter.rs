@@ -1,7 +1,7 @@
 //! Runtime adapter for Python meta-analysis passes.
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{AnalysisKey, MetaAnalysisPass, PipelineStep};
+use lunamodel_transpiler::{AnalysisKey, MetaAnalysisPass, PipelineStep, TranspileKindResult};
 use pyo3::{Py, PyAny, Python, types::PyAnyMethods};
 
 use crate::transform::utils::{FromSteps, map_pyerr};
@@ -60,7 +60,7 @@ impl MetaAnalysisPass for PyMetaAnalysisPassAdapter {
         )
     }
 
-    fn run(&self, steps: &[PipelineStep]) -> LunaModelResult<Self::Result> {
+    fn run(&self, steps: &[PipelineStep]) -> TranspileKindResult<Self::Result> {
         let py_result: Py<PyAny> = Python::attach(|py| {
             let obj = self.inner.bind(py);
             let py_steps: Vec<Py<PyAny>> = steps.to_pypasses(py)?;

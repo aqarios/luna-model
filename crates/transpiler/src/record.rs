@@ -1,9 +1,12 @@
 //! Reversible transformation-record data structures.
 
 use lunamodel_core::Solution;
-use lunamodel_error::{LunaModelError, LunaModelResult};
 
-use crate::{artifact::ErasedArtifact, registry};
+use crate::{
+    artifact::ErasedArtifact,
+    error::{TranspileErrorKind, TranspileKindResult},
+    registry,
+};
 
 /// A record of the forward compilation, structured for backwards execution.
 ///
@@ -61,7 +64,7 @@ impl TransformationRecord {
     ///
     /// This is a standalone function that doesn't need the original PassManager.
     /// All information is encoded in the artifacts.
-    pub fn backward(&self, mut solution: Solution) -> LunaModelResult<Solution> {
+    pub fn backward(&self, mut solution: Solution) -> TranspileKindResult<Solution> {
         // Move the objective values to the raw-energies if present,
         // such that the final solution output has no objective values set.
         if let Some(obj) = solution.obj_values.take() {
@@ -96,30 +99,27 @@ impl TransformationRecord {
     }
 
     /// Finds the first entry matching `query`, either exactly or by case-insensitive substring.
-    pub fn find(&self, query: &str, exact: bool) -> LunaModelResult<&PassEntry> {
+    pub fn find(&self, query: &str, exact: bool) -> TranspileKindResult<&PassEntry> {
         if query.is_empty() {
-            return Err(LunaModelError::Computation(
-                "query must not be empty".into(),
-            ));
+            return Err(TranspileErrorKind::RecordQuery {
+                msg: "must not be empty",
+                query: None,
+            });
         }
 
         if exact {
-            self.find_exact(query).ok_or_else(|| {
-                LunaModelError::Computation(
-                    format!(
-                        "no exact entry match found for query 
-'{query}'"
-                    )
-                    .into(),
-                )
-            })
+            self.find_exact(query)
+                .ok_or_else(|| TranspileErrorKind::RecordQuery {
+                    msg: "no exact entry match found",
+                    query: Some(query.to_owned()),
+                })
         } else {
             let needle = query.to_lowercase();
-            self.find_partial(&needle).ok_or_else(|| {
-                LunaModelError::Computation(
-                    format!("no partial entry match found for query '{query}'").into(),
-                )
-            })
+            self.find_partial(&needle)
+                .ok_or_else(|| TranspileErrorKind::RecordQuery {
+                    msg: "no partial entry match found",
+                    query: Some(query.to_owned()),
+                })
         }
     }
 

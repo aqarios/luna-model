@@ -1,8 +1,9 @@
 //! Read-only and mutable pass execution contexts.
 
-use lunamodel_error::LunaModelResult;
-
-use crate::analysis::{AnalysisKey, AnalysisManager};
+use crate::{
+    analysis::{AnalysisKey, AnalysisManager},
+    error::TranspileKindResult,
+};
 
 /// Context provided to passes during execution.
 ///
@@ -26,7 +27,7 @@ impl<'a> PassContext<'a> {
     pub fn require_analysis<T: Send + Sync + 'static>(
         &self,
         key: &AnalysisKey<T>,
-    ) -> LunaModelResult<&T> {
+    ) -> TranspileKindResult<&T> {
         self.analysis_manager.require(key)
     }
 

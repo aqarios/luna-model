@@ -5,9 +5,11 @@
 //! Python bindings. Most crates return [`LunaModelResult`] directly so that
 //! higher-level integrations do not need to constantly remap domain errors.
 use std::{
+    any::Any,
     error::Error,
     fmt::{Display, Formatter},
     ops::Deref,
+    sync::Arc,
 };
 mod froms;
 
@@ -119,7 +121,10 @@ pub enum LunaModelError {
     /// A meta-analysis pass failed.
     MetaAnalysisPass(String, ErrString),
     /// Compilation of a transformation/pipeline artifact failed.
-    Compilation(ErrString),
+    Transformation {
+        msg: ErrString,
+        record: Option<ErasedRecord>,
+    },
     /// Random sampling failed.
     RandomSampling(ErrString),
     /// Invalid tolerance specified.
@@ -179,7 +184,7 @@ impl Display for LunaModelError {
             MetaAnalysisPass(name, msg) => {
                 write!(f, "error in MetaAnalysis pass '{}': {}", name, msg)
             }
-            Compilation(msg) => write!(f, "compilation error: {}", msg),
+            Transformation { msg, .. } => write!(f, "transformation error: {}", msg),
             RandomSampling(msg) => write!(f, "random sampling failed due to: {}", msg),
             InvalidTolerance(msg) => write!(f, "invalid tolerance: {}", msg),
             #[cfg(feature = "py")]
@@ -188,5 +193,57 @@ impl Display for LunaModelError {
     }
 }
 
+impl LunaModelError {
+    /// Recovers the type-erased payload attached to a [`LunaModelError::Transformation`] as `&T`,
+    /// if present and of type `T`.
+    pub fn recover<T: Any>(&self) -> Option<&T> {
+        match self {
+            Self::Transformation {
+                record: Some(r), ..
+            } => r.downcast_ref::<T>(),
+            _ => None,
+        }
+    }
+
+    pub fn transformation(msg: impl Into<ErrString>) -> Self {
+        Self::Transformation {
+            msg: msg.into(),
+            record: None,
+        }
+    }
+}
+
 /// Workspace-wide result alias.
 pub type LunaModelResult<T> = Result<T, LunaModelError>;
+
+/// Type-erased recovery payload carried by [`LunaModelError::Transformation`].
+///
+/// Held as `Arc<dyn Any + Send + Sync>` so this crate can carry a transpiler
+/// `TransformationRecord` without depending on the transpiler crate, which
+/// would form a dependency cycle. `Clone` is a cheap `Arc` bump; `Debug` is
+/// opaque because `dyn Any` is not `Debug`.
+#[derive(Clone)]
+pub struct ErasedRecord(Arc<dyn Any + Send + Sync>);
+
+impl std::fmt::Debug for ErasedRecord {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("ErasedRecord(..)")
+    }
+}
+
+impl ErasedRecord {
+    /// Erases any `'static` payload into the recovery slot.
+    pub fn new<T: Any + Send + Sync>(value: T) -> Self {
+        Self(Arc::new(value))
+    }
+
+    /// Borrows the payload as `&T` if it is really a `T`.
+    pub fn downcast_ref<T: Any>(&self) -> Option<&T> {
+        self.0.downcast_ref::<T>()
+    }
+
+    /// Shares the payload as `Arc<T>` if it is really a `T`.
+    pub fn downcast_arc<T: Any + Send + Sync>(&self) -> Option<Arc<T>> {
+        Arc::clone(&self.0).downcast::<T>().ok()
+    }
+}

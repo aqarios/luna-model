@@ -2,6 +2,7 @@
 mod context;
 mod entry;
 mod envelope;
+mod error;
 mod manager;
 mod output;
 mod pass;

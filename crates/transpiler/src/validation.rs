@@ -4,14 +4,16 @@ use std::{collections::HashSet, sync::Arc};
 
 use lunamodel_error::LunaModelResult;
 
-use crate::{PassManager, PipelineStep, TransformationError, erased::ErasedControlFlowPass};
+use crate::{
+    PassManager, PipelineStep, TranspileErrorKind, TranspilerResult, erased::ErasedControlFlowPass,
+};
 
 impl PassManager {
     pub(crate) fn validate_steps(
         &self,
         steps: &[PipelineStep],
         satisfied: &mut HashSet<String>,
-    ) -> LunaModelResult<()> {
+    ) -> TranspilerResult<()> {
         for step in steps {
             match step {
                 // Trivial steps
@@ -95,7 +97,7 @@ fn check_leaf<'l>(
 ) -> LunaModelResult<()> {
     for req in requires {
         if !satisfied.contains(req) {
-            return Err(TransformationError::UnsatisfiedRequirement {
+            return Err(TranspileErrorKind::UnsatisfiedRequirement {
                 pass_name: name.to_owned(),
                 requirement: req.to_string(),
             }

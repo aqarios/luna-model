@@ -6,7 +6,7 @@ use pyo3::{PyResult, pyclass, pymethods};
 
 use crate::{
     PyModel, PySolution,
-    transform::{PyPassContext, record::PyTransformationRecord},
+    transform::{PyPassContext, error::to_pyerr, record::PyTransformationRecord},
 };
 
 #[pyclass]
@@ -28,7 +28,8 @@ impl PyTransformationOutput {
         Ok(self
             .to
             .record
-            .backward(solution.s.read_arc().clone())?
+            .backward(solution.s.read_arc().clone())
+            .map_err(to_pyerr)?
             .into())
     }
 }
