@@ -1,11 +1,8 @@
 use std::ffi::{CStr, c_char};
 
 use luna_model::{
-    core::{
-        ValueSource,
-        solution::{Assignment, result::ResultView},
-    },
-    types::{Bound, Comparator, Ctype, Sense, Vtype},
+    core::solution::{Assignment, result::ResultView},
+    types::{Bound, Comparator, Ctype, Sense, ValueSource, Vtype},
 };
 
 use crate::{

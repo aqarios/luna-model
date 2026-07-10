@@ -1,5 +1,5 @@
-use lunamodel_cext_vtable::{LmSense, LmVtype};
-use lunamodel_types::{Sense, Vtype};
+use lunamodel_cext_vtable::{LmSense, LmValueSource, LmVtype};
+use lunamodel_types::{Sense, ValueSource, Vtype};
 
 use crate::traits::{LmFrom, LmTryFrom};
 
@@ -53,6 +53,30 @@ impl LmFrom<LmSense> for Sense {
 
 impl LmTryFrom<LmSense> for Sense {
     fn lm_try_from(value: LmSense) -> crate::Result<Self> {
+        Ok(Self::lm_from(value))
+    }
+}
+
+impl LmFrom<ValueSource> for LmValueSource {
+    fn lm_from(value: ValueSource) -> Self {
+        match value {
+            ValueSource::Raw => Self::Raw,
+            ValueSource::Obj => Self::Obj,
+        }
+    }
+}
+
+impl LmFrom<LmValueSource> for ValueSource {
+    fn lm_from(value: LmValueSource) -> Self {
+        match value {
+            LmValueSource::Raw => Self::Raw,
+            LmValueSource::Obj => Self::Obj,
+        }
+    }
+}
+
+impl LmTryFrom<LmValueSource> for ValueSource {
+    fn lm_try_from(value: LmValueSource) -> crate::Result<Self> {
         Ok(Self::lm_from(value))
     }
 }

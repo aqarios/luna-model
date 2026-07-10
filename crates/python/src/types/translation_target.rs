@@ -13,6 +13,7 @@ pub enum PyTranslationTarget {
     Mps,
     Bqm,
     Cqm,
+    OptMapper,
 }
 
 impl From<TranslationTarget> for PyTranslationTarget {
@@ -24,6 +25,7 @@ impl From<TranslationTarget> for PyTranslationTarget {
             TranslationTarget::Mps => Self::Mps,
             TranslationTarget::Bqm => Self::Bqm,
             TranslationTarget::Cqm => Self::Cqm,
+            TranslationTarget::OptMapper => Self::OptMapper,
         }
     }
 }
@@ -37,6 +39,7 @@ impl From<PyTranslationTarget> for TranslationTarget {
             PyTranslationTarget::Mps => TranslationTarget::Mps,
             PyTranslationTarget::Bqm => TranslationTarget::Bqm,
             PyTranslationTarget::Cqm => TranslationTarget::Cqm,
+            PyTranslationTarget::OptMapper => TranslationTarget::OptMapper,
         }
     }
 }

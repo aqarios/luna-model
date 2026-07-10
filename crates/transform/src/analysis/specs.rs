@@ -1,8 +1,9 @@
 //! Analysis pass that infers structural model specs.
 
 use lunamodel_core::Model;
-use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, PipelineStep, analysis};
+use lunamodel_transpiler::{
+    AnalysisKey, AnalysisPass, PassContext, PipelineStep, TranspileKindResult, analysis,
+};
 use lunamodel_types::Specs;
 
 #[analysis]
@@ -22,7 +23,7 @@ impl AnalysisPass for SpecsAnalysis {
         AnalysisKey::new(Self::PROVIDES.to_string())
     }
 
-    fn run(&self, model: &Model, _ctx: &PassContext) -> LunaModelResult<Self::Result> {
+    fn run(&self, model: &Model, _ctx: &PassContext) -> TranspileKindResult<Self::Result> {
         Ok(model.specs())
     }
 }

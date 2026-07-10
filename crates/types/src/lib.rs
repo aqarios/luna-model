@@ -15,6 +15,7 @@ mod utils;
 mod varid;
 mod varname;
 mod vtype;
+mod value_source;
 
 use std::sync::LazyLock;
 
@@ -29,6 +30,7 @@ pub use utils::EnumSetFromVec;
 pub use varid::VarId;
 pub use varname::VarName;
 pub use vtype::Vtype;
+pub use value_source::ValueSource;
 
 /// Canonical zero bias used where a stable shared default is convenient.
 pub static DEFAULT_BIAS: LazyLock<Bias> = LazyLock::new(Bias::default);

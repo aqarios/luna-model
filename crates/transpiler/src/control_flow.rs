@@ -1,9 +1,8 @@
 //! Trait definitions for control-flow passes and execution plans.
 
 use lunamodel_core::Model;
-use lunamodel_error::LunaModelResult;
 
-use crate::{PassContext, Pipeline, PipelineStep};
+use crate::{PassContext, Pipeline, PipelineStep, error::TranspileKindResult};
 
 /// Concrete execution plan produced by a control-flow pass.
 #[derive(Clone)]
@@ -39,7 +38,7 @@ pub trait ControlFlowPass: Send + Sync {
     fn name(&self) -> &str;
 
     /// Run control flow: Model + PassContext -> ControlFlowPlan
-    fn run(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan>;
+    fn run(&self, model: &Model, ctx: &PassContext) -> TranspileKindResult<ControlFlowPlan>;
 
     /// Which pass/analysis keys must be satisfied before this pass can execute?
     fn requires(&self) -> &[String] {
@@ -54,6 +53,11 @@ pub trait ControlFlowPass: Send + Sync {
     /// Which pass/analysis keys might be invalidated after this pass was executed.
     fn invalidates(&self) -> &[String] {
         &[]
+    }
+
+    /// All possible branches (sub-steps) this pass may branch into, for static validation.
+    fn branches(&self) -> Vec<&[PipelineStep]> {
+        Vec::new()
     }
 
     /// Human-readable display string used by pipeline visualization.

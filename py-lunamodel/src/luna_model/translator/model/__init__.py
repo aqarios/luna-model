@@ -16,6 +16,7 @@ from luna_model.translator.model.bqm import BqmTranslator
 from luna_model.translator.model.cqm import CqmTranslator
 from luna_model.translator.model.lp import LpTranslator
 from luna_model.translator.model.mps import MpsTranslator
+from luna_model.translator.model.optmapper import QiskitOptMapperTranslator
 from luna_model.translator.model.qubo import QuboTranslator
 
 __all__ = [
@@ -23,5 +24,6 @@ __all__ = [
     "CqmTranslator",
     "LpTranslator",
     "MpsTranslator",
+    "QiskitOptMapperTranslator",
     "QuboTranslator",
 ]

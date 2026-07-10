@@ -1,9 +1,9 @@
 //! Pass logic for objective-sense normalization.
 
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
-use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{
-    AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, transformation,
+    AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult,
+    transformation,
 };
 use lunamodel_types::Sense;
 
@@ -35,7 +35,11 @@ impl TransformationPass for ChangeSensePass {
         "change-sense"
     }
 
-    fn forward(&self, model: &mut Model, _ctx: &PassContext) -> LunaModelResult<Self::Artifact> {
+    fn forward(
+        &self,
+        model: &mut Model,
+        _ctx: &PassContext,
+    ) -> TranspileKindResult<Self::Artifact> {
         match model.sense == self.sense {
             true => Ok(ChangeSensePassArtifact { did_change: false }),
             false => {
@@ -56,7 +60,10 @@ impl Reversible for ChangeSensePass {
 
     const ID: &'static str = "luna_model::change-sense";
 
-    fn backward(artifact: &Self::Artifact, mut solution: Solution) -> LunaModelResult<Solution> {
+    fn backward(
+        artifact: &Self::Artifact,
+        mut solution: Solution,
+    ) -> TranspileKindResult<Solution> {
         if artifact.did_change {
             solution.obj_values = solution
                 .obj_values

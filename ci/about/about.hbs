@@ -1,0 +1,41 @@
+================================================================================
+THIRD PARTY LICENSES
+================================================================================
+
+LunaModel bundles third-party Rust dependencies in its compiled artifacts. This
+file reproduces, in full, the license and copyright notices of every such
+dependency, as required by their respective licenses.
+
+It is generated mechanically from the resolved dependency tree with cargo-about
+(https://github.com/EmbarkStudios/cargo-about); do not edit it by hand. See
+ci/about/ and ci/tools/generate-third-party-licenses.sh to regenerate.
+
+================================================================================
+OVERVIEW
+================================================================================
+
+The dependencies are licensed under the following licenses:
+{{#each overview}}
+  - {{{name}}} ({{id}}): {{count}}
+{{/each}}
+
+The full text of each license follows, preceded by the dependencies it applies
+to. Where a dependency offers a choice of licenses, it is listed under the
+single license selected for it. The same license may appear more than once when
+dependencies ship it with differing copyright notices, each of which is
+reproduced verbatim.
+{{#each licenses}}
+
+================================================================================
+{{{name}}} ({{id}})
+================================================================================
+
+Applies to the following {{#if used_by.[1]}}dependencies{{else}}dependency{{/if}}:
+{{#each used_by}}
+  * {{{crate.name}}} {{{crate.version}}}
+{{/each}}
+
+--------------------------------------------------------------------------------
+
+{{{text}}}
+{{/each}}

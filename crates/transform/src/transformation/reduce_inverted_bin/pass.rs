@@ -3,7 +3,7 @@
 use lunamodel_core::{Environment, Model, Solution, prelude::VarRef};
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{
-    PassContext, PipelineStep, Reversible, TransformationPass, transformation,
+    PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult, transformation,
 };
 use lunamodel_types::{VarIdx, Vtype};
 
@@ -25,7 +25,11 @@ impl TransformationPass for ReduceInvertedBinaryPass {
         "reduce-inverted-binary"
     }
 
-    fn forward(&self, model: &mut Model, _ctx: &PassContext) -> LunaModelResult<Self::Artifact> {
+    fn forward(
+        &self,
+        model: &mut Model,
+        _ctx: &PassContext,
+    ) -> TranspileKindResult<Self::Artifact> {
         let invs = inverted_varrefs(&model.environment.read_arc())?;
         for (partner_id, inverted_id) in invs {
             let partner = VarRef::new(partner_id, model.environment.clone());
@@ -41,7 +45,7 @@ impl Reversible for ReduceInvertedBinaryPass {
 
     const ID: &'static str = "luna_model::reduce-inverted-binary";
 
-    fn backward(_artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
+    fn backward(_artifact: &Self::Artifact, solution: Solution) -> TranspileKindResult<Solution> {
         Ok(solution)
     }
 }

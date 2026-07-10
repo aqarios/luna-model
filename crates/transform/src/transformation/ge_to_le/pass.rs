@@ -1,9 +1,8 @@
 //! Pass logic for rewriting `>=` constraints into `<=` form.
 
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
-use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{
-    PassContext, PipelineStep, Reversible, TransformationPass, transformation,
+    PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult, transformation,
 };
 use lunamodel_types::Comparator;
 
@@ -18,7 +17,11 @@ impl TransformationPass for GeToLeConstraintsPass {
         "ge-to-le-constraints"
     }
 
-    fn forward(&self, model: &mut Model, _ctx: &PassContext) -> LunaModelResult<Self::Artifact> {
+    fn forward(
+        &self,
+        model: &mut Model,
+        _ctx: &PassContext,
+    ) -> TranspileKindResult<Self::Artifact> {
         for (_, constraint) in model.constraints.iter_mut() {
             if constraint.comparator == Comparator::Ge {
                 constraint.lhs.mul_assign(-1.0)?;
@@ -35,7 +38,7 @@ impl Reversible for GeToLeConstraintsPass {
 
     const ID: &'static str = "luna_model::ge-to-le-constraints";
 
-    fn backward(_artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
+    fn backward(_artifact: &Self::Artifact, solution: Solution) -> TranspileKindResult<Solution> {
         Ok(solution)
     }
 }

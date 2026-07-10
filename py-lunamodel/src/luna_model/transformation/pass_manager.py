@@ -15,9 +15,11 @@
 from collections.abc import Sequence
 
 from luna_model._lm import PyPassManager
+from luna_model.errors import TransformError
 from luna_model.model.model import Model
 from luna_model.transformation.output import TransformationOutput
 from luna_model.transformation.pipeline import Pipeline
+from luna_model.transformation.record import TransformationRecord
 from luna_model.transformation.typing import Pass
 
 
@@ -68,7 +70,13 @@ class PassManager:
         TransformationOutput
             The transformation ouput after transformation.
         """
-        return TransformationOutput._from_pyto(self._pm.run(model._m))
+        try:
+            return TransformationOutput._from_pyto(self._pm.run(model._m))
+        except TransformError as e:
+            pytr = getattr(e, "record", None)
+            if pytr is not None:
+                e.record = TransformationRecord._from_pytr(pytr)
+            raise
 
     def __str__(self) -> str:
         """Human readable string."""

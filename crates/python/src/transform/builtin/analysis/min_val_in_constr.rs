@@ -7,7 +7,10 @@ use lunamodel_transform::analysis::{MinConstraintValues, MinValueForConstraintAn
 use lunamodel_transpiler::AnalysisPass;
 use pyo3::{pyclass, pymethods};
 
-use crate::{PyModel, transform::PyPassContext};
+use crate::{
+    PyModel,
+    transform::{PyPassContext, error::to_pyerr},
+};
 
 #[pyclass]
 pub struct PyMinConstraintValues(pub MinConstraintValues);

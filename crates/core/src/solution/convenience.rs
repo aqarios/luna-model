@@ -1,10 +1,9 @@
 //! Convenience statistics and helper queries for solutions.
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_types::Bias;
+use lunamodel_types::{Bias, ValueSource};
 use std::collections::HashMap;
 
-use crate::ValueSource;
 
 use super::Solution;
 

@@ -66,14 +66,13 @@ mod tests {
         ops::LmAddAssign,
         prelude::{Constraint, LazyBounds},
     };
-    use lunamodel_error::LunaModelResult;
     use lunamodel_transpiler::PassManager;
     use lunamodel_types::{Bound, Comparator, Vtype};
 
-    use crate::pipelines::ToUnconstrainedBinaryPipeline;
+    use crate::{error::TransformResult, pipelines::ToUnconstrainedBinaryPipeline};
 
     #[test]
-    fn run_to_unconstrained_binary_pipeline() -> LunaModelResult<()> {
+    fn run_to_unconstrained_binary_pipeline() -> TransformResult<()> {
         let mut model = Model::default();
         let x = model.add_var("x", Vtype::Binary, None)?;
         let y = model.add_var("y", Vtype::Spin, None)?;

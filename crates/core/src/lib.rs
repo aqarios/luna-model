@@ -31,7 +31,7 @@ pub use constraint::{Constraint, ConstraintCollection};
 pub use environment::{ArcEnv, Environment};
 pub use expression::Expression;
 pub use model::Model;
-pub use solution::{Solution, Timer, Timing, ValueSource};
+pub use solution::{Solution, Timer, Timing};
 
 /// Trait for indexing domain collections with fallible APIs.
 pub use traits::TryIndex;

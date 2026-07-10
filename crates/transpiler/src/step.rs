@@ -114,12 +114,9 @@ fn _format_pipeline_steps(steps: &[PipelineStep], indent: usize) -> String {
     }
 
     let mut items = Vec::new();
-    if steps.len() >= 2 {
-        for item in steps.iter().take((steps.len() - 1) + 1) {
-            items.push(item.idisplay(indent).to_string());
-        }
+    for item in steps {
+        items.push(item.idisplay(indent).to_string());
     }
-    items.push(steps[steps.len() - 1].idisplay(indent).to_string());
     items.join("\n")
 }
 

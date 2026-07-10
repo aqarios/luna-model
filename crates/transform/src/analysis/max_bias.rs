@@ -3,8 +3,9 @@
 use num::abs;
 
 use lunamodel_core::Model;
-use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, PipelineStep, analysis};
+use lunamodel_transpiler::{
+    AnalysisKey, AnalysisPass, PassContext, PipelineStep, TranspileKindResult, analysis,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct MaxBias {
@@ -28,7 +29,7 @@ impl AnalysisPass for MaxBiasAnalysis {
         AnalysisKey::new(Self::PROVIDES.to_string())
     }
 
-    fn run(&self, model: &Model, _ctx: &PassContext) -> LunaModelResult<Self::Result> {
+    fn run(&self, model: &Model, _ctx: &PassContext) -> TranspileKindResult<Self::Result> {
         let obj = &model.objective;
         let mut max_val = 0.0;
 

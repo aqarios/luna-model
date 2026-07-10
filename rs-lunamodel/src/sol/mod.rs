@@ -13,7 +13,7 @@ mod modification;
 use lunamodel_cext_vtable::LmSol;
 use rs_lunamodel_derive::RawHandle;
 
-use crate::{ContentEquality, Result, TryClone, api::api};
+use crate::{ContentEquality, Result, Serialization, TryClone, api::api};
 
 /// Owning handle to a LunaModel sol (frees on drop).
 #[derive(RawHandle)]
@@ -50,5 +50,17 @@ impl PartialEq for Solution {
 impl ContentEquality for Solution {
     fn equal_contents(&self, other: &Self) -> Result<bool> {
         out!(sol_equal_contents(@self, @other))
+    }
+}
+
+impl Serialization<'_> for Solution {
+    type Payload = ();
+
+    fn serialize(&self) -> Result<Vec<u8>> {
+        out!(sol_serialize(@self))
+    }
+
+    fn deserialize(data: &[u8], _: Self::Payload) -> Result<Self> {
+        out!(sol_deserialize(@data, data.len()))
     }
 }

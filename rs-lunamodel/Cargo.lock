@@ -206,11 +206,11 @@ checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
 name = "lunamodel-cext-vtable"
-version = "0.6.5"
+version = "0.6.9"
 
 [[package]]
 name = "lunamodel-error"
-version = "0.6.5"
+version = "0.6.9"
 dependencies = [
  "prost",
  "rand",
@@ -219,7 +219,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-types"
-version = "0.6.5"
+version = "0.6.9"
 dependencies = [
  "derive_more",
  "enumset",
@@ -231,7 +231,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.6.5"
+version = "0.6.9"
 dependencies = [
  "lunamodel-error",
  "num",

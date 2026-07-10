@@ -28,11 +28,11 @@ Exception hierarchy:
     - And many more specific error types...
 """
 
+import warnings
+from typing import Any
+
 from luna_model._lm import (
     PyAnalysisPassError as AnalysisPassError,
-)
-from luna_model._lm import (
-    PyCompilationError as CompilationError,
 )
 from luna_model._lm import (
     PyCompressionError as CompressionError,
@@ -119,6 +119,9 @@ from luna_model._lm import (
     PyTransformationPassError as TransformationPassError,
 )
 from luna_model._lm import (
+    PyTransformError as TransformError,
+)
+from luna_model._lm import (
     PyTranslationError as TranslationError,
 )
 from luna_model._lm import (
@@ -143,9 +146,22 @@ from luna_model._lm import (
     PyVariablesFromDifferentEnvsError as VariablesFromDifferentEnvsError,
 )
 
+
+def __getattr__(name: str) -> Any:  # noqa: ANN401
+    if name == "CompilationError":
+        warnings.warn(
+            "CompilationError is deprecated and will be removed in the next release; use TransformError instead.",
+            FutureWarning,
+            stacklevel=2,
+        )
+        return TransformError
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)
+
+
 __all__ = [
     "AnalysisPassError",
-    "CompilationError",
+    "CompilationError",  # noqa: F822 # type: ignore[reportUnsupportedDunderAll]
     "CompressionError",
     "ComputationError",
     "DecodeError",
@@ -172,6 +188,7 @@ __all__ = [
     "SampleUnexpectedVariableError",
     "SolutionTranslationError",
     "StartCannotBeInferredError",
+    "TransformError",
     "TransformationError",
     "TransformationPassError",
     "TranslationError",

@@ -6,11 +6,14 @@ use std::{
 };
 
 use lunamodel_core::Solution;
-use lunamodel_error::LunaModelResult;
 
-use crate::{artifact::ErasedArtifact, error::TransformationError, reversible::Reversible};
+use crate::{
+    artifact::ErasedArtifact,
+    error::{TranspileErrorKind, TranspileKindResult},
+    reversible::Reversible,
+};
 
-type BackwardFn = fn(&ErasedArtifact, Solution) -> LunaModelResult<Solution>;
+type BackwardFn = fn(&ErasedArtifact, Solution) -> TranspileKindResult<Solution>;
 
 /// Global registry of backwards functions.
 ///
@@ -36,11 +39,11 @@ impl BackwardRegistry {
         pass_name: &str,
         artifact: &ErasedArtifact,
         solution: Solution,
-    ) -> LunaModelResult<Solution> {
+    ) -> TranspileKindResult<Solution> {
         let backward_fn =
             self.functions
                 .get(pass_name)
-                .ok_or_else(|| TransformationError::UnregisteredPass {
+                .ok_or_else(|| TranspileErrorKind::UnregisteredPass {
                     name: pass_name.to_string(),
                 })?;
 
@@ -65,7 +68,7 @@ pub fn apply(
     pass_name: &str,
     artifact: &ErasedArtifact,
     solution: Solution,
-) -> LunaModelResult<Solution> {
+) -> TranspileKindResult<Solution> {
     BACKWARD_REGISTRY
         .get_or_init(|| Mutex::new(BackwardRegistry::default()))
         .lock()

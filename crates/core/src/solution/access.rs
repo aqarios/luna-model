@@ -46,7 +46,7 @@ impl Solution {
     pub fn is_empty(&self) -> bool {
         match self.samples.first() {
             Some((_, col)) => col.is_empty(),
-            _ => false,
+            None => true,
         }
     }
 

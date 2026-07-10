@@ -1,6 +1,6 @@
 {
   "name": "@aqarios/luna-model",
-  "version": "0.6.5",
+  "version": "0.6.9",
   "description": "JavaScript and TypeScript bindings for LunaModel",
   "license": "Apache-2.0",
   "author": "Aqarios GmbH <pypi@aqarios.com>",
@@ -24,7 +24,8 @@
   "files": [
     "index.js",
     "index.d.ts",
-    "*.node"
+    "*.node",
+    "THIRD_PARTY_LICENSES.txt"
   ],
   "scripts": {
     "build": "napi build --release --platform --config-path napi.json",

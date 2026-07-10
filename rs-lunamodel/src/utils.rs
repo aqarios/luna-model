@@ -1,10 +1,10 @@
 use std::ffi::{CString, c_char};
 
-use lunamodel_cext_vtable::{LmEnvId, LmVref};
+use lunamodel_cext_vtable::{LmEnvId, LmSol, LmVref};
 use num::ToPrimitive;
 
 use crate::{
-    Error, Result, Status, VarRef,
+    Error, Result, Solution, Status, VarRef,
     traits::{LmTryFrom, PtrList, ToPtrList, TryToCString, TryToOptCString},
 };
 
@@ -50,8 +50,18 @@ pub(crate) fn opt_cstring_ptr(opt: &Option<CString>) -> *const c_char {
 impl ToPtrList for &[VarRef] {
     type Elem = LmVref;
     fn to_ptr_list(self) -> Result<PtrList<LmVref>> {
-        // The handle pointers are owned by the borrowed slice, so no extra
-        // backing is needed.
+        // The handle pointers are owned by the borrowed slice, so no extra backing is needed.
+        Ok(PtrList::from_ptrs(
+            self.iter().map(|v| v.as_ptr()).collect(),
+            Vec::new(),
+        ))
+    }
+}
+
+impl ToPtrList for &[Solution] {
+    type Elem = LmSol;
+    fn to_ptr_list(self) -> Result<PtrList<LmSol>> {
+        // The handle pointers are owned by the borrowed slice, so no extra backing is needed.
         Ok(PtrList::from_ptrs(
             self.iter().map(|v| v.as_ptr()).collect(),
             Vec::new(),

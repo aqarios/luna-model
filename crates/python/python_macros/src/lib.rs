@@ -71,7 +71,7 @@ pub fn pyanalysis(attr: TokenStream, item: TokenStream) -> TokenStream {
                     &self.0,
                     &model.m.read_arc(),
                     &ctx.into(),
-                )?.into())
+                ).map_err(to_pyerr)?.into())
             }
         }
     }
@@ -112,7 +112,7 @@ pub fn pytransformation(attr: TokenStream, item: TokenStream) -> TokenStream {
                     &self.0,
                     &mut m,
                     &(&ctx).into(),
-                )?;
+                ).map_err(to_pyerr)?;
                 Ok((m.into(), #at(artifact)))
             }
 
@@ -125,7 +125,8 @@ pub fn pytransformation(attr: TokenStream, item: TokenStream) -> TokenStream {
                 Ok(<#inner as Reversible>::backward(
                     &artifact.0,
                     solution.inner().read_arc().clone(),
-                )?
+                )
+                .map_err(to_pyerr)?
                 .into())
             }
         }
@@ -201,7 +202,7 @@ pub fn pycontrolflow(attr: TokenStream, item: TokenStream) -> TokenStream {
                     &self.0,
                     &model.m.read_arc(),
                     &ctx.into(),
-                )?.into())
+                ).map_err(to_pyerr)?.into())
             }
 
             fn __str__(&self) -> ::std::string::String {

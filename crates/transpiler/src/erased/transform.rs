@@ -3,9 +3,8 @@
 use std::any::Any;
 
 use lunamodel_core::Model;
-use lunamodel_error::LunaModelResult;
 
-use crate::{ErasedArtifact, PassContext, TransformationPass};
+use crate::{ErasedArtifact, PassContext, TransformationPass, error::TranspileKindResult};
 
 /// Object-safe erased transform pass used by the pipeline runtime.
 pub trait ErasedTransformPass: Send + Sync {
@@ -22,7 +21,7 @@ pub trait ErasedTransformPass: Send + Sync {
         &self,
         model: &mut Model,
         ctx: &PassContext,
-    ) -> LunaModelResult<ErasedArtifact>;
+    ) -> TranspileKindResult<ErasedArtifact>;
     /// Human-readable display string.
     fn display(&self) -> String;
     /// Downcasts to the concrete pass type when needed.
@@ -54,7 +53,7 @@ where
         &self,
         model: &mut Model,
         ctx: &PassContext,
-    ) -> LunaModelResult<ErasedArtifact> {
+    ) -> TranspileKindResult<ErasedArtifact> {
         let artifact = self.forward(model, ctx)?;
         ErasedArtifact::new(&artifact)
     }

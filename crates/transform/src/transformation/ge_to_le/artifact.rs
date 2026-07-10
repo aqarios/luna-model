@@ -1,7 +1,6 @@
 //! Artifact types for `>=` to `<=` constraint normalization.
 
-use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::Artifact;
+use lunamodel_transpiler::{Artifact, TranspileKindResult};
 
 pub struct GeToLeConstraintsArtifact;
 
@@ -13,11 +12,11 @@ impl Artifact for GeToLeConstraintsArtifact {
         "luna_model::ge-to-le-constraints"
     }
 
-    fn serialize(&self) -> LunaModelResult<Vec<u8>> {
+    fn serialize(&self) -> TranspileKindResult<Vec<u8>> {
         Ok(Vec::new())
     }
 
-    fn deserialize(_: &[u8]) -> LunaModelResult<Self>
+    fn deserialize(_: &[u8]) -> TranspileKindResult<Self>
     where
         Self: Sized,
     {

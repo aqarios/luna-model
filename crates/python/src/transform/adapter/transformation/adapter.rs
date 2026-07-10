@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use lunamodel_core::{Model, Solution};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{PassContext, Reversible, TransformationPass};
+use lunamodel_transpiler::{PassContext, Reversible, TransformationPass, TranspileKindResult};
 use pyo3::{
     Py, PyAny, PyErr, Python,
     types::{PyAnyMethods, PyModule, PyTuple, PyTupleMethods},
@@ -62,7 +62,7 @@ impl TransformationPass for PyTransformationPassAdapter {
         &self.name
     }
 
-    fn forward(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<Self::Artifact> {
+    fn forward(&self, model: &mut Model, ctx: &PassContext) -> TranspileKindResult<Self::Artifact> {
         let (py_model, py_artifact, backward_envelope) = Python::attach(|py| {
             let obj = self.inner.bind(py);
 
@@ -142,7 +142,7 @@ impl Reversible for PyTransformationPassAdapter {
 
     const ID: &'static str = "luna_model::PyTransformationPassAdapter";
 
-    fn backward(artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
+    fn backward(artifact: &Self::Artifact, solution: Solution) -> TranspileKindResult<Solution> {
         let PyTransformationPassAdapterArtifact { artifact, backward } = artifact;
         let py_sol: PySolution = Python::attach(|py| {
             let module = PyModule::import(py, &backward.module).map_err(map_pyerr)?;

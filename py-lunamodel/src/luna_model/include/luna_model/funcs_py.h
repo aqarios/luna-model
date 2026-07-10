@@ -123,11 +123,8 @@ static inline int import_luna_model(void) {
 #define lm_col_len(...) (lunamodel__vtable->col_len(__VA_ARGS__))
 #define lm_col_is_empty(...) (lunamodel__vtable->col_is_empty(__VA_ARGS__))
 #define lm_col_assignment(...) (lunamodel__vtable->col_assignment(__VA_ARGS__))
-<<<<<<< Updated upstream
-=======
 #define lm_result_view_free(...) (lunamodel__vtable->result_view_free(__VA_ARGS__))
 #define lm_sample_view_free(...) (lunamodel__vtable->sample_view_free(__VA_ARGS__))
->>>>>>> Stashed changes
 #define lm_sol_free(...) (lunamodel__vtable->sol_free(__VA_ARGS__))
 #define lm_sol_clone(...) (lunamodel__vtable->sol_clone(__VA_ARGS__))
 #define lm_sol_eq(...) (lunamodel__vtable->sol_eq(__VA_ARGS__))
