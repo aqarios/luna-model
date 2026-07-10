@@ -24,6 +24,7 @@ incremental = false
 members = ["derive"]
 
 [dependencies]
+indexmap = "2.14.0"
 itertools = "0.15.0"
 # Table type + ABI structs only — no luna-model core, so consumers never link a
 # second copy of the library. The `LunaModelCApi` function pointers come from the

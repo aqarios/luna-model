@@ -100,6 +100,14 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     col_len: crate::col::lm_col_len,
     col_is_empty: crate::col::lm_col_is_empty,
     col_assignment: crate::col::lm_col_assignment,
+    // /////////// //
+    // RESULT_VIEW //
+    // /////////// //
+    result_view_free: crate::res::lm_result_view_free,
+    // /////////// //
+    // SAMPLE_VIEW //
+    // /////////// //
+    sample_view_free: crate::sample::lm_sample_view_free,
     // //////// //
     // SOLUTION //
     // //////// //

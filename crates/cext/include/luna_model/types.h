@@ -880,6 +880,8 @@ typedef struct {
     LmStatus (*col_len)(const LmColumn*, uintptr_t*);
     LmStatus (*col_is_empty)(const LmColumn*, bool*);
     LmStatus (*col_assignment)(const LmColumn*, uintptr_t, LmAssignment*);
+    void (*result_view_free)(LmResultView*);
+    void (*sample_view_free)(LmSampleView*);
     void (*sol_free)(LmSol*);
     LmStatus (*sol_clone)(const LmSol*, LmSol**);
     LmStatus (*sol_eq)(const LmSol*, const LmSol*, bool*);

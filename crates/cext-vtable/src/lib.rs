@@ -744,6 +744,14 @@ pub struct LunaModelCApi {
     pub col_len: unsafe extern "C" fn(*const LmColumn, *mut usize) -> LmStatus,
     pub col_is_empty: unsafe extern "C" fn(*const LmColumn, *mut bool) -> LmStatus,
     pub col_assignment: unsafe extern "C" fn(*const LmColumn, usize, *mut LmAssignment) -> LmStatus,
+    // /////////// //
+    // RESULT_VIEW //
+    // /////////// //
+    pub result_view_free: unsafe extern "C" fn(*mut LmResultView),
+    // /////////// //
+    // SAMPLE_VIEW //
+    // /////////// //
+    pub sample_view_free: unsafe extern "C" fn(*mut LmSampleView),
     // //////// //
     // SOLUTION //
     // //////// //
