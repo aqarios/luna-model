@@ -19,21 +19,18 @@ def model() -> Model:
 def test_encode_b64_returns_tagged_ascii_str(model: Model) -> None:
     s = model.encode_b64()
     assert isinstance(s, str)
-    s.encode("ascii")  # raises if non-ASCII leaked in
+    s.encode("ascii")
     assert Model.is_b64_encoded(s)
 
 
 def test_roundtrip_is_lossless(model: Model) -> None:
     restored = Model.decode_b64(model.encode_b64())
-    # Compare via the canonical binary codec (no reliance on Model.__eq__).
-    assert restored.encode() == model.encode()
+    assert restored.equal_contents(model)
 
 
 def test_is_b64_encoded_discriminates(model: Model) -> None:
     assert Model.is_b64_encoded(model.encode_b64()) is True
-    # bare base64 without the prefix must not be mistaken for a payload
     assert Model.is_b64_encoded(base64.b64encode(model.encode()).decode()) is False
-    # LP/MPS text and non-strings are not payloads
     assert Model.is_b64_encoded("Maximize\n obj: x + y\nEnd") is False
     assert Model.is_b64_encoded(model.encode()) is False  # bytes
     assert Model.is_b64_encoded(None) is False
