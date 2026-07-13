@@ -21,3 +21,11 @@ impl Drop for LazyBounds {
         }
     }
 }
+
+// pub lazy_bounds_free: unsafe extern "C" fn(*mut LmLazyBounds),
+// pub lazy_bounds_default: extern "C" fn() -> *mut LmLazyBounds,
+// pub lazy_bounds_new: unsafe extern "C" fn(*const LmBound, *const LmBound, *mut *mut LmLazyBounds) -> LmStatus,
+// pub lazy_bounds_clone: unsafe extern "C" fn(*const LmLazyBounds, *mut *mut LmLazyBounds) -> LmStatus,
+// pub lazy_bounds_lower: unsafe extern "C" fn(*const LmLazyBounds, *mut LmBound) -> LmStatus,
+// pub lazy_bounds_upper: unsafe extern "C" fn(*const LmLazyBounds, *mut LmBound) -> LmStatus,
+// pub lazy_bounds_concretize: unsafe extern "C" fn(*const LmLazyBounds, LmVtype, *mut *mut LmBounds) -> LmStatus,
