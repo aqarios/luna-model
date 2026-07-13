@@ -1,6 +1,7 @@
 mod bytes;
 mod ctype;
 mod idxmap;
+mod linitem;
 mod resview;
 mod sampleview;
 mod strings;
