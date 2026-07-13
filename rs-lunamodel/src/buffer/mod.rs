@@ -1,4 +1,5 @@
 mod bytes;
+mod ctype;
 mod idxmap;
 mod resview;
 mod sampleview;

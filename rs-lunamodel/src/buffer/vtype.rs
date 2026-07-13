@@ -1,5 +1,6 @@
+use enumset::EnumSet;
 use lunamodel_cext_vtable::LmVtypeBuffer;
-use lunamodel_types::Vtype;
+use lunamodel_types::{EnumSetFromVec, Vtype};
 
 use crate::{
     Result,
@@ -26,5 +27,12 @@ impl TryToVec<Vtype> for LmVtypeBuffer {
 impl LmTryInto<Vec<Vtype>> for LmVtypeBuffer {
     fn lm_try_into(self) -> Result<Vec<Vtype>> {
         self.try_to_vec()
+    }
+}
+
+// 1. the trait bound `EnumSet<Vtype>: LmTryFrom<LmVtypeBuffer>` is not satisfied
+impl LmTryInto<EnumSet<Vtype>> for LmVtypeBuffer {
+    fn lm_try_into(self) -> Result<EnumSet<Vtype>> {
+        Ok(self.try_to_vec()?.to_enumset())
     }
 }
