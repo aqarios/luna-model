@@ -6,7 +6,10 @@
 //! that are infallible on the native `LazyBounds` still return `Result` here.
 
 use lunamodel_cext_vtable::LmLazyBounds;
+use lunamodel_types::Vtype;
 use rs_lunamodel_derive::RawHandle;
+
+use crate::{Bound, Bounds, Result, TryClone, api::api};
 
 /// Owning handle to a LunaModel lazy bounds (frees on drop).
 #[derive(RawHandle)]
@@ -22,10 +25,36 @@ impl Drop for LazyBounds {
     }
 }
 
-// pub lazy_bounds_free: unsafe extern "C" fn(*mut LmLazyBounds),
-// pub lazy_bounds_default: extern "C" fn() -> *mut LmLazyBounds,
-// pub lazy_bounds_new: unsafe extern "C" fn(*const LmBound, *const LmBound, *mut *mut LmLazyBounds) -> LmStatus,
-// pub lazy_bounds_clone: unsafe extern "C" fn(*const LmLazyBounds, *mut *mut LmLazyBounds) -> LmStatus,
-// pub lazy_bounds_lower: unsafe extern "C" fn(*const LmLazyBounds, *mut LmBound) -> LmStatus,
-// pub lazy_bounds_upper: unsafe extern "C" fn(*const LmLazyBounds, *mut LmBound) -> LmStatus,
-// pub lazy_bounds_concretize: unsafe extern "C" fn(*const LmLazyBounds, LmVtype, *mut *mut LmBounds) -> LmStatus,
+impl Default for LazyBounds {
+    fn default() -> Self {
+        Self::from_raw((api().lazy_bounds_default)())
+    }
+}
+
+impl TryClone for LazyBounds {
+    fn try_clone(&self) -> Result<Self> {
+        out!(lazy_bounds_clone(@self))
+    }
+}
+
+impl LazyBounds {
+    pub fn new(lower: Option<Bound>, upper: Option<Bound>) -> Result<Self> {
+        out!(lazy_bounds_new(?~lower, ?~upper))
+    }
+}
+
+impl LazyBounds {
+    pub fn lower(&self) -> Result<Option<Bound>> {
+        out_opt!(lazy_bounds_lower(@self))
+    }
+
+    pub fn upper(&self) -> Result<Option<Bound>> {
+        out_opt!(lazy_bounds_upper(@self))
+    }
+}
+
+impl LazyBounds {
+    pub fn concretize(&self, vtype: Vtype) -> Result<Bounds> {
+        out!(lazy_bounds_concretize(@self, ~vtype))
+    }
+}
