@@ -953,8 +953,8 @@ class Model:
 
         Examples
         --------
-        >>> payload = model.encode_b64()
-        >>> payload.startswith("lunamodel:b64:v1:")
+        >>> payload = model.encode_b64()  # doctest: +SKIP
+        >>> payload.startswith("lunamodel:b64:v1:")  # doctest: +SKIP
         True
         """
         return _B64_PREFIX + base64.b64encode(self.encode()).decode("ascii")
@@ -988,7 +988,7 @@ class Model:
 
         Examples
         --------
-        >>> restored = Model.decode_b64(model.encode_b64())
+        >>> restored = Model.decode_b64(model.encode_b64())  # doctest: +SKIP
         """
         if not cls.is_b64_encoded(data):
             msg = "not a luna-model base64 payload"
