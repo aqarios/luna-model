@@ -54,6 +54,7 @@ mod timing;
 mod types;
 mod variable;
 mod vref;
+mod timer;
 
 pub use api::{InitError, init, is_initialized};
 pub use assignment::Assignment;
@@ -78,6 +79,7 @@ pub use timing::Timing;
 pub use traits::{ContentEquality, Serialization, TryClone, TryDeepClone};
 pub use vref::VarRef;
 pub use variable::Variable;
+pub use timer::Timer;
 
 /// Re-export of the ABI dispatch-table type, for obtaining and passing it to
 /// [`init`].
