@@ -33,6 +33,7 @@ mod utils;
 
 mod api;
 mod assignment;
+mod bound;
 mod bounds;
 mod cc;
 mod column;
@@ -56,6 +57,7 @@ mod vref;
 
 pub use api::{InitError, init, is_initialized};
 pub use assignment::Assignment;
+pub use bound::Bound;
 pub use bounds::Bounds;
 pub use cc::ConstraintCollection;
 pub use column::Column;
