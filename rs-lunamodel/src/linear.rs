@@ -5,7 +5,7 @@
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `Linear` still return `Result` here.
 
-use std::ops::{Index, IndexMut, Mul, Neg};
+use std::ops::{Mul, Neg};
 
 use lunamodel_cext_vtable::LmLinear;
 use rs_lunamodel_derive::RawHandle;
@@ -95,6 +95,12 @@ impl TryAddAssign<(u32, f64)> for Linear {
 
 impl TryAddAssign<&Linear> for Linear {
     fn try_add_assign(&mut self, rhs: &Linear) -> Result<()> {
+        check!(linear_add_linear(@mut self, @rhs))
+    }
+}
+
+impl TryAddAssign<Linear> for Linear {
+    fn try_add_assign(&mut self, rhs: Linear) -> Result<()> {
         check!(linear_add_linear(@mut self, @rhs))
     }
 }

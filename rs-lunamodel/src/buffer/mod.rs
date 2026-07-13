@@ -7,3 +7,4 @@ mod sampleview;
 mod strings;
 mod vref;
 mod vtype;
+mod quaditem;
