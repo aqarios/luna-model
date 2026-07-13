@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import base64
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, overload
 
@@ -52,6 +53,7 @@ _msg = (
     "dimod is required for the translation from a BinaryQuadraticModel or ConstrainedQuadraticModel. "
     "You can install it using the 'dimod' extra."
 )
+_B64_PREFIX = "lunamodel:b64:v1:"
 
 
 def _bqm_type() -> type[BinaryQuadraticModel]:
@@ -931,6 +933,92 @@ class Model:
             Deserialized model object.
         """
         return cls.decode(data)
+
+    def encode_b64(self) -> str:
+        """Serialize the model to a self-describing, JSON-safe base64 string.
+
+        The model is first serialized to bytes via :meth:`encode`, then base64-armored and tagged with a versioned
+        prefix so it can be transported through JSON-only channels and later recognized by :meth:`is_b64_encoded`.
+
+        Returns
+        -------
+        str
+            The encoded model as ``f"{_B64_PREFIX}{base64}"``, containing only ASCII characters.
+
+        See Also
+        --------
+        decode_b64 : Inverse operation; reconstruct a model from the string.
+        is_b64_encoded : Test whether a string is an ``encode_b64`` payload.
+        encode : Underlying binary serialization.
+
+        Examples
+        --------
+        >>> payload = model.encode_b64()  # doctest: +SKIP
+        >>> payload.startswith("lunamodel:b64:v1:")  # doctest: +SKIP
+        True
+        """
+        return _B64_PREFIX + base64.b64encode(self.encode()).decode("ascii")
+
+    @classmethod
+    def decode_b64(cls, data: str) -> Model:
+        """Reconstruct a model from a string produced by :meth:`encode_b64`.
+
+        Parameters
+        ----------
+        data : str
+            A base64 payload previously produced by :meth:`encode_b64`,
+            including the versioned prefix.
+
+        Returns
+        -------
+        Model
+            The reconstructed model.
+
+        Raises
+        ------
+        ValueError
+            If `data` does not carry the expected prefix (see
+            :meth:`is_b64_encoded`), or if the base64 body is malformed.
+
+        See Also
+        --------
+        encode_b64 : Inverse operation; serialize a model to the string.
+        is_b64_encoded : Test whether a string is an ``encode_b64`` payload.
+        decode : Underlying binary deserialization.
+
+        Examples
+        --------
+        >>> restored = Model.decode_b64(model.encode_b64())  # doctest: +SKIP
+        """
+        if not cls.is_b64_encoded(data):
+            msg = "not a luna-model base64 payload"
+            raise ValueError(msg)
+        body = data[len(_B64_PREFIX) :]
+        return cls.decode(base64.b64decode(body, validate=True))
+
+    @staticmethod
+    def is_b64_encoded(data: object) -> bool:
+        """Return whether `data` is an :meth:`encode_b64` payload.
+
+        This is a cheap prefix check used to distinguish a base64-encoded model from LP/MPS text, so callers can
+        dispatch without inspecting or decoding the body.
+
+        Parameters
+        ----------
+        data : object
+            The value to test. Non-string values always return ``False``.
+
+        Returns
+        -------
+        bool
+            ``True`` if `data` is a string beginning with the versioned base64 prefix, ``False`` otherwise.
+
+        See Also
+        --------
+        encode_b64 : Produces the payload recognized here.
+        decode_b64 : Consumes the payload recognized here.
+        """
+        return isinstance(data, str) and data.startswith(_B64_PREFIX)
 
     def deep_clone(self) -> Model:
         """Create a deep copy of the model.
