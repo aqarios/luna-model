@@ -86,21 +86,6 @@ impl Display for TranspileErrorKind {
     }
 }
 
-pub fn record(
-    f: impl FnOnce(&mut Vec<PassEntry>) -> TranspilerResult<()>,
-) -> TranspilerResult<TransformationRecord> {
-    let mut entries = Vec::new();
-    let res = f(&mut entries);
-    let record = TransformationRecord { entries };
-    match res {
-        Ok(_) => Ok(record),
-        Err(TranspilerError { kind, .. }) => Err(TranspilerError {
-            kind,
-            record: Some(record),
-        }),
-    }
-}
-
 impl TranspileErrorKind {
     pub fn external<E: Error + 'static>(e: E) -> Self {
         Self::External { e: Box::new(e) }
@@ -146,6 +131,39 @@ impl From<LunaModelError> for TranspilerError {
         TranspilerError {
             kind: value.into(),
             record: None,
+        }
+    }
+}
+
+pub fn record(
+    f: impl FnOnce(&mut Vec<PassEntry>) -> TranspilerResult<()>,
+) -> TranspilerResult<TransformationRecord> {
+    let mut entries = Vec::new();
+    let res = f(&mut entries);
+    let record = TransformationRecord { entries };
+    match res {
+        Ok(_) => Ok(record),
+        Err(TranspilerError { kind, .. }) => Err(TranspilerError {
+            kind,
+            record: Some(record),
+        }),
+    }
+}
+
+/// Pushes the nested entry (with its partial record on failure) and propagates any error.
+pub fn attach_nested(
+    entries: &mut Vec<PassEntry>,
+    res: TranspilerResult<TransformationRecord>,
+    make_entry: impl FnOnce(TransformationRecord) -> PassEntry,
+) -> TranspilerResult<()> {
+    match res {
+        Ok(record) => {
+            entries.push(make_entry(record));
+            Ok(())
+        }
+        Err(TranspilerError { kind, record }) => {
+            entries.push(make_entry(record.unwrap_or_else(|| Vec::new().into())));
+            Err(kind.into())
         }
     }
 }
