@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include <luna_model.h>
@@ -54,6 +55,78 @@ inline Expression Vref::pow(std::size_t n) const {
     LmExpr *out = nullptr;
     detail::check(lm_vref_pow(handle_, n, &out));
     return Expression(out);
+}
+
+inline Expression Expression::from_vref(const Vref &var) {
+    LmExpr *out = nullptr;
+    detail::check(lm_vref_add_bias(var.get(), 0.0, &out));
+    return Expression(out);
+}
+
+inline bool Expression::contains(const Vref &var) const {
+    std::uint32_t id = var.id();
+    for (const Vref &candidate : vars()) {
+        if (candidate.id() == id) {
+            return true;
+        }
+    }
+    return false;
+}
+
+inline std::vector<std::pair<Vref, double>> Expression::linear_items() const {
+    std::vector<std::pair<Vref, double>> out;
+    for (const LmLinearItem &it : linear_terms().items()) {
+        out.emplace_back(Vref(it.idx, env()), it.bias);
+    }
+    return out;
+}
+
+inline std::vector<std::tuple<Vref, Vref, double>> Expression::quadratic_items() const {
+    std::vector<std::tuple<Vref, Vref, double>> out;
+    if (auto q = quadratic_terms()) {
+        for (const LmQuadraticItem &it : q->items()) {
+            out.emplace_back(Vref(it.u_idx, env()), Vref(it.v_idx, env()), it.bias);
+        }
+    }
+    return out;
+}
+
+inline std::vector<std::pair<std::vector<Vref>, double>> Expression::higher_order_items() const {
+    std::vector<std::pair<std::vector<Vref>, double>> out;
+    if (auto h = higher_order_terms()) {
+        for (const auto &it : h->items()) {
+            std::vector<Vref> vars;
+            vars.reserve(it.indices.size());
+            for (std::uint32_t idx : it.indices) {
+                vars.emplace_back(Vref(idx, env()));
+            }
+            out.emplace_back(std::move(vars), it.bias);
+        }
+    }
+    return out;
+}
+
+inline std::vector<std::pair<std::vector<Vref>, double>> Expression::items() const {
+    std::vector<std::pair<std::vector<Vref>, double>> out;
+    for (auto &[var, bias] : linear_items()) {
+        std::vector<Vref> vs;
+        vs.push_back(std::move(var));
+        out.emplace_back(std::move(vs), bias);
+    }
+    for (auto &[u, v, bias] : quadratic_items()) {
+        std::vector<Vref> vs;
+        vs.push_back(std::move(u));
+        vs.push_back(std::move(v));
+        out.emplace_back(std::move(vs), bias);
+    }
+    for (auto &item : higher_order_items()) {
+        out.emplace_back(std::move(item.first), item.second);
+    }
+    double off = offset();
+    if (off != 0.0) {
+        out.emplace_back(std::vector<Vref>{}, off);
+    }
+    return out;
 }
 
 /* ----- in-place expression operations ----- */

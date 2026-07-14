@@ -21,7 +21,7 @@ int test_vref(int argc, char *argv[]) {
     CHECK(x != y);
     CHECK(x.hash() == x.hash());
     CHECK(x.hash() != y.hash());
-    CHECK(x.to_var().name() == "x");
+    CHECK(x.to_variable().name() == "x");
 
     /* Default bounds for a binary variable are [0, 1]. */
     lm::Bounds bx = x.bounds();
@@ -41,9 +41,9 @@ int test_vref(int argc, char *argv[]) {
     CHECK(q.num_vars() == 2);
     CHECK(q.has_quadratic());
     CHECK(!q.has_higher_order());
-    CHECK(q.quadratic().has_value());
-    CHECK((*q.quadratic())(x.id(), y.id()) == 1.0);
-    CHECK(!q.higher_order().has_value());
+    CHECK(q.quadratic_terms().has_value());
+    CHECK(q.quadratic(x.id(), y.id()) == 1.0);
+    CHECK(!q.higher_order_terms().has_value());
     CHECK(q.vars().size() == 2);
     CHECK(q.vtypes().size() == 1); /* both binary */
 
@@ -51,7 +51,7 @@ int test_vref(int argc, char *argv[]) {
      * binary * same binary collapses to linear, ... */
     lm::Expression xx = x * x;
     CHECK(xx.degree() == 1);
-    CHECK(xx.linear()[x.id()] == 1.0);
+    CHECK(xx.linear(x.id()) == 1.0);
     /* ... spin * same spin collapses to the constant 1, ... */
     lm::Expression ss = s * s;
     CHECK(ss.is_constant());
@@ -62,19 +62,19 @@ int test_vref(int argc, char *argv[]) {
     CHECK(zero.offset() == 0.0);
 
     /* Scalar ops, both operand orders. */
-    CHECK((2.0 * x).linear()[x.id()] == 2.0);
-    CHECK((x * 2.0).linear()[x.id()] == 2.0);
+    CHECK((2.0 * x).linear(x.id()) == 2.0);
+    CHECK((x * 2.0).linear(x.id()) == 2.0);
     CHECK((x + 1.5).offset() == 1.5);
     CHECK((1.5 + x).offset() == 1.5);
     CHECK((x - 1.0).offset() == -1.0);
     CHECK((1.0 - x).offset() == 1.0);
-    CHECK((1.0 - x).linear()[x.id()] == -1.0);
+    CHECK((1.0 - x).linear(x.id()) == -1.0);
 
     /* Addition, subtraction, negation, pow. */
     CHECK((x + y).degree() == 1);
     CHECK((x + y).num_vars() == 2);
-    CHECK((x - y).linear()[y.id()] == -1.0);
-    CHECK((-x).linear()[x.id()] == -1.0);
+    CHECK((x - y).linear(y.id()) == -1.0);
+    CHECK((-x).linear(x.id()) == -1.0);
     CHECK(x.pow(2).degree() == 1); /* binary^2 == binary */
     CHECK(s.pow(2).is_constant()); /* spin^2 == 1 */
 
@@ -91,8 +91,8 @@ int test_vref(int argc, char *argv[]) {
     CHECK(restored.equal_contents(e));
 
     /* Bounds evaluation. */
-    CHECK(x.eval(0.0));
-    CHECK(!x.eval(5.0));
+    CHECK(x.evaluate(0.0));
+    CHECK(!x.evaluate(5.0));
 
     /* Mixing environments is an error, not UB. */
     lm::Env env2;

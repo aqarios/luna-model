@@ -1,8 +1,11 @@
 use crate::utils::{handle_to_c, mut_from_c, opt_from_c, out_from_c, ref_from_c};
+use luna_model::core::solution::sample::SampleView;
 use luna_model::core::{Expression, Model, Solution, prelude::VarRef};
 
+use crate::res::ResultViewHandle;
+use crate::sample::SampleViewHandle;
 use crate::{
-    LmExpr, LmModel, LmSol, LmStatus, LmVref,
+    LmCC, LmExpr, LmModel, LmResultView, LmSampleView, LmSol, LmStatus, LmVref,
     error::{CapiError, guard},
 };
 
@@ -60,6 +63,71 @@ pub unsafe extern "C" fn lm_model_evaluate_solution_with_tol(
             .evaluate_solution_with_tol(sol, tol)
             .map_err(CapiError::errored)?;
         *out = handle_to_c(res);
+        Ok(())
+    })
+}
+
+/// Evaluates the model against a single sample row, returning the enriched
+/// result view for that row.
+///
+/// The sample is extracted into a one-row solution and evaluated, mirroring the
+/// core evaluation path. `tol == NULL` uses the default tolerance.
+///
+/// # Safety
+/// `model` and `sample` must be valid handles. `tol` must be null or point to a
+/// readable `double`. `out` must point to writable `LmResultView *` storage; the
+/// returned handle must be released with [`lm_result_view_free`].
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_evaluate_sample(
+    model: *const LmModel,
+    sample: *const LmSampleView,
+    tol: *const f64,
+    out: *mut *mut LmResultView,
+) -> LmStatus {
+    guard(|| {
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
+        let sample = unsafe { ref_from_c(sample as *const SampleViewHandle, "sample") }?;
+        let tol = unsafe { opt_from_c(tol) };
+        let out = unsafe { out_from_c(out) }?;
+
+        let row = sample.sol.extract(sample.index);
+        let evaluated = model
+            .evaluate_solution_with_tol(&row, tol)
+            .map_err(CapiError::errored)?;
+        *out = handle_to_c(ResultViewHandle {
+            sol: evaluated,
+            index: 0,
+        });
+        Ok(())
+    })
+}
+
+/// Returns the constraints violated by a single sample row.
+///
+/// `tol == NULL` uses the default tolerance for the floating-point comparisons.
+///
+/// # Safety
+/// `model` and `sample` must be valid handles. `tol` must be null or point to a
+/// readable `double`. `out` must point to writable `LmCC *` storage; the returned
+/// handle must be released with [`lm_cc_free`].
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_violated_constraints(
+    model: *const LmModel,
+    sample: *const LmSampleView,
+    tol: *const f64,
+    out: *mut *mut LmCC,
+) -> LmStatus {
+    guard(|| {
+        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
+        let sample = unsafe { ref_from_c(sample as *const SampleViewHandle, "sample") }?;
+        let tol = unsafe { opt_from_c(tol) };
+        let out = unsafe { out_from_c(out) }?;
+
+        let view = SampleView::new(&sample.sol, sample.index);
+        let violated = model
+            .violated_constraints(&view, tol)
+            .map_err(CapiError::errored)?;
+        *out = handle_to_c(violated);
         Ok(())
     })
 }

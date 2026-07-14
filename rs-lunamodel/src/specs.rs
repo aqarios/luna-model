@@ -87,56 +87,6 @@ impl Specs {
         out!(specs_satisfies(@self, @other))
     }
 
-    pub fn diff(&self, other: &Specs) -> Result<String> {
-        let mut lines = Vec::new();
-        if self.sense()? != other.sense()? {
-            lines.push(format!(
-                "  sense is '{:?}', expected '{:?}'",
-                self.sense()?,
-                other.sense()?
-            ));
-        }
-        if self.vtypes()? != other.vtypes()? {
-            lines.push(format!(
-                "  vtypes is '{:?}', expected '{:?}'",
-                self.vtypes()?,
-                other.vtypes()?
-            ));
-        }
-        if self.ctypes()? != other.ctypes()? {
-            lines.push(format!(
-                "  constraint types is '{:?}', expected '{:?}'",
-                self.ctypes()?,
-                other.ctypes()?
-            ));
-        }
-        if self.max_degree()? != other.max_degree()? {
-            lines.push(format!(
-                "  max degree is '{:?}', expected '{:?}'",
-                self.max_degree()?,
-                other.max_degree()?
-            ));
-        }
-        if self.max_constraint_degree()? != other.max_constraint_degree()? {
-            lines.push(format!(
-                "  max constraint degree is '{:?}', expected '{:?}'",
-                self.max_constraint_degree()?,
-                other.max_constraint_degree()?
-            ));
-        }
-        if self.max_num_variables()? != other.max_num_variables()? {
-            lines.push(format!(
-                "  max num variables is '{:?}', expected '{:?}'",
-                self.max_num_variables()?,
-                other.max_num_variables()?
-            ));
-        }
-        Ok(if lines.is_empty() {
-            String::new()
-        } else {
-            format!("{}\n", lines.join("\n"))
-        })
-    }
 }
 
 impl PartialEq for Specs {

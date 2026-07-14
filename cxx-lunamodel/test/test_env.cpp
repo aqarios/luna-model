@@ -61,8 +61,8 @@ int test_env(int argc, char *argv[]) {
     lm::Env src;
     lm::Vref a = src.insert("a", LmVtype_Binary);
     lm::Vref b = src.insert("b", LmVtype_Integer);
-    lm::Variable va = a.to_var();
-    lm::Variable vb = b.to_var();
+    lm::Variable va = a.to_variable();
+    lm::Variable vb = b.to_variable();
     std::uint32_t ai = a.id();
     std::uint32_t bi = b.id();
     lm::Env built = lm::Env::create({{ai, &va}, {bi, &vb}}, {{"a", ai}, {"b", bi}}, src.next_idx());

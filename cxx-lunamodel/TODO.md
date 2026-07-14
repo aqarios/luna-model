@@ -1,71 +1,67 @@
 # cxx-lunamodel — C++ API status
 
-The C++ API is a standalone, first-class wrapper over the LunaModel C ABI
-(`crates/cext/include/luna_model/funcs.h`). It is header-only and lives under
-`src/luna_model/`, with the umbrella header `<luna_model.hpp>` as the entry point.
+A standalone, first-class C++ wrapper over the LunaModel C ABI. Header-only under
+`src/luna_model/`; the umbrella header `<luna_model.hpp>` is the entry point. The
+API mirrors the shape and naming of the Rust `rs-lunamodel` binding so the two
+feel the same, allowing for language differences.
 
-## Status: complete
+## Status
 
-Every LunaModel C ABI function is wrapped (or its functionality is otherwise
-exposed). Types and their surfaces:
+**C ABI coverage:** every function is wrapped (or exposed via composition).
 
-- `Env` — split across `env/` (declaration, access, modification, creation).
-- `Vref`, `Variable`, `Bound`, `Bounds`, `LazyBounds`.
-- `Expression` (+ `Linear`, `Quadratic`, `HigherOrder`) and the `ops.hpp`
-  operator overloads.
-- `Constraint`, `ConstraintCollection`.
-- `Model`, `Specs`.
-- `Solution`, `Column`, `ResultView`, `SampleView`, `Timing`, `Timer`.
-- Free functions `version()`, `abi_version()`.
+**rs-API parity layer** (client-side reconstructions on top of the ABI, matching
+`rs-lunamodel`):
 
-Handle wrappers are move-only (copy deleted), free their handle in the
-destructor, and expose `get()` / `release()` for C interop. Fallible C calls go
-through `detail::check(...)`; owned buffers are copied into `std::vector` /
-`std::string` / `std::map` and released with the matching `lm_*_buffer_free`.
+- `Vref`: `evaluate`, `to_variable`, `pow`, `clone` (names aligned with rs).
+- `Env`: `get_variable`; single-file (see below).
+- `Expression`: `linear_terms`/`quadratic_terms`/`higher_order_terms`,
+  `linear(idx)`/`quadratic(u,v)`/`higher_order(vars)`, `raw_*_items`, `*_items`,
+  `items`, `contains`, `from_vref`, `deep_clone_many`, `evaluate_sample`,
+  `evaluate_sample_quick`, `evaluate_sampleset`.
+- `Constraint`: `evaluate_sample`, `evaluate_sample_quick`.
+- `ConstraintCollection`: `iter`, `add_many_constraints`, `evaluate_sample`,
+  `evaluate_sample_quick`.
+- `SampleView`: `to_vec`, `get`, `try_get`, `iter`, `iter_named`, `as_map`.
+- `Solution`: `sample`, predicate-based `filter`.
+- `Model`: `violated_constraints`.
+- `Specs`: optional-returning accessors + `diff`.
+- `ResultView`: lazy handle wrapper with `counts`/`obj_value`/`raw_energy`/
+  `feasible`/`constraints`/`variable_bounds`/`sample` accessors.
 
-### C ABI entries intentionally not wrapped 1:1
+Shared float-comparison/evaluation helpers live in `detail/eval.hpp` (ported
+from `lunamodel_utils`: `DEFAULT_TOL`, `float_eq/le/ge`, `validate_tol`).
 
-These are covered functionally without a dedicated wrapper call:
+## Intentional differences from rs-lunamodel
 
-- `lm_bound_is_bounded` — `Bound::is_bounded()` reads the POD tag directly.
-- `lm_cc_default` — the `ConstraintCollection()` default constructor uses the
-  equivalent `lm_cc_new`.
-- `lm_u32_buffer_free` — no wrapped accessor returns a standalone `LmU32Buffer`
-  (nested index buffers are freed by their owning item-buffer free).
+Driven by language differences or the C ABI boundary:
+
+- **`Column` is a read-only handle** (`len`, `is_empty`, `vtype`, `assignment`).
+  rs `Column` is a client-side value type with construction/mutation
+  (`push`, `with`, `binary`, `remove`, `as_assignments`, …). The C ABI exposes no
+  column construction/mutation, so this would require reimplementing `Column` as
+  a value type storing the raw values. **Not yet done** — the largest remaining
+  parity gap.
+- **No owned `Environment` + `VariableMut`/`commit` editor.** That borrow-checker
+  -driven proxy is Rust-specific; `Env` is mutated in place in C++.
+- **No `iter_mut`/`commit` editors** on the term stores / constraint collection.
+  In C++ you mutate directly (`add_entry`, `set_bias`, `set_constraint`).
+- **`clone()` is not named `try_clone`** — it throws on error, the C++ idiom.
+- **Scalar factories** are `from_double` / `from_size_t` (not `from_f64`/`from_usize`).
+- **`SampleViewIdx`** is expressed as overloads of `try_get(size_t|Vref|string)`.
+
+## Layout
+
+One header per type. `Env` is a single `env.hpp` like every other type. The
+include graph is one-directional; `vref.hpp` forward-declares `Env` and the
+`Vref(id, env)` constructor is defined in `env.hpp` where both types are
+complete — the only cross-type "bridge".
 
 ## Tests
-
-`test/test_full_api.cpp` exercises the model / constraint-collection / specs /
-lazy-bounds / variable / sample-view surface and the added solution, expression,
-and term-store operations. The full suite (`test/test_*.cpp`) passes against the
-real `liblunamodel`:
 
 ```
 make cpp-test      # builds dist/c, configures CMake, builds the suite, runs ctest
 ```
 
-## Possible follow-ups (ergonomic, beyond ABI coverage)
-
-Convenience layers that exist in other bindings but are not required for full
-ABI coverage: iterator/`iter_mut` editors for the term stores and constraint
-collection, predicate-based `Solution::filter`, richer `SampleView` accessors
-(`to_vec`, `as_map`, `try_get`), and an owned mutable `Environment` proxy.
-
----
-
-## Appendix — layout
-
-Each type is one small header (or, for `Env`, a small directory). The include
-graph is strictly one-directional, e.g.:
-
-```
-model -> solution -> {result_view, sample_view, column, timing}
-model -> constraint_collection -> constraint -> expr -> {env, linear, quadratic, higher_order}
-env   -> vref -> variable -> bounds -> bound
-```
-
-To break the one mutual `Env`<->`Vref` relationship, `vref.hpp` forward-declares
-`Env` and only declares the id-based constructor; its definition lives in
-`env/creation.hpp`, where `Env` is complete. There are no reverse includes and
-no include-ordering tricks, so including any type's header (or the umbrella
-`<luna_model.hpp>`) yields a fully usable type.
+`test/test_full_api.cpp` and `test/test_parity.cpp` exercise the wrapped ABI
+surface and the rs-parity reconstructions at runtime. The full suite passes
+against the real `liblunamodel`.

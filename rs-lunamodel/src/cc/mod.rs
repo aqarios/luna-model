@@ -160,29 +160,6 @@ impl ConstraintCollection {
             .collect()
     }
 
-    pub fn evaluate_sample<S>(
-        &self,
-        sample: &S,
-        tol: Option<f64>,
-    ) -> Result<std::collections::HashMap<String, bool>>
-    where
-        for<'a> S: TryIndex<&'a str, Output = f64>,
-    {
-        self.iter()?
-            .map(|(name, constraint)| Ok((name, constraint.evaluate_sample(sample, tol)?)))
-            .collect()
-    }
-
-    pub fn evaluate_sample_quick(
-        &self,
-        lookup: &[f64],
-        tol: Option<f64>,
-    ) -> Result<std::collections::HashMap<String, bool>> {
-        self.iter()?
-            .map(|(name, constraint)| Ok((name, constraint.evaluate_sample_quick(lookup, tol)?)))
-            .collect()
-    }
-
     pub fn add_constraint(&mut self, constr: &Constraint, name: Option<&str>) -> Result<String> {
         out!(cc_add_constraint(@mut self, @constr, ?!name))
     }

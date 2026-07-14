@@ -3,8 +3,11 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <optional>
+#include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include <luna_model.h>
@@ -17,7 +20,8 @@
 
 namespace lm {
 
-class Vref; // defined in vref.hpp; cross-type bodies are defined in ops.hpp
+class Vref;      // defined in vref.hpp; cross-type bodies are defined in ops.hpp
+class Solution;  // defined in solution.hpp; `evaluate` is defined there
 
 /* Owning handle to a symbolic expression over an environment's variables
  * (frees on destruction). */
@@ -54,6 +58,9 @@ class Expression {
         return Expression(out);
     }
 
+    /* Creates an expression from a single variable. Defined in ops.hpp. */
+    static Expression from_vref(const Vref &var);
+
     /* Creates an expression from a linear term store. The store is copied. */
     static Expression from_linear(const Linear &linear) {
         LmExpr *out = nullptr;
@@ -76,8 +83,7 @@ class Expression {
     }
 
     /* Creates a quadratic expression from a dense row-major coefficient matrix
-     * of `num_vars * num_vars` entries, bound to `env`. `offset == std::nullopt`
-     * uses a zero constant offset. */
+     * of `num_vars * num_vars` entries, bound to `env`. */
     static Expression from_dense_quadratic(const std::vector<double> &dense, std::size_t num_vars,
                                            const Env &env,
                                            std::optional<double> offset = std::nullopt) {
@@ -85,6 +91,28 @@ class Expression {
         detail::check(lm_expr_from_dense_quadratic(dense.data(), dense.size(), num_vars,
                                                    offset ? &*offset : nullptr, env.get(), &out));
         return Expression(out);
+    }
+
+    /* Deep-clones many expressions of the same environment into one shared
+     * deep-cloned environment. */
+    static std::vector<Expression> deep_clone_many(const std::vector<const Expression *> &exprs) {
+        std::vector<Expression> out;
+        if (exprs.empty()) {
+            return out;
+        }
+        Env source = exprs.front()->env();
+        LmEnvId source_id = source.id();
+        Env target = source.deep_clone();
+        out.reserve(exprs.size());
+        for (const Expression *expr : exprs) {
+            LmEnvId eid = expr->env().id();
+            if (eid.hi != source_id.hi || eid.lo != source_id.lo) {
+                throw Error(LmStatus_InvalidArgument,
+                            "expressions belong to different environments");
+            }
+            out.push_back(expr->deep_clone(target));
+        }
+        return out;
     }
 
     /* Adopts ownership of a raw C handle (for C interop). */
@@ -124,15 +152,15 @@ class Expression {
         return out;
     }
 
-    /* A copy of the linear terms. */
-    Linear linear() const {
+    /* A copy of the complete linear term store. */
+    Linear linear_terms() const {
         LmLinear *out = nullptr;
         detail::check(lm_expr_linear(handle_, &out));
         return Linear(out);
     }
 
-    /* A copy of the quadratic terms, if any. */
-    std::optional<Quadratic> quadratic() const {
+    /* A copy of the quadratic term store, if any. */
+    std::optional<Quadratic> quadratic_terms() const {
         LmQuadratic *out = nullptr;
         detail::check(lm_expr_quadratic(handle_, &out));
         if (out == nullptr) {
@@ -141,14 +169,29 @@ class Expression {
         return Quadratic(out);
     }
 
-    /* A copy of the higher-order terms, if any. */
-    std::optional<HigherOrder> higher_order() const {
+    /* A copy of the higher-order term store, if any. */
+    std::optional<HigherOrder> higher_order_terms() const {
         LmHigherOrder *out = nullptr;
         detail::check(lm_expr_higher_order(handle_, &out));
         if (out == nullptr) {
             return std::nullopt;
         }
         return HigherOrder(out);
+    }
+
+    /* The linear bias for a single variable index. */
+    double linear(std::uint32_t idx) const { return linear_terms()[idx]; }
+
+    /* The quadratic bias for a variable pair (0 if no quadratic terms). */
+    double quadratic(std::uint32_t u, std::uint32_t v) const {
+        auto q = quadratic_terms();
+        return q ? (*q)(u, v) : 0.0;
+    }
+
+    /* The higher-order bias for a variable tuple (0 if no higher-order terms). */
+    double higher_order(const std::vector<std::uint32_t> &vars) const {
+        auto h = higher_order_terms();
+        return h ? (*h)(vars) : 0.0;
     }
 
     /* The number of distinct variables. */
@@ -195,12 +238,41 @@ class Expression {
         return out;
     }
 
+    /* Evaluates the expression against a name-keyed sample. */
+    double evaluate_sample(const std::map<std::string, double> &sample) const {
+        std::vector<const char *> names;
+        std::vector<double> values;
+        names.reserve(sample.size());
+        values.reserve(sample.size());
+        for (const auto &[name, value] : sample) {
+            names.push_back(name.c_str());
+            values.push_back(value);
+        }
+        double out = 0.0;
+        detail::check(
+            lm_expr_evaluate_sample(handle_, names.data(), values.data(), names.size(), &out));
+        return out;
+    }
+
+    /* Evaluates the expression across every sample row of `sol`.
+     * Defined in solution.hpp, where `Solution` is complete. */
+    std::vector<double> evaluate(const Solution &sol) const;
+
     /* The distinct variables used by the expression. Defined in ops.hpp. */
     std::vector<Vref> vars() const;
-
-    /* The distinct variables including inverted binary companions.
-     * Defined in ops.hpp. */
+    /* The distinct variables including inverted binary companions. ops.hpp. */
     std::vector<Vref> complete_vars() const;
+    /* Whether the expression references `var`. Defined in ops.hpp. */
+    bool contains(const Vref &var) const;
+    /* `(variable, bias)` linear items. Defined in ops.hpp. */
+    std::vector<std::pair<Vref, double>> linear_items() const;
+    /* `(u, v, bias)` quadratic items. Defined in ops.hpp. */
+    std::vector<std::tuple<Vref, Vref, double>> quadratic_items() const;
+    /* `(variables, bias)` higher-order items. Defined in ops.hpp. */
+    std::vector<std::pair<std::vector<Vref>, double>> higher_order_items() const;
+    /* All contributions as `(variables, bias)`, including the constant offset
+     * as an empty-variable entry. Defined in ops.hpp. */
+    std::vector<std::pair<std::vector<Vref>, double>> items() const;
 
     /* In-place arithmetic. Defined in ops.hpp. The free binary operators
      * (`a + b` etc.) are also declared in ops.hpp. */

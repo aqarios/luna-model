@@ -1,6 +1,7 @@
 mod access;
 mod creation;
 mod equality;
+mod eval;
 mod general;
 mod ops;
 mod serialize;
@@ -16,6 +17,7 @@ pub use creation::{
     lm_expr_new, lm_expr_new_constant,
 };
 pub use equality::{lm_expr_eq, lm_expr_equal_contents};
+pub use eval::{lm_expr_evaluate, lm_expr_evaluate_sample};
 pub use general::{lm_expr_clone, lm_expr_deep_clone};
 pub use serialize::{lm_expr_deserialize, lm_expr_serialize};
 

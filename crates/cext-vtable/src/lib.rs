@@ -17,7 +17,7 @@ use std::os::raw::c_char;
 /// or to any exported function signature. Consumers must check it after import.
 ///
 /// cbindgen:ignore
-pub const CAPI_ABI_VERSION: u32 = 1;
+pub const CAPI_ABI_VERSION: u32 = 2;
 
 /// Status codes returned by every fallible `lm_*` entry point.
 ///
@@ -277,6 +277,22 @@ pub struct LmU32Buffer {
     /// Pointer to the first u32, or null for an empty buffer.
     pub data: *mut u32,
     /// Number of valid u32s.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
+/// An owned, heap-allocated `f64` buffer the caller takes ownership of.
+///
+/// f64 buffers returned by LunaModel must be released with
+/// [`lm_f64_buffer_free`]. The fields mirror a `Vec<f64>` so it can be rebuilt
+/// for deallocation.
+#[repr(C)]
+#[derive(Default)]
+pub struct LmF64Buffer {
+    /// Pointer to the first f64, or null for an empty buffer.
+    pub data: *mut f64,
+    /// Number of valid f64s.
     pub len: usize,
     /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
     pub cap: usize,
@@ -638,6 +654,7 @@ pub struct LunaModelCApi {
     pub cmp_buffer_free: unsafe extern "C" fn(LmCmpBuffer),
     pub vref_buffer_free: unsafe extern "C" fn(LmVrefBuffer),
     pub u32_buffer_free: unsafe extern "C" fn(LmU32Buffer),
+    pub f64_buffer_free: unsafe extern "C" fn(LmF64Buffer),
     pub linear_item_buffer_free: unsafe extern "C" fn(LmLinearItemBuffer),
     pub quadratic_item_buffer_free: unsafe extern "C" fn(LmQuadraticItemBuffer),
     pub higher_order_item_buffer_free: unsafe extern "C" fn(LmHigherOrderItemBuffer),
@@ -685,6 +702,18 @@ pub struct LunaModelCApi {
         unsafe extern "C" fn(*const LmModel, *const LmSol, *mut *mut LmSol) -> LmStatus,
     pub model_evaluate_solution_with_tol:
         unsafe extern "C" fn(*const LmModel, *const LmSol, *const f64, *mut *mut LmSol) -> LmStatus,
+    pub model_evaluate_sample: unsafe extern "C" fn(
+        *const LmModel,
+        *const LmSampleView,
+        *const f64,
+        *mut *mut LmResultView,
+    ) -> LmStatus,
+    pub model_violated_constraints: unsafe extern "C" fn(
+        *const LmModel,
+        *const LmSampleView,
+        *const f64,
+        *mut *mut LmCC,
+    ) -> LmStatus,
     pub model_substitute:
         unsafe extern "C" fn(*mut LmModel, *const LmVref, *const LmExpr) -> LmStatus,
     // Model -- access
@@ -938,6 +967,15 @@ pub struct LunaModelCApi {
     pub expr_equal_contents:
         unsafe extern "C" fn(*const LmExpr, *const LmExpr, *mut bool) -> LmStatus,
     pub expr_env: unsafe extern "C" fn(*const LmExpr, *mut *mut LmEnv) -> LmStatus,
+    pub expr_evaluate_sample: unsafe extern "C" fn(
+        *const LmExpr,
+        *const *const c_char,
+        *const f64,
+        usize,
+        *mut f64,
+    ) -> LmStatus,
+    pub expr_evaluate:
+        unsafe extern "C" fn(*const LmExpr, *const LmSol, *mut LmF64Buffer) -> LmStatus,
     pub expr_offset: unsafe extern "C" fn(*const LmExpr, *mut f64) -> LmStatus,
     pub expr_linear: unsafe extern "C" fn(*const LmExpr, *mut *mut LmLinear) -> LmStatus,
     pub expr_quadratic: unsafe extern "C" fn(*const LmExpr, *mut *mut LmQuadratic) -> LmStatus,

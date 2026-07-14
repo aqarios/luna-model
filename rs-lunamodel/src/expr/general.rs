@@ -1,4 +1,4 @@
-use crate::traits::LmTryInto;
+use crate::traits::{LmTryInto, ToPtrList};
 use crate::{Error, Expression, Result, Status, TryDeepClone, TryIndex, VarRef};
 
 impl Expression {
@@ -23,35 +23,27 @@ impl Expression {
             .collect()
     }
 
-    pub fn evaluate_sample_quick(&self, lookup: &[f64]) -> Result<f64> {
-        let mut value = self.offset()?;
-        for (idx, bias) in self.raw_linear_items()? {
-            value += lookup_value(lookup, idx)? * bias;
-        }
-        for (u, v, bias) in self.raw_quadratic_items()? {
-            value += lookup_value(lookup, u)? * lookup_value(lookup, v)? * bias;
-        }
-        for (indices, bias) in self.raw_higher_order_items()? {
-            let contribution = indices
-                .into_iter()
-                .try_fold(bias, |acc, idx| Ok(acc * lookup_value(lookup, idx)?))?;
-            value += contribution;
-        }
-        Ok(value)
-    }
-
+    /// Evaluates the expression against a single sample accessible by variable
+    /// name. Dispatches into the C ABI; the summation lives in the host core.
     pub fn evaluate_sample<S>(&self, sample: &S) -> Result<f64>
     where
         for<'a> S: TryIndex<&'a str, Output = f64>,
     {
-        let env = self.env()?;
-        let mut lookup = vec![0.0; env.len()?];
-        for var in self.complete_vars()? {
-            let idx = var.id()? as usize;
+        let vars = self.complete_vars()?;
+        let mut names: Vec<String> = Vec::with_capacity(vars.len());
+        let mut values: Vec<f64> = Vec::with_capacity(vars.len());
+        for var in &vars {
             let name = var.name()?;
-            lookup[idx] = sample.try_index(name.as_str())?;
+            values.push(sample.try_index(name.as_str())?);
+            names.push(name);
         }
-        self.evaluate_sample_quick(&lookup)
+        let names = names.as_slice().to_ptr_list()?;
+        out!(expr_evaluate_sample(@self, names.as_ptr(), values.as_ptr(), values.len()))
+    }
+
+    /// Evaluates the expression across every sample row of `sol`.
+    pub fn evaluate(&self, sol: &crate::Solution) -> Result<Vec<f64>> {
+        out!(expr_evaluate(@self, @sol))
     }
 
     pub fn evaluate_sampleset<'a, S, I>(&self, samples: I) -> Result<Vec<f64>>
@@ -83,9 +75,3 @@ impl Expression {
     }
 }
 
-fn lookup_value(lookup: &[f64], idx: u32) -> Result<f64> {
-    lookup.get(idx as usize).copied().ok_or_else(|| Error {
-        status: Status::InvalidArgument,
-        message: format!("lookup has no value for variable index {idx}"),
-    })
-}

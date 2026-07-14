@@ -14,7 +14,7 @@
  * Bump this on any breaking change to the layout of the exported table struct
  * or to any exported function signature. Consumers must check it after import.
  */
-#define LUNA_MODEL_CAPI_ABI_VERSION 1
+#define LUNA_MODEL_CAPI_ABI_VERSION 2
 
 /**
  * Status codes returned by every fallible `lm_*` entry point.
@@ -316,6 +316,28 @@ typedef struct {
      */
     uintptr_t cap;
 } LmCtypeBuffer;
+
+/**
+ * An owned, heap-allocated `f64` buffer the caller takes ownership of.
+ *
+ * f64 buffers returned by LunaModel must be released with
+ * [`lm_f64_buffer_free`]. The fields mirror a `Vec<f64>` so it can be rebuilt
+ * for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first f64, or null for an empty buffer.
+     */
+    double *data;
+    /**
+     * Number of valid f64s.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmF64Buffer;
 
 /**
  * An owned, heap-allocated u32 buffer the caller takes ownership of.
@@ -747,6 +769,18 @@ typedef struct {
 } LmHigherOrder;
 
 /**
+ * Opaque handle to a LunaModel solution.
+ *
+ * Solutions are produced elsewhere (a solver or the Python API) and loaded here
+ * from serialized bytes with [`lm_sol_deserialize`]. Release with
+ * [`lm_sol_free`].
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmSol;
+
+/**
  * Opaque handle to a LunaModel model.
  *
  * Created by [`lm_model_default`], [`lm_model_new`] or [`lm_model_deserialize`] and released with
@@ -764,18 +798,6 @@ typedef struct {
 typedef struct {
     uint8_t _private[0];
 } LmSpecs;
-
-/**
- * Opaque handle to a LunaModel solution.
- *
- * Solutions are produced elsewhere (a solver or the Python API) and loaded here
- * from serialized bytes with [`lm_sol_deserialize`]. Release with
- * [`lm_sol_free`].
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmSol;
 
 /**
  * Opaque handle to a LunaModel timing reference.
@@ -813,6 +835,7 @@ typedef struct {
     void (*cmp_buffer_free)(LmCmpBuffer);
     void (*vref_buffer_free)(LmVrefBuffer);
     void (*u32_buffer_free)(LmU32Buffer);
+    void (*f64_buffer_free)(LmF64Buffer);
     void (*linear_item_buffer_free)(LmLinearItemBuffer);
     void (*quadratic_item_buffer_free)(LmQuadraticItemBuffer);
     void (*higher_order_item_buffer_free)(LmHigherOrderItemBuffer);
@@ -840,6 +863,14 @@ typedef struct {
                                                  const LmSol*,
                                                  const double*,
                                                  LmSol**);
+    LmStatus (*model_evaluate_sample)(const LmModel*,
+                                      const LmSampleView*,
+                                      const double*,
+                                      LmResultView**);
+    LmStatus (*model_violated_constraints)(const LmModel*,
+                                           const LmSampleView*,
+                                           const double*,
+                                           LmCC**);
     LmStatus (*model_substitute)(LmModel*, const LmVref*, const LmExpr*);
     LmStatus (*model_name)(const LmModel*, LmBuffer*);
     LmStatus (*model_sense)(const LmModel*, LmSense*);
@@ -1004,6 +1035,12 @@ typedef struct {
     LmStatus (*expr_eq)(const LmExpr*, const LmExpr*, bool*);
     LmStatus (*expr_equal_contents)(const LmExpr*, const LmExpr*, bool*);
     LmStatus (*expr_env)(const LmExpr*, LmEnv**);
+    LmStatus (*expr_evaluate_sample)(const LmExpr*,
+                                     const char*const *,
+                                     const double*,
+                                     uintptr_t,
+                                     double*);
+    LmStatus (*expr_evaluate)(const LmExpr*, const LmSol*, LmF64Buffer*);
     LmStatus (*expr_offset)(const LmExpr*, double*);
     LmStatus (*expr_linear)(const LmExpr*, LmLinear**);
     LmStatus (*expr_quadratic)(const LmExpr*, LmQuadratic**);

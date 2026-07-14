@@ -10,7 +10,7 @@ pub use lunamodel_cext_vtable::LunaModelCApi;
 pub use lunamodel_cext_vtable::{
     LmAssignment, LmBoolMapBuffer, LmBoolMapEntry, LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC,
     LmCmpBuffer, LmColumn, LmComparator, LmConstraint, LmCtype, LmCtypeBuffer, LmEnv, LmEnvId,
-    LmExpr, LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer, LmIndexMapItem,
+    LmExpr, LmF64Buffer, LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer, LmIndexMapItem,
     LmIndexMapItemBuffer, LmLazyBounds, LmLinear, LmLinearItem, LmLinearItemBuffer, LmModel,
     LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer, LmResultView, LmResultViewBuffer,
     LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSpecs, LmStatus, LmStrBuffer, LmTimer,
@@ -26,7 +26,7 @@ pub use lunamodel_cext_vtable::{
 // `LUNA_MODEL_CAPI_ABI_VERSION` macro into the header. The vtable crate's copy
 // (used by downstream Rust consumers) carries `cbindgen:ignore`; the assert keeps
 // the two in lock-step.
-pub const CAPI_ABI_VERSION: u32 = 1;
+pub const CAPI_ABI_VERSION: u32 = 2;
 const _: () = assert!(CAPI_ABI_VERSION == lunamodel_cext_vtable::CAPI_ABI_VERSION);
 
 pub mod bound;
