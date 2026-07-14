@@ -1,14 +1,52 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c, str_from_c};
+use crate::utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c, str_from_c};
 use std::ffi::c_char;
 
 use luna_model::core::ArcEnv;
 
 use crate::{
-    LmEnv, LmEnvId, LmStatus, LmVref, LmVrefBuffer, LmVtype,
-    buffer::vref_buffer_from_vec,
+    LmEnv, LmEnvId, LmStatus, LmStrBuffer, LmVref, LmVrefBuffer, LmVtype,
+    buffer::{str_buffer_from_vec, vref_buffer_from_vec},
     error::{CapiError, guard},
     utils::vtype_to_c,
 };
+
+/// Sorts names by their variable order in the environment.
+///
+/// # Safety
+/// `env` must be valid, `names` must describe `len` valid C strings, and `out`
+/// must be writable buffer storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_env_sort(
+    env: *const LmEnv,
+    names: *const *const c_char,
+    len: usize,
+    out: *mut LmStrBuffer,
+) -> LmStatus {
+    guard(|| {
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let names = unsafe { slice_from_c(names, len, "names") }?
+            .iter()
+            .map(|&name| unsafe { str_from_c(name, "name") }.map(str::to_owned))
+            .collect::<Result<Vec<_>, _>>()?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = str_buffer_from_vec(env.sort(names));
+        Ok(())
+    })
+}
+
+/// Returns the next variable index.
+///
+/// # Safety
+/// `env` must be a valid environment handle and `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_env_next_idx(env: *const LmEnv, out: *mut u32) -> LmStatus {
+    guard(|| {
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = env.env.read().next_idx();
+        Ok(())
+    })
+}
 
 /// Returns the number of variables in the environment.
 ///

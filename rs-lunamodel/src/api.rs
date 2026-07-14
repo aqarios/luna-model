@@ -6,6 +6,7 @@
 //! The host provides that table once (typically read from the
 //! `luna_model._lm._C_API` PyCapsule) via [`init`].
 
+use std::ffi::CStr;
 use std::fmt;
 use std::sync::OnceLock;
 
@@ -24,6 +25,8 @@ static API: OnceLock<ApiHandle> = OnceLock::new();
 /// Failure while installing the C API table.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InitError {
+    /// The provided table pointer was null.
+    NullTable,
     /// The table was already installed.
     AlreadyInitialized,
     /// The table's ABI version does not match the one this crate was built with.
@@ -38,6 +41,7 @@ pub enum InitError {
 impl fmt::Display for InitError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            InitError::NullTable => write!(f, "C API table pointer is null"),
             InitError::AlreadyInitialized => write!(f, "C API table already initialized"),
             InitError::AbiMismatch { expected, found } => write!(
                 f,
@@ -58,6 +62,9 @@ impl std::error::Error for InitError {}
 /// `table` must point to a valid [`LunaModelCApi`] that stays alive for the rest
 /// of the process (the capsule's backing allocation satisfies this).
 pub unsafe fn init(table: *const LunaModelCApi) -> Result<(), InitError> {
+    if table.is_null() {
+        return Err(InitError::NullTable);
+    }
     let found = unsafe { (*table).abi_version };
     if found != CAPI_ABI_VERSION {
         return Err(InitError::AbiMismatch {
@@ -72,6 +79,25 @@ pub unsafe fn init(table: *const LunaModelCApi) -> Result<(), InitError> {
 /// Returns whether the table has been installed.
 pub fn is_initialized() -> bool {
     API.get().is_some()
+}
+
+/// Returns the LunaModel host version backing the installed dispatch table.
+pub fn version() -> crate::Result<String> {
+    let ptr = (api().version)();
+    if ptr.is_null() {
+        return Err(crate::Error {
+            status: crate::Status::NullPointer,
+            message: "the LunaModel host returned a null version string".to_owned(),
+        });
+    }
+    Ok(unsafe { CStr::from_ptr(ptr) }
+        .to_string_lossy()
+        .into_owned())
+}
+
+/// Returns the ABI version of the installed table.
+pub fn abi_version() -> u32 {
+    api().abi_version
 }
 
 /// Borrows the installed C API table.

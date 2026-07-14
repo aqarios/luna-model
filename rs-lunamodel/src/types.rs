@@ -1,5 +1,5 @@
 use lunamodel_cext_vtable::{LmComparator, LmCtype, LmSense, LmValueSource, LmVtype};
-use lunamodel_types::{Comparator, Ctype, Sense, ValueSource, Vtype};
+pub use lunamodel_types::*;
 
 use crate::traits::{LmFrom, LmTryFrom};
 

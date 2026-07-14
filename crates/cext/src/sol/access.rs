@@ -194,7 +194,7 @@ pub unsafe extern "C" fn lm_sol_result(
         match sol.result(index) {
             Some(_) => {
                 *out = handle_to_c(ResultViewHandle {
-                    sol: sol as *const Solution,
+                    sol: sol.clone(),
                     index,
                 });
                 Ok(())
@@ -227,7 +227,7 @@ pub unsafe extern "C" fn lm_sol_results(
             .results()
             .map(|r| {
                 handle_to_c(ResultViewHandle {
-                    sol: sol as *const Solution,
+                    sol: sol.clone(),
                     index: r.idx,
                 })
             })
@@ -257,7 +257,7 @@ pub unsafe extern "C" fn lm_sol_sample_view(
         match sol.sample(index) {
             Some(_) => {
                 *out = handle_to_c(SampleViewHandle {
-                    sol: sol as *const Solution,
+                    sol: sol.clone(),
                     index,
                 });
                 Ok(())
@@ -290,7 +290,7 @@ pub unsafe extern "C" fn lm_sol_sample_views(
             .samples()
             .map(|r| {
                 handle_to_c(SampleViewHandle {
-                    sol: sol as *const Solution,
+                    sol: sol.clone(),
                     index: r.idx,
                 })
             })
@@ -325,7 +325,7 @@ pub unsafe extern "C" fn lm_sol_best(sol: *const LmSol, out: *mut LmResultViewBu
             .into_iter()
             .map(|r| {
                 handle_to_c(ResultViewHandle {
-                    sol: sol as *const Solution,
+                    sol: sol.clone(),
                     index: r.idx,
                 })
             })

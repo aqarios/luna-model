@@ -57,6 +57,21 @@ impl Bounds {
     }
 }
 
+impl PartialEq for Bounds {
+    fn eq(&self, other: &Self) -> bool {
+        self.lower().ok() == other.lower().ok() && self.upper().ok() == other.upper().ok()
+    }
+}
+
+impl std::fmt::Debug for Bounds {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Bounds")
+            .field("lower", &self.lower().ok())
+            .field("upper", &self.upper().ok())
+            .finish()
+    }
+}
+
 impl Bounds {
     pub fn lower(&self) -> Result<Bound> {
         out!(bounds_lower(@self))

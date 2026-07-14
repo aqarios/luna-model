@@ -261,11 +261,10 @@ pub fn assignment_to_c(assignment: Assignment) -> LmAssignment {
 ///
 /// # Safety
 /// `view` must be a valid result-view handle created by this library whose
-/// originating solution is still alive.
+/// owned solution snapshot is still alive.
 pub unsafe fn result_view_from_c<'a>(
     view: *const LmResultView,
 ) -> Result<ResultView<'a>, CapiError> {
     let handle = unsafe { ref_from_c(view as *const ResultViewHandle, "view") }?;
-    let sol = unsafe { ref_from_c(handle.sol, "sol") }?;
-    Ok(ResultView::new(sol, handle.index))
+    Ok(ResultView::new(&handle.sol, handle.index))
 }

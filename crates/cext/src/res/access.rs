@@ -1,8 +1,11 @@
 use crate::{
-    LmResultView, LmStatus,
+    LmBoolMapBuffer, LmResultView, LmSampleView, LmStatus,
+    buffer::bool_map_buffer_from_vec,
     error::CapiError,
     error::guard,
-    utils::{out_from_c, result_view_from_c},
+    res::ResultViewHandle,
+    sample::SampleViewHandle,
+    utils::{handle_to_c, out_from_c, ref_from_c, result_view_from_c},
 };
 
 /// Returns how often the result row occurred in the solution.
@@ -19,6 +22,76 @@ pub unsafe extern "C" fn lm_result_view_counts(
         let view = unsafe { result_view_from_c(view) }?;
         let out = unsafe { out_from_c(out) }?;
         *out = view.counts();
+        Ok(())
+    })
+}
+
+/// Returns constraint feasibility for this result row.
+///
+/// # Safety
+/// `view` must be valid and `out` must be writable buffer storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_result_view_constraints(
+    view: *const LmResultView,
+    out: *mut LmBoolMapBuffer,
+) -> LmStatus {
+    guard(|| {
+        let view = unsafe { result_view_from_c(view) }?;
+        let out = unsafe { out_from_c(out) }?;
+        let values = view.constraints().ok_or_else(|| {
+            CapiError::new(LmStatus::Absent, "result row has no constraint results")
+        })?;
+        *out = bool_map_buffer_from_vec(
+            values
+                .into_iter()
+                .map(|(name, value)| (name, vec![value]))
+                .collect(),
+        );
+        Ok(())
+    })
+}
+
+/// Returns variable-bound feasibility for this result row.
+///
+/// # Safety
+/// `view` must be valid and `out` must be writable buffer storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_result_view_variable_bounds(
+    view: *const LmResultView,
+    out: *mut LmBoolMapBuffer,
+) -> LmStatus {
+    guard(|| {
+        let view = unsafe { result_view_from_c(view) }?;
+        let out = unsafe { out_from_c(out) }?;
+        let values = view.variable_bounds().ok_or_else(|| {
+            CapiError::new(LmStatus::Absent, "result row has no variable-bound results")
+        })?;
+        *out = bool_map_buffer_from_vec(
+            values
+                .into_iter()
+                .map(|(name, value)| (name, vec![value]))
+                .collect(),
+        );
+        Ok(())
+    })
+}
+
+/// Returns an owned sample-view snapshot for this result row.
+///
+/// # Safety
+/// `view` must be valid and `out` must be writable handle storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_result_view_sample(
+    view: *const LmResultView,
+    out: *mut *mut LmSampleView,
+) -> LmStatus {
+    guard(|| {
+        let handle = unsafe { ref_from_c(view as *const ResultViewHandle, "view") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(SampleViewHandle {
+            sol: handle.sol.clone(),
+            index: handle.index,
+        });
         Ok(())
     })
 }

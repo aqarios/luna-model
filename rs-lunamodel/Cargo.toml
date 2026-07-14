@@ -27,10 +27,13 @@ members = ["derive"]
 enumset = "1.1.13"
 indexmap = "2.14.0"
 itertools = "0.15.0"
-# Table type + ABI structs only — no luna-model core, so consumers never link a
-# second copy of the library. The `LunaModelCApi` function pointers come from the
-# host's `_C_API` capsule at runtime.
+# ABI table plus LunaModel's lightweight shared value/utility crates. No
+# `luna-model` core is linked: model operations dispatch into the host table.
 lunamodel-cext-vtable = { path = "../crates/cext-vtable" }
 lunamodel-types = { path = "../crates/types" }
+lunamodel-utils = { path = "../crates/utils" }
 num = "0.4.3"
 rs-lunamodel-derive = { path = "./derive" }
+
+[dev-dependencies]
+lunamodel-cext = { path = "../crates/cext" }

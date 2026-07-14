@@ -33,6 +33,12 @@ impl Default for Env {
     }
 }
 
+impl Env {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 impl TryClone for Env {
     fn try_clone(&self) -> Result<Self> {
         out!(env_clone(@self))
@@ -60,5 +66,14 @@ impl Serialization<'_> for Env {
     }
     fn deserialize(data: &[u8], _: Self::Payload) -> Result<Self> {
         out!(env_deserialize(@data, data.len()))
+    }
+}
+
+impl std::fmt::Debug for Env {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ArcEnv")
+            .field("id", &self.id().ok())
+            .field("len", &self.len().ok())
+            .finish()
     }
 }

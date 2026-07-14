@@ -17,14 +17,15 @@ pub use convenience::{
     lm_sol_highest_constraint_violations, lm_sol_temperature_weighted,
 };
 pub use creation::{
-    lm_sol_default, lm_sol_free, lm_sol_from_env, lm_sol_from_random, lm_sol_with_capcity,
+    lm_sol_default, lm_sol_free, lm_sol_from_env, lm_sol_from_random, lm_sol_with_capacity,
     lm_sol_with_sense,
 };
 pub use general::{lm_sol_clone, lm_sol_eq, lm_sol_equal_contents, lm_sol_merge_many};
 pub use modification::{
     lm_sol_add_binary, lm_sol_add_col, lm_sol_add_empty_binary, lm_sol_add_empty_integer,
     lm_sol_add_empty_real, lm_sol_add_empty_spin, lm_sol_add_integer, lm_sol_add_real,
-    lm_sol_add_spin, lm_sol_aggregate, lm_sol_remove_col, lm_sol_remove_cols,
+    lm_sol_add_spin, lm_sol_aggregate, lm_sol_filter_by_mask, lm_sol_push, lm_sol_remove_col,
+    lm_sol_remove_cols, lm_sol_set_sense,
 };
 pub use properties::{
     lm_sol_constraints, lm_sol_counts, lm_sol_feasible, lm_sol_obj_values, lm_sol_raw_energies,

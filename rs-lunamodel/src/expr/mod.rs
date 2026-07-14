@@ -107,3 +107,15 @@ impl<'s> Serialization<'s> for Expression {
         out!(expr_deserialize(@data, data.len(), @env))
     }
 }
+
+impl std::fmt::Debug for Expression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Expression")
+            .field("offset", &self.offset().ok())
+            .field("linear", &self.raw_linear_items().ok())
+            .field("quadratic", &self.raw_quadratic_items().ok())
+            .field("higher_order", &self.raw_higher_order_items().ok())
+            .field("num_vars", &self.num_vars().ok())
+            .finish()
+    }
+}

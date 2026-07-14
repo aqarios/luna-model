@@ -44,7 +44,19 @@ pub fn derive_raw_handle(input: TokenStream) -> TokenStream {
         // wrapper via `lm_try_into()`, so call sites need no mapper closure.
         impl crate::traits::LmTryFrom<*mut #pointee> for #name {
             fn lm_try_from(handle: *mut #pointee) -> crate::Result<Self> {
-                Ok(Self::from_raw(handle))
+                if handle.is_null() {
+                    Err(crate::Error {
+                        status: crate::Status::NullPointer,
+                        message: concat!(
+                            "the LunaModel host returned a null ",
+                            stringify!(#pointee),
+                            " handle with a successful status",
+                        )
+                        .to_owned(),
+                    })
+                } else {
+                    Ok(Self::from_raw(handle))
+                }
             }
         }
     }

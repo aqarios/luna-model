@@ -1,6 +1,6 @@
 use derive_more::Deref;
-use luna_model::types::ValueSource;
 use luna_model::python::PyValueSource as PyVS;
+use luna_model::types::ValueSource;
 
 #[repr(transparent)]
 /// A wrapper around a [`ValueSource`] that can be converted to and from python with `pyo3`.

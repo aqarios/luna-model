@@ -1,8 +1,13 @@
-use crate::{Env, HigherOrder, Linear, Quadratic, error::Result};
+use crate::{Env, HigherOrder, Linear, Quadratic, VarRef, error::Result};
 
 use super::Expression;
 
 impl Expression {
+    /// Native-compatible alias for an empty expression.
+    pub fn empty(env: &Env) -> Result<Self> {
+        Self::new(env)
+    }
+
     /// Creates an empty expression bound to `env`.
     pub fn new(env: &Env) -> Result<Self> {
         out!(expr_new(@env))
@@ -36,5 +41,25 @@ impl Expression {
     /// Builds an expression from a higher-order term collection.
     pub fn from_higher_order(higher_order: HigherOrder) -> Result<Self> {
         out!(expr_from_higher_order(@higher_order))
+    }
+
+    /// Fallible equivalent of native `From<VarRef> for Expression`.
+    pub fn from_vref(var: &VarRef) -> Result<Self> {
+        out!(vref_add_bias(@var, 0.0))
+    }
+
+    pub fn from_dense_quadratic(
+        dense: &[f64],
+        num_vars: usize,
+        offset: Option<f64>,
+        env: &Env,
+    ) -> Result<Self> {
+        out!(expr_from_dense_quadratic(
+            dense.as_ptr(),
+            dense.len(),
+            num_vars,
+            ?offset,
+            @env
+        ))
     }
 }

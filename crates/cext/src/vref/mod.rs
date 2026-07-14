@@ -8,8 +8,9 @@ pub use access::{
     lm_vref_vtype,
 };
 pub use creation::{lm_vref_free, lm_vref_new};
-pub use general::{lm_vref_eq, lm_vref_to_var};
+pub use general::{lm_vref_clone, lm_vref_eq, lm_vref_to_var};
 pub use ops::{
     lm_vref_add_bias, lm_vref_add_vref, lm_vref_eval, lm_vref_mul_bias, lm_vref_mul_vref,
-    lm_vref_neg, lm_vref_not, lm_vref_pow, lm_vref_rsub_bias, lm_vref_sub_bias, lm_vref_sub_vref,
+    lm_vref_neg, lm_vref_not, lm_vref_pow, lm_vref_rsub_bias, lm_vref_sub_bias, lm_vref_sub_expr,
+    lm_vref_sub_vref,
 };

@@ -4,8 +4,8 @@ use std::ffi::c_char;
 use luna_model::core::{Constraint, ConstraintCollection, Expression, prelude::VarRef};
 
 use crate::{
-    LmBuffer, LmCC, LmConstraint, LmExpr, LmStatus, LmVref,
-    buffer::buffer_from_vec,
+    LmBuffer, LmCC, LmConstraint, LmExpr, LmStatus, LmStrBuffer, LmVref,
+    buffer::{buffer_from_vec, str_buffer_from_vec},
     error::{CapiError, guard},
 };
 
@@ -55,13 +55,17 @@ pub unsafe extern "C" fn lm_cc_add_collection(
     cc: *mut LmCC,
     other: *const LmCC,
     prefix: *const c_char,
+    out: *mut LmStrBuffer,
 ) -> LmStatus {
     guard(|| {
         let cc = unsafe { mut_from_c(cc as *mut ConstraintCollection, "cc") }?;
         let other = unsafe { ref_from_c(other as *const ConstraintCollection, "other") }?;
         let prefix = unsafe { opt_str_from_c(prefix, "prefix") }?.map(str::to_owned);
-        cc.add_collection(other.clone(), prefix)
-            .map_err(CapiError::errored)?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = str_buffer_from_vec(
+            cc.add_collection(other.clone(), prefix)
+                .map_err(CapiError::errored)?,
+        );
         Ok(())
     })
 }

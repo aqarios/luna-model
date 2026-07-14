@@ -1,4 +1,4 @@
-use crate::{Expression, Model, Result, Solution, Specs, VarRef};
+use crate::{ConstraintCollection, Expression, Model, Result, SampleView, Solution, Specs, VarRef};
 
 impl Model {
     pub fn satisfies(&self, specs: &Specs) -> Result<bool> {
@@ -15,5 +15,20 @@ impl Model {
 
     pub fn substitute(&mut self, target: &VarRef, replacement: &Expression) -> Result<()> {
         check!(model_substitute(@mut self, @target, @replacement))
+    }
+
+    pub fn violated_constraints(
+        &self,
+        sample: &SampleView,
+        tol: Option<f64>,
+    ) -> Result<ConstraintCollection> {
+        let source = self.constraints()?;
+        let mut violated = ConstraintCollection::new();
+        for (name, constraint) in source.iter()? {
+            if !constraint.evaluate_sample(sample, tol)? {
+                violated.add_constraint(&constraint, Some(&name))?;
+            }
+        }
+        Ok(violated)
     }
 }

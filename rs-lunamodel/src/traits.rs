@@ -44,6 +44,129 @@ pub trait TryMulAssign<Rhs = Self> {
     fn try_mul_assign(&mut self, rhs: Rhs) -> Result<()>;
 }
 
+pub trait LmAddAssign<Rhs> {
+    fn add_assign(&mut self, rhs: Rhs) -> Result<()>;
+}
+
+pub trait LmSubAssign<Rhs> {
+    fn sub_assign(&mut self, rhs: Rhs) -> Result<()>;
+}
+
+pub trait LmMulAssign<Rhs> {
+    fn mul_assign(&mut self, rhs: Rhs) -> Result<()>;
+}
+
+pub trait LmPow {
+    type Output;
+    fn pow(self, exp: usize) -> Result<Self::Output>;
+}
+
+pub trait LmPowAssign {
+    fn pow_assign(&mut self, exp: usize) -> Result<()>;
+}
+
+pub trait TryIndex<I> {
+    type Output;
+    fn try_index(&self, index: I) -> Result<Self::Output>;
+}
+
+/// Helper trait for filtering vector-like data with a boolean keep-mask.
+pub trait FilterByMask<T> {
+    fn filter_by_mask(&self, mask: &[bool]) -> Vec<T>;
+}
+
+impl<T: Clone> FilterByMask<T> for Vec<T> {
+    fn filter_by_mask(&self, mask: &[bool]) -> Vec<T> {
+        self.iter()
+            .zip(mask)
+            .filter_map(|(value, keep)| keep.then_some(value.clone()))
+            .collect()
+    }
+}
+
+pub trait Editable {
+    fn maybe_edit<F>(mut self, edit: F) -> Result<Self>
+    where
+        Self: Sized,
+        F: FnOnce(&mut Self) -> Result<()>,
+    {
+        edit(&mut self)?;
+        Ok(self)
+    }
+
+    fn edit<F>(mut self, edit: F) -> Self
+    where
+        Self: Sized,
+        F: FnOnce(&mut Self),
+    {
+        edit(&mut self);
+        self
+    }
+}
+
+impl<T> Editable for T {}
+
+pub trait DefaultEditable: Default + Editable {
+    fn maybe_with<F>(edit: F) -> Result<Self>
+    where
+        Self: Sized,
+        F: FnOnce(&mut Self) -> Result<()>,
+    {
+        Self::default().maybe_edit(edit)
+    }
+
+    fn with<F>(edit: F) -> Self
+    where
+        Self: Sized,
+        F: FnOnce(&mut Self),
+    {
+        Self::default().edit(edit)
+    }
+}
+
+impl<T: Default + Editable> DefaultEditable for T {}
+
+impl<T, Rhs> LmAddAssign<Rhs> for T
+where
+    T: TryAddAssign<Rhs>,
+{
+    fn add_assign(&mut self, rhs: Rhs) -> Result<()> {
+        self.try_add_assign(rhs)
+    }
+}
+
+impl<T, Rhs> LmSubAssign<Rhs> for T
+where
+    T: TrySubAssign<Rhs>,
+{
+    fn sub_assign(&mut self, rhs: Rhs) -> Result<()> {
+        self.try_sub_assign(rhs)
+    }
+}
+
+impl<T, Rhs> LmMulAssign<Rhs> for T
+where
+    T: TryMulAssign<Rhs>,
+{
+    fn mul_assign(&mut self, rhs: Rhs) -> Result<()> {
+        self.try_mul_assign(rhs)
+    }
+}
+
+impl<S> TryIndex<&str> for std::collections::HashMap<S, f64>
+where
+    S: std::borrow::Borrow<str> + Eq + std::hash::Hash,
+{
+    type Output = f64;
+
+    fn try_index(&self, index: &str) -> Result<Self::Output> {
+        self.get(index).copied().ok_or_else(|| crate::Error {
+            status: crate::Status::Absent,
+            message: format!("sample has no value for variable '{index}'"),
+        })
+    }
+}
+
 pub trait TryToString {
     fn try_to_string(self) -> Result<String>;
 }

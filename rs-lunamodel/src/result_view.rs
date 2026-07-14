@@ -8,10 +8,78 @@
 use lunamodel_cext_vtable::LmResultView;
 use rs_lunamodel_derive::RawHandle;
 
+use std::collections::HashMap;
+
+use crate::{Error, Result, SampleView, Solution, Status, TryIndex};
+
 /// Owning handle to a LunaModel result_view (frees on drop).
 #[derive(RawHandle)]
 pub struct ResultView {
     handle: *mut LmResultView,
+}
+
+impl TryIndex<&str> for ResultView {
+    type Output = f64;
+    fn try_index(&self, index: &str) -> Result<Self::Output> {
+        self.sample()?.try_index(index)
+    }
+}
+
+impl ResultView {
+    pub fn new(solution: &Solution, index: usize) -> Result<Option<Self>> {
+        solution.result(index)
+    }
+
+    pub fn counts(&self) -> Result<usize> {
+        out!(result_view_counts(@self))
+    }
+
+    pub fn obj_value(&self) -> Result<Option<f64>> {
+        out_opt!(result_view_obj_value(@self))
+    }
+
+    pub fn raw_energy(&self) -> Result<Option<f64>> {
+        out_opt!(result_view_raw_energy(@self))
+    }
+
+    pub fn feasible(&self) -> Result<Option<bool>> {
+        out_opt!(result_view_feasible(@self))
+    }
+
+    pub fn constraints(&self) -> Result<Option<HashMap<String, bool>>> {
+        let values: Option<HashMap<String, Vec<bool>>> = out_opt!(result_view_constraints(@self))?;
+        Ok(values.map(|values| {
+            values
+                .into_iter()
+                .filter_map(|(name, values)| values.into_iter().next().map(|value| (name, value)))
+                .collect()
+        }))
+    }
+
+    pub fn variable_bounds(&self) -> Result<Option<HashMap<String, bool>>> {
+        let values: Option<HashMap<String, Vec<bool>>> =
+            out_opt!(result_view_variable_bounds(@self))?;
+        Ok(values.map(|values| {
+            values
+                .into_iter()
+                .filter_map(|(name, values)| values.into_iter().next().map(|value| (name, value)))
+                .collect()
+        }))
+    }
+
+    pub fn sample(&self) -> Result<SampleView> {
+        out!(result_view_sample(@self))
+    }
+}
+
+impl TryFrom<(&Solution, usize)> for ResultView {
+    type Error = Error;
+    fn try_from((solution, index): (&Solution, usize)) -> Result<Self> {
+        Self::new(solution, index)?.ok_or_else(|| Error {
+            status: Status::Absent,
+            message: format!("solution has no result row at index {index}"),
+        })
+    }
 }
 
 impl Drop for ResultView {

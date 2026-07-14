@@ -5,13 +5,13 @@
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `Linear` still return `Result` here.
 
-use std::ops::{Mul, Neg};
+use std::ops::{Deref, DerefMut, Mul, Neg};
 
 use lunamodel_cext_vtable::LmLinear;
 use rs_lunamodel_derive::RawHandle;
 
 use crate::{
-    Result, TryClone,
+    Result, TryClone, TryIndex,
     api::api,
     traits::{TryAddAssign, TryMulAssign},
 };
@@ -20,6 +20,77 @@ use crate::{
 #[derive(RawHandle)]
 pub struct Linear {
     handle: *mut LmLinear,
+}
+
+/// Editable snapshot returned by [`Linear::iter_mut`].
+#[must_use = "mutations are committed when the editor is dropped; call commit() to observe errors"]
+pub struct LinearEditor<'a> {
+    target: &'a mut Linear,
+    items: Vec<(u32, f64)>,
+    committed: bool,
+}
+
+impl LinearEditor<'_> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (u32, &mut f64)> {
+        self.items.iter_mut().map(linear_item_mut)
+    }
+
+    pub fn commit(mut self) -> Result<()> {
+        self.commit_inner()?;
+        self.committed = true;
+        Ok(())
+    }
+
+    fn commit_inner(&mut self) -> Result<()> {
+        for &(index, bias) in &self.items {
+            self.target.set_bias(index, bias)?;
+        }
+        Ok(())
+    }
+}
+
+fn linear_item_mut(item: &mut (u32, f64)) -> (u32, &mut f64) {
+    (item.0, &mut item.1)
+}
+
+impl Deref for LinearEditor<'_> {
+    type Target = [(u32, f64)];
+    fn deref(&self) -> &Self::Target {
+        &self.items
+    }
+}
+
+impl DerefMut for LinearEditor<'_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.items
+    }
+}
+
+impl<'editor> IntoIterator for &'editor mut LinearEditor<'_> {
+    type Item = (u32, &'editor mut f64);
+    type IntoIter = std::iter::Map<
+        std::slice::IterMut<'editor, (u32, f64)>,
+        fn(&'editor mut (u32, f64)) -> (u32, &'editor mut f64),
+    >;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.items.iter_mut().map(linear_item_mut)
+    }
+}
+
+impl Drop for LinearEditor<'_> {
+    fn drop(&mut self) {
+        if !self.committed {
+            let _ = self.commit_inner();
+        }
+    }
+}
+
+impl TryIndex<u32> for Linear {
+    type Output = f64;
+    fn try_index(&self, index: u32) -> Result<Self::Output> {
+        self.index(index)
+    }
 }
 
 impl Drop for Linear {
@@ -56,6 +127,12 @@ impl Linear {
         out!(linear_for_var(var, bias))
     }
 
+    pub fn for_vars(var_a: (u32, f64), var_b: (u32, f64)) -> Result<Self> {
+        let mut linear = Self::for_var(var_a.0, var_a.1)?;
+        linear.try_add_assign(var_b)?;
+        Ok(linear)
+    }
+
     pub fn len(&self) -> Result<usize> {
         out!(linear_len(@self))
     }
@@ -70,6 +147,19 @@ impl Linear {
 
     pub fn items(&self) -> Result<Vec<(u32, f64)>> {
         out!(linear_items(@self))
+    }
+
+    pub fn iter(&self) -> Result<std::vec::IntoIter<(u32, f64)>> {
+        Ok(self.items()?.into_iter())
+    }
+
+    pub fn iter_mut(&mut self) -> Result<LinearEditor<'_>> {
+        let items = self.items()?;
+        Ok(LinearEditor {
+            target: self,
+            items,
+            committed: false,
+        })
     }
 
     pub fn push_back(&mut self, var: u32, bias: f64) -> Result<&mut Self> {
@@ -125,5 +215,18 @@ impl Neg for Linear {
 
     fn neg(self) -> Self::Output {
         out!(linear_neg(@self))
+    }
+}
+
+impl Neg for &Linear {
+    type Output = Result<Linear>;
+    fn neg(self) -> Self::Output {
+        out!(linear_neg(@self))
+    }
+}
+
+impl std::fmt::Debug for Linear {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("Linear").field(&self.items().ok()).finish()
     }
 }

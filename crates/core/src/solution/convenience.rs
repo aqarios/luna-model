@@ -4,7 +4,6 @@ use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, ValueSource};
 use std::collections::HashMap;
 
-
 use super::Solution;
 
 impl Solution {

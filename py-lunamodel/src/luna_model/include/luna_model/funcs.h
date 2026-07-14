@@ -272,6 +272,22 @@ void lm_vref_buffer_free(LmVrefBuffer buffer);
 void lm_vtype_buffer_free(LmVtypeBuffer buffer);
 
 /**
+ * Returns constraint names in stable insertion order.
+ *
+ * # Safety
+ * `cc` must be a valid collection handle and `out` writable buffer storage.
+ */
+LmStatus lm_cc_names(const LmCC *cc, LmStrBuffer *out);
+
+/**
+ * Returns whether a named constraint exists.
+ *
+ * # Safety
+ * `cc` must be valid, `key` must be NUL-terminated, and `out` must be writable.
+ */
+LmStatus lm_cc_contains(const LmCC *cc, const char *key, bool *out);
+
+/**
  * Returns the distinct variable types used by the constraint-collection.
  *
  * # Safety
@@ -430,7 +446,7 @@ LmStatus lm_cc_add_constraint(LmCC *cc,
  * `cc` must be a valid mutable constraint-collection handle created by this library.
  * `other` must be a valid constraint-collection handle created by this library.
  */
-LmStatus lm_cc_add_collection(LmCC *cc, const LmCC *other, const char *prefix);
+LmStatus lm_cc_add_collection(LmCC *cc, const LmCC *other, const char *prefix, LmStrBuffer *out);
 
 /**
  * Replaces an existing constraint while keeping its collection key stable.
@@ -491,6 +507,14 @@ LmStatus lm_cc_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env,
  * `column` must originate from this library and must not be used or freed again.
  */
 void lm_col_free(LmColumn *column);
+
+/**
+ * Returns the logical variable type stored by the column.
+ *
+ * # Safety
+ * `column` must be a valid column handle and `out` must be writable.
+ */
+LmStatus lm_col_vtype(const LmColumn *column, LmVtype *out);
 
 /**
  * Returns the number of stored values (sample rows) in the column.
@@ -573,6 +597,14 @@ LmStatus lm_constr_comparator(const LmConstraint *constr, LmComparator *out);
 LmStatus lm_constr_set_name(LmConstraint *constr, const char *name);
 
 /**
+ * Returns whether the constraint received an automatically generated name.
+ *
+ * # Safety
+ * `constr` must be a valid constraint handle and `out` must be writable.
+ */
+LmStatus lm_constr_auto_name(const LmConstraint *constr, bool *out);
+
+/**
  * Frees a constraint handle. Passing null is a no-op.
  *
  * # Safety
@@ -651,6 +683,23 @@ LmStatus lm_constr_equal_contents(const LmConstraint *constr, const LmConstraint
  * `out` must point to writable `bool` storage.
  */
 LmStatus lm_constr_eq(const LmConstraint *constr, const LmConstraint *other, bool *out);
+
+/**
+ * Sorts names by their variable order in the environment.
+ *
+ * # Safety
+ * `env` must be valid, `names` must describe `len` valid C strings, and `out`
+ * must be writable buffer storage.
+ */
+LmStatus lm_env_sort(const LmEnv *env, const char *const *names, uintptr_t len, LmStrBuffer *out);
+
+/**
+ * Returns the next variable index.
+ *
+ * # Safety
+ * `env` must be a valid environment handle and `out` must be writable.
+ */
+LmStatus lm_env_next_idx(const LmEnv *env, uint32_t *out);
 
 /**
  * Returns the number of variables in the environment.
@@ -746,6 +795,22 @@ void lm_env_free(LmEnv *env);
 LmEnv *lm_env_default(void);
 
 /**
+ * Creates an environment from owned variable records and explicit indices.
+ *
+ * # Safety
+ * All pointer arrays must contain the stated number of valid elements and
+ * `out` must be writable environment-handle storage.
+ */
+LmStatus lm_env_new(const LmVar *const *variables,
+                    const uint32_t *indices,
+                    uintptr_t len,
+                    const char *const *lookup_names,
+                    const uint32_t *lookup_indices,
+                    uintptr_t lookup_len,
+                    uint32_t next_idx,
+                    LmEnv **out);
+
+/**
  * Clones an environment into a new, independent handle written to `out`.
  *
  * # Safety
@@ -799,7 +864,18 @@ LmStatus lm_env_insert_with_fallback(LmEnv *env,
                                      const char *name,
                                      LmVtype vtype,
                                      const LmLazyBounds *bounds,
+                                     const uint64_t *enc,
+                                     uintptr_t enc_len,
                                      LmVref **out);
+
+/**
+ * Updates the public `Variable::inverted` field through an owned-environment
+ * mutation proxy.
+ *
+ * # Safety
+ * `env` must be a valid mutable environment handle.
+ */
+LmStatus lm_env_set_inverted(LmEnv *env, uint32_t index, bool present, uint32_t inverted);
 
 /**
  * Inserts the inverted companion of a binary variable.
@@ -993,6 +1069,20 @@ LmStatus lm_expr_has_higher_order(const LmExpr *expr, bool *out);
  * `expr` must originate from this library and must not be used or freed again.
  */
 void lm_expr_free(LmExpr *expr);
+
+/**
+ * Builds an expression from a dense row-major quadratic matrix.
+ *
+ * # Safety
+ * `dense` must contain `len` values, `env` must be valid, optional `offset`
+ * must point to a valid value, and `out` must be writable.
+ */
+LmStatus lm_expr_from_dense_quadratic(const double *dense,
+                                      uintptr_t len,
+                                      uintptr_t num_vars,
+                                      const double *offset,
+                                      const LmEnv *env,
+                                      LmExpr **out);
 
 /**
  * Creates a new empty expression.
@@ -1516,6 +1606,14 @@ LmStatus lm_higher_order_mul_bias(LmHigherOrder *higher_order, double bias);
  * `out` must point to writable `LmHigherOrder *` storage.
  */
 LmStatus lm_higher_order_neg(const LmHigherOrder *higher_order, LmHigherOrder **out);
+
+/**
+ * Removes explicitly stored zero contributions.
+ *
+ * # Safety
+ * `higher_order` must be a valid mutable higher-order handle.
+ */
+LmStatus lm_higher_order_clean(LmHigherOrder *higher_order);
 
 /**
  * Sets the bias for a specific entry (variable tuple) of the higher-order term.
@@ -2211,6 +2309,31 @@ LmStatus lm_quadratic_mul_bias(LmQuadratic *quadratic, double bias);
 LmStatus lm_quadratic_neg(const LmQuadratic *quadratic, LmQuadratic **out);
 
 /**
+ * Removes explicitly stored zero contributions.
+ *
+ * # Safety
+ * `quadratic` must be a valid mutable quadratic handle.
+ */
+LmStatus lm_quadratic_clean(LmQuadratic *quadratic);
+
+/**
+ * Appends an empty outer neighborhood.
+ *
+ * # Safety
+ * `quadratic` must be a valid mutable quadratic handle.
+ */
+LmStatus lm_quadratic_push_back_empty(LmQuadratic *quadratic, uint32_t idx);
+
+/**
+ * Inserts an empty outer neighborhood at `pos`.
+ *
+ * # Safety
+ * `quadratic` must be a valid mutable quadratic handle and `pos` must be a
+ * valid insertion position.
+ */
+LmStatus lm_quadratic_insert_empty(LmQuadratic *quadratic, uintptr_t pos, uint32_t idx);
+
+/**
  * Sets the bias for a specific index of the quadratic term.
  *
  * # Safety
@@ -2234,6 +2357,30 @@ void lm_result_view_free(LmResultView *view);
  * `out` must point to writable `uintptr_t` storage.
  */
 LmStatus lm_result_view_counts(const LmResultView *view, uintptr_t *out);
+
+/**
+ * Returns constraint feasibility for this result row.
+ *
+ * # Safety
+ * `view` must be valid and `out` must be writable buffer storage.
+ */
+LmStatus lm_result_view_constraints(const LmResultView *view, LmBoolMapBuffer *out);
+
+/**
+ * Returns variable-bound feasibility for this result row.
+ *
+ * # Safety
+ * `view` must be valid and `out` must be writable buffer storage.
+ */
+LmStatus lm_result_view_variable_bounds(const LmResultView *view, LmBoolMapBuffer *out);
+
+/**
+ * Returns an owned sample-view snapshot for this result row.
+ *
+ * # Safety
+ * `view` must be valid and `out` must be writable handle storage.
+ */
+LmStatus lm_result_view_sample(const LmResultView *view, LmSampleView **out);
 
 /**
  * Returns the model-evaluated objective value for the result row.
@@ -2269,6 +2416,38 @@ LmStatus lm_result_view_feasible(const LmResultView *view, bool *out);
  * `view` must originate from [`lm_sol_sample`] and must not be used or freed again.
  */
 void lm_sample_view_free(LmSampleView *view);
+
+/**
+ * Returns the sample row index.
+ *
+ * # Safety
+ * `view` must be a valid sample-view handle and `out` must be writable.
+ */
+LmStatus lm_sample_view_index(const LmSampleView *view, uintptr_t *out);
+
+/**
+ * Returns variable names in column order.
+ *
+ * # Safety
+ * `view` must be valid and `out` must be writable buffer storage.
+ */
+LmStatus lm_sample_view_variable_names(const LmSampleView *view, LmStrBuffer *out);
+
+/**
+ * Returns an assignment by variable name.
+ *
+ * # Safety
+ * `view` must be valid, `var` NUL-terminated, and `out` writable.
+ */
+LmStatus lm_sample_view_assignment(const LmSampleView *view, const char *var, LmAssignment *out);
+
+/**
+ * Returns an assignment by column index.
+ *
+ * # Safety
+ * `view` must be valid and `out` must be writable.
+ */
+LmStatus lm_sample_view_assignment_idx(const LmSampleView *view, uintptr_t var, LmAssignment *out);
 
 /**
  * Returns the number of samples stored in the solution.
@@ -2512,7 +2691,7 @@ LmSol *lm_sol_with_sense(LmSense sense);
 /**
  * Creates a new solution with capacity.
  */
-LmSol *lm_sol_with_capcity(uintptr_t capacity);
+LmSol *lm_sol_with_capacity(uintptr_t capacity);
 
 /**
  * Creates a new solution from an environment.
@@ -2706,7 +2885,7 @@ LmStatus lm_sol_add_col(LmSol *sol,
  * `sol` must be a valid mutable solution handle created by this library.
  * `name` must point to a valid NUL-terminated C string.
  */
-LmStatus lm_sol_remove_col(LmSol *sol, const char *name);
+LmStatus lm_sol_remove_col(LmSol *sol, const char *name, LmColumn **out);
 
 /**
  * Removes columns for many variable names.
@@ -2730,6 +2909,36 @@ LmStatus lm_sol_remove_cols(LmSol *sol, const char *const *names, uintptr_t len)
  * `sol` must be a valid mutable solution handle created by this library.
  */
 LmStatus lm_sol_aggregate(LmSol *sol);
+
+/**
+ * Filters solution rows by a boolean keep-mask.
+ *
+ * # Safety
+ * `sol` must be valid, `mask` must contain `len` values, and `out` writable.
+ */
+LmStatus lm_sol_filter_by_mask(const LmSol *sol, const bool *mask, uintptr_t len, LmSol **out);
+
+/**
+ * Appends a named assignment row.
+ *
+ * # Safety
+ * `sol` must be valid; `names` and `assignments` must each contain `len`
+ * valid elements; optional `energy` must be readable.
+ */
+LmStatus lm_sol_push(LmSol *sol,
+                     const char *const *names,
+                     const LmAssignment *assignments,
+                     uintptr_t len,
+                     uintptr_t counts,
+                     const double *energy);
+
+/**
+ * Sets the solution optimization sense.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle.
+ */
+LmStatus lm_sol_set_sense(LmSol *sol, LmSense sense);
 
 /**
  * Returns the `(variable name, column)` entries of the solution's sample map.
@@ -3022,6 +3231,38 @@ LmStatus lm_timer_stop(const LmTimer *timer, LmTiming **out);
 void lm_timing_free(LmTiming *timing);
 
 /**
+ * Returns the total duration in nanoseconds.
+ *
+ * # Safety
+ * `timing` must be a valid timing handle and `out` must be writable.
+ */
+LmStatus lm_timing_total_ns(const LmTiming *timing, uint64_t *out);
+
+/**
+ * Returns the start timestamp in Unix nanoseconds.
+ *
+ * # Safety
+ * `timing` must be a valid timing handle and `out` must be writable.
+ */
+LmStatus lm_timing_start_ns(const LmTiming *timing, uint64_t *out);
+
+/**
+ * Returns the end timestamp in Unix nanoseconds.
+ *
+ * # Safety
+ * `timing` must be a valid timing handle and `out` must be writable.
+ */
+LmStatus lm_timing_end_ns(const LmTiming *timing, uint64_t *out);
+
+/**
+ * Returns the optional QPU duration.
+ *
+ * # Safety
+ * `timing` must be a valid timing handle and `out` must be writable.
+ */
+LmStatus lm_timing_qpu(const LmTiming *timing, double *out);
+
+/**
  * Creates a new timing handle.
  *
  * `start_unix_ns` and `end_unix_ns` are wall-clock timestamps in nanoseconds
@@ -3045,6 +3286,22 @@ LmStatus lm_timing_new(uint64_t start_unix_ns,
  * `var` must originate from this library and must not be used or freed again.
  */
 void lm_var_free(LmVar *var);
+
+/**
+ * Creates an owned variable record.
+ *
+ * # Safety
+ * `name` must be NUL-terminated, optional `bounds` valid, and `out` writable.
+ */
+LmStatus lm_var_new(const char *name, LmVtype vtype, const LmLazyBounds *bounds, LmVar **out);
+
+/**
+ * Clones a variable record.
+ *
+ * # Safety
+ * `var` must be a valid variable handle and `out` must be writable.
+ */
+LmStatus lm_var_clone(const LmVar *var, LmVar **out);
 
 /**
  * Returns a copy of the variable's name as an owned UTF-8 byte buffer.
@@ -3226,6 +3483,14 @@ LmStatus lm_vref_eq(const LmVref *vref, const LmVref *other, bool *out);
  * `out` must point to writable `LmVar *` storage.
  */
 LmStatus lm_vref_to_var(const LmVref *vref, LmVar **out);
+
+/**
+ * Clones a variable reference.
+ *
+ * # Safety
+ * `vref` must be a valid variable-reference handle and `out` must be writable.
+ */
+LmStatus lm_vref_clone(const LmVref *vref, LmVref **out);
 
 /**
  * Multiplies two variable references, promoting the result to an expression

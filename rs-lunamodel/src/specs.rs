@@ -86,4 +86,100 @@ impl Specs {
     pub fn satisfies(&self, other: &Specs) -> Result<bool> {
         out!(specs_satisfies(@self, @other))
     }
+
+    pub fn diff(&self, other: &Specs) -> Result<String> {
+        let mut lines = Vec::new();
+        if self.sense()? != other.sense()? {
+            lines.push(format!(
+                "  sense is '{:?}', expected '{:?}'",
+                self.sense()?,
+                other.sense()?
+            ));
+        }
+        if self.vtypes()? != other.vtypes()? {
+            lines.push(format!(
+                "  vtypes is '{:?}', expected '{:?}'",
+                self.vtypes()?,
+                other.vtypes()?
+            ));
+        }
+        if self.ctypes()? != other.ctypes()? {
+            lines.push(format!(
+                "  constraint types is '{:?}', expected '{:?}'",
+                self.ctypes()?,
+                other.ctypes()?
+            ));
+        }
+        if self.max_degree()? != other.max_degree()? {
+            lines.push(format!(
+                "  max degree is '{:?}', expected '{:?}'",
+                self.max_degree()?,
+                other.max_degree()?
+            ));
+        }
+        if self.max_constraint_degree()? != other.max_constraint_degree()? {
+            lines.push(format!(
+                "  max constraint degree is '{:?}', expected '{:?}'",
+                self.max_constraint_degree()?,
+                other.max_constraint_degree()?
+            ));
+        }
+        if self.max_num_variables()? != other.max_num_variables()? {
+            lines.push(format!(
+                "  max num variables is '{:?}', expected '{:?}'",
+                self.max_num_variables()?,
+                other.max_num_variables()?
+            ));
+        }
+        Ok(if lines.is_empty() {
+            String::new()
+        } else {
+            format!("{}\n", lines.join("\n"))
+        })
+    }
+}
+
+impl PartialEq for Specs {
+    fn eq(&self, other: &Self) -> bool {
+        self.sense().ok() == other.sense().ok()
+            && self.vtypes().ok() == other.vtypes().ok()
+            && self.ctypes().ok() == other.ctypes().ok()
+            && self.max_degree().ok() == other.max_degree().ok()
+            && self.max_constraint_degree().ok() == other.max_constraint_degree().ok()
+            && self.max_num_variables().ok() == other.max_num_variables().ok()
+    }
+}
+
+impl std::fmt::Debug for Specs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Specs")
+            .field("sense", &self.sense().ok().flatten())
+            .field("vtypes", &self.vtypes().ok().flatten())
+            .field("constraints", &self.ctypes().ok().flatten())
+            .field("max_degree", &self.max_degree().ok().flatten())
+            .field(
+                "max_constraint_degree",
+                &self.max_constraint_degree().ok().flatten(),
+            )
+            .field(
+                "max_num_variables",
+                &self.max_num_variables().ok().flatten(),
+            )
+            .finish()
+    }
+}
+
+impl std::fmt::Display for Specs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "ModelSpecs(sense={:?}, vtype={:?}, constraints={:?}, max_degree={:?}, max_constraint_degree={:?}, max_num_variables={:?})",
+            self.sense().ok().flatten(),
+            self.vtypes().ok().flatten(),
+            self.ctypes().ok().flatten(),
+            self.max_degree().ok().flatten(),
+            self.max_constraint_degree().ok().flatten(),
+            self.max_num_variables().ok().flatten()
+        )
+    }
 }

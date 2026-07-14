@@ -698,6 +698,7 @@ name = "lunamodel-cext"
 version = "0.6.9"
 dependencies = [
  "cbindgen",
+ "indexmap",
  "itertools 0.15.0",
  "luna-model",
  "lunamodel-cext-vtable",

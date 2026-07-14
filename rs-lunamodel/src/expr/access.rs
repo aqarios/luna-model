@@ -1,6 +1,7 @@
+use lunamodel_cext_vtable::{LmHigherOrder, LmQuadratic};
 use lunamodel_types::Vtype;
 
-use crate::{Env, HigherOrder, Linear, Quadratic, VarRef, error::Result};
+use crate::{Env, HigherOrder, Linear, Quadratic, TryClone, VarRef, error::Result};
 
 use super::Expression;
 
@@ -45,19 +46,31 @@ impl Expression {
         out!(expr_vtypes(@self))
     }
 
-    /// Returns the linear terms of the expression.
-    pub fn linear(&self) -> Result<Linear> {
+    /// Returns a copy of the expression's complete linear term storage.
+    pub fn linear_terms(&self) -> Result<Linear> {
         out!(expr_linear(@self))
     }
 
     /// Returns the quadratic terms of the expression.
-    pub fn quadratic(&self) -> Result<Quadratic> {
-        out!(expr_quadratic(@self))
+    pub fn quadratic_terms(&self) -> Result<Option<Quadratic>> {
+        out!(expr_quadratic(@self), |handle: *mut LmQuadratic| {
+            if handle.is_null() {
+                Ok(None)
+            } else {
+                Ok(Some(Quadratic::from_raw(handle)))
+            }
+        })
     }
 
     /// Returns the higher-order terms of the expression.
-    pub fn higher_order(&self) -> Result<HigherOrder> {
-        out!(expr_higher_order(@self))
+    pub fn higher_order_terms(&self) -> Result<Option<HigherOrder>> {
+        out!(expr_higher_order(@self), |handle: *mut LmHigherOrder| {
+            if handle.is_null() {
+                Ok(None)
+            } else {
+                Ok(Some(HigherOrder::from_raw(handle)))
+            }
+        })
     }
 
     /// Returns the distinct variables referenced by the expression, excluding
@@ -70,5 +83,104 @@ impl Expression {
     /// inverted binary helper variables that [`vars`](Self::vars) filters out.
     pub fn complete_vars(&self) -> Result<Vec<VarRef>> {
         out!(expr_complete_vars(@self))
+    }
+
+    pub fn raw_linear_items(&self) -> Result<Vec<(u32, f64)>> {
+        self.linear_terms()?.items()
+    }
+
+    pub fn raw_quadratic_items(&self) -> Result<Vec<(u32, u32, f64)>> {
+        match self.quadratic_terms()? {
+            Some(terms) => terms.items(),
+            None => Ok(Vec::new()),
+        }
+    }
+
+    pub fn raw_higher_order_items(&self) -> Result<Vec<(Vec<u32>, f64)>> {
+        match self.higher_order_terms()? {
+            Some(terms) => terms.items(),
+            None => Ok(Vec::new()),
+        }
+    }
+
+    pub fn linear_items(&self) -> Result<Vec<(VarRef, f64)>> {
+        let env = self.env()?;
+        self.raw_linear_items()?
+            .into_iter()
+            .map(|(idx, bias)| Ok((VarRef::new(idx, env.try_clone()?)?, bias)))
+            .collect()
+    }
+
+    pub fn quadratic_items(&self) -> Result<Vec<(VarRef, VarRef, f64)>> {
+        let env = self.env()?;
+        self.raw_quadratic_items()?
+            .into_iter()
+            .map(|(u, v, bias)| {
+                Ok((
+                    VarRef::new(u, env.try_clone()?)?,
+                    VarRef::new(v, env.try_clone()?)?,
+                    bias,
+                ))
+            })
+            .collect()
+    }
+
+    pub fn higher_order_items(&self) -> Result<Vec<(Vec<VarRef>, f64)>> {
+        let env = self.env()?;
+        self.raw_higher_order_items()?
+            .into_iter()
+            .map(|(indices, bias)| {
+                let vars = indices
+                    .into_iter()
+                    .map(|idx| VarRef::new(idx, env.try_clone()?))
+                    .collect::<Result<_>>()?;
+                Ok((vars, bias))
+            })
+            .collect()
+    }
+
+    pub fn items(&self) -> Result<Vec<(Vec<VarRef>, f64)>> {
+        let mut items = self
+            .linear_items()?
+            .into_iter()
+            .map(|(var, bias)| (vec![var], bias))
+            .collect::<Vec<_>>();
+        items.extend(
+            self.quadratic_items()?
+                .into_iter()
+                .map(|(u, v, bias)| (vec![u, v], bias)),
+        );
+        items.extend(self.higher_order_items()?);
+        let offset = self.offset()?;
+        if offset != 0.0 {
+            items.push((Vec::new(), offset));
+        }
+        Ok(items)
+    }
+
+    pub fn linear(&self, idx: u32) -> Result<f64> {
+        self.linear_terms()?.index(idx)
+    }
+
+    pub fn quadratic(&self, u: u32, v: u32) -> Result<f64> {
+        match self.quadratic_terms()? {
+            Some(terms) => terms.index(u, v),
+            None => Ok(0.0),
+        }
+    }
+
+    pub fn higher_order(&self, vars: &[u32]) -> Result<f64> {
+        match self.higher_order_terms()? {
+            Some(terms) => terms.index(vars),
+            None => Ok(0.0),
+        }
+    }
+
+    pub fn contains(&self, var: &VarRef) -> Result<bool> {
+        let id = var.id()?;
+        Ok(self
+            .vars()?
+            .into_iter()
+            .any(|candidate| candidate.id().ok() == Some(id)))
     }
 }

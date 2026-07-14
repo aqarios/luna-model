@@ -34,4 +34,16 @@ impl Env {
     pub fn vtype_of(&self, name: &str) -> Result<Vtype> {
         out!(env_vtype_of(@self, !name))
     }
+
+    pub fn sort(&self, vars: Vec<String>) -> Result<Vec<String>> {
+        out!(env_sort(@self, *vars.as_slice()))
+    }
+
+    pub fn next_idx(&self) -> Result<u32> {
+        out!(env_next_idx(@self))
+    }
+
+    pub fn get_variable(&self, id: u32) -> Result<crate::Variable> {
+        self.get(id)?.to_variable()
+    }
 }

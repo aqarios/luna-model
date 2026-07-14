@@ -4,12 +4,47 @@ use std::ffi::c_char;
 use luna_model::core::ConstraintCollection;
 
 use crate::{
-    LmCC, LmCmpBuffer, LmComparator, LmConstraint, LmStatus, LmVref, LmVrefBuffer, LmVtype,
-    LmVtypeBuffer,
-    buffer::{cmp_buffer_from_vec, vref_buffer_from_vec, vtype_buffer_from_vec},
+    LmCC, LmCmpBuffer, LmComparator, LmConstraint, LmStatus, LmStrBuffer, LmVref, LmVrefBuffer,
+    LmVtype, LmVtypeBuffer,
+    buffer::{
+        cmp_buffer_from_vec, str_buffer_from_vec, vref_buffer_from_vec, vtype_buffer_from_vec,
+    },
     error::{CapiError, guard},
     utils::{cmp_to_c, vtype_to_c},
 };
+
+/// Returns constraint names in stable insertion order.
+///
+/// # Safety
+/// `cc` must be a valid collection handle and `out` writable buffer storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_cc_names(cc: *const LmCC, out: *mut LmStrBuffer) -> LmStatus {
+    guard(|| {
+        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = str_buffer_from_vec(cc.iter().map(|(name, _)| name.clone()).collect());
+        Ok(())
+    })
+}
+
+/// Returns whether a named constraint exists.
+///
+/// # Safety
+/// `cc` must be valid, `key` must be NUL-terminated, and `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_cc_contains(
+    cc: *const LmCC,
+    key: *const c_char,
+    out: *mut bool,
+) -> LmStatus {
+    guard(|| {
+        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let key = unsafe { str_from_c(key, "key") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = cc.contains(key);
+        Ok(())
+    })
+}
 
 /// Returns the distinct variable types used by the constraint-collection.
 ///
@@ -136,7 +171,7 @@ pub unsafe extern "C" fn lm_cc_get(
 
         let constr = cc.get(key).map_err(CapiError::errored)?;
 
-        *out = handle_to_c(constr);
+        *out = handle_to_c(constr.clone());
 
         Ok(())
     })

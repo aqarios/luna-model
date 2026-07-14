@@ -238,3 +238,100 @@ impl Mul<&Expression> for usize {
         rhs * self
     }
 }
+
+macro_rules! borrowed_scalar_ops {
+    ($scalar:ty, $to_f64:expr) => {
+        impl TryAddAssign<&$scalar> for Expression {
+            fn try_add_assign(&mut self, rhs: &$scalar) -> Result<()> {
+                self.try_add_assign(($to_f64)(*rhs))
+            }
+        }
+        impl Add<&$scalar> for Expression {
+            type Output = Result<Expression>;
+            fn add(self, rhs: &$scalar) -> Self::Output {
+                self + ($to_f64)(*rhs)
+            }
+        }
+        impl Add<&$scalar> for &Expression {
+            type Output = Result<Expression>;
+            fn add(self, rhs: &$scalar) -> Self::Output {
+                self + ($to_f64)(*rhs)
+            }
+        }
+        impl Add<Expression> for &$scalar {
+            type Output = Result<Expression>;
+            fn add(self, rhs: Expression) -> Self::Output {
+                ($to_f64)(*self) + rhs
+            }
+        }
+        impl Add<&Expression> for &$scalar {
+            type Output = Result<Expression>;
+            fn add(self, rhs: &Expression) -> Self::Output {
+                ($to_f64)(*self) + rhs
+            }
+        }
+
+        impl TrySubAssign<&$scalar> for Expression {
+            fn try_sub_assign(&mut self, rhs: &$scalar) -> Result<()> {
+                self.try_sub_assign(($to_f64)(*rhs))
+            }
+        }
+        impl Sub<&$scalar> for Expression {
+            type Output = Result<Expression>;
+            fn sub(self, rhs: &$scalar) -> Self::Output {
+                self - ($to_f64)(*rhs)
+            }
+        }
+        impl Sub<&$scalar> for &Expression {
+            type Output = Result<Expression>;
+            fn sub(self, rhs: &$scalar) -> Self::Output {
+                self - ($to_f64)(*rhs)
+            }
+        }
+        impl Sub<Expression> for &$scalar {
+            type Output = Result<Expression>;
+            fn sub(self, rhs: Expression) -> Self::Output {
+                ($to_f64)(*self) - rhs
+            }
+        }
+        impl Sub<&Expression> for &$scalar {
+            type Output = Result<Expression>;
+            fn sub(self, rhs: &Expression) -> Self::Output {
+                ($to_f64)(*self) - rhs
+            }
+        }
+
+        impl TryMulAssign<&$scalar> for Expression {
+            fn try_mul_assign(&mut self, rhs: &$scalar) -> Result<()> {
+                self.try_mul_assign(($to_f64)(*rhs))
+            }
+        }
+        impl Mul<&$scalar> for Expression {
+            type Output = Result<Expression>;
+            fn mul(self, rhs: &$scalar) -> Self::Output {
+                self * ($to_f64)(*rhs)
+            }
+        }
+        impl Mul<&$scalar> for &Expression {
+            type Output = Result<Expression>;
+            fn mul(self, rhs: &$scalar) -> Self::Output {
+                self * ($to_f64)(*rhs)
+            }
+        }
+        impl Mul<Expression> for &$scalar {
+            type Output = Result<Expression>;
+            fn mul(self, rhs: Expression) -> Self::Output {
+                ($to_f64)(*self) * rhs
+            }
+        }
+        impl Mul<&Expression> for &$scalar {
+            type Output = Result<Expression>;
+            fn mul(self, rhs: &Expression) -> Self::Output {
+                ($to_f64)(*self) * rhs
+            }
+        }
+    };
+}
+
+borrowed_scalar_ops!(f64, |value: f64| value);
+borrowed_scalar_ops!(usize, |value: usize| value as f64);

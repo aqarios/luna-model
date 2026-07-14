@@ -1,12 +1,20 @@
 mod access;
 
+pub use access::{
+    lm_sample_view_assignment, lm_sample_view_assignment_idx, lm_sample_view_index,
+    lm_sample_view_variable_names,
+};
+
 use luna_model::core::Solution;
 
 use crate::{LmSampleView, utils::drop_from_c};
 
-/// Owned backing for an [`LmSampleView`]: the borrowed solution and its row index.
+/// Owned backing for an [`LmSampleView`].
+///
+/// Keeping a solution snapshot makes the opaque view independent from the
+/// lifetime and subsequent mutation of the solution handle that created it.
 pub struct SampleViewHandle {
-    pub sol: *const Solution,
+    pub sol: Solution,
     pub index: usize,
 }
 
