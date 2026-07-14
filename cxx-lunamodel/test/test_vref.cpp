@@ -47,7 +47,7 @@ int test_vref(int argc, char *argv[]) {
     CHECK(q.vars().size() == 2);
     CHECK(q.vtypes().size() == 1); /* both binary */
 
-    /* Domain identities enforced by the Rust core:
+    /* Domain identities enforced by the core:
      * binary * same binary collapses to linear, ... */
     lm::Expression xx = x * x;
     CHECK(xx.degree() == 1);

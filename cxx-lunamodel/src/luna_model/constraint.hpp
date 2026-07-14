@@ -9,16 +9,18 @@
 #include "luna_model/detail/capi.hpp"
 #include "luna_model/env.hpp"
 #include "luna_model/expr.hpp"
-#include "luna_model/types.h"
 #include "luna_model/vref.hpp"
 
 namespace lm {
 
+/* Owning handle to a constraint: a comparison between an expression and a
+ * right-hand-side value (frees on destruction). */
 class Constraint {
   public:
-    /* Creates a new Constraint. */
-    explicit Constraint(Expression lhs, double rhs, LmComparator cmp,
-                        std::optional<std::string> name) {
+    /* Creates a constraint `lhs <cmp> rhs`. `name == std::nullopt` assigns an
+     * automatic name. */
+    Constraint(const Expression &lhs, double rhs, LmComparator cmp,
+               std::optional<std::string> name = std::nullopt) {
         LmConstraint *out = nullptr;
         detail::check(lm_constr_new(lhs.get(), rhs, cmp, name ? name->c_str() : nullptr, &out));
         handle_ = out;
@@ -33,7 +35,21 @@ class Constraint {
         }
     }
 
-    /* Returns the constraint name. */
+    Constraint(Constraint &&other) noexcept : handle_(other.handle_) { other.handle_ = nullptr; }
+    Constraint &operator=(Constraint &&other) noexcept {
+        if (this != &other) {
+            if (handle_ != nullptr) {
+                lm_constr_free(handle_);
+            }
+            handle_ = other.handle_;
+            other.handle_ = nullptr;
+        }
+        return *this;
+    }
+    Constraint(const Constraint &) = delete;
+    Constraint &operator=(const Constraint &) = delete;
+
+    /* The constraint name. */
     std::string name() const {
         LmBuffer buf = {nullptr, 0, 0};
         detail::check(lm_constr_name(handle_, &buf));
@@ -42,52 +58,62 @@ class Constraint {
         return out;
     }
 
-    /* Returns the constraint's lhs. */
+    /* Whether the constraint's name was assigned automatically. */
+    bool auto_name() const {
+        bool out = false;
+        detail::check(lm_constr_auto_name(handle_, &out));
+        return out;
+    }
+
+    /* The left-hand-side expression. */
     Expression lhs() const {
         LmExpr *out = nullptr;
         detail::check(lm_constr_lhs(handle_, &out));
         return Expression(out);
     }
 
-    /* Returns the constraint's rhs. */
+    /* The right-hand-side value. */
     double rhs() const {
         double out = 0;
         detail::check(lm_constr_rhs(handle_, &out));
         return out;
     }
 
-    /* Returns the constraint's comparator. */
+    /* The comparator relating the two sides. */
     LmComparator comparator() const {
         LmComparator out = {};
         detail::check(lm_constr_comparator(handle_, &out));
         return out;
     }
 
-    /* Set the constraint's name. */
-    void set_name(std::string name) { detail::check(lm_constr_set_name(handle_, name.c_str())); }
+    /* Sets the constraint name. */
+    void set_name(const std::string &name) {
+        detail::check(lm_constr_set_name(handle_, name.c_str()));
+    }
 
-    /* Clones into a new handle. */
+    /* Clones into a new handle sharing the environment. */
     Constraint clone() const {
         LmConstraint *out = nullptr;
         detail::check(lm_constr_clone(handle_, &out));
         return Constraint(out);
     }
 
-    /* Deep-clones into a fully independent model with its own environment. */
-    Constraint deep_clone(Env env) const {
+    /* Deep-clones into an independent constraint rebound to `env`. */
+    Constraint deep_clone(const Env &env) const {
         LmConstraint *out = nullptr;
         detail::check(lm_constr_deep_clone(handle_, env.get(), &out));
         return Constraint(out);
     }
 
-    void substitute(Vref target, Expression replacement) {
+    /* Substitutes `replacement` for `target` throughout the constraint. */
+    void substitute(const Vref &target, const Expression &replacement) {
         detail::check(lm_constr_substitute(handle_, target.get(), replacement.get()));
     }
 
-    /* Compares two constraints for equal contents (ignoring different environments). */
-    bool equal_contents(Constraint constr) const {
+    /* Content equality, ignoring environment identity. */
+    bool equal_contents(const Constraint &other) const {
         bool out = false;
-        detail::check(lm_constr_equal_contents(handle_, constr.get(), &out));
+        detail::check(lm_constr_equal_contents(handle_, other.get(), &out));
         return out;
     }
 
@@ -98,12 +124,17 @@ class Constraint {
     }
     bool operator!=(const Constraint &other) const { return !(*this == other); }
 
-    LmConstraint *get() const { return handle_; }
+    LmConstraint *get() const noexcept { return handle_; }
+    LmConstraint *release() noexcept {
+        LmConstraint *h = handle_;
+        handle_ = nullptr;
+        return h;
+    }
 
   private:
     LmConstraint *handle_;
 };
 
 } // namespace lm
-  //
+
 #endif // LUNA_MODEL_CONSTRAINT_HPP

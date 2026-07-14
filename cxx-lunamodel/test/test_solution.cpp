@@ -48,7 +48,7 @@ int test_solution(int argc, char *argv[]) {
     CHECK(ax.value == 0.0);
     CHECK(sol.assignment_idx(1, 0).value == 1.0);
 
-    // Column handle mirrors the stored column.
+    // Column handle exposes the stored column.
     lm::Column cx = sol.column("x");
     CHECK(cx.len() == 2u);
     CHECK(!cx.is_empty());

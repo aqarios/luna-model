@@ -13,14 +13,13 @@ namespace lm {
 class Timer;
 class Solution;
 
-/* Owning handle to a LunaModel timing (frees on destruction). */
+/* Owning handle to a LunaModel timing record (frees on destruction). */
 class Timing {
   public:
-    /* Creates a timing record from explicit timestamps
-     * (Rust `Timing::new(start, end, qpu)`).
+    /* Creates a timing record from explicit timestamps.
      *
      * `start_unix_ns` / `end_unix_ns` are nanoseconds since the UNIX epoch;
-     * `qpu` is the optional QPU/device execution time.
+     * `qpu` is the optional QPU/device execution time in seconds.
      */
     Timing(std::uint64_t start_unix_ns, std::uint64_t end_unix_ns,
            std::optional<double> qpu = std::nullopt) {
@@ -48,6 +47,36 @@ class Timing {
     }
     Timing(const Timing &) = delete;
     Timing &operator=(const Timing &) = delete;
+
+    /* Total wall-clock duration in nanoseconds. */
+    std::uint64_t total_ns() const {
+        std::uint64_t out = 0;
+        detail::check(lm_timing_total_ns(handle_, &out));
+        return out;
+    }
+
+    /* Start timestamp, nanoseconds since the UNIX epoch. */
+    std::uint64_t start_ns() const {
+        std::uint64_t out = 0;
+        detail::check(lm_timing_start_ns(handle_, &out));
+        return out;
+    }
+
+    /* End timestamp, nanoseconds since the UNIX epoch. */
+    std::uint64_t end_ns() const {
+        std::uint64_t out = 0;
+        detail::check(lm_timing_end_ns(handle_, &out));
+        return out;
+    }
+
+    /* QPU/device execution time in seconds. */
+    double qpu() const {
+        double out = 0.0;
+        detail::check(lm_timing_qpu(handle_, &out));
+        return out;
+    }
+
+    LmTiming *get() const noexcept { return handle_; }
 
   protected:
     explicit Timing(LmTiming *handle) noexcept : handle_(handle) {}
