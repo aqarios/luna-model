@@ -82,6 +82,19 @@ pub unsafe extern "C" fn lm_higher_order_neg(
     })
 }
 
+/// Removes explicitly stored zero contributions.
+///
+/// # Safety
+/// `higher_order` must be a valid mutable higher-order handle.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_higher_order_clean(higher_order: *mut LmHigherOrder) -> LmStatus {
+    guard(|| {
+        let higher_order = unsafe { mut_from_c(higher_order as *mut HigherOrder, "higher_order") }?;
+        higher_order.clean();
+        Ok(())
+    })
+}
+
 /// Sets the bias for a specific entry (variable tuple) of the higher-order term.
 ///
 /// # Safety

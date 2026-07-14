@@ -9,3 +9,9 @@ impl LmTryInto<Variable> for VarRef {
         out!(vref_to_var(@self))
     }
 }
+
+impl VarRef {
+    pub fn to_variable(&self) -> Result<Variable> {
+        out!(vref_to_var(@self))
+    }
+}

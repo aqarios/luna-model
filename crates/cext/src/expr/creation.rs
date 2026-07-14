@@ -1,4 +1,4 @@
-use crate::utils::{drop_from_c, handle_to_c, out_from_c, ref_from_c};
+use crate::utils::{drop_from_c, handle_to_c, opt_from_c, out_from_c, ref_from_c, slice_from_c};
 use luna_model::{
     core::{
         Expression,
@@ -8,8 +8,9 @@ use luna_model::{
 };
 
 use crate::{
-    LmEnv, LmExpr, LmHigherOrder, LmLinear, LmQuadratic, LmStatus, env::utils::environment_from_c,
-    error::guard,
+    LmEnv, LmExpr, LmHigherOrder, LmLinear, LmQuadratic, LmStatus,
+    env::utils::environment_from_c,
+    error::{CapiError, guard},
 };
 
 /// Frees an expression handle. Passing null is a no-op.
@@ -19,6 +20,43 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_free(expr: *mut LmExpr) {
     unsafe { drop_from_c(expr as *mut Expression) }
+}
+
+/// Builds an expression from a dense row-major quadratic matrix.
+///
+/// # Safety
+/// `dense` must contain `len` values, `env` must be valid, optional `offset`
+/// must point to a valid value, and `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_expr_from_dense_quadratic(
+    dense: *const f64,
+    len: usize,
+    num_vars: usize,
+    offset: *const f64,
+    env: *const LmEnv,
+    out: *mut *mut LmExpr,
+) -> LmStatus {
+    guard(|| {
+        if len != num_vars.saturating_mul(num_vars) {
+            return Err(CapiError::new(
+                LmStatus::InvalidArgument,
+                format!("dense matrix length {len} does not equal {num_vars} * {num_vars}"),
+            ));
+        }
+        let dense = unsafe { slice_from_c(dense, len, "dense") }?;
+        let env = unsafe { environment_from_c(env) }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(
+            Expression::from_dense_quadratic(
+                dense,
+                num_vars,
+                unsafe { opt_from_c(offset) },
+                env.clone(),
+            )
+            .map_err(CapiError::errored)?,
+        );
+        Ok(())
+    })
 }
 
 /// Creates a new empty expression.

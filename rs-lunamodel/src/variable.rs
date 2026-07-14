@@ -9,7 +9,7 @@ use lunamodel_cext_vtable::LmVar;
 use lunamodel_types::Vtype;
 use rs_lunamodel_derive::RawHandle;
 
-use crate::{Bounds, Result};
+use crate::{Bounds, LazyBounds, Result, TryClone};
 
 /// Owning handle to a LunaModel var (frees on drop).
 #[derive(RawHandle)]
@@ -26,6 +26,10 @@ impl Drop for Variable {
 }
 
 impl Variable {
+    pub fn new(name: &str, vtype: Vtype, bounds: Option<&LazyBounds>) -> Result<Self> {
+        out!(var_new(!name, ~vtype, ?@bounds))
+    }
+
     pub fn name(&self) -> Result<String> {
         out!(var_name(@self))
     }
@@ -38,7 +42,33 @@ impl Variable {
         out!(var_bounds(@self))
     }
 
-    pub fn inverted(&self) -> Result<u32> {
-        out!(var_inverted(@self))
+    pub fn inverted(&self) -> Result<Option<u32>> {
+        out_opt!(var_inverted(@self))
+    }
+}
+
+impl TryClone for Variable {
+    fn try_clone(&self) -> Result<Self> {
+        out!(var_clone(@self))
+    }
+}
+
+impl PartialEq for Variable {
+    fn eq(&self, other: &Self) -> bool {
+        self.name().ok() == other.name().ok()
+            && self.vtype().ok() == other.vtype().ok()
+            && self.bounds().ok() == other.bounds().ok()
+            && self.inverted().ok() == other.inverted().ok()
+    }
+}
+
+impl std::fmt::Debug for Variable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Variable")
+            .field("name", &self.name().ok())
+            .field("vtype", &self.vtype().ok())
+            .field("bounds", &self.bounds().ok())
+            .field("inverted", &self.inverted().ok().flatten())
+            .finish()
     }
 }

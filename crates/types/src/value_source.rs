@@ -19,4 +19,3 @@ impl Display for ValueSource {
         }
     }
 }
-

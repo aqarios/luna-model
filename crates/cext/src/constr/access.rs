@@ -108,3 +108,20 @@ pub unsafe extern "C" fn lm_constr_set_name(
         Ok(())
     })
 }
+
+/// Returns whether the constraint received an automatically generated name.
+///
+/// # Safety
+/// `constr` must be a valid constraint handle and `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_constr_auto_name(
+    constr: *const LmConstraint,
+    out: *mut bool,
+) -> LmStatus {
+    guard(|| {
+        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = constr.auto_name;
+        Ok(())
+    })
+}

@@ -13,7 +13,7 @@ mod general;
 use lunamodel_cext_vtable::LmVref;
 use rs_lunamodel_derive::RawHandle;
 
-use crate::{Result, traits::LmTryFrom};
+use crate::{Result, TryClone, traits::LmTryFrom};
 
 /// Owning handle to a LunaModel vref (frees on drop).
 #[derive(RawHandle)]
@@ -35,6 +35,31 @@ impl PartialEq for VarRef {
     /// An FFI failure is treated as "not equal".
     fn eq(&self, other: &Self) -> bool {
         out_or!(vref_eq(@self, @other), false)
+    }
+}
+
+impl TryClone for VarRef {
+    fn try_clone(&self) -> Result<Self> {
+        out!(vref_clone(@self))
+    }
+}
+
+impl std::fmt::Display for VarRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.name() {
+            Ok(name) => f.write_str(&name),
+            Err(err) => write!(f, "<VarRef error: {err}>"),
+        }
+    }
+}
+
+impl std::fmt::Debug for VarRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VarRef")
+            .field("id", &self.id().ok())
+            .field("name", &self.name().ok())
+            .field("vtype", &self.vtype().ok())
+            .finish()
     }
 }
 

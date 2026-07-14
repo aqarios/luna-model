@@ -1,7 +1,9 @@
-use crate::utils::{drop_from_c, handle_to_c};
-use luna_model::core::ArcEnv;
+use crate::utils::{drop_from_c, handle_to_c, out_from_c, ref_from_c, slice_from_c, str_from_c};
+use indexmap::IndexMap;
+use luna_model::core::{ArcEnv, Environment, prelude::Variable};
+use std::collections::HashMap;
 
-use crate::LmEnv;
+use crate::{LmEnv, LmStatus, LmVar, error::guard};
 
 /// Frees an environment handle. Passing null is a no-op.
 ///
@@ -18,4 +20,43 @@ pub unsafe extern "C" fn lm_env_free(env: *mut LmEnv) {
 #[unsafe(no_mangle)]
 pub extern "C" fn lm_env_default() -> *mut LmEnv {
     handle_to_c(ArcEnv::default())
+}
+
+/// Creates an environment from owned variable records and explicit indices.
+///
+/// # Safety
+/// All pointer arrays must contain the stated number of valid elements and
+/// `out` must be writable environment-handle storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_env_new(
+    variables: *const *const LmVar,
+    indices: *const u32,
+    len: usize,
+    lookup_names: *const *const std::ffi::c_char,
+    lookup_indices: *const u32,
+    lookup_len: usize,
+    next_idx: u32,
+    out: *mut *mut LmEnv,
+) -> LmStatus {
+    guard(|| {
+        let variables = unsafe { slice_from_c(variables, len, "variables") }?;
+        let indices = unsafe { slice_from_c(indices, len, "indices") }?;
+        let mut storage = IndexMap::with_capacity(len);
+        let lookup_names = unsafe { slice_from_c(lookup_names, lookup_len, "lookup_names") }?;
+        let lookup_indices = unsafe { slice_from_c(lookup_indices, lookup_len, "lookup_indices") }?;
+        let mut lookup = HashMap::with_capacity(lookup_len);
+        for (&variable, &index) in variables.iter().zip(indices) {
+            let variable = unsafe { ref_from_c(variable as *const Variable, "variable") }?.clone();
+            storage.insert(index, variable);
+        }
+        for (&name, &index) in lookup_names.iter().zip(lookup_indices) {
+            lookup.insert(
+                unsafe { str_from_c(name, "lookup_name") }?.to_owned(),
+                index,
+            );
+        }
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(ArcEnv::from(Environment::new(storage, lookup, next_idx)));
+        Ok(())
+    })
 }

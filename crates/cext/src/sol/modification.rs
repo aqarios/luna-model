@@ -1,11 +1,14 @@
 use std::ffi::c_char;
 
-use luna_model::core::Solution;
+use luna_model::core::{Solution, solution::Assignment};
 
 use crate::{
-    LmSol, LmStatus, LmVtype,
+    LmAssignment, LmColumn, LmSense, LmSol, LmStatus, LmVtype,
     error::{CapiError, guard},
-    utils::{mut_from_c, opt_from_c, slice_from_c, str_from_c, vtype_from_c},
+    utils::{
+        handle_to_c, mut_from_c, opt_from_c, out_from_c, sense_from_c, slice_from_c, str_from_c,
+        vtype_from_c,
+    },
 };
 
 /// Adds an empty binary column for a variable name.
@@ -210,11 +213,19 @@ pub unsafe extern "C" fn lm_sol_add_col(
 /// `sol` must be a valid mutable solution handle created by this library.
 /// `name` must point to a valid NUL-terminated C string.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn lm_sol_remove_col(sol: *mut LmSol, name: *const c_char) -> LmStatus {
+pub unsafe extern "C" fn lm_sol_remove_col(
+    sol: *mut LmSol,
+    name: *const c_char,
+    out: *mut *mut LmColumn,
+) -> LmStatus {
     guard(|| {
         let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
         let name = unsafe { str_from_c(name, "name") }?;
-        sol.remove_col(name);
+        let out = unsafe { out_from_c(out) }?;
+        *out = sol
+            .remove_col(name)
+            .map(handle_to_c)
+            .unwrap_or(std::ptr::null_mut());
         Ok(())
     })
 }
@@ -257,6 +268,83 @@ pub unsafe extern "C" fn lm_sol_aggregate(sol: *mut LmSol) -> LmStatus {
     guard(|| {
         let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
         sol.aggregate().map_err(CapiError::errored)?;
+        Ok(())
+    })
+}
+
+/// Filters solution rows by a boolean keep-mask.
+///
+/// # Safety
+/// `sol` must be valid, `mask` must contain `len` values, and `out` writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_sol_filter_by_mask(
+    sol: *const LmSol,
+    mask: *const bool,
+    len: usize,
+    out: *mut *mut LmSol,
+) -> LmStatus {
+    guard(|| {
+        let sol = unsafe { crate::utils::ref_from_c(sol as *const Solution, "sol") }?;
+        let mask = unsafe { slice_from_c(mask, len, "mask") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(sol.filter_by_mask(mask).map_err(CapiError::errored)?);
+        Ok(())
+    })
+}
+
+/// Appends a named assignment row.
+///
+/// # Safety
+/// `sol` must be valid; `names` and `assignments` must each contain `len`
+/// valid elements; optional `energy` must be readable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_sol_push(
+    sol: *mut LmSol,
+    names: *const *const c_char,
+    assignments: *const LmAssignment,
+    len: usize,
+    counts: usize,
+    energy: *const f64,
+) -> LmStatus {
+    guard(|| {
+        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let names = unsafe { slice_from_c(names, len, "names") }?;
+        let assignments = unsafe { slice_from_c(assignments, len, "assignments") }?;
+        let sample = names
+            .iter()
+            .zip(assignments)
+            .map(|(&name, assignment)| {
+                let name = unsafe { str_from_c(name, "name") }?.to_owned();
+                let assignment = match assignment.vtype {
+                    LmVtype::Binary => Assignment::Binary(assignment.value as u8),
+                    LmVtype::Spin => Assignment::Spin(assignment.value as i8),
+                    LmVtype::Integer => Assignment::Integer(assignment.value as i64),
+                    LmVtype::Real => Assignment::Real(assignment.value),
+                    LmVtype::InvertedBinary => {
+                        return Err(CapiError::new(
+                            LmStatus::InvalidArgument,
+                            "inverted binary has no standalone assignment",
+                        ));
+                    }
+                };
+                Ok((name, assignment))
+            })
+            .collect::<Result<_, CapiError>>()?;
+        sol.push(sample, counts, unsafe { opt_from_c(energy) })
+            .map_err(CapiError::errored)?;
+        Ok(())
+    })
+}
+
+/// Sets the solution optimization sense.
+///
+/// # Safety
+/// `sol` must be a valid mutable solution handle.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_sol_set_sense(sol: *mut LmSol, sense: LmSense) -> LmStatus {
+    guard(|| {
+        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        sol.sense = sense_from_c(sense);
         Ok(())
     })
 }

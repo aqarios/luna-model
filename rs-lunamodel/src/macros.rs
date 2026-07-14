@@ -498,6 +498,27 @@ macro_rules! out_slice {
     }};
 }
 
+/// Optional counterpart to [`out_slice!`]. `LmStatus::Absent` becomes
+/// `Ok(None)` and a present borrowed slice is copied into an owned vector.
+macro_rules! out_slice_opt {
+    ($func:ident ( $($arg:tt)* )) => {{
+        let mut ptr = std::ptr::null();
+        let mut len: usize = 0;
+
+        if crate::error::present(unsafe {
+            check!(@call $func, [] $($arg)* , &mut ptr, &mut len)
+        })? {
+            Ok(Some(if ptr.is_null() {
+                Vec::new()
+            } else {
+                unsafe { std::slice::from_raw_parts(ptr, len) }.to_vec()
+            }))
+        } else {
+            Ok(None)
+        }
+    }};
+}
+
 /// Frees `$self.handle` with the given LunaModel ABI free function if it is non-null.
 ///
 /// Use this in `Drop` impls for wrapper types that own a `handle` field.

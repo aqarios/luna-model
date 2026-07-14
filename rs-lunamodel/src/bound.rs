@@ -21,7 +21,12 @@ pub enum Bound {
 impl Bound {
     /// Returns whether the bound is finite.
     pub fn is_bounded(&self) -> bool {
-        matches!(self, Self::Bounded(_))
+        if crate::is_initialized() {
+            let raw = LmBound::lm_from(*self);
+            out_or!(bound_is_bounded(&raw), matches!(self, Self::Bounded(_)))
+        } else {
+            matches!(self, Self::Bounded(_))
+        }
     }
 }
 

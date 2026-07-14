@@ -48,7 +48,7 @@ pub use variable::PyVariable;
 /// Re-exported translation target enum used by Python APIs.
 pub use lunamodel_translate::TranslationTarget;
 /// Re-exported core enums commonly surfaced in Python.
-pub use lunamodel_types::{Comparator, Ctype, Sense, Vtype, ValueSource};
+pub use lunamodel_types::{Comparator, Ctype, Sense, ValueSource, Vtype};
 
 /// Python enum wrappers corresponding to the re-exported core enums.
 pub use types::{PyComparator, PyCtype, PySense, PyTranslationTarget, PyValueSource, PyVtype};

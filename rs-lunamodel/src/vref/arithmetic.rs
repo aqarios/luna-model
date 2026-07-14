@@ -3,6 +3,7 @@ use std::ops::{Neg, Not};
 
 use super::VarRef;
 use crate::Expression;
+use crate::LmPow;
 
 use crate::Result;
 
@@ -17,6 +18,20 @@ impl VarRef {
     /// interval and does not inspect any expression context.
     pub fn evaluate(&self, value: f64, tol: Option<f64>) -> Result<bool> {
         out!(vref_eval(@self, value, ?tol))
+    }
+}
+
+impl LmPow for VarRef {
+    type Output = Expression;
+    fn pow(self, exp: usize) -> Result<Self::Output> {
+        VarRef::pow(&self, exp)
+    }
+}
+
+impl LmPow for &VarRef {
+    type Output = Expression;
+    fn pow(self, exp: usize) -> Result<Self::Output> {
+        VarRef::pow(self, exp)
     }
 }
 
@@ -117,6 +132,38 @@ impl Sub<&VarRef> for &VarRef {
 
     fn sub(self, rhs: &VarRef) -> Self::Output {
         out!(vref_sub_vref(@self, @rhs))
+    }
+}
+
+impl Sub<Expression> for VarRef {
+    type Output = Result<Expression>;
+
+    fn sub(self, rhs: Expression) -> Self::Output {
+        out!(vref_sub_expr(@self, @rhs))
+    }
+}
+
+impl Sub<&Expression> for VarRef {
+    type Output = Result<Expression>;
+
+    fn sub(self, rhs: &Expression) -> Self::Output {
+        out!(vref_sub_expr(@self, @rhs))
+    }
+}
+
+impl Sub<Expression> for &VarRef {
+    type Output = Result<Expression>;
+
+    fn sub(self, rhs: Expression) -> Self::Output {
+        out!(vref_sub_expr(@self, @rhs))
+    }
+}
+
+impl Sub<&Expression> for &VarRef {
+    type Output = Result<Expression>;
+
+    fn sub(self, rhs: &Expression) -> Self::Output {
+        out!(vref_sub_expr(@self, @rhs))
     }
 }
 
@@ -258,7 +305,23 @@ impl Neg for VarRef {
     }
 }
 
+impl Neg for &VarRef {
+    type Output = Result<Expression>;
+
+    fn neg(self) -> Self::Output {
+        out!(vref_neg(@self))
+    }
+}
+
 impl Not for VarRef {
+    type Output = Result<VarRef>;
+
+    fn not(self) -> Self::Output {
+        out!(vref_not(@self))
+    }
+}
+
+impl Not for &VarRef {
     type Output = Result<VarRef>;
 
     fn not(self) -> Self::Output {

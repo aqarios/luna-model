@@ -25,10 +25,17 @@ impl LmTryInto<IndexMap<String, Column>> for LmIndexMapItemBuffer {
                         .into_owned()
                 };
 
-                let column = Column::from_raw(item.value);
+                let handle = item.value;
                 item.value = std::ptr::null_mut();
-
-                map.insert(key, column);
+                match handle.lm_try_into() {
+                    Ok(column) => {
+                        map.insert(key, column);
+                    }
+                    Err(err) => {
+                        unsafe { (api().index_map_buffer_free)(self) };
+                        return Err(err);
+                    }
+                }
             }
         }
 

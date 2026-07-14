@@ -11,6 +11,11 @@ use rs_lunamodel_derive::RawHandle;
 
 use crate::{Bound, Bounds, Result, TryClone, api::api};
 
+/// Converts partially specified bounds into concrete bounds for a variable type.
+pub trait Concretize {
+    fn concretize(self, vtype: &Vtype) -> Result<Bounds>;
+}
+
 /// Owning handle to a LunaModel lazy bounds (frees on drop).
 #[derive(RawHandle)]
 pub struct LazyBounds {
@@ -43,6 +48,15 @@ impl LazyBounds {
     }
 }
 
+impl std::fmt::Debug for LazyBounds {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("LazyBounds")
+            .field("lower", &self.lower().ok().flatten())
+            .field("upper", &self.upper().ok().flatten())
+            .finish()
+    }
+}
+
 impl LazyBounds {
     pub fn lower(&self) -> Result<Option<Bound>> {
         out_opt!(lazy_bounds_lower(@self))
@@ -56,5 +70,14 @@ impl LazyBounds {
 impl LazyBounds {
     pub fn concretize(&self, vtype: Vtype) -> Result<Bounds> {
         out!(lazy_bounds_concretize(@self, ~vtype))
+    }
+}
+
+impl Concretize for Option<LazyBounds> {
+    fn concretize(self, vtype: &Vtype) -> Result<Bounds> {
+        match self {
+            Some(bounds) => bounds.concretize(*vtype),
+            None => Bounds::default_for(*vtype),
+        }
     }
 }

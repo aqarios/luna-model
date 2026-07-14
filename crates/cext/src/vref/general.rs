@@ -46,3 +46,17 @@ pub unsafe extern "C" fn lm_vref_to_var(vref: *const LmVref, out: *mut *mut LmVa
         Ok(())
     })
 }
+
+/// Clones a variable reference.
+///
+/// # Safety
+/// `vref` must be a valid variable-reference handle and `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_vref_clone(vref: *const LmVref, out: *mut *mut LmVref) -> LmStatus {
+    guard(|| {
+        let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(vref.clone());
+        Ok(())
+    })
+}

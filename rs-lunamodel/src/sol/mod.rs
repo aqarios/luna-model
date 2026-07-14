@@ -13,7 +13,7 @@ mod modification;
 use lunamodel_cext_vtable::LmSol;
 use rs_lunamodel_derive::RawHandle;
 
-use crate::{ContentEquality, Result, Serialization, TryClone, api::api};
+use crate::{ContentEquality, Result, Serialization, TryClone, TryIndex, api::api};
 
 /// Owning handle to a LunaModel sol (frees on drop).
 #[derive(RawHandle)]
@@ -62,5 +62,35 @@ impl Serialization<'_> for Solution {
 
     fn deserialize(data: &[u8], _: Self::Payload) -> Result<Self> {
         out!(sol_deserialize(@data, data.len()))
+    }
+}
+
+impl TryIndex<(usize, &str)> for Solution {
+    type Output = f64;
+    fn try_index(&self, (row, name): (usize, &str)) -> Result<Self::Output> {
+        self.value(row, name)?.ok_or_else(|| crate::Error {
+            status: crate::Status::Absent,
+            message: format!("solution has no value at row {row} for variable '{name}'"),
+        })
+    }
+}
+
+impl TryIndex<(usize, usize)> for Solution {
+    type Output = f64;
+    fn try_index(&self, (row, column): (usize, usize)) -> Result<Self::Output> {
+        Ok(self.assignment_idx(row, column)?.value())
+    }
+}
+
+impl std::fmt::Debug for Solution {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Solution")
+            .field("variable_names", &self.variable_names().ok())
+            .field("counts", &self.counts().ok())
+            .field("raw_energies", &self.raw_energies().ok().flatten())
+            .field("obj_values", &self.obj_values().ok().flatten())
+            .field("feasible", &self.feasible().ok().flatten())
+            .field("sense", &self.sense().ok())
+            .finish()
     }
 }

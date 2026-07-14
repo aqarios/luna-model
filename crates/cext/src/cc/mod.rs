@@ -5,8 +5,8 @@ mod modification;
 mod serialize;
 
 pub use access::{
-    lm_cc_complete_vars, lm_cc_ctypes, lm_cc_get, lm_cc_is_empty, lm_cc_len, lm_cc_vars,
-    lm_cc_vtypes,
+    lm_cc_complete_vars, lm_cc_contains, lm_cc_ctypes, lm_cc_get, lm_cc_is_empty, lm_cc_len,
+    lm_cc_names, lm_cc_vars, lm_cc_vtypes,
 };
 pub use creation::{lm_cc_default, lm_cc_free, lm_cc_new};
 pub use general::{lm_cc_clone, lm_cc_deep_clone, lm_cc_eq, lm_cc_equal_contents};

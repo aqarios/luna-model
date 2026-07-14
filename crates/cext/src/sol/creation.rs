@@ -33,7 +33,7 @@ pub extern "C" fn lm_sol_with_sense(sense: LmSense) -> *mut LmSol {
 
 /// Creates a new solution with capacity.
 #[unsafe(no_mangle)]
-pub extern "C" fn lm_sol_with_capcity(capacity: usize) -> *mut LmSol {
+pub extern "C" fn lm_sol_with_capacity(capacity: usize) -> *mut LmSol {
     handle_to_c(Solution::with_capacity(capacity))
 }
 

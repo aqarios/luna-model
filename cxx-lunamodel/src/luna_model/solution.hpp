@@ -73,7 +73,7 @@ class Solution {
 
     /* Creates an empty solution with reserved capacity (Rust `with_capacity`). */
     static Solution with_capacity(std::size_t capacity) {
-        LmSol *handle = lm_sol_with_capcity(capacity);
+        LmSol *handle = lm_sol_with_capacity(capacity);
         if (handle == nullptr) {
             throw Error(LmStatus_Panic, "failed to allocate a LunaModel solution");
         }

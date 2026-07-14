@@ -64,3 +64,14 @@ impl ContentEquality for Constraint {
         out!(constr_equal_contents(@self, @other))
     }
 }
+
+impl std::fmt::Debug for Constraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Constraint")
+            .field("name", &self.name().ok())
+            .field("auto_name", &self.auto_name().ok())
+            .field("rhs", &self.rhs().ok())
+            .field("comparator", &self.comparator().ok())
+            .finish()
+    }
+}

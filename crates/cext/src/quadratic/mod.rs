@@ -10,6 +10,7 @@ pub use access::{
 pub use creation::{lm_quadratic_default, lm_quadratic_free};
 pub use general::{lm_quadratic_clone, lm_quadratic_eq};
 pub use modification::{
-    lm_quadratic_add_entry, lm_quadratic_add_quadratic, lm_quadratic_mul_bias, lm_quadratic_neg,
-    lm_quadratic_set_bias,
+    lm_quadratic_add_entry, lm_quadratic_add_quadratic, lm_quadratic_clean,
+    lm_quadratic_insert_empty, lm_quadratic_mul_bias, lm_quadratic_neg,
+    lm_quadratic_push_back_empty, lm_quadratic_set_bias,
 };

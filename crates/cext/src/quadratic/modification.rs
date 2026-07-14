@@ -75,6 +75,53 @@ pub unsafe extern "C" fn lm_quadratic_neg(
     })
 }
 
+/// Removes explicitly stored zero contributions.
+///
+/// # Safety
+/// `quadratic` must be a valid mutable quadratic handle.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_quadratic_clean(quadratic: *mut LmQuadratic) -> LmStatus {
+    guard(|| {
+        let quadratic = unsafe { mut_from_c(quadratic as *mut Quadratic, "quadratic") }?;
+        quadratic.clean();
+        Ok(())
+    })
+}
+
+/// Appends an empty outer neighborhood.
+///
+/// # Safety
+/// `quadratic` must be a valid mutable quadratic handle.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_quadratic_push_back_empty(
+    quadratic: *mut LmQuadratic,
+    idx: u32,
+) -> LmStatus {
+    guard(|| {
+        let quadratic = unsafe { mut_from_c(quadratic as *mut Quadratic, "quadratic") }?;
+        quadratic.push_back_empty(idx);
+        Ok(())
+    })
+}
+
+/// Inserts an empty outer neighborhood at `pos`.
+///
+/// # Safety
+/// `quadratic` must be a valid mutable quadratic handle and `pos` must be a
+/// valid insertion position.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_quadratic_insert_empty(
+    quadratic: *mut LmQuadratic,
+    pos: usize,
+    idx: u32,
+) -> LmStatus {
+    guard(|| {
+        let quadratic = unsafe { mut_from_c(quadratic as *mut Quadratic, "quadratic") }?;
+        quadratic.insert_empty(pos, idx);
+        Ok(())
+    })
+}
+
 /// Sets the bias for a specific index of the quadratic term.
 ///
 /// # Safety

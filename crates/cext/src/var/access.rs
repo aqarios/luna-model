@@ -56,7 +56,7 @@ pub unsafe extern "C" fn lm_var_bounds(var: *const LmVar, out: *mut *mut LmBound
     guard(|| {
         let var = unsafe { ref_from_c(var as *const Variable, "var") }?;
         let out = unsafe { out_from_c(out) }?;
-        let bounds = var.bounds();
+        let bounds = *var.bounds();
         *out = handle_to_c(bounds);
         Ok(())
     })

@@ -75,3 +75,13 @@ impl Serialization<'_> for Model {
         out!(model_deserialize(@data, data.len()))
     }
 }
+
+impl std::fmt::Debug for Model {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Model")
+            .field("name", &self.name().ok())
+            .field("sense", &self.sense().ok())
+            .field("num_variables", &self.num_variables().ok())
+            .finish()
+    }
+}
