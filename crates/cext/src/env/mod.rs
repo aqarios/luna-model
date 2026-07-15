@@ -4,8 +4,6 @@ mod general;
 mod modification;
 mod serialize;
 
-pub(crate) mod utils;
-
 pub use access::{
     lm_env_contains, lm_env_get, lm_env_id, lm_env_is_empty, lm_env_len, lm_env_lookup,
     lm_env_next_idx, lm_env_sort, lm_env_vars, lm_env_vtype_of,

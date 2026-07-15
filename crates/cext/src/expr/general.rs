@@ -1,9 +1,10 @@
-use crate::utils::{handle_to_c, mut_slice_from_c, out_from_c, ref_from_c, slice_from_c};
+use crate::utils::{
+    handle_to_c, mut_slice_from_c, out_from_c, ref_from_c, shared_from_c, slice_from_c,
+};
 use luna_model::core::Expression;
 
 use crate::{
     LmEnv, LmExpr, LmStatus,
-    env::utils::environment_from_c,
     error::{CapiError, guard},
 };
 
@@ -37,7 +38,7 @@ pub unsafe extern "C" fn lm_expr_deep_clone(
 ) -> LmStatus {
     guard(|| {
         let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
-        let env = unsafe { environment_from_c(env)? };
+        let env = unsafe { shared_from_c(env, "env")? }.read_arc();
         let out = unsafe { out_from_c(out) }?;
         *out = handle_to_c(expr.deep_clone(env.clone()));
         Ok(())

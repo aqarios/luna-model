@@ -77,3 +77,7 @@ impl std::fmt::Debug for Env {
             .finish()
     }
 }
+
+// SAFETY: every operation on an LmEnv is synchronized by the host.
+unsafe impl Send for Env {}
+unsafe impl Sync for Env {}

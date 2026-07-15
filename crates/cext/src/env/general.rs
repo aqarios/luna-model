@@ -1,5 +1,5 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c};
-use luna_model::core::{ArcEnv, prelude::ContentEquality};
+use crate::utils::{new_handle_out_from_c, out_from_c, shared_from_c};
+use luna_model::core::prelude::ContentEquality;
 
 use crate::{LmEnv, LmStatus, error::guard};
 
@@ -11,10 +11,8 @@ use crate::{LmEnv, LmStatus, error::guard};
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_clone(env: *const LmEnv, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
-        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(env.clone());
-        Ok(())
+        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        unsafe { new_handle_out_from_c(out, env.clone()) }
     })
 }
 
@@ -26,10 +24,8 @@ pub unsafe extern "C" fn lm_env_clone(env: *const LmEnv, out: *mut *mut LmEnv) -
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_deep_clone(env: *const LmEnv, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
-        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(env.deep_clone());
-        Ok(())
+        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        unsafe { new_handle_out_from_c(out, env.deep_clone()) }
     })
 }
 
@@ -44,8 +40,8 @@ pub unsafe extern "C" fn lm_env_eq(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
-        let other = unsafe { ref_from_c(other as *const ArcEnv, "other") }?;
+        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let other = unsafe { shared_from_c(other, "other") }?.read_arc();
         *unsafe { out_from_c(out) }? = *env.env.read() == *other.env.read();
         Ok(())
     })
@@ -64,10 +60,10 @@ pub unsafe extern "C" fn lm_env_equal_contents(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
-        let other = unsafe { ref_from_c(other as *const ArcEnv, "other") }?;
+        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let other = unsafe { shared_from_c(other, "other") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-        *out = env.equal_contents(other);
+        *out = env.equal_contents(&other);
         Ok(())
     })
 }

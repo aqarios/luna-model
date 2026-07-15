@@ -1,4 +1,4 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c};
+use crate::utils::{handle_to_c, new_handle_out_from_c, out_from_c, ref_from_c};
 use luna_model::core::Expression;
 
 use crate::{
@@ -19,9 +19,7 @@ pub unsafe extern "C" fn lm_expr_env(expr: *const LmExpr, out: *mut *mut LmEnv) 
     guard(|| {
         let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
 
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(expr.env.clone());
-        Ok(())
+        unsafe { new_handle_out_from_c(out, expr.env.clone()) }
     })
 }
 

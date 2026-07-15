@@ -42,3 +42,23 @@ def test_solution_is_shared_and_gil_independent(ext):
 
     solution.add_var("z", [3.0], Vtype.REAL)
     assert held.variable_names() == ["x", "y", "z"]
+
+
+def test_environment_is_shared_and_gil_independent(ext):
+    environment = Environment()
+    held = ext.HeldEnvironment(environment)
+
+    held.insert_real("from_rust")
+    assert environment.num_variables == 1
+
+    Variable("from_python", env=environment)
+    assert held.len() == 2
+
+
+def test_environment_returned_from_model_retains_identity(ext):
+    model = Model("environment")
+    environment = ext.model_environment(model)
+
+    Variable("shared", env=environment)
+    assert model.environment.num_variables == 1
+    assert model.environment.id == environment.id

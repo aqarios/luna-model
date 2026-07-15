@@ -1,10 +1,9 @@
-use crate::utils::{handle_to_c, opt_from_c, out_from_c, ref_from_c, slice_from_c};
+use crate::utils::{handle_to_c, opt_from_c, out_from_c, ref_from_c, shared_from_c, slice_from_c};
 use luna_model::core::{ConstraintCollection, prelude::ContentEquality};
 
 use crate::{
     LmBoolMapBuffer, LmCC, LmEnv, LmStatus,
     buffer::bool_map_buffer_from_vec,
-    env::utils::environment_from_c,
     error::{CapiError, guard},
 };
 
@@ -36,7 +35,7 @@ pub unsafe extern "C" fn lm_cc_deep_clone(
 ) -> LmStatus {
     guard(|| {
         let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
-        let env = unsafe { environment_from_c(env)? };
+        let env = unsafe { shared_from_c(env, "env")? }.read_arc();
         let out = unsafe { out_from_c(out) }?;
         *out = handle_to_c(cc.deep_clone(env.clone()));
         Ok(())

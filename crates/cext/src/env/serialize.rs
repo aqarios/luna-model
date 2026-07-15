@@ -1,4 +1,4 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c};
+use crate::utils::{new_handle_out_from_c, out_from_c, shared_from_c, slice_from_c};
 use luna_model::core::{ArcEnv, Environment};
 use luna_model::serializer::prelude::*;
 
@@ -16,7 +16,7 @@ use crate::{LmBuffer, LmEnv, LmStatus};
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_serialize(env: *const LmEnv, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         let bytes = env
             .read_arc()
@@ -50,7 +50,6 @@ pub unsafe extern "C" fn lm_env_deserialize(
             .decode(())
             .map_err(CapiError::deserialization)?;
         let env = ArcEnv::from(env);
-        *out = handle_to_c(env);
-        Ok(())
+        unsafe { new_handle_out_from_c(out, env) }
     })
 }

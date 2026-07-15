@@ -1,13 +1,10 @@
-use luna_model::core::prelude::ArcEnv;
+//! C-API-backed PyO3 environment conversion.
 
-#[repr(transparent)]
-/// A wrapper around a [`ArcEnv`] that can be converted to and from python with `pyo3`.
-pub struct PyEnvironment(pub ArcEnv);
-
-capsule_wrapper! {
+capi_wrapper! {
     wrapper: PyEnvironment,
     public: Environment,
-    inner: ArcEnv,
+    inner: ::rs_lunamodel::Env,
+    raw: ::lunamodel_cext_vtable::LmEnv,
     attr: "_env",
     from_py: "_from_pyenv",
 }

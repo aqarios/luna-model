@@ -5,8 +5,8 @@
 
 use std::sync::Arc;
 
-use lunamodel_cext_vtable::{LmModel, LmSol};
-use lunamodel_core::{Model, Solution};
+use lunamodel_cext_vtable::{LmEnv, LmModel, LmSol};
+use lunamodel_core::{ArcEnv, Model, Solution};
 use parking_lot::RwLock;
 
 /// Associates an opaque C handle type with its host-side Rust value.
@@ -24,6 +24,10 @@ unsafe impl HandleKind for LmModel {
 
 unsafe impl HandleKind for LmSol {
     type Value = Solution;
+}
+
+unsafe impl HandleKind for LmEnv {
+    type Value = ArcEnv;
 }
 
 /// Shared synchronized storage behind an opaque C handle.

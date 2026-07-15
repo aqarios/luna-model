@@ -1,4 +1,6 @@
-use crate::utils::{drop_from_c, handle_to_c, opt_from_c, out_from_c, ref_from_c, slice_from_c};
+use crate::utils::{
+    drop_from_c, handle_to_c, opt_from_c, out_from_c, ref_from_c, shared_from_c, slice_from_c,
+};
 use luna_model::{
     core::{
         Expression,
@@ -9,7 +11,6 @@ use luna_model::{
 
 use crate::{
     LmEnv, LmExpr, LmHigherOrder, LmLinear, LmQuadratic, LmStatus,
-    env::utils::environment_from_c,
     error::{CapiError, guard},
 };
 
@@ -44,7 +45,7 @@ pub unsafe extern "C" fn lm_expr_from_dense_quadratic(
             ));
         }
         let dense = unsafe { slice_from_c(dense, len, "dense") }?;
-        let env = unsafe { environment_from_c(env) }?;
+        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         *out = handle_to_c(
             Expression::from_dense_quadratic(
@@ -79,7 +80,7 @@ pub unsafe extern "C" fn lm_expr_new(env: *const LmEnv, out: *mut *mut LmExpr) -
     guard(|| {
         let out = unsafe { out_from_c(out) }?;
 
-        let env = unsafe { environment_from_c(env) }?;
+        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
         let expr = Expression::empty(env.clone());
         *out = handle_to_c(expr);
 
@@ -102,7 +103,7 @@ pub unsafe extern "C" fn lm_expr_new_constant(
 ) -> LmStatus {
     guard(|| {
         let out = unsafe { out_from_c(out) }?;
-        let env = unsafe { environment_from_c(env) }?;
+        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
         let expr = Expression::constant(env.clone(), val);
         *out = handle_to_c(expr);
         Ok(())

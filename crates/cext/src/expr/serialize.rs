@@ -1,9 +1,8 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c};
+use crate::utils::{handle_to_c, out_from_c, ref_from_c, shared_from_c, slice_from_c};
 use luna_model::core::Expression;
 use luna_model::serializer::prelude::*;
 
 use crate::buffer::buffer_from_vec;
-use crate::env::utils::environment_from_c;
 use crate::error::{CapiError, guard};
 use crate::{LmBuffer, LmEnv, LmExpr, LmStatus};
 
@@ -45,7 +44,7 @@ pub unsafe extern "C" fn lm_expr_deserialize(
     guard(|| {
         let out = unsafe { out_from_c(out) }?;
         let bytes = unsafe { slice_from_c(data, len, "data") }?;
-        let env = unsafe { environment_from_c(env)? };
+        let env = unsafe { shared_from_c(env, "env")? }.read_arc();
         let expr: Expression = bytes
             .unversionize()
             .decompress()

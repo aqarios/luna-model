@@ -15,6 +15,11 @@ struct HeldSolution {
     solution: PySolution,
 }
 
+#[pyclass]
+struct HeldEnvironment {
+    environment: PyEnvironment,
+}
+
 #[pymethods]
 impl HeldModel {
     #[new]
@@ -46,6 +51,27 @@ impl HeldSolution {
     fn add_real(&mut self, py: Python<'_>, name: String, data: Vec<f64>) -> PyResult<()> {
         py.detach(|| self.solution.add_real(&name, data))
             .map_err(lm_error)
+    }
+}
+
+#[pymethods]
+impl HeldEnvironment {
+    #[new]
+    fn new(environment: PyEnvironment) -> Self {
+        Self { environment }
+    }
+
+    fn len(&self, py: Python<'_>) -> PyResult<usize> {
+        py.detach(|| self.environment.len()).map_err(lm_error)
+    }
+
+    fn insert_real(&mut self, py: Python<'_>, name: String) -> PyResult<()> {
+        py.detach(|| {
+            self.environment
+                .insert(&name, rs_lunamodel::Vtype::Real, None)
+                .map(|_| ())
+        })
+        .map_err(lm_error)
     }
 }
 
@@ -93,6 +119,14 @@ fn roundtrip_model(value: PyModel) -> PyModel {
 fn new_model(name: String) -> PyResult<PyModel> {
     rs_lunamodel::Model::new(Some(name), None)
         .map(PyModel::from)
+        .map_err(lm_error)
+}
+
+#[pyfunction]
+fn model_environment(model: PyModel) -> PyResult<PyEnvironment> {
+    model
+        .env()
+        .map(PyEnvironment::from)
         .map_err(lm_error)
 }
 
@@ -155,6 +189,7 @@ fn pyo3_lunamodel_integration_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(roundtrip_expression, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_model, m)?)?;
     m.add_function(wrap_pyfunction!(new_model, m)?)?;
+    m.add_function(wrap_pyfunction!(model_environment, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_model_specs, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_sense, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_solution, m)?)?;
@@ -167,6 +202,7 @@ fn pyo3_lunamodel_integration_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     m.add_class::<HeldModel>()?;
     m.add_class::<HeldSolution>()?;
+    m.add_class::<HeldEnvironment>()?;
 
     Ok(())
 }

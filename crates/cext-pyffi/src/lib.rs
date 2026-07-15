@@ -10,7 +10,7 @@ use std::{
     mem, ptr,
 };
 
-use lunamodel_cext_vtable::{LmModel, LmSol};
+use lunamodel_cext_vtable::{LmEnv, LmModel, LmSol};
 use pyo3::{
     Bound, PyResult, Python,
     exceptions::PyValueError,
@@ -31,6 +31,10 @@ impl CapsuleKind for LmModel {
 
 impl CapsuleKind for LmSol {
     const CAPSULE_NAME: &'static CStr = c"luna_model.capi.Solution.v1";
+}
+
+impl CapsuleKind for LmEnv {
+    const CAPSULE_NAME: &'static CStr = c"luna_model.capi.Environment.v1";
 }
 
 #[repr(C)]

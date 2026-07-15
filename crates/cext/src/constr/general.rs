@@ -1,4 +1,6 @@
-use crate::utils::{handle_to_c, mut_from_c, opt_from_c, out_from_c, ref_from_c, slice_from_c};
+use crate::utils::{
+    handle_to_c, mut_from_c, opt_from_c, out_from_c, ref_from_c, shared_from_c, slice_from_c,
+};
 use luna_model::core::{
     Expression,
     prelude::{Constraint, ContentEquality, VarRef},
@@ -6,7 +8,6 @@ use luna_model::core::{
 
 use crate::{
     LmConstraint, LmEnv, LmExpr, LmStatus, LmVref,
-    env::utils::environment_from_c,
     error::{CapiError, guard},
 };
 
@@ -41,7 +42,7 @@ pub unsafe extern "C" fn lm_constr_deep_clone(
 ) -> LmStatus {
     guard(|| {
         let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
-        let env = unsafe { environment_from_c(env)? };
+        let env = unsafe { shared_from_c(env, "env")? }.read_arc();
         let out = unsafe { out_from_c(out) }?;
         *out = handle_to_c(constr.deep_clone(env.clone()));
         Ok(())

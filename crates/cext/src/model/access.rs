@@ -1,4 +1,4 @@
-use crate::utils::{handle_to_c, out_from_c, shared_from_c, str_from_c};
+use crate::utils::{handle_to_c, new_handle_out_from_c, out_from_c, shared_from_c, str_from_c};
 use std::ffi::c_char;
 
 use crate::buffer::{buffer_from_vec, vref_buffer_from_vec, vtype_buffer_from_vec};
@@ -54,9 +54,7 @@ pub unsafe extern "C" fn lm_model_sense(model: *const LmModel, out: *mut LmSense
 pub unsafe extern "C" fn lm_model_env(model: *const LmModel, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
         let model = unsafe { shared_from_c(model, "model") }?.read_arc();
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(model.environment.clone());
-        Ok(())
+        unsafe { new_handle_out_from_c(out, model.environment.clone()) }
     })
 }
 
