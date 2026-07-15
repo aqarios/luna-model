@@ -26,7 +26,7 @@ pub use lunamodel_cext_vtable::{
 // `LUNA_MODEL_CAPI_ABI_VERSION` macro into the header. The vtable crate's copy
 // (used by downstream Rust consumers) carries `cbindgen:ignore`; the assert keeps
 // the two in lock-step.
-pub const CAPI_ABI_VERSION: u32 = 2;
+pub const CAPI_ABI_VERSION: u32 = 1;
 const _: () = assert!(CAPI_ABI_VERSION == lunamodel_cext_vtable::CAPI_ABI_VERSION);
 
 pub mod bound;

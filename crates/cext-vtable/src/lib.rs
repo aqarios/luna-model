@@ -17,7 +17,7 @@ use std::os::raw::c_char;
 /// or to any exported function signature. Consumers must check it after import.
 ///
 /// cbindgen:ignore
-pub const CAPI_ABI_VERSION: u32 = 2;
+pub const CAPI_ABI_VERSION: u32 = 1;
 
 /// Status codes returned by every fallible `lm_*` entry point.
 ///

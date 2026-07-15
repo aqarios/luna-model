@@ -132,7 +132,6 @@ class Specs {
         return out;
     }
 
-
     /* Clones into an independent handle. */
     Specs clone() const {
         LmSpecs *out = nullptr;

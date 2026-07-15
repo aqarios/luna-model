@@ -163,6 +163,16 @@ void lm_cmp_buffer_free(LmCmpBuffer buffer);
 void lm_ctype_buffer_free(LmCtypeBuffer buffer);
 
 /**
+ * Frees an f64 buffer previously returned by LunaModel.
+ *
+ * A null/empty buffer is a no-op. Each f64 buffer must be freed at most once.
+ *
+ * # Safety
+ * `buffer` must have been produced by this library and not already freed.
+ */
+void lm_f64_buffer_free(LmF64Buffer buffer);
+
+/**
  * Frees a higher-order item buffer previously returned by LunaModel.
  *
  * Also frees each item's owned `indices` buffer. A null/empty buffer is a
@@ -1187,6 +1197,31 @@ LmStatus lm_expr_eq(const LmExpr *expr, const LmExpr *other, bool *out);
 LmStatus lm_expr_equal_contents(const LmExpr *expr, const LmExpr *other, bool *out);
 
 /**
+ * Evaluates the expression against a single name-keyed sample.
+ *
+ * `names` and `values` are parallel arrays of length `len`.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle. `names`/`values` must point to
+ * `len` valid elements; `out` must point to writable `f64` storage.
+ */
+LmStatus lm_expr_evaluate_sample(const LmExpr *expr,
+                                 const char *const *names,
+                                 const double *values,
+                                 uintptr_t len,
+                                 double *out);
+
+/**
+ * Evaluates the expression across every sample row of `sol`.
+ *
+ * # Safety
+ * `expr` and `sol` must be valid handles; `out` must point to writable
+ * `LmF64Buffer` storage. The returned buffer must be freed with
+ * `lm_f64_buffer_free`.
+ */
+LmStatus lm_expr_evaluate(const LmExpr *expr, const LmSol *sol, LmF64Buffer *out);
+
+/**
  * Clones an expression into a new, independent handle written to `out`.
  *
  * # Safety
@@ -2120,6 +2155,38 @@ LmStatus lm_model_evaluate_solution_with_tol(const LmModel *model,
                                              const LmSol *solution,
                                              const double *tol,
                                              LmSol **out);
+
+/**
+ * Evaluates the model against a single sample row, returning the enriched
+ * result view for that row.
+ *
+ * The sample is extracted into a one-row solution and evaluated, mirroring the
+ * core evaluation path. `tol == NULL` uses the default tolerance.
+ *
+ * # Safety
+ * `model` and `sample` must be valid handles. `tol` must be null or point to a
+ * readable `double`. `out` must point to writable `LmResultView *` storage; the
+ * returned handle must be released with [`lm_result_view_free`].
+ */
+LmStatus lm_model_evaluate_sample(const LmModel *model,
+                                  const LmSampleView *sample,
+                                  const double *tol,
+                                  LmResultView **out);
+
+/**
+ * Returns the constraints violated by a single sample row.
+ *
+ * `tol == NULL` uses the default tolerance for the floating-point comparisons.
+ *
+ * # Safety
+ * `model` and `sample` must be valid handles. `tol` must be null or point to a
+ * readable `double`. `out` must point to writable `LmCC *` storage; the returned
+ * handle must be released with [`lm_cc_free`].
+ */
+LmStatus lm_model_violated_constraints(const LmModel *model,
+                                       const LmSampleView *sample,
+                                       const double *tol,
+                                       LmCC **out);
 
 /**
  * Substitutes every occurrence of `target` in the model with `replacement`.

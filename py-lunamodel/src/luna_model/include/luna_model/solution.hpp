@@ -15,6 +15,7 @@
 #include "luna_model/detail/capi.hpp"
 #include "luna_model/env.hpp"
 #include "luna_model/error.hpp"
+#include "luna_model/expr.hpp"
 #include "luna_model/result_view.hpp"
 #include "luna_model/sample_view.hpp"
 #include "luna_model/timing.hpp"
@@ -199,6 +200,17 @@ class Solution {
         return SampleView(out);
     }
 
+    /* The sample row at `index`, or `std::nullopt` if out of range. */
+    std::optional<SampleView> sample(std::size_t index) const {
+        LmSampleView *out = nullptr;
+        LmStatus st = lm_sol_sample_view(handle_, index, &out);
+        if (st == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(st);
+        return SampleView(out);
+    }
+
     /* Every sample row as an owned view. */
     std::vector<SampleView> sample_views() const {
         LmSampleViewBuffer buf = {nullptr, 0, 0};
@@ -296,9 +308,8 @@ class Solution {
      *
      * `names` and `assignments` must have equal length; `counts` is the number
      * of occurrences of this row; `energy` is the optional raw solver energy. */
-    void push(const std::vector<std::string> &names,
-              const std::vector<LmAssignment> &assignments, std::size_t counts = 1,
-              std::optional<double> energy = std::nullopt) {
+    void push(const std::vector<std::string> &names, const std::vector<LmAssignment> &assignments,
+              std::size_t counts = 1, std::optional<double> energy = std::nullopt) {
         std::vector<const char *> ptrs;
         ptrs.reserve(names.size());
         for (const std::string &name : names) {
@@ -316,22 +327,14 @@ class Solution {
             return std::nullopt;
         }
         detail::check(st);
-        ResultView out = detail::read_result_view(view);
-        lm_result_view_free(view);
-        return out;
+        return ResultView(view);
     }
 
     /* Result views over all rows. */
     std::vector<ResultView> results() const {
         LmResultViewBuffer buf = {nullptr, 0, 0};
         detail::check(lm_sol_results(handle_, &buf));
-        std::vector<ResultView> out;
-        out.reserve(buf.len);
-        for (std::size_t i = 0; i < buf.len; ++i) {
-            out.push_back(detail::read_result_view(buf.data[i]));
-        }
-        lm_result_view_buffer_free(buf);
-        return out;
+        return adopt_result_views(buf);
     }
 
     /* Best feasible result views, or `std::nullopt` when unavailable. */
@@ -342,13 +345,7 @@ class Solution {
             return std::nullopt;
         }
         detail::check(st);
-        std::vector<ResultView> out;
-        out.reserve(buf.len);
-        for (std::size_t i = 0; i < buf.len; ++i) {
-            out.push_back(detail::read_result_view(buf.data[i]));
-        }
-        lm_result_view_buffer_free(buf);
-        return out;
+        return adopt_result_views(buf);
     }
 
     /* Conditional value at risk. */
@@ -462,6 +459,18 @@ class Solution {
         return Solution(out);
     }
 
+    /* Returns a new solution containing only the rows for which `predicate`
+     * returns true. `predicate` is invoked with each row's `const ResultView&`. */
+    template <class Predicate> Solution filter(Predicate predicate) const {
+        std::vector<ResultView> views = results();
+        std::vector<bool> mask;
+        mask.reserve(views.size());
+        for (const ResultView &view : views) {
+            mask.push_back(static_cast<bool>(predicate(view)));
+        }
+        return filter_by_mask(mask);
+    }
+
     /* Clones into an independent solution. */
     Solution clone() const {
         LmSol *out = nullptr;
@@ -535,8 +544,31 @@ class Solution {
     }
 
   private:
+    /* Adopts each handle of a result-view buffer into an owning `ResultView`,
+     * then releases the outer array (nulled slots are skipped). */
+    static std::vector<ResultView> adopt_result_views(LmResultViewBuffer buf) {
+        std::vector<ResultView> out;
+        out.reserve(buf.len);
+        for (std::size_t i = 0; i < buf.len; ++i) {
+            out.emplace_back(buf.data[i]);
+            buf.data[i] = nullptr;
+        }
+        lm_result_view_buffer_free(buf);
+        return out;
+    }
+
     LmSol *handle_;
 };
+
+/* Expression<->Solution bridge: declared in expr.hpp, defined here where
+ * `Solution` is complete. Evaluates the expression across every sample row. */
+inline std::vector<double> Expression::evaluate(const Solution &sol) const {
+    LmF64Buffer buf = {nullptr, 0, 0};
+    detail::check(lm_expr_evaluate(handle_, sol.get(), &buf));
+    std::vector<double> out(buf.data, buf.data + buf.len);
+    lm_f64_buffer_free(buf);
+    return out;
+}
 
 } // namespace lm
 

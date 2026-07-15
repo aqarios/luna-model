@@ -106,7 +106,7 @@ class Vref {
     }
 
     /* Materializes the referenced environment entry as an owned variable. */
-    Variable to_var() const {
+    Variable to_variable() const {
         LmVar *out = nullptr;
         detail::check(lm_vref_to_var(handle_, &out));
         return Variable(out);
@@ -126,7 +126,7 @@ class Vref {
 
     /* Whether `value` satisfies the variable's bounds; `std::nullopt` tol selects
      * the default tolerance. */
-    bool eval(double value, std::optional<double> tol = std::nullopt) const {
+    bool evaluate(double value, std::optional<double> tol = std::nullopt) const {
         bool out = false;
         detail::check(lm_vref_eval(handle_, value, tol ? &tol.value() : nullptr, &out));
         return out;

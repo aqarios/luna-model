@@ -2,8 +2,10 @@
 #define LUNA_MODEL_CONSTRAINT_COLLECTION_HPP
 
 #include <cstdint>
+#include <map>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <luna_model.h>
@@ -95,6 +97,16 @@ class ConstraintCollection {
         return Constraint(out);
     }
 
+    /* Every `(name, constraint)` pair, in name order. */
+    std::vector<std::pair<std::string, Constraint>> iter() const {
+        std::vector<std::pair<std::string, Constraint>> out;
+        for (std::string &name : names()) {
+            Constraint c = get(name);
+            out.emplace_back(std::move(name), std::move(c));
+        }
+        return out;
+    }
+
     // --- introspection ---
 
     /* The distinct variable types used across the collection. */
@@ -140,6 +152,18 @@ class ConstraintCollection {
             lm_cc_add_constraint(handle_, constr.get(), name ? name->c_str() : nullptr, &buf));
         std::string out(reinterpret_cast<const char *>(buf.data), buf.len);
         lm_buffer_free(buf);
+        return out;
+    }
+
+    /* Adds many constraints, each with an optional name, returning the names
+     * they were stored under (in order). */
+    std::vector<std::string> add_many_constraints(
+        const std::vector<std::pair<const Constraint *, std::optional<std::string>>> &constraints) {
+        std::vector<std::string> out;
+        out.reserve(constraints.size());
+        for (const auto &[constr, name] : constraints) {
+            out.push_back(add_constraint(*constr, name));
+        }
         return out;
     }
 

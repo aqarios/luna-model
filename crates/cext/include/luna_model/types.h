@@ -14,7 +14,7 @@
  * Bump this on any breaking change to the layout of the exported table struct
  * or to any exported function signature. Consumers must check it after import.
  */
-#define LUNA_MODEL_CAPI_ABI_VERSION 2
+#define LUNA_MODEL_CAPI_ABI_VERSION 1
 
 /**
  * Status codes returned by every fallible `lm_*` entry point.

@@ -20,8 +20,8 @@
 
 namespace lm {
 
-class Vref;      // defined in vref.hpp; cross-type bodies are defined in ops.hpp
-class Solution;  // defined in solution.hpp; `evaluate` is defined there
+class Vref;     // defined in vref.hpp; cross-type bodies are defined in ops.hpp
+class Solution; // defined in solution.hpp; `evaluate` is defined there
 
 /* Owning handle to a symbolic expression over an environment's variables
  * (frees on destruction). */

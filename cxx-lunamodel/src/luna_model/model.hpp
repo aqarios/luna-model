@@ -201,8 +201,8 @@ class Model {
     ConstraintCollection violated_constraints(const SampleView &sample,
                                               std::optional<double> tol = std::nullopt) const {
         LmCC *out = nullptr;
-        detail::check(lm_model_violated_constraints(handle_, sample.get(),
-                                                    tol ? &*tol : nullptr, &out));
+        detail::check(
+            lm_model_violated_constraints(handle_, sample.get(), tol ? &*tol : nullptr, &out));
         return ConstraintCollection(out);
     }
 
@@ -211,8 +211,7 @@ class Model {
     ResultView evaluate_sample(const SampleView &sample,
                                std::optional<double> tol = std::nullopt) const {
         LmResultView *out = nullptr;
-        detail::check(
-            lm_model_evaluate_sample(handle_, sample.get(), tol ? &*tol : nullptr, &out));
+        detail::check(lm_model_evaluate_sample(handle_, sample.get(), tol ? &*tol : nullptr, &out));
         return ResultView(out);
     }
 

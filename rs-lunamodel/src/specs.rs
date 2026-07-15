@@ -86,7 +86,6 @@ impl Specs {
     pub fn satisfies(&self, other: &Specs) -> Result<bool> {
         out!(specs_satisfies(@self, @other))
     }
-
 }
 
 impl PartialEq for Specs {

@@ -19,8 +19,7 @@ class Variable {
      * uses the default bounds for `vtype`. */
     Variable(const std::string &name, LmVtype vtype, const LazyBounds *bounds = nullptr) {
         LmVar *out = nullptr;
-        detail::check(
-            lm_var_new(name.c_str(), vtype, bounds ? bounds->get() : nullptr, &out));
+        detail::check(lm_var_new(name.c_str(), vtype, bounds ? bounds->get() : nullptr, &out));
         handle_ = out;
     }
 

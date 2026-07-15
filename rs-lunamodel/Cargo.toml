@@ -31,7 +31,6 @@ itertools = "0.15.0"
 # `luna-model` core is linked: model operations dispatch into the host table.
 lunamodel-cext-vtable = { path = "../crates/cext-vtable" }
 lunamodel-types = { path = "../crates/types" }
-lunamodel-utils = { path = "../crates/utils" }
 num = "0.4.3"
 rs-lunamodel-derive = { path = "./derive" }
 

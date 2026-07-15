@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -15,6 +16,8 @@
 #include "luna_model/error.hpp"
 #include "luna_model/expr.hpp"
 #include "luna_model/lazy_bounds.hpp"
+#include "luna_model/result_view.hpp"
+#include "luna_model/sample_view.hpp"
 #include "luna_model/solution.hpp"
 #include "luna_model/specs.hpp"
 #include "luna_model/vref.hpp"
@@ -192,6 +195,24 @@ class Model {
     /* Substitutes `replacement` for `target` in the objective and constraints. */
     void substitute(const Vref &target, const Expression &replacement) {
         detail::check(lm_model_substitute(handle_, target.get(), replacement.get()));
+    }
+
+    /* The subset of constraints that `sample` violates, within `tol`. */
+    ConstraintCollection violated_constraints(const SampleView &sample,
+                                              std::optional<double> tol = std::nullopt) const {
+        LmCC *out = nullptr;
+        detail::check(
+            lm_model_violated_constraints(handle_, sample.get(), tol ? &*tol : nullptr, &out));
+        return ConstraintCollection(out);
+    }
+
+    /* Evaluates the model against a single sample row, returning that row's
+     * enriched result view. `tol` is forwarded to constraint comparisons. */
+    ResultView evaluate_sample(const SampleView &sample,
+                               std::optional<double> tol = std::nullopt) const {
+        LmResultView *out = nullptr;
+        detail::check(lm_model_evaluate_sample(handle_, sample.get(), tol ? &*tol : nullptr, &out));
+        return ResultView(out);
     }
 
     // --- specification ---
