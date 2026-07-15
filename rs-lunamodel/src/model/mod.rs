@@ -85,3 +85,7 @@ impl std::fmt::Debug for Model {
             .finish()
     }
 }
+
+// SAFETY: every operation on an LmModel is synchronized by the host.
+unsafe impl Send for Model {}
+unsafe impl Sync for Model {}

@@ -1,4 +1,4 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c};
+use crate::utils::{new_handle_out_from_c, out_from_c, shared_from_c, slice_from_c};
 use luna_model::core::Model;
 use luna_model::serializer::prelude::*;
 
@@ -16,7 +16,7 @@ use crate::{LmBuffer, LmModel, LmStatus};
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_serialize(model: *const LmModel, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         let bytes = model
             .encode(Some(true), None)
@@ -39,7 +39,6 @@ pub unsafe extern "C" fn lm_model_deserialize(
     out: *mut *mut LmModel,
 ) -> LmStatus {
     guard(|| {
-        let out = unsafe { out_from_c(out) }?;
         let bytes = unsafe { slice_from_c(data, len, "data") }?;
         let model: Model = bytes
             .unversionize()
@@ -47,7 +46,6 @@ pub unsafe extern "C" fn lm_model_deserialize(
             .map_err(CapiError::deserialization)?
             .decode(())
             .map_err(CapiError::deserialization)?;
-        *out = handle_to_c(model);
-        Ok(())
+        unsafe { new_handle_out_from_c(out, model) }
     })
 }

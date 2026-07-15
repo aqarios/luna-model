@@ -4,11 +4,51 @@ use luna_model::{
     core::solution::{Assignment, result::ResultView},
     types::{Bound, Comparator, Ctype, Sense, ValueSource, Vtype},
 };
+use lunamodel_cext_handle::{HandleKind, Shared, handle_from_shared, handle_ref, new_handle};
 
 use crate::{
     LmAssignment, LmBound, LmBoundTag, LmComparator, LmCtype, LmResultView, LmSense, LmStatus,
     LmValueSource, LmVtype, error::CapiError, res::ResultViewHandle,
 };
+
+/// Borrows the synchronized host storage behind an opaque C handle.
+///
+/// # Safety
+/// `ptr` must be null or a live handle of type `H` created by
+/// `lunamodel-cext-handle` and remain live for the returned lifetime.
+pub(crate) unsafe fn shared_from_c<'a, H: HandleKind>(
+    ptr: *const H,
+    what: &str,
+) -> Result<&'a Shared<H>, CapiError> {
+    unsafe { handle_ref(ptr) }.ok_or_else(|| CapiError::null_pointer(what))
+}
+
+/// Writes a newly allocated synchronized handle to an opaque output slot.
+///
+/// # Safety
+/// `out` must be null or point to writable `H *` storage.
+pub(crate) unsafe fn new_handle_out_from_c<H: HandleKind>(
+    out: *mut *mut H,
+    value: H::Value,
+) -> Result<(), CapiError> {
+    let out = unsafe { out_from_c(out) }?;
+    *out = new_handle::<H>(value);
+    Ok(())
+}
+
+/// Writes another owning handle for existing synchronized storage to an
+/// opaque output slot.
+///
+/// # Safety
+/// `out` must be null or point to writable `H *` storage.
+pub(crate) unsafe fn retained_handle_out_from_c<H: HandleKind>(
+    out: *mut *mut H,
+    shared: Shared<H>,
+) -> Result<(), CapiError> {
+    let out = unsafe { out_from_c(out) }?;
+    *out = handle_from_shared::<H>(shared);
+    Ok(())
+}
 
 pub fn sense_from_c(sense: LmSense) -> Sense {
     match sense {
@@ -117,14 +157,6 @@ pub fn value_source_from_c(vs: LmValueSource) -> ValueSource {
 /// `ptr` must be null or valid for reads as a `T` for the returned lifetime.
 pub(crate) unsafe fn ref_from_c<'a, T>(ptr: *const T, what: &str) -> Result<&'a T, CapiError> {
     unsafe { ptr.as_ref() }.ok_or_else(|| CapiError::null_pointer(what))
-}
-
-/// Borrows the Rust value behind a C pointer, returning None with `NullPointer`.
-///
-/// # Safety
-/// `ptr` must be null or valid for reads as a `T` for the returned lifetime.
-pub(crate) unsafe fn opt_ref_from_c<'a, T>(ptr: *const T) -> Option<&'a T> {
-    unsafe { ptr.as_ref() }
 }
 
 /// Mutably borrows the Rust value behind a C pointer, failing with `NullPointer`.

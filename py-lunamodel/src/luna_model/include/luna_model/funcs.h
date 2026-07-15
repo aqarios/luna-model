@@ -2204,6 +2204,8 @@ LmStatus lm_model_equal_contents(const LmModel *model, const LmModel *other, boo
  */
 LmStatus lm_model_clone(const LmModel *model, LmModel **out);
 
+LmStatus lm_model_retain(const LmModel *model, LmModel **out);
+
 /**
  * Deep-clones a model into a new, independent handle written to `out`.
  *

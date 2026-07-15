@@ -1,5 +1,7 @@
-use crate::utils::{handle_to_c, mut_from_c, opt_from_c, out_from_c, ref_from_c};
-use luna_model::core::{Expression, Model, Solution, prelude::VarRef};
+use crate::utils::{
+    handle_to_c, new_handle_out_from_c, opt_from_c, out_from_c, ref_from_c, shared_from_c,
+};
+use luna_model::core::{Expression, prelude::VarRef};
 
 use crate::{
     LmCC, LmExpr, LmModel, LmSampleView, LmSol, LmStatus, LmVref,
@@ -23,12 +25,10 @@ pub unsafe extern "C" fn lm_model_evaluate_solution(
     out: *mut *mut LmSol,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-        let sol = unsafe { ref_from_c(solution as *const Solution, "solution") }?;
-        let out = unsafe { out_from_c(out) }?;
-        let res = model.evaluate_solution(sol).map_err(CapiError::errored)?;
-        *out = handle_to_c(res);
-        Ok(())
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
+        let sol = unsafe { shared_from_c(solution, "solution") }?.read_arc();
+        let res = model.evaluate_solution(&sol).map_err(CapiError::errored)?;
+        unsafe { new_handle_out_from_c(out, res) }
     })
 }
 
@@ -52,16 +52,14 @@ pub unsafe extern "C" fn lm_model_evaluate_solution_with_tol(
     out: *mut *mut LmSol,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-        let sol = unsafe { ref_from_c(solution as *const Solution, "solution") }?;
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
+        let sol = unsafe { shared_from_c(solution, "solution") }?.read_arc();
         let tol = unsafe { opt_from_c(tol) };
-        let out = unsafe { out_from_c(out) }?;
 
         let res = model
-            .evaluate_solution_with_tol(sol, tol)
+            .evaluate_solution_with_tol(&sol, tol)
             .map_err(CapiError::errored)?;
-        *out = handle_to_c(res);
-        Ok(())
+        unsafe { new_handle_out_from_c(out, res) }
     })
 }
 
@@ -78,14 +76,12 @@ pub unsafe extern "C" fn lm_model_substitute(
     replacement: *const LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { mut_from_c(model as *mut Model, "model") }?;
+        let mut model = unsafe { shared_from_c(model, "model") }?.write_arc();
         let target = unsafe { ref_from_c(target as *const VarRef, "target") }?;
         let replacement = unsafe { ref_from_c(replacement as *const Expression, "replacement") }?;
-
         model
             .substitute(target, replacement)
             .map_err(CapiError::errored)?;
-
         Ok(())
     })
 }
@@ -103,7 +99,7 @@ pub unsafe extern "C" fn lm_model_violated_constraints(
     out: *mut *mut LmCC,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let sample = unsafe { ref_from_c(sample as *const SampleViewHandle, "sample") }?;
         let sample = sample
             .sol

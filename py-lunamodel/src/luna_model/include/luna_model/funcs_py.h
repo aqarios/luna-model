@@ -75,6 +75,7 @@ static inline int import_luna_model(void) {
 #define lm_model_new(...) (lunamodel__vtable->model_new(__VA_ARGS__))
 #define lm_model_with_env(...) (lunamodel__vtable->model_with_env(__VA_ARGS__))
 #define lm_model_clone(...) (lunamodel__vtable->model_clone(__VA_ARGS__))
+#define lm_model_retain(...) (lunamodel__vtable->model_retain(__VA_ARGS__))
 #define lm_model_deep_clone(...) (lunamodel__vtable->model_deep_clone(__VA_ARGS__))
 #define lm_model_satisfies(...) (lunamodel__vtable->model_satisfies(__VA_ARGS__))
 #define lm_model_add_var(...) (lunamodel__vtable->model_add_var(__VA_ARGS__))

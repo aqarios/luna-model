@@ -59,6 +59,19 @@ pub fn derive_raw_handle(input: TokenStream) -> TokenStream {
                 }
             }
         }
+
+        unsafe impl crate::ffi::OwnedHandle for #name {
+            type Raw = #pointee;
+
+            unsafe fn from_raw_owned_unchecked(handle: *mut Self::Raw) -> Self {
+                Self { handle }
+            }
+
+            fn into_raw_owned(self) -> *mut Self::Raw {
+                let this = ::std::mem::ManuallyDrop::new(self);
+                this.handle
+            }
+        }
     }
     .into()
 }

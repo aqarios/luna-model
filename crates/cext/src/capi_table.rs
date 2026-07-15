@@ -38,6 +38,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     model_new: crate::model::lm_model_new,
     model_with_env: crate::model::lm_model_with_env,
     // Model -- general
+    model_retain: crate::model::lm_model_retain,
     model_clone: crate::model::lm_model_clone,
     model_deep_clone: crate::model::lm_model_deep_clone,
     model_satisfies: crate::model::lm_model_satisfies,

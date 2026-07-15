@@ -825,6 +825,7 @@ typedef struct {
     LmStatus (*model_new)(const char*, const LmSense*, LmModel**);
     LmStatus (*model_with_env)(const char*, const LmSense*, const LmEnv*, LmModel**);
     LmStatus (*model_clone)(const LmModel*, LmModel**);
+    LmStatus (*model_retain)(const LmModel*, LmModel**);
     LmStatus (*model_deep_clone)(const LmModel*, LmModel**);
     LmStatus (*model_satisfies)(const LmModel*, const LmSpecs*, bool*);
     LmStatus (*model_add_var)(LmModel*, const char*, LmVtype, const LmLazyBounds*, LmVref**);

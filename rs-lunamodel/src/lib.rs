@@ -28,6 +28,7 @@
 mod macros;
 
 mod buffer;
+pub mod ffi;
 pub mod traits;
 mod utils;
 

@@ -1,11 +1,12 @@
 use itertools::Either;
 use luna_model::core::{ArcEnv, Model, Solution};
+use lunamodel_cext_handle::{drop_handle, new_handle};
 
 use crate::{
     LmEnv, LmModel, LmSense, LmSol, LmStatus,
     env::utils::environment_from_c,
     error::{CapiError, guard},
-    utils::{drop_from_c, handle_to_c, opt_from_c, out_from_c, ref_from_c, sense_from_c},
+    utils::{new_handle_out_from_c, opt_from_c, ref_from_c, sense_from_c, shared_from_c},
 };
 
 /// Frees a solution handle. Passing null is a no-op.
@@ -14,7 +15,7 @@ use crate::{
 /// `solution` must originate from this library and must not be used or freed again.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_free(solution: *mut LmSol) {
-    unsafe { drop_from_c(solution as *mut Solution) }
+    unsafe { drop_handle(solution) }
 }
 
 /// Creates a new, empty solution.
@@ -22,19 +23,19 @@ pub unsafe extern "C" fn lm_sol_free(solution: *mut LmSol) {
 /// Returns a non-null handle that must be released with [`lm_sol_free`].
 #[unsafe(no_mangle)]
 pub extern "C" fn lm_sol_default() -> *mut LmSol {
-    handle_to_c(Solution::default())
+    new_handle(Solution::default())
 }
 
 /// Creates a new solution for a sense.
 #[unsafe(no_mangle)]
 pub extern "C" fn lm_sol_with_sense(sense: LmSense) -> *mut LmSol {
-    handle_to_c(Solution::with_sense(sense_from_c(sense)))
+    new_handle(Solution::with_sense(sense_from_c(sense)))
 }
 
 /// Creates a new solution with capacity.
 #[unsafe(no_mangle)]
 pub extern "C" fn lm_sol_with_capacity(capacity: usize) -> *mut LmSol {
-    handle_to_c(Solution::with_capacity(capacity))
+    new_handle(Solution::with_capacity(capacity))
 }
 
 /// Creates a new solution from an environment.
@@ -45,11 +46,9 @@ pub extern "C" fn lm_sol_with_capacity(capacity: usize) -> *mut LmSol {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_from_env(env: *const LmEnv, out: *mut *mut LmSol) -> LmStatus {
     guard(|| {
-        let out = unsafe { out_from_c(out) }?;
         let env = unsafe { environment_from_c(env) }?;
         let sol: Solution = env.clone().try_into().map_err(CapiError::errored)?;
-        *out = handle_to_c(sol);
-        Ok(())
+        unsafe { new_handle_out_from_c(out, sol) }
     })
 }
 
@@ -78,7 +77,7 @@ pub unsafe extern "C" fn lm_sol_from_random(
             let env = unsafe { ref_from_c(context_a as *const ArcEnv, "context_a") }?;
             Either::Left(env.clone())
         } else if !context_b.is_null() {
-            let model = unsafe { ref_from_c(context_b as *const Model, "context_b") }?;
+            let model = unsafe { shared_from_c(context_b, "context_b") }?.read_arc();
             Either::Right(model.clone())
         } else {
             return Err(CapiError::null_pointer("context"));
@@ -87,12 +86,8 @@ pub unsafe extern "C" fn lm_sol_from_random(
         let seed = unsafe { opt_from_c(seed) };
         let sense = unsafe { opt_from_c(sense).map(sense_from_c) };
         let tol = unsafe { opt_from_c(tol) };
-        let out = unsafe { out_from_c(out) }?;
-
-        // let env = unsafe { environment_from_c(env) }?;
-
-        let sol = Solution::from_random(n_samples, seed, context, sense, tol);
-        *out = handle_to_c(sol);
-        Ok(())
+        let sol = Solution::from_random(n_samples, seed, context, sense, tol)
+            .map_err(CapiError::errored)?;
+        unsafe { new_handle_out_from_c(out, sol) }
     })
 }

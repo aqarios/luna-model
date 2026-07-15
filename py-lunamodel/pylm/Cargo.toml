@@ -13,6 +13,7 @@ repository.workspace = true
 pyo3 = { workspace = true }
 lunamodel-python = { workspace = true }
 lunamodel-cext = { workspace = true }
+lunamodel-cext-pyffi = { workspace = true }
 
 [features]
 extension-module = ["pyo3/extension-module"]

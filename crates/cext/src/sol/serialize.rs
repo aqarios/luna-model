@@ -1,6 +1,6 @@
 use crate::{
     buffer::buffer_from_vec,
-    utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c},
+    utils::{new_handle_out_from_c, out_from_c, shared_from_c, slice_from_c},
 };
 use luna_model::core::Solution;
 use luna_model::serializer::prelude::*;
@@ -20,7 +20,7 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_serialize(sol: *const LmSol, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         let bytes = sol
             .encode(Some(true), None)
@@ -43,7 +43,6 @@ pub unsafe extern "C" fn lm_sol_deserialize(
     out: *mut *mut LmSol,
 ) -> LmStatus {
     guard(|| {
-        let out = unsafe { out_from_c(out) }?;
         let bytes = unsafe { slice_from_c(data, len, "data") }?;
         let solution: Solution = bytes
             .unversionize()
@@ -51,7 +50,6 @@ pub unsafe extern "C" fn lm_sol_deserialize(
             .map_err(CapiError::deserialization)?
             .decode(())
             .map_err(CapiError::deserialization)?;
-        *out = handle_to_c(solution);
-        Ok(())
+        unsafe { new_handle_out_from_c(out, solution) }
     })
 }

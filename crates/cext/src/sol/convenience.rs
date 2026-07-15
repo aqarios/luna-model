@@ -1,10 +1,8 @@
-use luna_model::core::Solution;
-
 use crate::{
     LmBuffer, LmSol, LmStatus, LmValueSource,
     buffer::buffer_from_vec,
     error::{CapiError, guard},
-    utils::{opt_from_c, out_from_c, ref_from_c, value_source_from_c},
+    utils::{opt_from_c, out_from_c, shared_from_c, value_source_from_c},
 };
 
 /// Computes the conditional value at risk (CVaR) of the selected value series.
@@ -23,7 +21,7 @@ pub unsafe extern "C" fn lm_sol_cvar(
     out: *mut f64,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let toggle = unsafe { opt_from_c(toggle) }.map(value_source_from_c);
         let out = unsafe { out_from_c(out) }?;
         *out = sol.cvar(alpha, toggle).map_err(CapiError::errored)?;
@@ -43,7 +41,7 @@ pub unsafe extern "C" fn lm_sol_expectation_value(
     out: *mut f64,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let toggle = unsafe { opt_from_c(toggle) }.map(value_source_from_c);
         let out = unsafe { out_from_c(out) }?;
         *out = sol.expectation_value(toggle).map_err(CapiError::errored)?;
@@ -64,7 +62,7 @@ pub unsafe extern "C" fn lm_sol_temperature_weighted(
     out: *mut f64,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let toggle = unsafe { opt_from_c(toggle) }.map(value_source_from_c);
         let out = unsafe { out_from_c(out) }?;
         *out = sol
@@ -82,7 +80,7 @@ pub unsafe extern "C" fn lm_sol_temperature_weighted(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_feasibility_ratio(sol: *const LmSol, out: *mut f64) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         *out = sol.feasibility_ratio().map_err(CapiError::errored)?;
         Ok(())
@@ -104,7 +102,7 @@ pub unsafe extern "C" fn lm_sol_highest_constraint_violations(
     out: *mut LmBuffer,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         match sol
             .highest_constraint_violations()

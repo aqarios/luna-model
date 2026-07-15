@@ -661,6 +661,7 @@ pub struct LunaModelCApi {
     ) -> LmStatus,
     // Model -- general
     pub model_clone: unsafe extern "C" fn(*const LmModel, *mut *mut LmModel) -> LmStatus,
+    pub model_retain: unsafe extern "C" fn(*const LmModel, *mut *mut LmModel) -> LmStatus,
     pub model_deep_clone: unsafe extern "C" fn(*const LmModel, *mut *mut LmModel) -> LmStatus,
     pub model_satisfies:
         unsafe extern "C" fn(*const LmModel, *const LmSpecs, *mut bool) -> LmStatus,

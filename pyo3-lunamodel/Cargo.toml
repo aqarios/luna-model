@@ -15,3 +15,7 @@ parking_lot = { workspace = true }
 derive_more = { workspace = true }
 
 luna-model = { workspace = true, features = ["python", "translate", "transpiler"] }
+
+rs-lunamodel = { path = "../rs-lunamodel" }
+lunamodel-cext-pyffi = { workspace = true }
+lunamodel-cext-vtable = { workspace = true }

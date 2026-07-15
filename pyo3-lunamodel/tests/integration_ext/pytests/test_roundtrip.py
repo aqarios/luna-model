@@ -74,6 +74,16 @@ def test_roundtrip_solution(ext):
     assert ext.roundtrip_solution(value) == value
 
 
+def test_model_evaluation_returns_c_backed_solution(ext):
+    model = sample_model()
+    value = Solution([{"x": 1, "y": 0}], counts=[1], env=model.environment)
+
+    evaluated = ext.evaluate_model(model, value)
+
+    assert evaluated.obj_values.tolist() == [1.0]
+    assert next(iter(evaluated.results)).feasible is True
+
+
 def test_roundtrip_model_specs(ext):
     value = ModelSpecs(
         sense=Sense.MIN,

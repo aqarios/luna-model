@@ -1,7 +1,8 @@
-use crate::utils::{drop_from_c, handle_to_c, opt_from_c, opt_str_from_c, out_from_c};
+use crate::utils::{new_handle_out_from_c, opt_from_c, opt_str_from_c};
 use std::ffi::c_char;
 
 use luna_model::core::Model;
+use lunamodel_cext_handle::{drop_handle, new_handle};
 use lunamodel_cext_vtable::LmEnv;
 
 use crate::{
@@ -14,7 +15,7 @@ use crate::{
 /// `model` must originate from this library and must not be used or freed again.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_free(model: *mut LmModel) {
-    unsafe { drop_from_c(model as *mut Model) }
+    unsafe { drop_handle(model) }
 }
 
 /// Creates a new, empty (unnamed, minimization) model.
@@ -22,7 +23,7 @@ pub unsafe extern "C" fn lm_model_free(model: *mut LmModel) {
 /// Returns a non-null handle that must be released with [`lm_model_free`].
 #[unsafe(no_mangle)]
 pub extern "C" fn lm_model_default() -> *mut LmModel {
-    handle_to_c(Model::default())
+    new_handle(Model::default())
 }
 
 /// Creates a new model.
@@ -42,15 +43,11 @@ pub unsafe extern "C" fn lm_model_new(
     out: *mut *mut LmModel,
 ) -> LmStatus {
     guard(|| {
-        let out = unsafe { out_from_c(out) }?;
-
         let name = unsafe { opt_str_from_c(name, "name") }?.map(str::to_owned);
         let sense = unsafe { opt_from_c(sense) }.map(sense_from_c);
 
         let model = Model::new(name, sense);
-        *out = handle_to_c(model);
-
-        Ok(())
+        unsafe { new_handle_out_from_c(out, model) }
     })
 }
 
@@ -73,16 +70,12 @@ pub unsafe extern "C" fn lm_model_with_env(
     out: *mut *mut LmModel,
 ) -> LmStatus {
     guard(|| {
-        let out = unsafe { out_from_c(out) }?;
-
         let env = unsafe { environment_from_c(env) }?;
 
         let name = unsafe { opt_str_from_c(name, "name") }?.map(str::to_owned);
         let sense = unsafe { opt_from_c(sense) }.map(sense_from_c);
 
         let model = Model::with_env(name, sense, env.clone());
-        *out = handle_to_c(model);
-
-        Ok(())
+        unsafe { new_handle_out_from_c(out, model) }
     })
 }

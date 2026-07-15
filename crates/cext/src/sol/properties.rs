@@ -1,12 +1,10 @@
 //! Property accessors over a solution's stored per-sample metadata.
 
-use luna_model::core::Solution;
-
 use crate::{
     LmBoolMapBuffer, LmIndexMapItemBuffer, LmSense, LmSol, LmStatus, LmTiming,
     buffer::{bool_map_buffer_from_vec, index_map_item_buffer_from_vec},
     error::{CapiError, guard},
-    utils::{handle_to_c, out_from_c, ref_from_c, sense_to_c},
+    utils::{handle_to_c, out_from_c, sense_to_c, shared_from_c},
 };
 
 /// Returns the `(variable name, column)` entries of the solution's sample map.
@@ -22,7 +20,7 @@ pub unsafe extern "C" fn lm_sol_samples(
     out: *mut LmIndexMapItemBuffer,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         let items = sol
             .samples
@@ -50,7 +48,7 @@ pub unsafe extern "C" fn lm_sol_counts(
     out_len: *mut usize,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out_data = unsafe { out_from_c(out_data) }?;
         let out_len = unsafe { out_from_c(out_len) }?;
         *out_data = sol.counts.as_ptr();
@@ -76,7 +74,7 @@ pub unsafe extern "C" fn lm_sol_raw_energies(
     out_len: *mut usize,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out_data = unsafe { out_from_c(out_data) }?;
         let out_len = unsafe { out_from_c(out_len) }?;
         let series = sol.raw_energies.as_ref().ok_or_else(|| {
@@ -105,7 +103,7 @@ pub unsafe extern "C" fn lm_sol_obj_values(
     out_len: *mut usize,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out_data = unsafe { out_from_c(out_data) }?;
         let out_len = unsafe { out_from_c(out_len) }?;
         let series = sol.obj_values.as_ref().ok_or_else(|| {
@@ -137,7 +135,7 @@ pub unsafe extern "C" fn lm_sol_feasible(
     out_len: *mut usize,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out_data = unsafe { out_from_c(out_data) }?;
         let out_len = unsafe { out_from_c(out_len) }?;
         let series = sol.feasible.as_ref().ok_or_else(|| {
@@ -165,7 +163,7 @@ pub unsafe extern "C" fn lm_sol_constraints(
     out: *mut LmBoolMapBuffer,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         let entries = sol
             .constraints
@@ -190,7 +188,7 @@ pub unsafe extern "C" fn lm_sol_variable_bounds(
     out: *mut LmBoolMapBuffer,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         let entries = sol
             .variable_bounds
@@ -213,7 +211,7 @@ pub unsafe extern "C" fn lm_sol_variable_bounds(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_timing(sol: *const LmSol, out: *mut *mut LmTiming) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         let timing = sol.timing.ok_or_else(|| {
             CapiError::new(LmStatus::Absent, "solution has no timing".to_string())
@@ -231,7 +229,7 @@ pub unsafe extern "C" fn lm_sol_timing(sol: *const LmSol, out: *mut *mut LmTimin
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_sense(sol: *const LmSol, out: *mut LmSense) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         *out = sense_to_c(sol.sense);
         Ok(())

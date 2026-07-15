@@ -24,6 +24,10 @@ lunamodel-transform = { workspace = true }
 lunamodel-transpiler = { workspace = true }
 lunamodel-python-macros = { workspace = true }
 
+lunamodel-cext-handle = { workspace = true }
+lunamodel-cext-pyffi = { workspace = true }
+lunamodel-cext-vtable = { workspace = true }
+
 pyo3 = { workspace = true, features = ["multiple-pymethods", "indexmap"] }
 numpy = { workspace = true }
 parking_lot = { workspace = true, features = ["arc_lock"] }

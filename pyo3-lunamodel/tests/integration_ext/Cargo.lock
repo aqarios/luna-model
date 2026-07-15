@@ -441,7 +441,7 @@ dependencies = [
 
 [[package]]
 name = "luna-model"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "lunamodel-core",
  "lunamodel-error",
@@ -453,8 +453,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "lunamodel-cext-handle"
+version = "0.6.9"
+dependencies = [
+ "lunamodel-cext-vtable",
+ "lunamodel-core",
+ "parking_lot 0.12.5",
+]
+
+[[package]]
+name = "lunamodel-cext-pyffi"
+version = "0.6.9"
+dependencies = [
+ "lunamodel-cext-vtable",
+ "pyo3",
+]
+
+[[package]]
+name = "lunamodel-cext-vtable"
+version = "0.6.9"
+
+[[package]]
 name = "lunamodel-core"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "bitvec",
  "derive_more",
@@ -478,7 +499,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-error"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "prost",
  "pyo3",
@@ -488,7 +509,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-hashing"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "itertools 0.15.0",
  "lunamodel-core",
@@ -498,7 +519,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-io"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "indexmap",
  "lunamodel-core",
@@ -514,11 +535,14 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-python"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "derive_more",
  "indexmap",
  "itertools 0.15.0",
+ "lunamodel-cext-handle",
+ "lunamodel-cext-pyffi",
+ "lunamodel-cext-vtable",
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-hashing",
@@ -539,7 +563,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-python-macros"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -548,7 +572,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-serializer"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "bitvec",
  "indexmap",
@@ -565,7 +589,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transform"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "derive_more",
  "lunamodel-core",
@@ -584,7 +608,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-translate"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "indexmap",
  "lunamodel-core",
@@ -597,7 +621,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "lunamodel-core",
  "lunamodel-error",
@@ -607,7 +631,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler-macros"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -616,7 +640,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-types"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "derive_more",
  "enumset",
@@ -629,7 +653,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwind"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "lunamodel-unwindable",
  "lunamodel-unwinder",
@@ -637,7 +661,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwindable"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -646,7 +670,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwinder"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "lunamodel-error",
  "pyo3",
@@ -654,7 +678,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "lunamodel-error",
  "num",
@@ -951,20 +975,24 @@ dependencies = [
 
 [[package]]
 name = "pyo3-lunamodel"
-version = "0.6.4"
+version = "0.6.9"
 dependencies = [
  "derive_more",
  "luna-model",
+ "lunamodel-cext-pyffi",
+ "lunamodel-cext-vtable",
  "parking_lot 0.12.5",
  "pyo3",
+ "rs-lunamodel",
 ]
 
 [[package]]
 name = "pyo3-lunamodel-integration-ext"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "pyo3",
  "pyo3-lunamodel",
+ "rs-lunamodel",
 ]
 
 [[package]]
@@ -993,9 +1021,9 @@ dependencies = [
 
 [[package]]
 name = "quote"
-version = "1.0.45"
+version = "1.0.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41f2619966050689382d2b44f664f4bc593e129785a36d6ee376ddf37259b924"
+checksum = "dfbc457d0c7a0759a614551b11a6409e5951f6c7537be1f1b7682b9ae9230368"
 dependencies = [
  "proc-macro2",
 ]
@@ -1087,6 +1115,27 @@ name = "regex-syntax"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
+
+[[package]]
+name = "rs-lunamodel"
+version = "0.0.1"
+dependencies = [
+ "enumset",
+ "indexmap",
+ "itertools 0.15.0",
+ "lunamodel-cext-vtable",
+ "lunamodel-types",
+ "num",
+ "rs-lunamodel-derive",
+]
+
+[[package]]
+name = "rs-lunamodel-derive"
+version = "0.0.1"
+dependencies = [
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "rustc-hash"
@@ -1219,9 +1268,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.117"
+version = "2.0.119"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e665b8803e7b1d2a727f4023456bbbbe74da67099c585258af0ad9c5013b9b99"
+checksum = "872831b642d1a07999a962a351ed35b955ea2cfc8f3862091e2a240a84f17297"
 dependencies = [
  "proc-macro2",
  "quote",

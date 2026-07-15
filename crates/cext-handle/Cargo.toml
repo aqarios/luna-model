@@ -1,0 +1,12 @@
+[package]
+name = "lunamodel-cext-handle"
+version.workspace = true
+license.workspace = true
+publish = false
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+lunamodel-core = { workspace = true }
+lunamodel-cext-vtable = { workspace = true }
+parking_lot = { workspace = true, features = ["arc_lock"] }
