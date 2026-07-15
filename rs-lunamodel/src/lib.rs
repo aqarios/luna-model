@@ -29,7 +29,7 @@ mod macros;
 
 mod buffer;
 pub mod traits;
-pub mod utils;
+mod utils;
 
 mod api;
 mod assignment;
@@ -62,19 +62,19 @@ pub use api::{InitError, abi_version, init, is_initialized, version};
 pub use assignment::Assignment;
 pub use bound::Bound;
 pub use bounds::Bounds;
-pub use cc::ConstraintCollection;
-pub use column::{ColElement, Column};
+pub use cc::{ConstraintCollection, ConstraintCollectionEditor};
+pub use column::Column;
 pub use constr::Constraint;
 pub use env::Env;
 pub type ArcEnv = Env;
 pub use error::{Error, Result, Status};
 pub use expr::Expression;
-pub use higher_order::HigherOrder;
+pub use higher_order::{HigherOrder, HigherOrderEditor};
 pub use lazy_bounds::{Concretize, LazyBounds};
-pub use linear::Linear;
+pub use linear::{Linear, LinearEditor};
 pub use model::Model;
 pub use owned_env::{Environment, VariableMut};
-pub use quadratic::Quadratic;
+pub use quadratic::{Quadratic, QuadraticEditor};
 pub use result_view::ResultView;
 pub use sample_view::{SampleView, SampleViewIdx};
 pub use sol::Solution;
@@ -83,9 +83,9 @@ pub use term_types::{Neighborhood, OneVarTerm, TwoVarTerm};
 pub use timer::Timer;
 pub use timing::Timing;
 pub use traits::{
-    ContentEquality, DefaultEditable, Editable, FilterByMask, LmAddAssign, LmMulAssign, LmPow,
-    LmPowAssign, LmSubAssign, Serialization, TryAddAssign, TryClone, TryDeepClone, TryIndex,
-    TryMulAssign, TrySubAssign,
+    ContentEquality, DefaultEditable, Editable, LmAddAssign, LmMulAssign, LmPow, LmPowAssign,
+    LmSubAssign, Serialization, TryAddAssign, TryClone, TryDeepClone, TryIndex, TryMulAssign,
+    TrySubAssign,
 };
 pub use variable::Variable;
 pub use vref::VarRef;
@@ -106,9 +106,9 @@ pub static DEFAULT_MODEL_NAME: &str = "unnamed";
 /// Native-compatible paths for code written against `luna_model::core`.
 pub mod core {
     pub use crate::{
-        ArcEnv, Assignment, Bound, Bounds, ColElement, Column, Constraint, ConstraintCollection,
-        Environment, Expression, HigherOrder, LazyBounds, Linear, Model, Quadratic, ResultView,
-        SampleView, Solution, Specs, Timer, Timing, VarRef, Variable,
+        ArcEnv, Assignment, Bound, Bounds, Column, Constraint, ConstraintCollection, Environment,
+        Expression, HigherOrder, LazyBounds, Linear, Model, Neighborhood, OneVarTerm, Quadratic,
+        ResultView, SampleView, Solution, Specs, Timer, Timing, TwoVarTerm, VarRef, Variable,
     };
 
     pub mod prelude {
@@ -142,7 +142,7 @@ pub mod core {
         pub use crate::{DEFAULT_MODEL_NAME, Model, Specs};
     }
     pub mod solution {
-        pub use crate::{Assignment, ColElement, Column, ResultView, SampleView, Solution};
+        pub use crate::{Assignment, Column, ResultView, SampleView, Solution};
         pub mod result {
             pub use crate::ResultView;
         }
@@ -158,75 +158,5 @@ pub mod core {
     }
     pub mod ops {
         pub use crate::{LmAddAssign, LmMulAssign, LmPow, LmPowAssign, LmSubAssign};
-
-        /// Reduces repeated variables using their domain-specific product rules.
-        pub fn reduce_vars_mul<F, I>(
-            vars: &[crate::VarIdx],
-            vtype: F,
-            inverted: I,
-        ) -> Option<Vec<crate::VarIdx>>
-        where
-            F: Fn(crate::VarIdx) -> crate::Vtype,
-            I: Fn(crate::VarIdx) -> Option<crate::VarIdx>,
-        {
-            use std::collections::BTreeMap;
-
-            let mut occurrences = BTreeMap::<crate::VarIdx, (usize, crate::Vtype)>::new();
-            let mut order = Vec::new();
-            for &var in vars {
-                if inverted(var).is_some_and(|other| occurrences.contains_key(&other)) {
-                    return None;
-                }
-                let entry = occurrences.entry(var).or_insert_with(|| {
-                    order.push(var);
-                    (0, vtype(var))
-                });
-                entry.0 += 1;
-            }
-
-            let mut reduced = Vec::new();
-            for var in order {
-                let (count, vtype) = occurrences[&var];
-                match vtype {
-                    crate::Vtype::Binary => reduced.push(var),
-                    crate::Vtype::Spin if count % 2 == 1 => reduced.push(var),
-                    crate::Vtype::Spin => {}
-                    _ => reduced.extend(std::iter::repeat_n(var, count)),
-                }
-            }
-            Some(reduced)
-        }
-
-        pub fn make_lookup<S>(
-            env: &crate::Environment,
-            vars: impl Iterator<Item = u32>,
-            sample: &S,
-            lookup: &mut Vec<crate::Bias>,
-        ) -> crate::Result<()>
-        where
-            for<'a> S: crate::TryIndex<&'a str, Output = crate::Bias>,
-        {
-            let next = env.next_idx()? as usize;
-            if lookup.len() < next {
-                lookup.resize(next, 0.0);
-            }
-            for idx in vars {
-                let var = env.get(idx)?;
-                let value = if var.vtype()? == crate::Vtype::InvertedBinary {
-                    let base = var.inverted()?.ok_or_else(|| crate::Error {
-                        status: crate::Status::Absent,
-                        message: format!(
-                            "inverted variable {} has no base companion",
-                            var.name().unwrap_or_default()
-                        ),
-                    })?;
-                    1.0 - sample.try_index(&env.get(base)?.name()?)?
-                } else {
-                    sample.try_index(&var.name()?)?
-                };
-                lookup[idx as usize] = value;
-            }
-            Ok(())
-        }
     }
 }

@@ -902,7 +902,6 @@ dependencies = [
  "lunamodel-cext",
  "lunamodel-cext-vtable",
  "lunamodel-types",
- "lunamodel-utils",
  "num",
  "rs-lunamodel-derive",
 ]

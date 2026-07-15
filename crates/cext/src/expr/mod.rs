@@ -16,7 +16,9 @@ pub use creation::{
     lm_expr_new, lm_expr_new_constant,
 };
 pub use equality::{lm_expr_eq, lm_expr_equal_contents};
-pub use general::{lm_expr_clone, lm_expr_deep_clone};
+pub use general::{
+    lm_expr_clone, lm_expr_deep_clone, lm_expr_deep_clone_many, lm_expr_evaluate_sample_quick,
+};
 pub use serialize::{lm_expr_deserialize, lm_expr_serialize};
 
 pub use ops::{

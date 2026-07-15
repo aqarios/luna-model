@@ -22,25 +22,17 @@ pub struct HigherOrder {
     handle: *mut LmHigherOrder,
 }
 
-struct HigherOrderEditItem {
-    key: String,
-    indices: Vec<u32>,
-    bias: f64,
-}
-
 /// Editable snapshot returned by [`HigherOrder::iter_mut`].
 #[must_use = "mutations are committed when the editor is dropped; call commit() to observe errors"]
 pub struct HigherOrderEditor<'a> {
     target: &'a mut HigherOrder,
-    items: Vec<HigherOrderEditItem>,
+    items: Vec<(String, Vec<u32>, f64)>,
     committed: bool,
 }
 
 impl HigherOrderEditor<'_> {
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (&String, &mut f64)> {
-        self.items
-            .iter_mut()
-            .map(|item| (&item.key, &mut item.bias))
+        self.items.iter_mut().map(higher_order_edit_item_mut)
     }
 
     pub fn commit(mut self) -> Result<()> {
@@ -51,9 +43,25 @@ impl HigherOrderEditor<'_> {
 
     fn commit_inner(&mut self) -> Result<()> {
         for item in &self.items {
-            self.target.set_bias(&item.indices, item.bias)?;
+            self.target.set_bias(&item.1, item.2)?;
         }
         Ok(())
+    }
+}
+
+fn higher_order_edit_item_mut(item: &mut (String, Vec<u32>, f64)) -> (&String, &mut f64) {
+    (&item.0, &mut item.2)
+}
+
+impl<'editor> IntoIterator for &'editor mut HigherOrderEditor<'_> {
+    type Item = (&'editor String, &'editor mut f64);
+    type IntoIter = std::iter::Map<
+        std::slice::IterMut<'editor, (String, Vec<u32>, f64)>,
+        fn(&mut (String, Vec<u32>, f64)) -> (&String, &mut f64),
+    >;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.items.iter_mut().map(higher_order_edit_item_mut)
     }
 }
 
@@ -170,14 +178,13 @@ impl HigherOrder {
         let items = self
             .items()?
             .into_iter()
-            .map(|(indices, bias)| HigherOrderEditItem {
-                key: indices
+            .map(|(indices, bias)| {
+                let key = indices
                     .iter()
                     .map(u32::to_string)
                     .collect::<Vec<_>>()
-                    .join("-"),
-                indices,
-                bias,
+                    .join("-");
+                (key, indices, bias)
             })
             .collect();
         Ok(HigherOrderEditor {

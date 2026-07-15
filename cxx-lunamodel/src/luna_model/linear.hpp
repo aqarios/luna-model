@@ -28,6 +28,12 @@ class Linear {
         return Linear(out);
     }
 
+    static Linear for_vars(std::uint32_t var_a, double bias_a, std::uint32_t var_b, double bias_b) {
+        LmLinear *out = nullptr;
+        detail::check(lm_linear_for_vars(var_a, bias_a, var_b, bias_b, &out));
+        return Linear(out);
+    }
+
     /* Adopts ownership of a raw C handle (for C interop). */
     explicit Linear(LmLinear *handle) noexcept : handle_(handle) {}
 

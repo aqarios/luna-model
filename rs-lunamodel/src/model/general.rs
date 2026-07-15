@@ -22,13 +22,6 @@ impl Model {
         sample: &SampleView,
         tol: Option<f64>,
     ) -> Result<ConstraintCollection> {
-        let source = self.constraints()?;
-        let mut violated = ConstraintCollection::new();
-        for (name, constraint) in source.iter()? {
-            if !constraint.evaluate_sample(sample, tol)? {
-                violated.add_constraint(&constraint, Some(&name))?;
-            }
-        }
-        Ok(violated)
+        out!(model_violated_constraints(@self, @sample, ?tol))
     }
 }

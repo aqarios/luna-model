@@ -86,6 +86,16 @@ class Quadratic {
         detail::check(lm_quadratic_add_entry(handle_, u, v, bias));
     }
 
+    void clean() { detail::check(lm_quadratic_clean(handle_)); }
+
+    void push_back_empty(std::uint32_t index) {
+        detail::check(lm_quadratic_push_back_empty(handle_, index));
+    }
+
+    void insert_empty(std::size_t position, std::uint32_t index) {
+        detail::check(lm_quadratic_insert_empty(handle_, position, index));
+    }
+
     /* Adds another quadratic store in place (Rust `quadratic += &other`). */
     Quadratic &operator+=(const Quadratic &other) {
         detail::check(lm_quadratic_add_quadratic(handle_, other.handle_));

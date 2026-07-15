@@ -82,6 +82,14 @@ class Expression {
         return Expression(out);
     }
 
+    static Expression from_dense_quadratic(const std::vector<double> &dense, std::size_t num_vars,
+                                           std::optional<double> offset, const Env &env) {
+        LmExpr *out = nullptr;
+        detail::check(lm_expr_from_dense_quadratic(dense.data(), dense.size(), num_vars,
+                                                   offset ? &*offset : nullptr, env.get(), &out));
+        return Expression(out);
+    }
+
     /* Adopts ownership of a raw C handle (for C interop). */
     explicit Expression(LmExpr *handle) noexcept : handle_(handle) {}
 
@@ -221,25 +229,6 @@ class Expression {
     Expression &operator*=(const Vref &rhs);
     /* expr *= expr, in place. Defined in ops.hpp. */
     Expression &operator*=(const Expression &rhs);
-    /* expr + bias, in place. Defined in ops.hpp. */
-    Expression &operator+(double rhs);
-    /* expr + vref, in place. Defined in ops.hpp. */
-    Expression &operator+(const Vref &rhs);
-    /* expr + expr, in place. Defined in ops.hpp. */
-    Expression &operator+(const Expression &rhs);
-    /* expr - bias, in place. Defined in ops.hpp. */
-    Expression &operator-(double rhs);
-    /* expr - vref, in place. Defined in ops.hpp. */
-    Expression &operator-(const Vref &rhs);
-    /* expr - expr, in place. Defined in ops.hpp. */
-    Expression &operator-(const Expression &rhs);
-    /* expr * bias, in place. Defined in ops.hpp. */
-    Expression &operator*(double rhs);
-    /* expr * vref, in place. Defined in ops.hpp. */
-    Expression &operator*(const Vref &rhs);
-    /* expr * expr, in place. Defined in ops.hpp. */
-    Expression &operator*(const Expression &rhs);
-
     Expression pow(std::size_t n) const {
         LmExpr *out = nullptr;
         detail::check(lm_expr_pow(handle_, n, &out));
@@ -264,6 +253,29 @@ class Expression {
         LmExpr *out = nullptr;
         detail::check(lm_expr_deep_clone(handle_, env.get(), &out));
         return Expression(out);
+    }
+
+    static std::vector<Expression>
+    deep_clone_many(const std::vector<const Expression *> &expressions) {
+        std::vector<const LmExpr *> inputs;
+        inputs.reserve(expressions.size());
+        for (const Expression *expression : expressions) {
+            inputs.push_back(expression->get());
+        }
+        std::vector<LmExpr *> outputs(expressions.size(), nullptr);
+        detail::check(lm_expr_deep_clone_many(inputs.data(), inputs.size(), outputs.data()));
+        std::vector<Expression> out;
+        out.reserve(outputs.size());
+        for (LmExpr *output : outputs) {
+            out.emplace_back(output);
+        }
+        return out;
+    }
+
+    double evaluate_sample_quick(const std::vector<double> &lookup) const {
+        double out = 0.0;
+        detail::check(lm_expr_evaluate_sample_quick(handle_, lookup.data(), lookup.size(), &out));
+        return out;
     }
 
     /* Structural equality including environment identity (Rust `PartialEq`). */

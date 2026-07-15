@@ -1,13 +1,5 @@
 use std::ffi::{CString, c_char};
 
-pub use lunamodel_utils::{
-    cast_near_integral, float_eq, float_ge, float_le, unique, unique_by, validate_tol,
-};
-
-pub mod defaults {
-    pub use lunamodel_utils::defaults::*;
-}
-
 use lunamodel_cext_vtable::{LmEnvId, LmSol, LmVref};
 use num::ToPrimitive;
 

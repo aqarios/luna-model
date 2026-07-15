@@ -7,11 +7,18 @@
 
 #include "luna_model/bounds.hpp"
 #include "luna_model/detail/capi.hpp"
+#include "luna_model/lazy_bounds.hpp"
 
 namespace lm {
 
 class Variable {
   public:
+    Variable(const std::string &name, LmVtype vtype, const LazyBounds *bounds = nullptr) {
+        LmVar *out = nullptr;
+        detail::check(lm_var_new(name.c_str(), vtype, bounds ? bounds->get() : nullptr, &out));
+        handle_ = out;
+    }
+
     explicit Variable(LmVar *handle) noexcept : handle_(handle) {}
 
     ~Variable() {
@@ -19,6 +26,33 @@ class Variable {
             lm_var_free(handle_);
         }
     }
+
+    Variable(Variable &&other) noexcept : handle_(other.handle_) { other.handle_ = nullptr; }
+    Variable &operator=(Variable &&other) noexcept {
+        if (this != &other) {
+            if (handle_ != nullptr) {
+                lm_var_free(handle_);
+            }
+            handle_ = other.handle_;
+            other.handle_ = nullptr;
+        }
+        return *this;
+    }
+    Variable(const Variable &) = delete;
+    Variable &operator=(const Variable &) = delete;
+
+    Variable clone() const {
+        LmVar *out = nullptr;
+        detail::check(lm_var_clone(handle_, &out));
+        return Variable(out);
+    }
+
+    bool operator==(const Variable &other) const {
+        bool out = false;
+        detail::check(lm_var_eq(handle_, other.handle_, &out));
+        return out;
+    }
+    bool operator!=(const Variable &other) const { return !(*this == other); }
 
     /* Returns the variable name (Rust `var.name()`). */
     std::string name() const {
@@ -52,6 +86,13 @@ class Variable {
         }
         detail::check(s);
         return out;
+    }
+
+    LmVar *get() const noexcept { return handle_; }
+    LmVar *release() noexcept {
+        LmVar *handle = handle_;
+        handle_ = nullptr;
+        return handle;
     }
 
   private:

@@ -18,6 +18,7 @@ pub use general::{
 };
 pub use operations::{
     lm_model_evaluate_solution, lm_model_evaluate_solution_with_tol, lm_model_substitute,
+    lm_model_violated_constraints,
 };
 pub use serialize::{lm_model_deserialize, lm_model_serialize};
 pub use setter::{

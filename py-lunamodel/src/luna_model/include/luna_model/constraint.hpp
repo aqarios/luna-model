@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <luna_model.h>
 
@@ -32,6 +33,20 @@ class Constraint {
             lm_constr_free(handle_);
         }
     }
+
+    Constraint(Constraint &&other) noexcept : handle_(other.handle_) { other.handle_ = nullptr; }
+    Constraint &operator=(Constraint &&other) noexcept {
+        if (this != &other) {
+            if (handle_ != nullptr) {
+                lm_constr_free(handle_);
+            }
+            handle_ = other.handle_;
+            other.handle_ = nullptr;
+        }
+        return *this;
+    }
+    Constraint(const Constraint &) = delete;
+    Constraint &operator=(const Constraint &) = delete;
 
     /* Returns the constraint name. */
     std::string name() const {
@@ -63,6 +78,20 @@ class Constraint {
         return out;
     }
 
+    bool auto_name() const {
+        bool out = false;
+        detail::check(lm_constr_auto_name(handle_, &out));
+        return out;
+    }
+
+    bool evaluate_sample_quick(const std::vector<double> &lookup,
+                               std::optional<double> tol = std::nullopt) const {
+        bool out = false;
+        detail::check(lm_constr_evaluate_sample_quick(handle_, lookup.data(), lookup.size(),
+                                                      tol ? &*tol : nullptr, &out));
+        return out;
+    }
+
     /* Set the constraint's name. */
     void set_name(std::string name) { detail::check(lm_constr_set_name(handle_, name.c_str())); }
 
@@ -74,18 +103,18 @@ class Constraint {
     }
 
     /* Deep-clones into a fully independent model with its own environment. */
-    Constraint deep_clone(Env env) const {
+    Constraint deep_clone(const Env &env) const {
         LmConstraint *out = nullptr;
         detail::check(lm_constr_deep_clone(handle_, env.get(), &out));
         return Constraint(out);
     }
 
-    void substitute(Vref target, Expression replacement) {
+    void substitute(const Vref &target, const Expression &replacement) {
         detail::check(lm_constr_substitute(handle_, target.get(), replacement.get()));
     }
 
     /* Compares two constraints for equal contents (ignoring different environments). */
-    bool equal_contents(Constraint constr) const {
+    bool equal_contents(const Constraint &constr) const {
         bool out = false;
         detail::check(lm_constr_equal_contents(handle_, constr.get(), &out));
         return out;
@@ -98,7 +127,12 @@ class Constraint {
     }
     bool operator!=(const Constraint &other) const { return !(*this == other); }
 
-    LmConstraint *get() const { return handle_; }
+    LmConstraint *get() const noexcept { return handle_; }
+    LmConstraint *release() noexcept {
+        LmConstraint *handle = handle_;
+        handle_ = nullptr;
+        return handle;
+    }
 
   private:
     LmConstraint *handle_;

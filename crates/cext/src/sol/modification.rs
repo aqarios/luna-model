@@ -1,13 +1,13 @@
 use std::ffi::c_char;
 
-use luna_model::core::{Solution, solution::Assignment};
+use luna_model::core::Solution;
 
 use crate::{
     LmAssignment, LmColumn, LmSense, LmSol, LmStatus, LmVtype,
     error::{CapiError, guard},
     utils::{
-        handle_to_c, mut_from_c, opt_from_c, out_from_c, sense_from_c, slice_from_c, str_from_c,
-        vtype_from_c,
+        assignment_from_c, handle_to_c, mut_from_c, opt_from_c, out_from_c, sense_from_c,
+        slice_from_c, str_from_c, vtype_from_c,
     },
 };
 
@@ -315,18 +315,7 @@ pub unsafe extern "C" fn lm_sol_push(
             .zip(assignments)
             .map(|(&name, assignment)| {
                 let name = unsafe { str_from_c(name, "name") }?.to_owned();
-                let assignment = match assignment.vtype {
-                    LmVtype::Binary => Assignment::Binary(assignment.value as u8),
-                    LmVtype::Spin => Assignment::Spin(assignment.value as i8),
-                    LmVtype::Integer => Assignment::Integer(assignment.value as i64),
-                    LmVtype::Real => Assignment::Real(assignment.value),
-                    LmVtype::InvertedBinary => {
-                        return Err(CapiError::new(
-                            LmStatus::InvalidArgument,
-                            "inverted binary has no standalone assignment",
-                        ));
-                    }
-                };
+                let assignment = assignment_from_c(*assignment)?;
                 Ok((name, assignment))
             })
             .collect::<Result<_, CapiError>>()?;

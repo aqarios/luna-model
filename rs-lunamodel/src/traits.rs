@@ -70,20 +70,6 @@ pub trait TryIndex<I> {
     fn try_index(&self, index: I) -> Result<Self::Output>;
 }
 
-/// Helper trait for filtering vector-like data with a boolean keep-mask.
-pub trait FilterByMask<T> {
-    fn filter_by_mask(&self, mask: &[bool]) -> Vec<T>;
-}
-
-impl<T: Clone> FilterByMask<T> for Vec<T> {
-    fn filter_by_mask(&self, mask: &[bool]) -> Vec<T> {
-        self.iter()
-            .zip(mask)
-            .filter_map(|(value, keep)| keep.then_some(value.clone()))
-            .collect()
-    }
-}
-
 pub trait Editable {
     fn maybe_edit<F>(mut self, edit: F) -> Result<Self>
     where
@@ -167,15 +153,15 @@ where
     }
 }
 
-pub trait TryToString {
+pub(crate) trait TryToString {
     fn try_to_string(self) -> Result<String>;
 }
 
-pub trait TryToVec<T> {
+pub(crate) trait TryToVec<T> {
     fn try_to_vec(self) -> Result<Vec<T>>;
 }
 
-pub trait LmFrom<T> {
+pub(crate) trait LmFrom<T> {
     fn lm_from(value: T) -> Self;
 }
 
@@ -188,15 +174,15 @@ where
     }
 }
 
-pub trait LmInto<T> {
+pub(crate) trait LmInto<T> {
     fn lm_into(self) -> T;
 }
 
-pub trait LmTryInto<T> {
+pub(crate) trait LmTryInto<T> {
     fn lm_try_into(self) -> Result<T>;
 }
 
-pub trait LmTryFrom<T>: Sized {
+pub(crate) trait LmTryFrom<T>: Sized {
     fn lm_try_from(value: T) -> Result<Self>;
 }
 
@@ -238,7 +224,7 @@ impl<T> AsOptPtr<T> for Option<T> {
 /// across the FFI call, so the caller keeps the owner. The `!` macro sigil does
 /// this by calling `.as_ptr()` on the temporary it produces, whose lifetime
 /// extends to the end of the enclosing ABI-call statement.
-pub trait TryToCString {
+pub(crate) trait TryToCString {
     fn try_to_cstring(self) -> Result<std::ffi::CString>;
 }
 
@@ -253,7 +239,7 @@ pub(crate) trait TryToOptCString {
 ///
 /// Built by [`ToPtrList`] and kept alive as a statement-scoped temporary across
 /// the FFI call; dropping it frees both the pointer array and its backing.
-pub struct PtrList<T> {
+pub(crate) struct PtrList<T> {
     ptrs: Vec<*const T>,
     /// Owned C strings the pointers borrow from; empty when the elements are
     /// handles (whose pointers are owned by the borrowed slice instead).
@@ -270,7 +256,7 @@ impl<T> PtrList<T> {
 
     /// Pointer to the start of the `*const T` array. The length is passed
     /// separately by the `*` sigil, taken from the source slice's `.len()`.
-    pub fn as_ptr(&self) -> *const *const T {
+    pub(crate) fn as_ptr(&self) -> *const *const T {
         self.ptrs.as_ptr()
     }
 }
@@ -278,7 +264,7 @@ impl<T> PtrList<T> {
 /// Marshals a slice into a [`PtrList`] of C pointers. Used by the `*` macro
 /// sigil, which passes the list's `.as_ptr()` and the slice's `.len()` as two
 /// consecutive ABI arguments.
-pub trait ToPtrList {
+pub(crate) trait ToPtrList {
     /// The pointee type of the produced pointers (e.g. `LmVref`, `c_char`).
     type Elem;
     fn to_ptr_list(self) -> Result<PtrList<Self::Elem>>;

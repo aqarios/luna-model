@@ -8,7 +8,7 @@
 use lunamodel_cext_vtable::LmCC;
 use lunamodel_types::{Comparator, Vtype};
 use rs_lunamodel_derive::RawHandle;
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 
 use crate::{
     Constraint, ContentEquality, Env, Expression, Result, Serialization, TryClone, TryDeepClone,
@@ -56,12 +56,6 @@ impl Deref for ConstraintCollectionEditor<'_> {
     type Target = [(String, Constraint)];
     fn deref(&self) -> &Self::Target {
         &self.items
-    }
-}
-
-impl DerefMut for ConstraintCollectionEditor<'_> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.items
     }
 }
 
@@ -168,9 +162,19 @@ impl ConstraintCollection {
     where
         for<'a> S: TryIndex<&'a str, Output = f64>,
     {
-        self.iter()?
-            .map(|(name, constraint)| Ok((name, constraint.evaluate_sample(sample, tol)?)))
-            .collect()
+        let vars = self.complete_vars()?;
+        let len = vars
+            .iter()
+            .map(|var| var.id())
+            .collect::<Result<Vec<_>>>()?
+            .into_iter()
+            .max()
+            .map_or(0, |id| id as usize + 1);
+        let mut lookup = vec![0.0; len];
+        for var in vars {
+            lookup[var.id()? as usize] = sample.try_index(var.name()?.as_str())?;
+        }
+        self.evaluate_sample_quick(&lookup, tol)
     }
 
     pub fn evaluate_sample_quick(
@@ -178,8 +182,21 @@ impl ConstraintCollection {
         lookup: &[f64],
         tol: Option<f64>,
     ) -> Result<std::collections::HashMap<String, bool>> {
-        self.iter()?
-            .map(|(name, constraint)| Ok((name, constraint.evaluate_sample_quick(lookup, tol)?)))
+        let values: std::collections::HashMap<String, Vec<bool>> = out!(
+            cc_evaluate_sample_quick(@self, lookup.as_ptr(), lookup.len(), ?tol)
+        )?;
+        values
+            .into_iter()
+            .map(|(name, values)| {
+                values
+                    .into_iter()
+                    .next()
+                    .map(|value| (name, value))
+                    .ok_or_else(|| crate::Error {
+                        status: crate::Status::InvalidArgument,
+                        message: "C API returned an empty constraint evaluation".to_owned(),
+                    })
+            })
             .collect()
     }
 

@@ -27,24 +27,21 @@ impl Constraint {
     where
         for<'a> S: TryIndex<&'a str, Output = f64>,
     {
-        let lhs = self.lhs()?.evaluate_sample(sample)?;
-        evaluate(self.comparator()?, lhs, self.rhs()?, tol)
+        let lhs = self.lhs()?;
+        let env = lhs.env()?;
+        let mut lookup = vec![0.0; env.len()?];
+        for var in lhs.complete_vars()? {
+            lookup[var.id()? as usize] = sample.try_index(var.name()?.as_str())?;
+        }
+        self.evaluate_sample_quick(&lookup, tol)
     }
 
     pub fn evaluate_sample_quick(&self, lookup: &[f64], tol: Option<f64>) -> Result<bool> {
-        let lhs = self.lhs()?.evaluate_sample_quick(lookup)?;
-        evaluate(self.comparator()?, lhs, self.rhs()?, tol)
+        out!(constr_evaluate_sample_quick(
+            @self,
+            lookup.as_ptr(),
+            lookup.len(),
+            ?tol
+        ))
     }
-}
-
-fn evaluate(comparator: Comparator, lhs: f64, rhs: f64, tol: Option<f64>) -> Result<bool> {
-    let tol = lunamodel_utils::validate_tol(tol).map_err(|err| crate::Error {
-        status: crate::Status::InvalidArgument,
-        message: err.to_string(),
-    })?;
-    Ok(match comparator {
-        Comparator::Eq => lunamodel_utils::float_eq(lhs, rhs, tol),
-        Comparator::Le => lunamodel_utils::float_le(lhs, rhs, tol),
-        Comparator::Ge => lunamodel_utils::float_ge(lhs, rhs, tol),
-    })
 }

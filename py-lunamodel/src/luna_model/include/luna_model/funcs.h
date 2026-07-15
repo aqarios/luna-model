@@ -24,6 +24,22 @@ extern "C" {
 LmStatus lm_bound_is_bounded(const LmBound *bound, bool *out);
 
 /**
+ * Returns the finite bound value, or `Absent` for an unbounded endpoint.
+ *
+ * # Safety
+ * `bound` must be readable and `out` writable.
+ */
+LmStatus lm_bound_value(const LmBound *bound, double *out);
+
+/**
+ * Compares two bound endpoints.
+ *
+ * # Safety
+ * `bound`, `other`, and `out` must be valid readable/writable pointers.
+ */
+LmStatus lm_bound_eq(const LmBound *bound, const LmBound *other, bool *out);
+
+/**
  * Returns a copy of the bounds' lower bound.
  *
  * # Safety
@@ -109,6 +125,14 @@ LmStatus lm_bounds_default_for(LmVtype vtype, LmBounds **out);
  * `out` must point to writable `LmBounds *` storage.
  */
 LmStatus lm_bounds_clone(const LmBounds *bounds, LmBounds **out);
+
+/**
+ * Compares two bounds values.
+ *
+ * # Safety
+ * `bounds` and `other` must be valid handles and `out` must be writable.
+ */
+LmStatus lm_bounds_eq(const LmBounds *bounds, const LmBounds *other, bool *out);
 
 /**
  * Returns whether `val` lies within the closed interval represented by these bounds.
@@ -420,6 +444,19 @@ LmStatus lm_cc_eq(const LmCC *cc, const LmCC *other, bool *out);
 LmStatus lm_cc_equal_contents(const LmCC *cc, const LmCC *other, bool *out);
 
 /**
+ * Evaluates every constraint against an index-aligned dense lookup.
+ *
+ * # Safety
+ * `cc` must be a valid collection handle, `lookup` must reference `len`
+ * readable doubles, `tol` may be null or readable, and `out` must be writable.
+ */
+LmStatus lm_cc_evaluate_sample_quick(const LmCC *cc,
+                                     const double *lookup,
+                                     uintptr_t len,
+                                     const double *tol,
+                                     LmBoolMapBuffer *out);
+
+/**
  * Inserts a constraint, optionally overriding its current name.
  *
  * If `name == NULL`, the collection either keeps the constraint's
@@ -509,6 +546,57 @@ LmStatus lm_cc_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env,
 void lm_col_free(LmColumn *column);
 
 /**
+ * Creates a column from raw numeric values and a logical variable type.
+ *
+ * # Safety
+ * `data` must reference `len` readable doubles and `out` must be writable.
+ */
+LmStatus lm_col_new(LmVtype vtype, const double *data, uintptr_t len, LmColumn **out);
+
+/**
+ * Creates a one-row column from a typed assignment.
+ *
+ * # Safety
+ * `out` must point to writable `LmColumn *` storage.
+ */
+LmStatus lm_col_with(LmAssignment assignment, LmColumn **out);
+
+/**
+ * Clones a column.
+ *
+ * # Safety
+ * `column` must be valid and `out` writable.
+ */
+LmStatus lm_col_clone(const LmColumn *column, LmColumn **out);
+
+/**
+ * Compares two columns structurally.
+ *
+ * # Safety
+ * Both columns must be valid and `out` writable.
+ */
+LmStatus lm_col_eq(const LmColumn *column, const LmColumn *other, bool *out);
+
+/**
+ * Returns a filtered copy of a column.
+ *
+ * # Safety
+ * `column` and `mask` must be readable and `out` writable.
+ */
+LmStatus lm_col_filter_by_mask(const LmColumn *column,
+                               const bool *mask,
+                               uintptr_t len,
+                               LmColumn **out);
+
+/**
+ * Extracts one row into a new one-row column.
+ *
+ * # Safety
+ * `column` must be valid and `out` writable.
+ */
+LmStatus lm_col_extract(const LmColumn *column, uintptr_t row, LmColumn **out);
+
+/**
  * Returns the logical variable type stored by the column.
  *
  * # Safety
@@ -542,6 +630,40 @@ LmStatus lm_col_is_empty(const LmColumn *column, bool *out);
  * `out` must point to writable `LmAssignment` storage.
  */
 LmStatus lm_col_assignment(const LmColumn *column, uintptr_t index, LmAssignment *out);
+
+/**
+ * Returns a borrowed view of the raw numeric values.
+ *
+ * The pointer remains valid until the column is mutated or freed.
+ *
+ * # Safety
+ * `column`, `data`, and `len` must be valid pointers.
+ */
+LmStatus lm_col_values(const LmColumn *column, const double **data, uintptr_t *len);
+
+/**
+ * Appends a typed assignment.
+ *
+ * # Safety
+ * `column` must be a valid mutable handle.
+ */
+LmStatus lm_col_push(LmColumn *column, LmAssignment assignment);
+
+/**
+ * Attempts to append a numeric value using the column's native coercion.
+ *
+ * # Safety
+ * `column` must be a valid mutable handle and `tol` may be null or readable.
+ */
+LmStatus lm_col_try_push(LmColumn *column, double value, const double *tol);
+
+/**
+ * Removes one row from the column.
+ *
+ * # Safety
+ * `column` must be a valid mutable handle.
+ */
+LmStatus lm_col_remove(LmColumn *column, uintptr_t index);
 
 /**
  * Returns a copy of the constraint's name as an owned UTF-8 byte buffer.
@@ -683,6 +805,19 @@ LmStatus lm_constr_equal_contents(const LmConstraint *constr, const LmConstraint
  * `out` must point to writable `bool` storage.
  */
 LmStatus lm_constr_eq(const LmConstraint *constr, const LmConstraint *other, bool *out);
+
+/**
+ * Evaluates a constraint against an index-aligned dense lookup.
+ *
+ * # Safety
+ * `constr` must be a valid constraint handle, `lookup` must reference `len`
+ * readable doubles, `tol` may be null or readable, and `out` must be writable.
+ */
+LmStatus lm_constr_evaluate_sample_quick(const LmConstraint *constr,
+                                         const double *lookup,
+                                         uintptr_t len,
+                                         const double *tol,
+                                         bool *out);
 
 /**
  * Sorts names by their variable order in the environment.
@@ -827,6 +962,14 @@ LmStatus lm_env_clone(const LmEnv *env, LmEnv **out);
  * `out` must point to writable `LmEnv *` storage.
  */
 LmStatus lm_env_deep_clone(const LmEnv *env, LmEnv **out);
+
+/**
+ * Compares complete environment values, including identity and allocator state.
+ *
+ * # Safety
+ * `env` and `other` must be valid handles and `out` writable.
+ */
+LmStatus lm_env_eq(const LmEnv *env, const LmEnv *other, bool *out);
 
 /**
  * Compares two environments for content equality.
@@ -1205,6 +1348,30 @@ LmStatus lm_expr_clone(const LmExpr *expr, LmExpr **out);
  * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_expr_deep_clone(const LmExpr *expr, const LmEnv *env, LmExpr **out);
+
+/**
+ * Deep-clones expressions into one newly cloned shared environment.
+ *
+ * `out` is caller-provided storage for exactly `len` owned expression
+ * handles. Each returned handle must be released with [`lm_expr_free`].
+ *
+ * # Safety
+ * `exprs` must reference `len` valid expression handles and `out` must
+ * reference `len` writable handle slots.
+ */
+LmStatus lm_expr_deep_clone_many(const LmExpr *const *exprs, uintptr_t len, LmExpr **out);
+
+/**
+ * Evaluates an expression against an index-aligned dense lookup.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle, `lookup` must reference `len`
+ * readable doubles, and `out` must be writable.
+ */
+LmStatus lm_expr_evaluate_sample_quick(const LmExpr *expr,
+                                       const double *lookup,
+                                       uintptr_t len,
+                                       double *out);
 
 /**
  * Adds a variable reference to the expression in place.
@@ -1777,6 +1944,18 @@ LmLinear *lm_linear_default(void);
 LmStatus lm_linear_for_var(uint32_t var, double bias, LmLinear **out);
 
 /**
+ * Creates a linear term containing two variable/bias entries.
+ *
+ * # Safety
+ * `out` must point to writable `LmLinear *` storage.
+ */
+LmStatus lm_linear_for_vars(uint32_t var_a,
+                            double bias_a,
+                            uint32_t var_b,
+                            double bias_b,
+                            LmLinear **out);
+
+/**
  * Compares two linear terms for equality.
  *
  * # Safety
@@ -2130,6 +2309,18 @@ LmStatus lm_model_evaluate_solution_with_tol(const LmModel *model,
  * `replacement` must be a valid expression handle created by this library.
  */
 LmStatus lm_model_substitute(LmModel *model, const LmVref *target, const LmExpr *replacement);
+
+/**
+ * Returns the subset of model constraints violated by a sample view.
+ *
+ * # Safety
+ * `model` and `sample` must be valid handles, `tol` may be null or readable,
+ * and `out` must point to writable `LmCC *` storage.
+ */
+LmStatus lm_model_violated_constraints(const LmModel *model,
+                                       const LmSampleView *sample,
+                                       const double *tol,
+                                       LmCC **out);
 
 /**
  * Serializes a model to bytes, writing an owned buffer to `out`.
@@ -3197,6 +3388,14 @@ LmStatus lm_specs_satisfies(const LmSpecs *specs, const LmSpecs *other, bool *ou
 LmStatus lm_specs_clone(const LmSpecs *specs, LmSpecs **out);
 
 /**
+ * Returns the human-readable difference between two specification values.
+ *
+ * # Safety
+ * `specs` and `other` must be valid handles and `out` writable buffer storage.
+ */
+LmStatus lm_specs_diff(const LmSpecs *specs, const LmSpecs *other, LmBuffer *out);
+
+/**
  * Frees a timer handle. Passing null is a no-op.
  *
  * # Safety
@@ -3280,6 +3479,22 @@ LmStatus lm_timing_new(uint64_t start_unix_ns,
                        LmTiming **out);
 
 /**
+ * Clones a timing record.
+ *
+ * # Safety
+ * `timing` must be valid and `out` writable.
+ */
+LmStatus lm_timing_clone(const LmTiming *timing, LmTiming **out);
+
+/**
+ * Compares two timing records.
+ *
+ * # Safety
+ * `timing` and `other` must be valid and `out` writable.
+ */
+LmStatus lm_timing_eq(const LmTiming *timing, const LmTiming *other, bool *out);
+
+/**
  * Frees a variable handle. Passing null is a no-op.
  *
  * # Safety
@@ -3302,6 +3517,14 @@ LmStatus lm_var_new(const char *name, LmVtype vtype, const LmLazyBounds *bounds,
  * `var` must be a valid variable handle and `out` must be writable.
  */
 LmStatus lm_var_clone(const LmVar *var, LmVar **out);
+
+/**
+ * Compares two variable records.
+ *
+ * # Safety
+ * `var` and `other` must be valid handles and `out` writable.
+ */
+LmStatus lm_var_eq(const LmVar *var, const LmVar *other, bool *out);
 
 /**
  * Returns a copy of the variable's name as an owned UTF-8 byte buffer.

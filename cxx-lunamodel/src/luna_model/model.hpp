@@ -9,9 +9,16 @@
 
 #include <luna_model.h>
 
+#include "luna_model/constraint_collection.hpp"
 #include "luna_model/detail/capi.hpp"
+#include "luna_model/env.hpp"
 #include "luna_model/error.hpp"
+#include "luna_model/expr.hpp"
+#include "luna_model/lazy_bounds.hpp"
+#include "luna_model/sample_view.hpp"
 #include "luna_model/solution.hpp"
+#include "luna_model/specs.hpp"
+#include "luna_model/vref.hpp"
 
 namespace lm {
 
@@ -37,6 +44,13 @@ class Model {
         LmModel *out = nullptr;
         detail::check(
             lm_model_new(name ? name->c_str() : nullptr, sense ? &*sense : nullptr, &out));
+        handle_ = out;
+    }
+
+    Model(std::optional<std::string> name, std::optional<LmSense> sense, const Env &env) {
+        LmModel *out = nullptr;
+        detail::check(lm_model_with_env(name ? name->c_str() : nullptr, sense ? &*sense : nullptr,
+                                        env.get(), &out));
         handle_ = out;
     }
 
@@ -103,6 +117,78 @@ class Model {
         return out;
     }
 
+    bool satisfies(const Specs &specs) const {
+        bool out = false;
+        detail::check(lm_model_satisfies(handle_, specs.get(), &out));
+        return out;
+    }
+
+    Vref add_var(const std::string &name, LmVtype vtype, const LazyBounds *bounds = nullptr) {
+        LmVref *out = nullptr;
+        detail::check(
+            lm_model_add_var(handle_, name.c_str(), vtype, bounds ? bounds->get() : nullptr, &out));
+        return Vref(out);
+    }
+
+    Vref add_var_with_fallback(const std::string &name, LmVtype vtype,
+                               const LazyBounds *bounds = nullptr) {
+        LmVref *out = nullptr;
+        detail::check(lm_model_add_var_with_fallback(handle_, name.c_str(), vtype,
+                                                     bounds ? bounds->get() : nullptr, &out));
+        return Vref(out);
+    }
+
+    Env env() const {
+        LmEnv *out = nullptr;
+        detail::check(lm_model_env(handle_, &out));
+        return Env(out);
+    }
+
+    Specs specs() const {
+        LmSpecs *out = nullptr;
+        detail::check(lm_model_specs(handle_, &out));
+        return Specs(out);
+    }
+
+    std::vector<Vref> vars() const {
+        LmVrefBuffer buffer = {nullptr, 0, 0};
+        detail::check(lm_model_vars(handle_, &buffer));
+        std::vector<Vref> out;
+        out.reserve(buffer.len);
+        for (std::size_t index = 0; index < buffer.len; ++index) {
+            out.emplace_back(buffer.data[index]);
+            buffer.data[index] = nullptr;
+        }
+        lm_vref_buffer_free(buffer);
+        return out;
+    }
+
+    Vref var(const std::string &name) const {
+        LmVref *out = nullptr;
+        detail::check(lm_model_var(handle_, name.c_str(), &out));
+        return Vref(out);
+    }
+
+    Expression objective() const {
+        LmExpr *out = nullptr;
+        detail::check(lm_model_objective(handle_, &out));
+        return Expression(out);
+    }
+
+    ConstraintCollection constraints() const {
+        LmCC *out = nullptr;
+        detail::check(lm_model_constraints(handle_, &out));
+        return ConstraintCollection(out);
+    }
+
+    void set_objective(const Expression &objective) {
+        detail::check(lm_model_set_objective(handle_, objective.get()));
+    }
+
+    void set_constraints(const ConstraintCollection &constraints) {
+        detail::check(lm_model_set_constraints(handle_, constraints.get()));
+    }
+
     /* Evaluates the model for a solution (Rust `model.evaluate_solution(&sol)`). */
     Solution evaluate_solution(const Solution &solution) const {
         LmSol *out = nullptr;
@@ -120,6 +206,18 @@ class Model {
         detail::check(lm_model_evaluate_solution_with_tol(handle_, solution.get(),
                                                           tol ? &*tol : nullptr, &out));
         return Solution(out);
+    }
+
+    ConstraintCollection violated_constraints(const SampleView &sample,
+                                              std::optional<double> tol = std::nullopt) const {
+        LmCC *out = nullptr;
+        detail::check(
+            lm_model_violated_constraints(handle_, sample.get(), tol ? &*tol : nullptr, &out));
+        return ConstraintCollection(out);
+    }
+
+    void substitute(const Vref &target, const Expression &replacement) {
+        detail::check(lm_model_substitute(handle_, target.get(), replacement.get()));
     }
 
     /* Clones into a new handle that shares the environment (Rust `Clone`). */

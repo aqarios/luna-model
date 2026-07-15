@@ -685,6 +685,12 @@ pub struct LunaModelCApi {
         unsafe extern "C" fn(*const LmModel, *const LmSol, *mut *mut LmSol) -> LmStatus,
     pub model_evaluate_solution_with_tol:
         unsafe extern "C" fn(*const LmModel, *const LmSol, *const f64, *mut *mut LmSol) -> LmStatus,
+    pub model_violated_constraints: unsafe extern "C" fn(
+        *const LmModel,
+        *const LmSampleView,
+        *const f64,
+        *mut *mut LmCC,
+    ) -> LmStatus,
     pub model_substitute:
         unsafe extern "C" fn(*mut LmModel, *const LmVref, *const LmExpr) -> LmStatus,
     // Model -- access
@@ -725,6 +731,7 @@ pub struct LunaModelCApi {
     // Env -- general
     pub env_clone: unsafe extern "C" fn(*const LmEnv, *mut *mut LmEnv) -> LmStatus,
     pub env_deep_clone: unsafe extern "C" fn(*const LmEnv, *mut *mut LmEnv) -> LmStatus,
+    pub env_eq: unsafe extern "C" fn(*const LmEnv, *const LmEnv, *mut bool) -> LmStatus,
     pub env_equal_contents: unsafe extern "C" fn(*const LmEnv, *const LmEnv, *mut bool) -> LmStatus,
     // Env -- access
     pub env_len: unsafe extern "C" fn(*const LmEnv, *mut usize) -> LmStatus,
@@ -770,10 +777,25 @@ pub struct LunaModelCApi {
     // COLUMN //
     // ////// //
     pub col_free: unsafe extern "C" fn(*mut LmColumn),
+    // Column -- creation
+    pub col_new: unsafe extern "C" fn(LmVtype, *const f64, usize, *mut *mut LmColumn) -> LmStatus,
+    pub col_with: unsafe extern "C" fn(LmAssignment, *mut *mut LmColumn) -> LmStatus,
+    // Column -- general
+    pub col_clone: unsafe extern "C" fn(*const LmColumn, *mut *mut LmColumn) -> LmStatus,
+    pub col_eq: unsafe extern "C" fn(*const LmColumn, *const LmColumn, *mut bool) -> LmStatus,
+    pub col_filter_by_mask:
+        unsafe extern "C" fn(*const LmColumn, *const bool, usize, *mut *mut LmColumn) -> LmStatus,
+    pub col_extract: unsafe extern "C" fn(*const LmColumn, usize, *mut *mut LmColumn) -> LmStatus,
+    // Column -- access
     pub col_len: unsafe extern "C" fn(*const LmColumn, *mut usize) -> LmStatus,
     pub col_is_empty: unsafe extern "C" fn(*const LmColumn, *mut bool) -> LmStatus,
     pub col_vtype: unsafe extern "C" fn(*const LmColumn, *mut LmVtype) -> LmStatus,
     pub col_assignment: unsafe extern "C" fn(*const LmColumn, usize, *mut LmAssignment) -> LmStatus,
+    pub col_values: unsafe extern "C" fn(*const LmColumn, *mut *const f64, *mut usize) -> LmStatus,
+    // Column -- modification
+    pub col_push: unsafe extern "C" fn(*mut LmColumn, LmAssignment) -> LmStatus,
+    pub col_try_push: unsafe extern "C" fn(*mut LmColumn, f64, *const f64) -> LmStatus,
+    pub col_remove: unsafe extern "C" fn(*mut LmColumn, usize) -> LmStatus,
     // /////////// //
     // RESULT_VIEW //
     // /////////// //
@@ -931,6 +953,10 @@ pub struct LunaModelCApi {
     pub expr_clone: unsafe extern "C" fn(*const LmExpr, *mut *mut LmExpr) -> LmStatus,
     pub expr_deep_clone:
         unsafe extern "C" fn(*const LmExpr, *const LmEnv, *mut *mut LmExpr) -> LmStatus,
+    pub expr_deep_clone_many:
+        unsafe extern "C" fn(*const *const LmExpr, usize, *mut *mut LmExpr) -> LmStatus,
+    pub expr_evaluate_sample_quick:
+        unsafe extern "C" fn(*const LmExpr, *const f64, usize, *mut f64) -> LmStatus,
     pub expr_serialize: unsafe extern "C" fn(*const LmExpr, *mut LmBuffer) -> LmStatus,
     pub expr_deserialize:
         unsafe extern "C" fn(*const u8, usize, *const LmEnv, *mut *mut LmExpr) -> LmStatus,
@@ -1011,6 +1037,13 @@ pub struct LunaModelCApi {
         unsafe extern "C" fn(*const LmConstraint, *const LmConstraint, *mut bool) -> LmStatus,
     pub constr_eq:
         unsafe extern "C" fn(*const LmConstraint, *const LmConstraint, *mut bool) -> LmStatus,
+    pub constr_evaluate_sample_quick: unsafe extern "C" fn(
+        *const LmConstraint,
+        *const f64,
+        usize,
+        *const f64,
+        *mut bool,
+    ) -> LmStatus,
     pub constr_lhs: unsafe extern "C" fn(*const LmConstraint, *mut *mut LmExpr) -> LmStatus,
     pub constr_rhs: unsafe extern "C" fn(*const LmConstraint, *mut f64) -> LmStatus,
     pub constr_comparator: unsafe extern "C" fn(*const LmConstraint, *mut LmComparator) -> LmStatus,
@@ -1027,6 +1060,13 @@ pub struct LunaModelCApi {
     pub cc_deep_clone: unsafe extern "C" fn(*const LmCC, *const LmEnv, *mut *mut LmCC) -> LmStatus,
     pub cc_eq: unsafe extern "C" fn(*const LmCC, *const LmCC, *mut bool) -> LmStatus,
     pub cc_equal_contents: unsafe extern "C" fn(*const LmCC, *const LmCC, *mut bool) -> LmStatus,
+    pub cc_evaluate_sample_quick: unsafe extern "C" fn(
+        *const LmCC,
+        *const f64,
+        usize,
+        *const f64,
+        *mut LmBoolMapBuffer,
+    ) -> LmStatus,
     pub cc_vtypes: unsafe extern "C" fn(*const LmCC, *mut LmVtypeBuffer) -> LmStatus,
     pub cc_ctypes: unsafe extern "C" fn(*const LmCC, *mut LmCmpBuffer) -> LmStatus,
     pub cc_vars: unsafe extern "C" fn(*const LmCC, *mut LmVrefBuffer) -> LmStatus,
@@ -1094,6 +1134,7 @@ pub struct LunaModelCApi {
         *mut *mut LmVar,
     ) -> LmStatus,
     pub var_clone: unsafe extern "C" fn(*const LmVar, *mut *mut LmVar) -> LmStatus,
+    pub var_eq: unsafe extern "C" fn(*const LmVar, *const LmVar, *mut bool) -> LmStatus,
     pub var_name: unsafe extern "C" fn(*const LmVar, *mut LmBuffer) -> LmStatus,
     pub var_vtype: unsafe extern "C" fn(*const LmVar, *mut LmVtype) -> LmStatus,
     pub var_bounds: unsafe extern "C" fn(*const LmVar, *mut *mut LmBounds) -> LmStatus,
@@ -1113,9 +1154,10 @@ pub struct LunaModelCApi {
         *const usize,
         *mut *mut LmSpecs,
     ) -> LmStatus,
+    pub specs_clone: unsafe extern "C" fn(*const LmSpecs, *mut *mut LmSpecs) -> LmStatus,
     pub specs_satisfies:
         unsafe extern "C" fn(*const LmSpecs, *const LmSpecs, *mut bool) -> LmStatus,
-    pub specs_clone: unsafe extern "C" fn(*const LmSpecs, *mut *mut LmSpecs) -> LmStatus,
+    pub specs_diff: unsafe extern "C" fn(*const LmSpecs, *const LmSpecs, *mut LmBuffer) -> LmStatus,
     pub specs_sense: unsafe extern "C" fn(*const LmSpecs, *mut LmSense) -> LmStatus,
     pub specs_vtypes: unsafe extern "C" fn(*const LmSpecs, *mut LmVtypeBuffer) -> LmStatus,
     pub specs_ctypes: unsafe extern "C" fn(*const LmSpecs, *mut LmCtypeBuffer) -> LmStatus,
@@ -1126,6 +1168,8 @@ pub struct LunaModelCApi {
     // Bound //
     // ///// //
     pub bound_is_bounded: unsafe extern "C" fn(*const LmBound, *mut bool) -> LmStatus,
+    pub bound_value: unsafe extern "C" fn(*const LmBound, *mut f64) -> LmStatus,
+    pub bound_eq: unsafe extern "C" fn(*const LmBound, *const LmBound, *mut bool) -> LmStatus,
     // ////// //
     // Bounds //
     // ////// //
@@ -1137,6 +1181,7 @@ pub struct LunaModelCApi {
     pub bounds_real: unsafe extern "C" fn(*mut *mut LmBounds) -> LmStatus,
     pub bounds_default_for: unsafe extern "C" fn(LmVtype, *mut *mut LmBounds) -> LmStatus,
     pub bounds_clone: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBounds) -> LmStatus,
+    pub bounds_eq: unsafe extern "C" fn(*const LmBounds, *const LmBounds, *mut bool) -> LmStatus,
     pub bounds_lower: unsafe extern "C" fn(*const LmBounds, *mut LmBound) -> LmStatus,
     pub bounds_upper: unsafe extern "C" fn(*const LmBounds, *mut LmBound) -> LmStatus,
     pub bounds_eval: unsafe extern "C" fn(*const LmBounds, f64, *const f64, *mut bool) -> LmStatus,
@@ -1159,6 +1204,7 @@ pub struct LunaModelCApi {
     pub linear_free: unsafe extern "C" fn(*mut LmLinear),
     pub linear_default: extern "C" fn() -> *mut LmLinear,
     pub linear_for_var: unsafe extern "C" fn(u32, f64, *mut *mut LmLinear) -> LmStatus,
+    pub linear_for_vars: unsafe extern "C" fn(u32, f64, u32, f64, *mut *mut LmLinear) -> LmStatus,
     pub linear_clone: unsafe extern "C" fn(*const LmLinear, *mut *mut LmLinear) -> LmStatus,
     pub linear_eq: unsafe extern "C" fn(*const LmLinear, *const LmLinear, *mut bool) -> LmStatus,
     pub linear_len: unsafe extern "C" fn(*const LmLinear, *mut usize) -> LmStatus,
@@ -1234,6 +1280,8 @@ pub struct LunaModelCApi {
     // ////// //
     pub timing_free: unsafe extern "C" fn(*mut LmTiming),
     pub timing_new: unsafe extern "C" fn(u64, u64, *const f64, *mut *mut LmTiming) -> LmStatus,
+    pub timing_clone: unsafe extern "C" fn(*const LmTiming, *mut *mut LmTiming) -> LmStatus,
+    pub timing_eq: unsafe extern "C" fn(*const LmTiming, *const LmTiming, *mut bool) -> LmStatus,
     pub timing_total_ns: unsafe extern "C" fn(*const LmTiming, *mut u64) -> LmStatus,
     pub timing_start_ns: unsafe extern "C" fn(*const LmTiming, *mut u64) -> LmStatus,
     pub timing_end_ns: unsafe extern "C" fn(*const LmTiming, *mut u64) -> LmStatus,

@@ -206,9 +206,33 @@ pub(crate) unsafe fn slice_from_c<'a, T>(
     what: &str,
 ) -> Result<&'a [T], CapiError> {
     if data.is_null() {
-        return Err(CapiError::null_pointer(what));
+        return if len == 0 {
+            Ok(&[])
+        } else {
+            Err(CapiError::null_pointer(what))
+        };
     }
     Ok(unsafe { std::slice::from_raw_parts(data, len) })
+}
+
+/// Borrows a required mutable `(ptr, len)` C array.
+///
+/// # Safety
+/// `data` must be null or point to `len` writable, initialized `T` values with
+/// no aliases for the returned lifetime.
+pub(crate) unsafe fn mut_slice_from_c<'a, T>(
+    data: *mut T,
+    len: usize,
+    what: &str,
+) -> Result<&'a mut [T], CapiError> {
+    if data.is_null() {
+        return if len == 0 {
+            Ok(&mut [])
+        } else {
+            Err(CapiError::null_pointer(what))
+        };
+    }
+    Ok(unsafe { std::slice::from_raw_parts_mut(data, len) })
 }
 
 /// Borrows an optional `(ptr, len)` C array.
@@ -254,6 +278,19 @@ pub fn assignment_to_c(assignment: Assignment) -> LmAssignment {
             vtype: LmVtype::Real,
             value: v,
         },
+    }
+}
+
+pub fn assignment_from_c(assignment: LmAssignment) -> Result<Assignment, CapiError> {
+    match assignment.vtype {
+        LmVtype::Binary => Ok(Assignment::Binary(assignment.value as u8)),
+        LmVtype::Spin => Ok(Assignment::Spin(assignment.value as i8)),
+        LmVtype::Integer => Ok(Assignment::Integer(assignment.value as i64)),
+        LmVtype::Real => Ok(Assignment::Real(assignment.value)),
+        LmVtype::InvertedBinary => Err(CapiError::new(
+            LmStatus::InvalidArgument,
+            "inverted binary has no standalone assignment",
+        )),
     }
 }
 

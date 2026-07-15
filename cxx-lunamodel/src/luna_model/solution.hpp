@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -15,6 +16,7 @@
 #include "luna_model/env.hpp"
 #include "luna_model/error.hpp"
 #include "luna_model/result_view.hpp"
+#include "luna_model/sample_view.hpp"
 #include "luna_model/timing.hpp"
 
 namespace lm {
@@ -293,9 +295,7 @@ class Solution {
             return std::nullopt;
         }
         detail::check(st);
-        ResultView out = detail::read_result_view(view);
-        lm_result_view_free(view);
-        return out;
+        return ResultView(view);
     }
 
     /* Result views over all rows (Rust `Solution::results`). */
@@ -305,9 +305,33 @@ class Solution {
         std::vector<ResultView> out;
         out.reserve(buf.len);
         for (std::size_t i = 0; i < buf.len; ++i) {
-            out.push_back(detail::read_result_view(buf.data[i]));
+            out.emplace_back(buf.data[i]);
+            buf.data[i] = nullptr;
         }
         lm_result_view_buffer_free(buf);
+        return out;
+    }
+
+    std::optional<SampleView> sample(std::size_t index) const {
+        LmSampleView *view = nullptr;
+        const LmStatus status = lm_sol_sample_view(handle_, index, &view);
+        if (status == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(status);
+        return SampleView(view);
+    }
+
+    std::vector<SampleView> sample_views() const {
+        LmSampleViewBuffer buffer = {nullptr, 0, 0};
+        detail::check(lm_sol_sample_views(handle_, &buffer));
+        std::vector<SampleView> out;
+        out.reserve(buffer.len);
+        for (std::size_t index = 0; index < buffer.len; ++index) {
+            out.emplace_back(buffer.data[index]);
+            buffer.data[index] = nullptr;
+        }
+        lm_sample_view_buffer_free(buffer);
         return out;
     }
 
@@ -323,7 +347,8 @@ class Solution {
         std::vector<ResultView> out;
         out.reserve(buf.len);
         for (std::size_t i = 0; i < buf.len; ++i) {
-            out.push_back(detail::read_result_view(buf.data[i]));
+            out.emplace_back(buf.data[i]);
+            buf.data[i] = nullptr;
         }
         lm_result_view_buffer_free(buf);
         return out;
@@ -398,6 +423,32 @@ class Solution {
                                      tol ? &*tol : nullptr));
     }
 
+    void push(const std::vector<std::pair<std::string, LmAssignment>> &sample,
+              std::size_t counts = 1, std::optional<double> energy = std::nullopt) {
+        std::vector<const char *> names;
+        std::vector<LmAssignment> assignments;
+        names.reserve(sample.size());
+        assignments.reserve(sample.size());
+        for (const auto &entry : sample) {
+            names.push_back(entry.first.c_str());
+            assignments.push_back(entry.second);
+        }
+        detail::check(lm_sol_push(handle_, names.data(), assignments.data(), names.size(), counts,
+                                  energy ? &*energy : nullptr));
+    }
+
+    Solution filter_by_mask(const std::vector<bool> &mask) const {
+        std::unique_ptr<bool[]> values(new bool[mask.size()]);
+        for (std::size_t index = 0; index < mask.size(); ++index) {
+            values[index] = mask[index];
+        }
+        LmSol *out = nullptr;
+        detail::check(lm_sol_filter_by_mask(handle_, values.get(), mask.size(), &out));
+        return Solution(out);
+    }
+
+    void set_sense(LmSense sense) { detail::check(lm_sol_set_sense(handle_, sense)); }
+
     void add_empty_binary(const std::string &name) {
         detail::check(lm_sol_add_empty_binary(handle_, name.c_str()));
     }
@@ -411,8 +462,13 @@ class Solution {
         detail::check(lm_sol_add_empty_real(handle_, name.c_str()));
     }
 
-    void remove_col(const std::string &name) {
-        detail::check(lm_sol_remove_col(handle_, name.c_str()));
+    std::optional<Column> remove_col(const std::string &name) {
+        LmColumn *out = nullptr;
+        detail::check(lm_sol_remove_col(handle_, name.c_str(), &out));
+        if (out == nullptr) {
+            return std::nullopt;
+        }
+        return Column(out);
     }
     void remove_cols(const std::vector<std::string> &names) {
         std::vector<const char *> ptrs;

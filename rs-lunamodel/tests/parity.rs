@@ -6,8 +6,9 @@ use std::{
 
 use indexmap::{IndexMap, indexmap};
 use rs_lunamodel::{
-    Comparator, Constraint, ConstraintCollection, Environment, HigherOrder, LmAddAssign, Result,
-    Sense, Solution, Timing, TryAddAssign, TryClone, TryIndex, Variable, Vtype,
+    Assignment, Column, Comparator, Constraint, ConstraintCollection, Environment, HigherOrder,
+    LmAddAssign, Result, Sense, Solution, Timing, TryAddAssign, TryClone, TryIndex, Variable,
+    Vtype,
 };
 
 static INIT: Once = Once::new();
@@ -113,7 +114,7 @@ fn term_editors_commit_to_host() -> Result<()> {
     higher.try_add_assign((vec![3, 2, 1], 7.0))?;
     {
         let mut editor = higher.iter_mut()?;
-        for (_, bias) in editor.iter_mut() {
+        for (_, bias) in &mut editor {
             *bias = 8.0;
         }
         editor.commit()?;
@@ -148,5 +149,24 @@ fn solution_optional_values_buffers_and_owned_views() -> Result<()> {
     let timing = Timing::new(start, start + Duration::from_nanos(20), None)?;
     assert_eq!(timing.qpu()?, None);
     assert_eq!(timing.total()?, Duration::from_nanos(20));
+    Ok(())
+}
+
+#[test]
+fn column_facade_dispatches_to_host() -> Result<()> {
+    init();
+
+    let mut column = Column::binary(vec![0.0, 1.0])?;
+    column.try_push(1.0, None)?;
+    column.push(Assignment::Binary(0))?;
+    assert_eq!(column.values()?, vec![0.0, 1.0, 1.0, 0.0]);
+    assert_eq!(column.as_assignments()?.len(), 4);
+    assert_eq!(column.vtype()?, Vtype::Binary);
+
+    let filtered = column.filter_by_mask(&[false, true, true, false])?;
+    assert_eq!(filtered.values()?, vec![1.0, 1.0]);
+    let cloned = column.try_clone()?;
+    assert_eq!(cloned, column);
+    assert_eq!(column.extract(2)?.assignment(0)?, Assignment::Binary(1));
     Ok(())
 }

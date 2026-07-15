@@ -49,6 +49,54 @@ class Timing {
     Timing(const Timing &) = delete;
     Timing &operator=(const Timing &) = delete;
 
+    std::uint64_t total_ns() const {
+        std::uint64_t out = 0;
+        detail::check(lm_timing_total_ns(handle_, &out));
+        return out;
+    }
+
+    std::uint64_t start_ns() const {
+        std::uint64_t out = 0;
+        detail::check(lm_timing_start_ns(handle_, &out));
+        return out;
+    }
+
+    std::uint64_t end_ns() const {
+        std::uint64_t out = 0;
+        detail::check(lm_timing_end_ns(handle_, &out));
+        return out;
+    }
+
+    std::optional<double> qpu() const {
+        double out = 0.0;
+        const LmStatus status = lm_timing_qpu(handle_, &out);
+        if (status == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(status);
+        return out;
+    }
+
+    Timing clone() const {
+        LmTiming *out = nullptr;
+        detail::check(lm_timing_clone(handle_, &out));
+        return Timing(out);
+    }
+
+    bool operator==(const Timing &other) const {
+        bool out = false;
+        detail::check(lm_timing_eq(handle_, other.handle_, &out));
+        return out;
+    }
+    bool operator!=(const Timing &other) const { return !(*this == other); }
+
+    LmTiming *get() const noexcept { return handle_; }
+    LmTiming *release() noexcept {
+        LmTiming *handle = handle_;
+        handle_ = nullptr;
+        return handle;
+    }
+
   protected:
     explicit Timing(LmTiming *handle) noexcept : handle_(handle) {}
 

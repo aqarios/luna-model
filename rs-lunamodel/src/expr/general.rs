@@ -1,43 +1,25 @@
 use crate::traits::LmTryInto;
-use crate::{Error, Expression, Result, Status, TryDeepClone, TryIndex, VarRef};
+use crate::{Expression, Result, TryIndex, VarRef};
 
 impl Expression {
     pub fn deep_clone_many(exprs: &[&Expression]) -> Result<Vec<Expression>> {
-        let Some(first) = exprs.first() else {
-            return Ok(Vec::new());
-        };
-        let source = first.env()?;
-        let source_id = source.id()?;
-        let target = source.try_deep_clone(())?;
-        exprs
-            .iter()
-            .map(|expr| {
-                if expr.env()?.id()? != source_id {
-                    return Err(Error {
-                        status: Status::InvalidArgument,
-                        message: "expressions belong to different environments".to_owned(),
-                    });
-                }
-                expr.deep_clone(&target)
-            })
-            .collect()
+        let inputs: Vec<*const lunamodel_cext_vtable::LmExpr> =
+            exprs.iter().map(|expr| expr.as_ptr()).collect();
+        let mut outputs = vec![std::ptr::null_mut(); exprs.len()];
+        check!(expr_deep_clone_many(
+            inputs.as_ptr(),
+            inputs.len(),
+            outputs.as_mut_ptr()
+        ))?;
+        outputs.into_iter().map(LmTryInto::lm_try_into).collect()
     }
 
     pub fn evaluate_sample_quick(&self, lookup: &[f64]) -> Result<f64> {
-        let mut value = self.offset()?;
-        for (idx, bias) in self.raw_linear_items()? {
-            value += lookup_value(lookup, idx)? * bias;
-        }
-        for (u, v, bias) in self.raw_quadratic_items()? {
-            value += lookup_value(lookup, u)? * lookup_value(lookup, v)? * bias;
-        }
-        for (indices, bias) in self.raw_higher_order_items()? {
-            let contribution = indices
-                .into_iter()
-                .try_fold(bias, |acc, idx| Ok(acc * lookup_value(lookup, idx)?))?;
-            value += contribution;
-        }
-        Ok(value)
+        out!(expr_evaluate_sample_quick(
+            @self,
+            lookup.as_ptr(),
+            lookup.len()
+        ))
     }
 
     pub fn evaluate_sample<S>(&self, sample: &S) -> Result<f64>
@@ -81,11 +63,4 @@ impl Expression {
         let b = b.lm_try_into()?;
         Ok((a, b))
     }
-}
-
-fn lookup_value(lookup: &[f64], idx: u32) -> Result<f64> {
-    lookup.get(idx as usize).copied().ok_or_else(|| Error {
-        status: Status::InvalidArgument,
-        message: format!("lookup has no value for variable index {idx}"),
-    })
 }

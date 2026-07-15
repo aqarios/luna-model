@@ -143,6 +143,12 @@ inline Expression operator-(const Expression &lhs, const Expression &rhs) {
     return Expression(out);
 }
 
+inline Expression operator-(double lhs, const Expression &rhs) {
+    LmExpr *out = nullptr;
+    detail::check(lm_expr_rsub_bias(rhs.get(), lhs, &out));
+    return Expression(out);
+}
+
 inline Expression operator*(const Expression &lhs, double rhs) {
     LmExpr *out = nullptr;
     detail::check(lm_expr_mul_bias(lhs.get(), rhs, &out));
@@ -232,6 +238,12 @@ inline Expression operator+(double lhs, const Vref &rhs) { return rhs + lhs; }
 inline Expression operator-(const Vref &lhs, const Vref &rhs) {
     LmExpr *out = nullptr;
     detail::check(lm_vref_sub_vref(lhs.get(), rhs.get(), &out));
+    return Expression(out);
+}
+
+inline Expression operator-(const Vref &lhs, const Expression &rhs) {
+    LmExpr *out = nullptr;
+    detail::check(lm_vref_sub_expr(lhs.get(), rhs.get(), &out));
     return Expression(out);
 }
 

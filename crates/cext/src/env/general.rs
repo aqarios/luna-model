@@ -33,6 +33,24 @@ pub unsafe extern "C" fn lm_env_deep_clone(env: *const LmEnv, out: *mut *mut LmE
     })
 }
 
+/// Compares complete environment values, including identity and allocator state.
+///
+/// # Safety
+/// `env` and `other` must be valid handles and `out` writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_env_eq(
+    env: *const LmEnv,
+    other: *const LmEnv,
+    out: *mut bool,
+) -> LmStatus {
+    guard(|| {
+        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
+        let other = unsafe { ref_from_c(other as *const ArcEnv, "other") }?;
+        *unsafe { out_from_c(out) }? = *env.env.read() == *other.env.read();
+        Ok(())
+    })
+}
+
 /// Compares two environments for content equality.
 ///
 /// # Safety

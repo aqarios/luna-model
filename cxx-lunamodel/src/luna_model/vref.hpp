@@ -53,6 +53,12 @@ class Vref {
     Vref(const Vref &) = delete;
     Vref &operator=(const Vref &) = delete;
 
+    Vref clone() const {
+        LmVref *out = nullptr;
+        detail::check(lm_vref_clone(handle_, &out));
+        return Vref(out);
+    }
+
     /* Returns the raw variable index inside the environment (Rust `vref.id()`). */
     std::uint32_t id() const {
         std::uint32_t out = 0;
@@ -151,11 +157,55 @@ class Vref {
 
 /* Out-of-line definition (declared in env.hpp): both Env and Vref are
  * complete here. */
-inline Vref Env::insert(const std::string &name, LmVtype vtype) {
+inline std::vector<Vref> Env::vars() const {
+    LmVrefBuffer buffer = {nullptr, 0, 0};
+    detail::check(lm_env_vars(handle_, &buffer));
+    std::vector<Vref> out;
+    out.reserve(buffer.len);
+    for (std::size_t index = 0; index < buffer.len; ++index) {
+        out.emplace_back(buffer.data[index]);
+        buffer.data[index] = nullptr;
+    }
+    lm_vref_buffer_free(buffer);
+    return out;
+}
+
+inline Vref Env::lookup(const std::string &name) const {
     LmVref *out = nullptr;
-    detail::check(lm_env_insert(handle_, name.c_str(), vtype, nullptr, &out));
+    detail::check(lm_env_lookup(handle_, name.c_str(), &out));
     return Vref(out);
 }
+
+inline Vref Env::get(std::uint32_t id) const {
+    LmVref *out = nullptr;
+    detail::check(lm_env_get(handle_, id, &out));
+    return Vref(out);
+}
+
+inline Vref Env::insert(const std::string &name, LmVtype vtype, const LazyBounds *bounds) {
+    LmVref *out = nullptr;
+    detail::check(
+        lm_env_insert(handle_, name.c_str(), vtype, bounds ? bounds->get() : nullptr, &out));
+    return Vref(out);
+}
+
+inline Vref Env::insert_with_fallback(const std::string &name, LmVtype vtype,
+                                      const LazyBounds *bounds,
+                                      const std::vector<std::uint64_t> *encoding) {
+    LmVref *out = nullptr;
+    detail::check(lm_env_insert_with_fallback(
+        handle_, name.c_str(), vtype, bounds ? bounds->get() : nullptr,
+        encoding ? encoding->data() : nullptr, encoding ? encoding->size() : 0, &out));
+    return Vref(out);
+}
+
+inline Vref Env::insert_inverted(const Vref &base) {
+    LmVref *out = nullptr;
+    detail::check(lm_env_insert_inverted(handle_, base.get(), &out));
+    return Vref(out);
+}
+
+inline void Env::remove(const Vref &target) { detail::check(lm_env_remove(handle_, target.get())); }
 
 } // namespace lm
 

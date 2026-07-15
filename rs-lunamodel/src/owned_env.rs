@@ -4,10 +4,7 @@ use std::{collections::HashMap, ops::Deref};
 
 use indexmap::IndexMap;
 
-use crate::{
-    ContentEquality, Env, LazyBounds, Result, TryDeepClone, VarRef, Variable, Vtype,
-    traits::ToPtrList,
-};
+use crate::{Env, LazyBounds, Result, TryDeepClone, VarRef, Variable, Vtype, traits::ToPtrList};
 
 /// Mutable variable snapshot returned by [`Environment::get_mut`].
 ///
@@ -179,8 +176,7 @@ impl From<Env> for Environment {
 
 impl PartialEq for Environment {
     fn eq(&self, other: &Self) -> bool {
-        self.id().ok() == other.id().ok()
-            && self.inner.equal_contents(&other.inner).unwrap_or(false)
+        out_or!(env_eq(@self.inner, @other.inner), false)
     }
 }
 

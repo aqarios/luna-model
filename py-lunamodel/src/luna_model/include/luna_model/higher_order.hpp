@@ -115,6 +115,8 @@ class HigherOrder {
         detail::check(lm_higher_order_add_entry(handle_, indices.data(), indices.size(), bias));
     }
 
+    void clean() { detail::check(lm_higher_order_clean(handle_)); }
+
     /* Adds another higher-order store in place (Rust `ho += &other`). */
     HigherOrder &operator+=(const HigherOrder &other) {
         detail::check(lm_higher_order_add_higher_order(handle_, other.handle_));
