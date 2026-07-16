@@ -67,4 +67,3 @@ impl IntoIterator for ConstraintCollection {
             .expect("failed to iterate a host-backed ConstraintCollection")
     }
 }
-

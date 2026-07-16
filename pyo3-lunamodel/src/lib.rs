@@ -5,6 +5,7 @@ mod bounds;
 mod constraint;
 mod constraint_collection;
 mod environment;
+pub mod error;
 mod expression;
 mod model;
 mod sol;

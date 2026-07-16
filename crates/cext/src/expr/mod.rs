@@ -4,6 +4,7 @@ mod access;
 mod creation;
 mod equality;
 mod general;
+mod modification;
 mod ops;
 mod serialize;
 
@@ -20,6 +21,10 @@ pub use creation::{
 pub use equality::{lm_expr_eq, lm_expr_equal_contents};
 pub use general::{
     lm_expr_clone, lm_expr_deep_clone, lm_expr_deep_clone_many, lm_expr_evaluate_sample_quick,
+};
+pub use modification::{
+    lm_expr_add_higher_order_term, lm_expr_add_linear_term, lm_expr_add_quadratic_term,
+    lm_expr_set_offset,
 };
 pub use serialize::{lm_expr_deserialize, lm_expr_serialize};
 

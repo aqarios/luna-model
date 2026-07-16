@@ -196,6 +196,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     sol_add_col: crate::sol::lm_sol_add_col,
     sol_remove_col: crate::sol::lm_sol_remove_col,
     sol_remove_cols: crate::sol::lm_sol_remove_cols,
+    sol_set_counts: crate::sol::lm_sol_set_counts,
+    sol_set_timing: crate::sol::lm_sol_set_timing,
     sol_set_sense: crate::sol::lm_sol_set_sense,
     // Sol -- convenience
     sol_cvar: crate::sol::lm_sol_cvar,
@@ -245,6 +247,11 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_is_constant: crate::expr::lm_expr_is_constant,
     expr_has_quadratic: crate::expr::lm_expr_has_quadratic,
     expr_has_higher_order: crate::expr::lm_expr_has_higher_order,
+    // Expr -- modification
+    expr_set_offset: crate::expr::lm_expr_set_offset,
+    expr_add_linear_term: crate::expr::lm_expr_add_linear_term,
+    expr_add_quadratic_term: crate::expr::lm_expr_add_quadratic_term,
+    expr_add_higher_order_term: crate::expr::lm_expr_add_higher_order_term,
     // Expr -- ops -- add
     expr_add_bias: crate::expr::lm_expr_add_bias,
     expr_add_vref: crate::expr::lm_expr_add_vref,

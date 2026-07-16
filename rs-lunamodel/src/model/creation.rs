@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use lunamodel_types::Sense;
 
 use crate::{Env, Model, Result};
@@ -9,7 +11,11 @@ impl Model {
         out!(model_new(?!name, ?~sense))
     }
 
-    pub fn with_env(name: Option<String>, sense: Option<Sense>, env: &Env) -> Result<Self> {
+    pub fn with_env<E>(name: Option<String>, sense: Option<Sense>, env: E) -> Result<Self>
+    where
+        E: Borrow<Env>,
+    {
+        let env = env.borrow();
         out!(model_with_env(?!name, ?~sense, @env))
     }
 }

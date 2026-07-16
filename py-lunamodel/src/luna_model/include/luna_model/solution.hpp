@@ -447,6 +447,15 @@ class Solution {
         return Solution(out);
     }
 
+    void set_counts(const std::vector<std::size_t> &counts) {
+        detail::check(lm_sol_set_counts(handle_, counts.data(), counts.size()));
+    }
+
+    void set_timing(const Timing &timing) {
+        detail::check(lm_sol_set_timing(handle_, timing.get()));
+    }
+    void clear_timing() { detail::check(lm_sol_set_timing(handle_, nullptr)); }
+
     void set_sense(LmSense sense) { detail::check(lm_sol_set_sense(handle_, sense)); }
 
     void add_empty_binary(const std::string &name) {

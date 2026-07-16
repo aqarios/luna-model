@@ -181,8 +181,9 @@ class Model {
         return ConstraintCollection(out);
     }
 
-    void set_objective(const Expression &objective) {
-        detail::check(lm_model_set_objective(handle_, objective.get()));
+    void set_objective(const Expression &objective, std::optional<LmSense> sense = std::nullopt) {
+        detail::check(
+            lm_model_set_objective(handle_, objective.get(), sense ? &*sense : nullptr));
     }
 
     void set_constraints(const ConstraintCollection &constraints) {

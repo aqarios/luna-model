@@ -6,7 +6,7 @@ use lunamodel_cext_vtable::{LmAssignment, LmColumn};
 use lunamodel_types::{Sense, Vtype};
 
 use crate::{
-    Assignment, Column, Result, ResultView, Solution,
+    Assignment, Column, Result, ResultView, Solution, Timing,
     traits::{LmFrom, ToPtrList},
 };
 
@@ -112,6 +112,16 @@ impl Solution {
             counts,
             ?energy
         ))
+    }
+
+    /// Replaces the per-row sample counts.
+    pub fn set_counts(&mut self, counts: Vec<usize>) -> Result<()> {
+        check!(sol_set_counts(@mut self, counts.as_ptr(), counts.len()))
+    }
+
+    /// Replaces or clears the solution timing metadata.
+    pub fn set_timing(&mut self, timing: Option<&Timing>) -> Result<()> {
+        check!(sol_set_timing(@mut self, ?@timing))
     }
 
     pub fn set_sense(mut self, sense: Sense) -> Result<Self> {

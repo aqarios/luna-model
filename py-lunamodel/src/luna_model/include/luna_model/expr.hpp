@@ -128,6 +128,21 @@ class Expression {
         return out;
     }
 
+    /* Replaces the constant offset (Rust `Expression::set_offset`). */
+    void set_offset(double value) { detail::check(lm_expr_set_offset(handle_, value)); }
+
+    /* Adds raw degree-specific terms without changing environment identity. */
+    void add_linear_term(std::uint32_t variable, double bias) {
+        detail::check(lm_expr_add_linear_term(handle_, variable, bias));
+    }
+    void add_quadratic_term(std::uint32_t u, std::uint32_t v, double bias) {
+        detail::check(lm_expr_add_quadratic_term(handle_, u, v, bias));
+    }
+    void add_higher_order_term(const std::vector<std::uint32_t> &variables, double bias) {
+        detail::check(
+            lm_expr_add_higher_order_term(handle_, variables.data(), variables.size(), bias));
+    }
+
     /* Returns a copy of the linear terms (Rust `expr.linear`). */
     Linear linear() const {
         LmLinear *out = nullptr;

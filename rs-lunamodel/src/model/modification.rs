@@ -11,8 +11,9 @@ impl Model {
         check!(model_set_sense(@mut self, ~sense))
     }
 
-    pub fn set_objective(&mut self, objective: Expression) -> Result<()> {
-        check!(model_set_objective(@mut self, @objective))
+    /// Replaces the objective and optionally updates the optimization sense.
+    pub fn set_objective(&mut self, objective: Expression, sense: Option<Sense>) -> Result<()> {
+        check!(model_set_objective(@mut self, @objective, ?~sense))
     }
 
     pub fn set_constraints(&mut self, constraints: ConstraintCollection) -> Result<()> {

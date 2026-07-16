@@ -34,8 +34,10 @@ fn environment_expression_and_constraint_facade() -> Result<()> {
 
     let mut expr = (&x + &y)?;
     LmAddAssign::add_assign(&mut expr, 2.0)?;
-    assert_eq!(expr.linear(x.id()?)?, 1.0);
-    assert_eq!(expr.offset()?, 2.0);
+    expr.add_assign((x.id()?, 3.0))?;
+    expr.set_offset(4.0)?;
+    assert_eq!(expr.linear(x.id()?)?, 4.0);
+    assert_eq!(expr.offset()?, 4.0);
     assert_eq!(expr.quadratic_terms()?, None);
     assert_eq!(expr.higher_order_terms()?, None);
 
@@ -152,6 +154,13 @@ fn solution_optional_values_buffers_and_owned_views() -> Result<()> {
     let timing = Timing::new(start, start + Duration::from_nanos(20), None)?;
     assert_eq!(timing.qpu()?, None);
     assert_eq!(timing.total()?, Duration::from_nanos(20));
+    let mut metadata = Solution::with_sense(Sense::Min);
+    metadata.set_counts(vec![7])?;
+    metadata.set_timing(Some(&timing))?;
+    assert_eq!(metadata.counts()?, vec![7]);
+    assert_eq!(metadata.timing()?.unwrap(), timing);
+    metadata.set_timing(None)?;
+    assert_eq!(metadata.timing()?, None);
     Ok(())
 }
 
@@ -160,12 +169,17 @@ fn model_children_are_live_parent_retaining_views() -> Result<()> {
     init();
 
     let mut model = rs_lunamodel::Model::default();
+    assert_eq!(model.environment()?.id()?, model.env()?.id()?);
     let mut objective = model.objective()?;
     objective.try_add_assign(2.0)?;
     assert_eq!(model.objective()?.offset()?, 2.0);
 
-    model.set_objective(rs_lunamodel::Expression::from_f64(7.0)?)?;
+    model.set_objective(
+        rs_lunamodel::Expression::from_f64(7.0)?,
+        Some(Sense::Max),
+    )?;
     assert_eq!(objective.offset()?, 7.0);
+    assert_eq!(model.sense()?, Sense::Max);
 
     let mut constraints = model.constraints()?;
     let constraint = Constraint::new(
@@ -183,6 +197,9 @@ fn model_children_are_live_parent_retaining_views() -> Result<()> {
     drop(model);
     assert_eq!(objective.offset()?, 7.0);
     assert!(constraints.is_empty()?);
+
+    let clone = rs_lunamodel::Model::default().deep_clone()?;
+    assert_eq!(clone.name()?, rs_lunamodel::DEFAULT_MODEL_NAME);
     Ok(())
 }
 

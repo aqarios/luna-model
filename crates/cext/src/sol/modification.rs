@@ -1,10 +1,12 @@
 use std::ffi::c_char;
 
+use luna_model::core::Timing;
+
 use crate::{
-    LmAssignment, LmColumn, LmSense, LmSol, LmStatus, LmVtype,
+    LmAssignment, LmColumn, LmSense, LmSol, LmStatus, LmTiming, LmVtype,
     error::{CapiError, guard},
     utils::{
-        assignment_from_c, handle_to_c, new_handle_out_from_c, opt_from_c, out_from_c,
+        assignment_from_c, handle_to_c, new_handle_out_from_c, opt_from_c, out_from_c, ref_from_c,
         sense_from_c, shared_from_c, slice_from_c, str_from_c, vtype_from_c,
     },
 };
@@ -318,6 +320,44 @@ pub unsafe extern "C" fn lm_sol_push(
             .collect::<Result<_, CapiError>>()?;
         sol.push(sample, counts, unsafe { opt_from_c(energy) })
             .map_err(CapiError::errored)?;
+        Ok(())
+    })
+}
+
+/// Replaces the per-row sample counts.
+///
+/// # Safety
+/// `sol` must be a valid mutable solution handle. `counts` must be null when
+/// `len` is zero or point to `len` readable values.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_sol_set_counts(
+    sol: *mut LmSol,
+    counts: *const usize,
+    len: usize,
+) -> LmStatus {
+    guard(|| {
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
+        sol.counts = unsafe { slice_from_c(counts, len, "counts") }?.to_vec();
+        Ok(())
+    })
+}
+
+/// Replaces the optional solution timing metadata.
+///
+/// A null `timing` clears the timing value.
+///
+/// # Safety
+/// `sol` must be a valid mutable solution handle. When non-null, `timing` must
+/// be a valid timing handle created by this library.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_sol_set_timing(sol: *mut LmSol, timing: *const LmTiming) -> LmStatus {
+    guard(|| {
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
+        sol.timing = if timing.is_null() {
+            None
+        } else {
+            Some(*unsafe { ref_from_c(timing as *const Timing, "timing") }?)
+        };
         Ok(())
     })
 }

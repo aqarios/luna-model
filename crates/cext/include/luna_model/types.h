@@ -858,7 +858,7 @@ typedef struct {
     LmStatus (*model_constraints)(const LmModel*, LmCC**);
     LmStatus (*model_set_name)(LmModel*, const char*);
     LmStatus (*model_set_sense)(LmModel*, LmSense);
-    LmStatus (*model_set_objective)(LmModel*, const LmExpr*);
+    LmStatus (*model_set_objective)(LmModel*, const LmExpr*, const LmSense*);
     LmStatus (*model_set_constraints)(LmModel*, const LmCC*);
     LmStatus (*model_serialize)(const LmModel*, LmBuffer*);
     LmStatus (*model_deserialize)(const uint8_t*, uintptr_t, LmModel**);
@@ -990,6 +990,8 @@ typedef struct {
     LmStatus (*sol_add_col)(LmSol*, LmVtype, const char*, const double*, uintptr_t, const double*);
     LmStatus (*sol_remove_col)(LmSol*, const char*, LmColumn**);
     LmStatus (*sol_remove_cols)(LmSol*, const char*const *, uintptr_t);
+    LmStatus (*sol_set_counts)(LmSol*, const uintptr_t*, uintptr_t);
+    LmStatus (*sol_set_timing)(LmSol*, const LmTiming*);
     LmStatus (*sol_set_sense)(LmSol*, LmSense);
     LmStatus (*sol_cvar)(const LmSol*, double, const LmValueSource*, double*);
     LmStatus (*sol_expectation_value)(const LmSol*, const LmValueSource*, double*);
@@ -1034,6 +1036,10 @@ typedef struct {
     LmStatus (*expr_is_constant)(const LmExpr*, bool*);
     LmStatus (*expr_has_quadratic)(const LmExpr*, bool*);
     LmStatus (*expr_has_higher_order)(const LmExpr*, bool*);
+    LmStatus (*expr_set_offset)(LmExpr*, double);
+    LmStatus (*expr_add_linear_term)(LmExpr*, uint32_t, double);
+    LmStatus (*expr_add_quadratic_term)(LmExpr*, uint32_t, uint32_t, double);
+    LmStatus (*expr_add_higher_order_term)(LmExpr*, const uint32_t*, uintptr_t, double);
     LmStatus (*expr_add_bias)(const LmExpr*, double, LmExpr**);
     LmStatus (*expr_add_vref)(const LmExpr*, const LmVref*, LmExpr**);
     LmStatus (*expr_add_expr)(const LmExpr*, const LmExpr*, LmExpr**);

@@ -709,7 +709,8 @@ pub struct LunaModelCApi {
     // Model -- setter
     pub model_set_name: unsafe extern "C" fn(*mut LmModel, *const c_char) -> LmStatus,
     pub model_set_sense: unsafe extern "C" fn(*mut LmModel, LmSense) -> LmStatus,
-    pub model_set_objective: unsafe extern "C" fn(*mut LmModel, *const LmExpr) -> LmStatus,
+    pub model_set_objective:
+        unsafe extern "C" fn(*mut LmModel, *const LmExpr, *const LmSense) -> LmStatus,
     pub model_set_constraints: unsafe extern "C" fn(*mut LmModel, *const LmCC) -> LmStatus,
     // Model -- serializer
     pub model_serialize: unsafe extern "C" fn(*const LmModel, *mut LmBuffer) -> LmStatus,
@@ -916,6 +917,8 @@ pub struct LunaModelCApi {
     pub sol_remove_col:
         unsafe extern "C" fn(*mut LmSol, *const c_char, *mut *mut LmColumn) -> LmStatus,
     pub sol_remove_cols: unsafe extern "C" fn(*mut LmSol, *const *const c_char, usize) -> LmStatus,
+    pub sol_set_counts: unsafe extern "C" fn(*mut LmSol, *const usize, usize) -> LmStatus,
+    pub sol_set_timing: unsafe extern "C" fn(*mut LmSol, *const LmTiming) -> LmStatus,
     pub sol_set_sense: unsafe extern "C" fn(*mut LmSol, LmSense) -> LmStatus,
     // Sol -- convenience
     pub sol_cvar:
@@ -977,6 +980,11 @@ pub struct LunaModelCApi {
     pub expr_is_constant: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
     pub expr_has_quadratic: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
     pub expr_has_higher_order: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
+    pub expr_set_offset: unsafe extern "C" fn(*mut LmExpr, f64) -> LmStatus,
+    pub expr_add_linear_term: unsafe extern "C" fn(*mut LmExpr, u32, f64) -> LmStatus,
+    pub expr_add_quadratic_term: unsafe extern "C" fn(*mut LmExpr, u32, u32, f64) -> LmStatus,
+    pub expr_add_higher_order_term:
+        unsafe extern "C" fn(*mut LmExpr, *const u32, usize, f64) -> LmStatus,
     pub expr_add_bias: unsafe extern "C" fn(*const LmExpr, f64, *mut *mut LmExpr) -> LmStatus,
     pub expr_add_vref:
         unsafe extern "C" fn(*const LmExpr, *const LmVref, *mut *mut LmExpr) -> LmStatus,

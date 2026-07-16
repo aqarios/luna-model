@@ -70,6 +70,11 @@ impl ResultView {
     pub fn sample(&self) -> Result<SampleView> {
         out!(result_view_sample(@self))
     }
+
+    /// Returns this result row as a variable-name/value map.
+    pub fn as_map(&self) -> Result<HashMap<String, f64>> {
+        self.sample()?.as_map()
+    }
 }
 
 impl TryFrom<(&Solution, usize)> for ResultView {

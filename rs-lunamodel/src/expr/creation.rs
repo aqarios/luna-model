@@ -1,20 +1,33 @@
+use std::borrow::Borrow;
+
 use crate::{Env, HigherOrder, Linear, Quadratic, VarRef, error::Result};
 
 use super::Expression;
 
 impl Expression {
     /// Native-compatible alias for an empty expression.
-    pub fn empty(env: &Env) -> Result<Self> {
+    pub fn empty<E>(env: E) -> Result<Self>
+    where
+        E: Borrow<Env>,
+    {
         Self::new(env)
     }
 
     /// Creates an empty expression bound to `env`.
-    pub fn new(env: &Env) -> Result<Self> {
+    pub fn new<E>(env: E) -> Result<Self>
+    where
+        E: Borrow<Env>,
+    {
+        let env = env.borrow();
         out!(expr_new(@env))
     }
 
     /// Creates a constant expression bound to `env`.
-    pub fn constant(env: &Env, value: f64) -> Result<Self> {
+    pub fn constant<E>(env: E, value: f64) -> Result<Self>
+    where
+        E: Borrow<Env>,
+    {
+        let env = env.borrow();
         out!(expr_new_constant(@env, value))
     }
 
@@ -52,8 +65,9 @@ impl Expression {
         dense: &[f64],
         num_vars: usize,
         offset: Option<f64>,
-        env: &Env,
+        env: impl Borrow<Env>,
     ) -> Result<Self> {
+        let env = env.borrow();
         out!(expr_from_dense_quadratic(
             dense.as_ptr(),
             dense.len(),

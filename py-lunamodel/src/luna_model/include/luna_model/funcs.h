@@ -1374,6 +1374,43 @@ LmStatus lm_expr_evaluate_sample_quick(const LmExpr *expr,
                                        double *out);
 
 /**
+ * Replaces an expression's constant offset.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ */
+LmStatus lm_expr_set_offset(LmExpr *expr, double offset);
+
+/**
+ * Adds one raw linear contribution to an expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ */
+LmStatus lm_expr_add_linear_term(LmExpr *expr, uint32_t variable, double bias);
+
+/**
+ * Adds one raw quadratic contribution to an expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ */
+LmStatus lm_expr_add_quadratic_term(LmExpr *expr, uint32_t u, uint32_t v, double bias);
+
+/**
+ * Adds one raw higher-order contribution to an expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `variables` must be null when `len` is zero or point to `len` readable
+ * variable indices.
+ */
+LmStatus lm_expr_add_higher_order_term(LmExpr *expr,
+                                       const uint32_t *variables,
+                                       uintptr_t len,
+                                       double bias);
+
+/**
  * Adds a variable reference to the expression in place.
  *
  * # Safety
@@ -2380,9 +2417,10 @@ LmStatus lm_model_set_sense(LmModel *model, LmSense sense);
  *
  * # Safety
  * `model` must be a valid mutable model handle created by this library.
- * `expr` must point to a valid `LmExpr` handle
+ * `expr` must point to a valid `LmExpr` handle. `sense` may be null; when
+ * non-null it must point to a readable `LmSense`.
  */
-LmStatus lm_model_set_objective(LmModel *model, const LmExpr *expr);
+LmStatus lm_model_set_objective(LmModel *model, const LmExpr *expr, const LmSense *sense);
 
 /**
  * Sets the constraints of the model.
@@ -3135,6 +3173,26 @@ LmStatus lm_sol_push(LmSol *sol,
                      uintptr_t len,
                      uintptr_t counts,
                      const double *energy);
+
+/**
+ * Replaces the per-row sample counts.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle. `counts` must be null when
+ * `len` is zero or point to `len` readable values.
+ */
+LmStatus lm_sol_set_counts(LmSol *sol, const uintptr_t *counts, uintptr_t len);
+
+/**
+ * Replaces the optional solution timing metadata.
+ *
+ * A null `timing` clears the timing value.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle. When non-null, `timing` must
+ * be a valid timing handle created by this library.
+ */
+LmStatus lm_sol_set_timing(LmSol *sol, const LmTiming *timing);
 
 /**
  * Sets the solution optimization sense.

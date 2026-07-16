@@ -68,7 +68,7 @@ pub use column::Column;
 pub use constr::Constraint;
 pub use env::Env;
 pub type ArcEnv = Env;
-pub use error::{Error, Result, Status};
+pub use error::{Error, LunaModelError, LunaModelResult, Result, Status};
 pub use expr::Expression;
 pub use higher_order::{HigherOrder, HigherOrderEditor};
 pub use lazy_bounds::{Concretize, LazyBounds};

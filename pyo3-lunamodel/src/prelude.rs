@@ -2,6 +2,7 @@ pub use crate::bounds::PyBounds;
 pub use crate::constraint::PyConstraint;
 pub use crate::constraint_collection::PyConstraintCollection;
 pub use crate::environment::PyEnvironment;
+pub use crate::error::{from_pyerr, into_pyerr};
 pub use crate::expression::PyExpression;
 pub use crate::model::PyModel;
 pub use crate::sol::PySolution;
