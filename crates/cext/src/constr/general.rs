@@ -1,14 +1,42 @@
-use crate::utils::{handle_to_c, mut_from_c, out_from_c, ref_from_c};
-use luna_model::core::{
-    Expression,
-    prelude::{Constraint, ContentEquality, VarRef},
-};
+use luna_model::core::prelude::{ContentEquality, VarRef};
+
+use std::ffi::c_char;
 
 use crate::{
     LmConstraint, LmEnv, LmExpr, LmStatus, LmVref,
-    env::utils::environment_from_c,
     error::{CapiError, guard},
+    eval::NameSample,
+    expr::utils::expression_from_c,
+    utils::{
+        new_handle_out_from_c, opt_from_c, out_from_c, ref_from_c, shared_from_c, slice_from_c,
+        storage_from_c,
+    },
 };
+
+/// Evaluates a constraint against a name-keyed sample.
+///
+/// # Safety
+/// `constr` must be valid, `names` and `values` must reference `len` readable
+/// elements, `tol` may be null or readable, and `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_constr_evaluate_sample(
+    constr: *const LmConstraint,
+    names: *const *const c_char,
+    values: *const f64,
+    len: usize,
+    tol: *const f64,
+    out: *mut bool,
+) -> LmStatus {
+    guard(|| {
+        let constr = unsafe { shared_from_c(constr, "constr") }?.read_arc();
+        let sample = unsafe { NameSample::from_c(names, values, len) }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = constr
+            .evaluate_sample(&sample, unsafe { opt_from_c(tol) })
+            .map_err(CapiError::errored)?;
+        Ok(())
+    })
+}
 
 /// Clones a constraint into a new, independent handle written to `out`.
 ///
@@ -20,10 +48,10 @@ pub unsafe extern "C" fn lm_constr_clone(
     out: *mut *mut LmConstraint,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(constr.clone());
-        Ok(())
+        let constr = unsafe { shared_from_c(constr, "constr") }?
+            .read_arc()
+            .clone();
+        unsafe { new_handle_out_from_c(out, constr) }
     })
 }
 
@@ -40,11 +68,9 @@ pub unsafe extern "C" fn lm_constr_deep_clone(
     out: *mut *mut LmConstraint,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
-        let env = unsafe { environment_from_c(env)? };
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(constr.deep_clone(env.clone()));
-        Ok(())
+        let constr = unsafe { shared_from_c(constr, "constr") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env")? };
+        unsafe { new_handle_out_from_c(out, constr.deep_clone(env.clone())) }
     })
 }
 
@@ -61,12 +87,14 @@ pub unsafe extern "C" fn lm_constr_substitute(
     replacement: *const LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { mut_from_c(constr as *mut Constraint, "constr") }?;
         let target = unsafe { ref_from_c(target as *const VarRef, "target") }?;
-        let replacement = unsafe { ref_from_c(replacement as *const Expression, "replacement") }?;
+        let replacement = unsafe { expression_from_c(replacement, "replacement") }?
+            .read()
+            .clone();
+        let mut constr = unsafe { shared_from_c(constr, "constr") }?.write_arc();
 
         constr
-            .substitute(target, replacement)
+            .substitute(target, &replacement)
             .map_err(CapiError::errored)?;
 
         Ok(())
@@ -86,10 +114,10 @@ pub unsafe extern "C" fn lm_constr_equal_contents(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
-        let other = unsafe { ref_from_c(other as *const Constraint, "other") }?;
+        let constr = unsafe { shared_from_c(constr, "constr") }?.read_arc();
+        let other = unsafe { shared_from_c(other, "other") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-        *out = constr.equal_contents(other);
+        *out = constr.equal_contents(&other);
         Ok(())
     })
 }
@@ -107,10 +135,35 @@ pub unsafe extern "C" fn lm_constr_eq(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
-        let other = unsafe { ref_from_c(other as *const Constraint, "other") }?;
+        let constr = unsafe { shared_from_c(constr, "constr") }?.read_arc();
+        let other = unsafe { shared_from_c(other, "other") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-        *out = constr.eq(other);
+        *out = constr.eq(&other);
+        Ok(())
+    })
+}
+
+/// Evaluates a constraint against an index-aligned dense lookup.
+///
+/// # Safety
+/// `constr` must be a valid constraint handle, `lookup` must reference `len`
+/// readable doubles, `tol` may be null or readable, and `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_constr_evaluate_sample_quick(
+    constr: *const LmConstraint,
+    lookup: *const f64,
+    len: usize,
+    tol: *const f64,
+    out: *mut bool,
+) -> LmStatus {
+    guard(|| {
+        let constr = unsafe { shared_from_c(constr, "constr") }?.read_arc();
+        let lookup = unsafe { slice_from_c(lookup, len, "lookup") }?;
+        let tol = unsafe { opt_from_c(tol) };
+        let out = unsafe { out_from_c(out) }?;
+        *out = constr
+            .evaluate_sample_quick(lookup, tol)
+            .map_err(CapiError::errored)?;
         Ok(())
     })
 }

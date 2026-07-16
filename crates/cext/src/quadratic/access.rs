@@ -1,9 +1,10 @@
-use crate::utils::{out_from_c, ref_from_c};
 use luna_model::core::prelude::Quadratic;
 
 use crate::{
     LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer, LmStatus,
-    buffer::quadratic_item_buffer_from_vec, error::guard,
+    buffer::quadratic_item_buffer_from_vec,
+    error::guard,
+    utils::{out_from_c, ref_from_c},
 };
 
 /// Returns the number of explicitly stored entries of the quadratic term.

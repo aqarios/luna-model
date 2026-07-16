@@ -37,6 +37,31 @@ impl Env {
     pub fn new() -> Self {
         Self::default()
     }
+
+    /// Clones into another handle to the same shared environment.
+    pub fn try_clone(&self) -> Result<Self> {
+        <Self as TryClone>::try_clone(self)
+    }
+
+    /// Deep-clones into a new independent environment.
+    pub fn deep_clone(&self) -> Result<Self> {
+        <Self as TryDeepClone>::try_deep_clone(self, ())
+    }
+
+    /// Content equality, ignoring environment identity.
+    pub fn equal_contents(&self, other: &Self) -> Result<bool> {
+        <Self as ContentEquality>::equal_contents(self, other)
+    }
+
+    /// Serializes the environment to bytes.
+    pub fn serialize(&self) -> Result<Vec<u8>> {
+        <Self as Serialization>::serialize(self)
+    }
+
+    /// Deserializes an environment from bytes.
+    pub fn deserialize(data: &[u8]) -> Result<Self> {
+        <Self as Serialization>::deserialize(data, ())
+    }
 }
 
 impl TryClone for Env {
@@ -77,3 +102,7 @@ impl std::fmt::Debug for Env {
             .finish()
     }
 }
+
+// SAFETY: every operation on an LmEnv is synchronized by the host.
+unsafe impl Send for Env {}
+unsafe impl Sync for Env {}

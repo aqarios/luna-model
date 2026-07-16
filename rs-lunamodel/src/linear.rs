@@ -5,7 +5,7 @@
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `Linear` still return `Result` here.
 
-use std::ops::{Deref, DerefMut, Mul, Neg};
+use std::ops::{Deref, Mul, Neg};
 
 use lunamodel_cext_vtable::LmLinear;
 use rs_lunamodel_derive::RawHandle;
@@ -57,12 +57,6 @@ impl Deref for LinearEditor<'_> {
     type Target = [(u32, f64)];
     fn deref(&self) -> &Self::Target {
         &self.items
-    }
-}
-
-impl DerefMut for LinearEditor<'_> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.items
     }
 }
 
@@ -128,9 +122,7 @@ impl Linear {
     }
 
     pub fn for_vars(var_a: (u32, f64), var_b: (u32, f64)) -> Result<Self> {
-        let mut linear = Self::for_var(var_a.0, var_a.1)?;
-        linear.try_add_assign(var_b)?;
-        Ok(linear)
+        out!(linear_for_vars(var_a.0, var_a.1, var_b.0, var_b.1))
     }
 
     pub fn len(&self) -> Result<usize> {

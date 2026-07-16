@@ -1,13 +1,14 @@
 use std::ffi::c_char;
 
-use luna_model::core::{Solution, solution::Assignment};
+use luna_model::core::Timing;
 
 use crate::{
-    LmAssignment, LmColumn, LmSense, LmSol, LmStatus, LmVtype,
+    LmAssignment, LmColumn, LmColumnBuffer, LmSense, LmSol, LmStatus, LmTiming, LmVtype,
+    buffer::column_buffer_from_vec,
     error::{CapiError, guard},
     utils::{
-        handle_to_c, mut_from_c, opt_from_c, out_from_c, sense_from_c, slice_from_c, str_from_c,
-        vtype_from_c,
+        assignment_from_c, handle_to_c, new_handle_out_from_c, opt_from_c, out_from_c, ref_from_c,
+        sense_from_c, shared_from_c, slice_from_c, str_from_c, vtype_from_c,
     },
 };
 
@@ -19,7 +20,7 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_add_empty_binary(sol: *mut LmSol, name: *const c_char) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         let name = unsafe { str_from_c(name, "name") }?;
         sol.add_empty_binary(name.to_owned());
         Ok(())
@@ -34,7 +35,7 @@ pub unsafe extern "C" fn lm_sol_add_empty_binary(sol: *mut LmSol, name: *const c
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_add_empty_spin(sol: *mut LmSol, name: *const c_char) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         let name = unsafe { str_from_c(name, "name") }?;
         sol.add_empty_spin(name.to_owned());
         Ok(())
@@ -52,7 +53,7 @@ pub unsafe extern "C" fn lm_sol_add_empty_integer(
     name: *const c_char,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         let name = unsafe { str_from_c(name, "name") }?;
         sol.add_empty_integer(name.to_owned());
         Ok(())
@@ -67,7 +68,7 @@ pub unsafe extern "C" fn lm_sol_add_empty_integer(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_add_empty_real(sol: *mut LmSol, name: *const c_char) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         let name = unsafe { str_from_c(name, "name") }?;
         sol.add_empty_real(name.to_owned());
         Ok(())
@@ -92,7 +93,7 @@ pub unsafe extern "C" fn lm_sol_add_binary(
     tol: *const f64,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         let name = unsafe { str_from_c(name, "name") }?;
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         let tol = unsafe { opt_from_c(tol) };
@@ -120,7 +121,7 @@ pub unsafe extern "C" fn lm_sol_add_spin(
     tol: *const f64,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         let name = unsafe { str_from_c(name, "name") }?;
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         let tol = unsafe { opt_from_c(tol) };
@@ -148,7 +149,7 @@ pub unsafe extern "C" fn lm_sol_add_integer(
     tol: *const f64,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         let name = unsafe { str_from_c(name, "name") }?;
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         let tol = unsafe { opt_from_c(tol) };
@@ -172,7 +173,7 @@ pub unsafe extern "C" fn lm_sol_add_real(
     len: usize,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         let name = unsafe { str_from_c(name, "name") }?;
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         sol.add_real(name.to_owned(), data);
@@ -197,7 +198,7 @@ pub unsafe extern "C" fn lm_sol_add_col(
     tol: *const f64,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         let name = unsafe { str_from_c(name, "name") }?;
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         let tol = unsafe { opt_from_c(tol) };
@@ -219,7 +220,7 @@ pub unsafe extern "C" fn lm_sol_remove_col(
     out: *mut *mut LmColumn,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         let name = unsafe { str_from_c(name, "name") }?;
         let out = unsafe { out_from_c(out) }?;
         *out = sol
@@ -241,15 +242,21 @@ pub unsafe extern "C" fn lm_sol_remove_cols(
     sol: *mut LmSol,
     names: *const *const c_char,
     len: usize,
+    out: *mut LmColumnBuffer,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         let names = unsafe { slice_from_c(names, len, "names") }?;
         let names: Vec<String> = names
             .iter()
             .map(|&name| unsafe { str_from_c(name, "names") }.map(str::to_owned))
             .collect::<Result<_, _>>()?;
-        sol.remove_cols(&names);
+        let removed = sol
+            .remove_cols(&names)
+            .into_iter()
+            .map(|column| column.map(handle_to_c).unwrap_or(std::ptr::null_mut()))
+            .collect();
+        *unsafe { out_from_c(out) }? = column_buffer_from_vec(removed);
         Ok(())
     })
 }
@@ -266,7 +273,7 @@ pub unsafe extern "C" fn lm_sol_remove_cols(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_aggregate(sol: *mut LmSol) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         sol.aggregate().map_err(CapiError::errored)?;
         Ok(())
     })
@@ -284,11 +291,10 @@ pub unsafe extern "C" fn lm_sol_filter_by_mask(
     out: *mut *mut LmSol,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { crate::utils::ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let mask = unsafe { slice_from_c(mask, len, "mask") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(sol.filter_by_mask(mask).map_err(CapiError::errored)?);
-        Ok(())
+        let filtered = sol.filter_by_mask(mask).map_err(CapiError::errored)?;
+        unsafe { new_handle_out_from_c(out, filtered) }
     })
 }
 
@@ -307,7 +313,7 @@ pub unsafe extern "C" fn lm_sol_push(
     energy: *const f64,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         let names = unsafe { slice_from_c(names, len, "names") }?;
         let assignments = unsafe { slice_from_c(assignments, len, "assignments") }?;
         let sample = names
@@ -315,23 +321,50 @@ pub unsafe extern "C" fn lm_sol_push(
             .zip(assignments)
             .map(|(&name, assignment)| {
                 let name = unsafe { str_from_c(name, "name") }?.to_owned();
-                let assignment = match assignment.vtype {
-                    LmVtype::Binary => Assignment::Binary(assignment.value as u8),
-                    LmVtype::Spin => Assignment::Spin(assignment.value as i8),
-                    LmVtype::Integer => Assignment::Integer(assignment.value as i64),
-                    LmVtype::Real => Assignment::Real(assignment.value),
-                    LmVtype::InvertedBinary => {
-                        return Err(CapiError::new(
-                            LmStatus::InvalidArgument,
-                            "inverted binary has no standalone assignment",
-                        ));
-                    }
-                };
+                let assignment = assignment_from_c(*assignment)?;
                 Ok((name, assignment))
             })
             .collect::<Result<_, CapiError>>()?;
         sol.push(sample, counts, unsafe { opt_from_c(energy) })
             .map_err(CapiError::errored)?;
+        Ok(())
+    })
+}
+
+/// Replaces the per-row sample counts.
+///
+/// # Safety
+/// `sol` must be a valid mutable solution handle. `counts` must be null when
+/// `len` is zero or point to `len` readable values.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_sol_set_counts(
+    sol: *mut LmSol,
+    counts: *const usize,
+    len: usize,
+) -> LmStatus {
+    guard(|| {
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
+        sol.counts = unsafe { slice_from_c(counts, len, "counts") }?.to_vec();
+        Ok(())
+    })
+}
+
+/// Replaces the optional solution timing metadata.
+///
+/// A null `timing` clears the timing value.
+///
+/// # Safety
+/// `sol` must be a valid mutable solution handle. When non-null, `timing` must
+/// be a valid timing handle created by this library.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_sol_set_timing(sol: *mut LmSol, timing: *const LmTiming) -> LmStatus {
+    guard(|| {
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
+        sol.timing = if timing.is_null() {
+            None
+        } else {
+            Some(*unsafe { ref_from_c(timing as *const Timing, "timing") }?)
+        };
         Ok(())
     })
 }
@@ -343,7 +376,7 @@ pub unsafe extern "C" fn lm_sol_push(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_set_sense(sol: *mut LmSol, sense: LmSense) -> LmStatus {
     guard(|| {
-        let sol = unsafe { mut_from_c(sol as *mut Solution, "sol") }?;
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         sol.sense = sense_from_c(sense);
         Ok(())
     })

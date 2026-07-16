@@ -6,8 +6,9 @@ use std::{
 
 use indexmap::{IndexMap, indexmap};
 use rs_lunamodel::{
-    Comparator, Constraint, ConstraintCollection, Environment, HigherOrder, LmAddAssign, Result,
-    Sense, Solution, Timing, TryAddAssign, TryClone, TryIndex, Variable, Vtype,
+    Assignment, Column, Comparator, Constraint, ConstraintCollection, Environment, HigherOrder,
+    LmAddAssign, Result, Sense, Solution, Timing, TryAddAssign, TryClone, TryIndex, Variable,
+    Vtype,
 };
 
 static INIT: Once = Once::new();
@@ -33,8 +34,10 @@ fn environment_expression_and_constraint_facade() -> Result<()> {
 
     let mut expr = (&x + &y)?;
     LmAddAssign::add_assign(&mut expr, 2.0)?;
-    assert_eq!(expr.linear(x.id()?)?, 1.0);
-    assert_eq!(expr.offset()?, 2.0);
+    expr.add_assign((x.id()?, 3.0))?;
+    expr.set_offset(4.0)?;
+    assert_eq!(expr.linear(x.id()?)?, 4.0);
+    assert_eq!(expr.offset()?, 4.0);
     assert_eq!(expr.quadratic_terms()?, None);
     assert_eq!(expr.higher_order_terms()?, None);
 
@@ -113,7 +116,7 @@ fn term_editors_commit_to_host() -> Result<()> {
     higher.try_add_assign((vec![3, 2, 1], 7.0))?;
     {
         let mut editor = higher.iter_mut()?;
-        for (_, bias) in editor.iter_mut() {
+        for (_, bias) in &mut editor {
             *bias = 8.0;
         }
         editor.commit()?;
@@ -140,6 +143,9 @@ fn solution_optional_values_buffers_and_owned_views() -> Result<()> {
 
     let result = solution.result(0)?.unwrap();
     let sample = result.sample()?;
+    solution.add_real("y", vec![3.0])?;
+    assert_eq!(sample.variable_names()?, vec!["x", "y"]);
+    assert_eq!(result.sample()?.try_index("y")?, 3.0);
     drop(solution);
     assert_eq!(result.counts()?, 2);
     assert_eq!(sample.try_index("x")?, 1.0);
@@ -148,6 +154,68 @@ fn solution_optional_values_buffers_and_owned_views() -> Result<()> {
     let timing = Timing::new(start, start + Duration::from_nanos(20), None)?;
     assert_eq!(timing.qpu()?, None);
     assert_eq!(timing.total()?, Duration::from_nanos(20));
+    let mut metadata = Solution::with_sense(Sense::Min);
+    metadata.set_counts(vec![7])?;
+    metadata.set_timing(Some(&timing))?;
+    assert_eq!(metadata.counts()?, vec![7]);
+    assert_eq!(metadata.timing()?.unwrap(), timing);
+    metadata.set_timing(None)?;
+    assert_eq!(metadata.timing()?, None);
+    Ok(())
+}
+
+#[test]
+fn model_children_are_live_parent_retaining_views() -> Result<()> {
+    init();
+
+    let mut model = rs_lunamodel::Model::default();
+    assert_eq!(model.environment()?.id()?, model.env()?.id()?);
+    let mut objective = model.objective()?;
+    objective.try_add_assign(2.0)?;
+    assert_eq!(model.objective()?.offset()?, 2.0);
+
+    model.set_objective(rs_lunamodel::Expression::from_f64(7.0)?, Some(Sense::Max))?;
+    assert_eq!(objective.offset()?, 7.0);
+    assert_eq!(model.sense()?, Sense::Max);
+
+    let mut constraints = model.constraints()?;
+    let constraint = Constraint::new(
+        rs_lunamodel::Expression::from_f64(0.0)?,
+        1.0,
+        Comparator::Le,
+        Some("first".into()),
+    )?;
+    constraints.add_constraint(&constraint, None)?;
+    assert_eq!(model.constraints()?.len()?, 1);
+
+    model.set_constraints(ConstraintCollection::new())?;
+    assert!(constraints.is_empty()?);
+
+    drop(model);
+    assert_eq!(objective.offset()?, 7.0);
+    assert!(constraints.is_empty()?);
+
+    let clone = rs_lunamodel::Model::default().deep_clone()?;
+    assert_eq!(clone.name()?, rs_lunamodel::DEFAULT_MODEL_NAME);
+    Ok(())
+}
+
+#[test]
+fn column_facade_dispatches_to_host() -> Result<()> {
+    init();
+
+    let mut column = Column::binary(vec![0.0, 1.0])?;
+    column.try_push(1.0, None)?;
+    column.push(Assignment::Binary(0))?;
+    assert_eq!(column.values()?, vec![0.0, 1.0, 1.0, 0.0]);
+    assert_eq!(column.as_assignments()?.len(), 4);
+    assert_eq!(column.vtype()?, Vtype::Binary);
+
+    let filtered = column.filter_by_mask(&[false, true, true, false])?;
+    assert_eq!(filtered.values()?, vec![1.0, 1.0]);
+    let cloned = column.try_clone()?;
+    assert_eq!(cloned, column);
+    assert_eq!(column.extract(2)?.assignment(0)?, Assignment::Binary(1));
     Ok(())
 }
 
@@ -164,6 +232,7 @@ fn expression_and_model_evaluation_via_capi() -> Result<()> {
     let obj = (&x + &y)?;
     let sample = HashMap::from([("x".to_owned(), 1.0), ("y".to_owned(), 1.0)]);
     assert_eq!(obj.evaluate_sample(&sample)?, 2.0);
+    assert!(obj.contains(&x)?);
 
     // A one-row solution; `evaluate` runs the expression over every row.
     let mut sol = Solution::with_sense(Sense::Min);
@@ -179,10 +248,12 @@ fn expression_and_model_evaluation_via_capi() -> Result<()> {
 
     // Model with the objective and a constraint x + y <= 1.
     let mut model = rs_lunamodel::Model::with_env(Some("m".into()), None, &env)?;
-    model.set_objective(obj.try_clone()?)?;
+    model.set_objective(obj.try_clone()?, None)?;
     let cap = Constraint::new((&x + &y)?, 1.0, Comparator::Le, Some("cap".into()))?;
     let mut cc = ConstraintCollection::new();
     cc.add_constraint(&cap, None)?;
+    assert!(!cap.evaluate_sample(&sample, None)?);
+    assert!(!cc.evaluate_sample(&sample, None)?["cap"]);
     model.set_constraints(cc)?;
 
     // evaluate_sample -> ResultView; violated_constraints -> collection.

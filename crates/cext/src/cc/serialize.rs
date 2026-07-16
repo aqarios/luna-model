@@ -1,11 +1,13 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c};
 use luna_model::core::ConstraintCollection;
 use luna_model::serializer::prelude::*;
 
-use crate::buffer::buffer_from_vec;
-use crate::env::utils::environment_from_c;
-use crate::error::{CapiError, guard};
-use crate::{LmBuffer, LmCC, LmEnv, LmStatus};
+use super::utils::{collection_from_c, collection_out_from_c};
+use crate::{
+    LmBuffer, LmCC, LmEnv, LmStatus,
+    buffer::buffer_from_vec,
+    error::{CapiError, guard},
+    utils::{out_from_c, slice_from_c, storage_from_c},
+};
 
 /// Serializes a constraint-collection to bytes, writing an owned buffer to `out`.
 ///
@@ -17,7 +19,7 @@ use crate::{LmBuffer, LmCC, LmEnv, LmStatus};
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_serialize(cc: *const LmCC, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
         let out = unsafe { out_from_c(out) }?;
         let bytes = cc
             .encode(Some(true), None)
@@ -43,16 +45,14 @@ pub unsafe extern "C" fn lm_cc_deserialize(
     out: *mut *mut LmCC,
 ) -> LmStatus {
     guard(|| {
-        let out = unsafe { out_from_c(out) }?;
         let bytes = unsafe { slice_from_c(data, len, "data") }?;
-        let env = unsafe { environment_from_c(env)? };
+        let env = unsafe { storage_from_c(env, "env")? };
         let model: ConstraintCollection = bytes
             .unversionize()
             .decompress()
             .map_err(CapiError::deserialization)?
             .decode(env.clone())
             .map_err(CapiError::deserialization)?;
-        *out = handle_to_c(model);
-        Ok(())
+        unsafe { collection_out_from_c(out, model) }
     })
 }

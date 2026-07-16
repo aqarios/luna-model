@@ -28,8 +28,9 @@
 mod macros;
 
 mod buffer;
+pub mod ffi;
 pub mod traits;
-pub mod utils;
+mod utils;
 
 mod api;
 mod assignment;
@@ -51,7 +52,6 @@ mod result_view;
 mod sample_view;
 mod sol;
 mod specs;
-mod term_types;
 mod timer;
 mod timing;
 pub mod types;
@@ -62,30 +62,29 @@ pub use api::{InitError, abi_version, init, is_initialized, version};
 pub use assignment::Assignment;
 pub use bound::Bound;
 pub use bounds::Bounds;
-pub use cc::ConstraintCollection;
-pub use column::{ColElement, Column};
+pub use cc::{ConstraintCollection, ConstraintCollectionEditor};
+pub use column::Column;
 pub use constr::Constraint;
 pub use env::Env;
 pub type ArcEnv = Env;
-pub use error::{Error, Result, Status};
+pub use error::{Error, LunaModelError, LunaModelResult, Result, Status};
 pub use expr::Expression;
-pub use higher_order::HigherOrder;
+pub use higher_order::{HigherOrder, HigherOrderEditor};
 pub use lazy_bounds::{Concretize, LazyBounds};
-pub use linear::Linear;
+pub use linear::{Linear, LinearEditor};
 pub use model::Model;
 pub use owned_env::{Environment, VariableMut};
-pub use quadratic::Quadratic;
+pub use quadratic::{Quadratic, QuadraticEditor};
 pub use result_view::ResultView;
 pub use sample_view::{SampleView, SampleViewIdx};
 pub use sol::Solution;
 pub use specs::Specs;
-pub use term_types::{Neighborhood, OneVarTerm, TwoVarTerm};
 pub use timer::Timer;
 pub use timing::Timing;
 pub use traits::{
-    ContentEquality, DefaultEditable, Editable, FilterByMask, LmAddAssign, LmMulAssign, LmPow,
-    LmPowAssign, LmSubAssign, Serialization, TryAddAssign, TryClone, TryDeepClone, TryIndex,
-    TryMulAssign, TrySubAssign,
+    ContentEquality, DefaultEditable, Editable, LmAddAssign, LmMulAssign, LmPow, LmPowAssign,
+    LmSubAssign, Serialization, TryAddAssign, TryClone, TryDeepClone, TryIndex, TryMulAssign,
+    TrySubAssign,
 };
 pub use variable::Variable;
 pub use vref::VarRef;
@@ -96,9 +95,67 @@ pub use lunamodel_cext_vtable::LunaModelCApi;
 
 pub use lunamodel_types::{
     Bias, BinaryAssignment, Comparator, Ctype, DEFAULT_BIAS, EnumSet, EnumSetFromVec, EnvIdx,
-    IntegerAssignment, RealAssignment, Sense, SpinAssignment, ValueSource, VarId, VarIdx, VarName,
-    Vtype,
+    IntegerAssignment, Neighborhood, OneVarTerm, RealAssignment, Sense, SpinAssignment, TwoVarTerm,
+    ValueSource, VarId, VarIdx, VarName, Vtype,
 };
 
+/// The name used when a model is created without an explicit name.
+pub static DEFAULT_MODEL_NAME: &str = "unnamed";
+
 /// Native-compatible paths for code written against `luna_model::core`.
-pub mod core;
+pub mod core {
+    pub use crate::{
+        ArcEnv, Assignment, Bound, Bounds, Column, Constraint, ConstraintCollection, Environment,
+        Expression, HigherOrder, LazyBounds, Linear, Model, Neighborhood, OneVarTerm, Quadratic,
+        ResultView, SampleView, Solution, Specs, Timer, Timing, TwoVarTerm, VarRef, Variable,
+    };
+
+    pub mod prelude {
+        pub use crate::{
+            ArcEnv, Bounds, Constraint, ConstraintCollection, ContentEquality, DefaultEditable,
+            Editable, Environment, Expression, HigherOrder, LazyBounds, Linear, LmAddAssign,
+            LmMulAssign, LmPow, LmPowAssign, LmSubAssign, Model, Quadratic, Solution, Timer,
+            Timing, VarRef, Variable,
+        };
+    }
+
+    pub mod bounds {
+        pub use crate::{Bound, Bounds, Concretize, LazyBounds};
+    }
+    pub mod constraint {
+        pub use crate::{Constraint, ConstraintCollection};
+    }
+    pub mod environment {
+        pub use crate::{ArcEnv, Environment};
+    }
+    pub mod expression {
+        pub use crate::Expression;
+        pub mod term {
+            pub use crate::{HigherOrder, Linear, Quadratic};
+            pub mod types {
+                pub use crate::{Neighborhood, OneVarTerm, TwoVarTerm};
+            }
+        }
+    }
+    pub mod model {
+        pub use crate::{DEFAULT_MODEL_NAME, Model, Specs};
+    }
+    pub mod solution {
+        pub use crate::{Assignment, Column, ResultView, SampleView, Solution};
+        pub mod result {
+            pub use crate::ResultView;
+        }
+        pub mod sample {
+            pub use crate::{SampleView, SampleViewIdx};
+        }
+        pub mod timing {
+            pub use crate::{Timer, Timing};
+        }
+    }
+    pub mod variable {
+        pub use crate::{VarRef, Variable};
+    }
+    pub mod ops {
+        pub use crate::{LmAddAssign, LmMulAssign, LmPow, LmPowAssign, LmSubAssign};
+    }
+}

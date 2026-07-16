@@ -1,12 +1,10 @@
-use luna_model::python::prelude::PyExprContent;
+//! C-API-backed PyO3 expression conversion.
 
-#[repr(transparent)]
-pub struct PyExpression(pub PyExprContent);
-
-capsule_wrapper! {
+capi_wrapper! {
     wrapper: PyExpression,
     public: Expression,
-    inner: PyExprContent,
+    inner: ::rs_lunamodel::Expression,
+    raw: ::lunamodel_cext_vtable::LmExpr,
     attr: "_expr",
     from_py: "_from_pyexpr",
 }

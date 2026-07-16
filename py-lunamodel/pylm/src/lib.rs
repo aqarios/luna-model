@@ -1,3 +1,4 @@
+use lunamodel_cext_pyffi::C_API_CAPSULE_NAME;
 use lunamodel_python::translate::model::*;
 pub use lunamodel_python::*;
 use pyo3::{PyTypeInfo, prelude::*, types::PyCapsule};
@@ -5,12 +6,11 @@ use pyo3::{PyTypeInfo, prelude::*, types::PyCapsule};
 #[pymodule]
 fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
-    m.add("__capsule_abi__", lunamodel_python::ffi::CAPSULE_ABI)?;
 
     let c_api_capsule = PyCapsule::new_with_value(
         py,
         lunamodel_cext::capi_table::LUNA_MODEL_C_API,
-        c"luna_model._lm._C_API",
+        C_API_CAPSULE_NAME,
     )?;
     m.add("_C_API", c_api_capsule)?;
     m.add("_C_API_ABI_VERSION", lunamodel_cext::CAPI_ABI_VERSION)?;

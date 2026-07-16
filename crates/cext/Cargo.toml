@@ -16,6 +16,8 @@ crate-type = ["rlib"]
 [dependencies]
 luna-model = { workspace = true, features = ["serializer"] }
 lunamodel-cext-vtable = { workspace = true }
+lunamodel-cext-handle = { workspace = true }
+
 itertools = { workspace = true }
 indexmap = { workspace = true }
 

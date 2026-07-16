@@ -119,3 +119,7 @@ impl std::fmt::Debug for Expression {
             .finish()
     }
 }
+
+// SAFETY: every operation on an LmExpr is synchronized by the host storage.
+unsafe impl Send for Expression {}
+unsafe impl Sync for Expression {}

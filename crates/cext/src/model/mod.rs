@@ -14,7 +14,7 @@ pub use creation::{lm_model_default, lm_model_free, lm_model_new, lm_model_with_
 pub use equality::{lm_model_eq, lm_model_equal_contents};
 pub use general::{
     lm_model_add_var, lm_model_add_var_with_fallback, lm_model_clone, lm_model_deep_clone,
-    lm_model_satisfies,
+    lm_model_retain, lm_model_satisfies,
 };
 pub use operations::{
     lm_model_evaluate_sample, lm_model_evaluate_solution, lm_model_evaluate_solution_with_tol,

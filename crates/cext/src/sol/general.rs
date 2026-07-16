@@ -1,9 +1,9 @@
-use luna_model::core::{Model, Solution, prelude::ContentEquality};
+use luna_model::core::{Solution, prelude::ContentEquality};
 
 use crate::{
     LmModel, LmSol, LmStatus,
     error::{CapiError, guard},
-    utils::{handle_to_c, opt_from_c, opt_ref_from_c, out_from_c, ref_from_c, slice_from_c},
+    utils::{new_handle_out_from_c, opt_from_c, out_from_c, shared_from_c, slice_from_c},
 };
 
 /// Clones a solution into a new, independent handle written to `out`.
@@ -14,10 +14,8 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_clone(sol: *const LmSol, out: *mut *mut LmSol) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(sol.clone());
-        Ok(())
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
+        unsafe { new_handle_out_from_c(out, sol.clone()) }
     })
 }
 
@@ -34,10 +32,10 @@ pub unsafe extern "C" fn lm_sol_eq(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
-        let other = unsafe { ref_from_c(other as *const Solution, "other") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
+        let other = unsafe { shared_from_c(other, "other") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-        *out = sol.eq(other);
+        *out = sol.eq(&other);
         Ok(())
     })
 }
@@ -55,10 +53,10 @@ pub unsafe extern "C" fn lm_sol_equal_contents(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
-        let other = unsafe { ref_from_c(other as *const Solution, "other") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
+        let other = unsafe { shared_from_c(other, "other") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-        *out = sol.equal_contents(other);
+        *out = sol.equal_contents(&other);
         Ok(())
     })
 }
@@ -87,13 +85,16 @@ pub unsafe extern "C" fn lm_sol_merge_many(
         let ptrs = unsafe { slice_from_c(sols, sols_len, "sols") }?;
         let solutions = ptrs
             .iter()
-            .map(|&p| unsafe { ref_from_c(p as *const Solution, "sol") }.cloned())
+            .map(|&p| unsafe { shared_from_c(p, "sol") }.map(|sol| sol.read_arc().clone()))
             .collect::<Result<Vec<Solution>, _>>()?;
-        let model = unsafe { opt_ref_from_c(model as *const Model) };
+        let model = if model.is_null() {
+            None
+        } else {
+            Some(unsafe { shared_from_c(model, "model") }?.read_arc())
+        };
         let tol = unsafe { opt_from_c(tol) };
-        let out = unsafe { out_from_c(out) }?;
-        let merged = Solution::merge_many(&solutions, model, tol).map_err(CapiError::errored)?;
-        *out = handle_to_c(merged);
-        Ok(())
+        let merged =
+            Solution::merge_many(&solutions, model.as_deref(), tol).map_err(CapiError::errored)?;
+        unsafe { new_handle_out_from_c(out, merged) }
     })
 }

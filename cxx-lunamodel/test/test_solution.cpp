@@ -54,6 +54,18 @@ int test_solution(int argc, char *argv[]) {
     CHECK(!cx.is_empty());
     CHECK(cx.assignment(1).value == 1.0);
 
+    // Standalone column operations stay in the host implementation.
+    lm::Column owned = lm::Column::binary({0.0, 1.0});
+    owned.try_push(1.0);
+    CHECK(owned.vtype() == LmVtype_Binary);
+    CHECK(owned.values().size() == 3u);
+    lm::Column filtered = owned.filter_by_mask({false, true, true});
+    CHECK(filtered.values() == std::vector<double>({1.0, 1.0}));
+    lm::Column owned_clone = owned.clone();
+    CHECK(owned_clone == owned);
+    owned_clone.remove(0);
+    CHECK(owned_clone != owned);
+
     // Sample map entries carry index, name, and an owned column.
     std::vector<lm::SampleColumn> cols = sol.samples();
     CHECK(cols.size() == 2u);
@@ -71,6 +83,19 @@ int test_solution(int argc, char *argv[]) {
     CHECK(sol.constraints().empty());
     CHECK(sol.variable_bounds().empty());
 
+    // Sample/result views retain their own host snapshot.
+    std::optional<lm::SampleView> sample = sol.sample(1);
+    CHECK(sample.has_value());
+    CHECK(sample->index() == 1u);
+    CHECK(sample->assignment("x").value == 1.0);
+    CHECK(sol.sample_views().size() == 2u);
+    lm::Solution view_solution;
+    view_solution.push({{"x", LmAssignment{LmVtype_Binary, 1.0}}}, 3);
+    std::optional<lm::ResultView> result = view_solution.result(0);
+    CHECK(result.has_value());
+    CHECK(result->counts() == 3u);
+    CHECK(result->sample().assignment("x").value == 1.0);
+
     // Serialize / deserialize round-trip preserves contents.
     std::vector<std::uint8_t> bytes = sol.serialize();
     CHECK(!bytes.empty());
@@ -83,8 +108,12 @@ int test_solution(int argc, char *argv[]) {
     CHECK(cloned.equal_contents(sol));
     CHECK(cloned == sol);
 
+    std::vector<std::optional<lm::Column>> removed = cloned.remove_cols({"x", "missing"});
+    CHECK(removed.size() == 2u);
+    CHECK(removed[0].has_value());
+    CHECK(!removed[1].has_value());
+
     // Mutation on the clone does not affect the original.
-    cloned.remove_col("x");
     CHECK(cloned.sample_len() == 1u);
     CHECK(sol.sample_len() == 2u);
 

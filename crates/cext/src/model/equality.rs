@@ -1,7 +1,10 @@
-use crate::utils::{out_from_c, ref_from_c};
-use luna_model::core::{Model, prelude::ContentEquality};
+use luna_model::core::prelude::ContentEquality;
 
-use crate::{LmModel, LmStatus, error::guard};
+use crate::{
+    LmModel, LmStatus,
+    error::guard,
+    utils::{out_from_c, shared_from_c},
+};
 
 /// Compares two models for equality.
 ///
@@ -16,10 +19,10 @@ pub unsafe extern "C" fn lm_model_eq(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-        let other = unsafe { ref_from_c(other as *const Model, "other") }?;
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
+        let other = unsafe { shared_from_c(other, "other") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-        *out = model.eq(other);
+        *out = model.eq(&other);
         Ok(())
     })
 }
@@ -37,10 +40,10 @@ pub unsafe extern "C" fn lm_model_equal_contents(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-        let other = unsafe { ref_from_c(other as *const Model, "other") }?;
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
+        let other = unsafe { shared_from_c(other, "other") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-        *out = model.equal_contents(other);
+        *out = model.equal_contents(&other);
         Ok(())
     })
 }

@@ -1,4 +1,3 @@
-use crate::utils::{drop_from_c, handle_to_c, opt_from_c, out_from_c};
 use std::time::{Duration, UNIX_EPOCH};
 
 use luna_model::core::prelude::Timing;
@@ -7,6 +6,7 @@ use crate::{
     LmStatus, LmTiming,
     error::{CapiError, guard},
     utils::ref_from_c,
+    utils::{drop_from_c, handle_to_c, opt_from_c, out_from_c},
 };
 
 /// Frees a timing handle. Passing null is a no-op.
@@ -109,6 +109,40 @@ pub unsafe extern "C" fn lm_timing_new(
         let end = UNIX_EPOCH + Duration::from_nanos(end_unix_ns);
         let qpu = unsafe { opt_from_c(qpu) };
         *out = handle_to_c(Timing::new(start, end, qpu));
+        Ok(())
+    })
+}
+
+/// Clones a timing record.
+///
+/// # Safety
+/// `timing` must be valid and `out` writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_timing_clone(
+    timing: *const LmTiming,
+    out: *mut *mut LmTiming,
+) -> LmStatus {
+    guard(|| {
+        let timing = unsafe { ref_from_c(timing as *const Timing, "timing") }?;
+        *unsafe { out_from_c(out) }? = handle_to_c(*timing);
+        Ok(())
+    })
+}
+
+/// Compares two timing records.
+///
+/// # Safety
+/// `timing` and `other` must be valid and `out` writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_timing_eq(
+    timing: *const LmTiming,
+    other: *const LmTiming,
+    out: *mut bool,
+) -> LmStatus {
+    guard(|| {
+        let timing = unsafe { ref_from_c(timing as *const Timing, "timing") }?;
+        let other = unsafe { ref_from_c(other as *const Timing, "other") }?;
+        *unsafe { out_from_c(out) }? = timing == other;
         Ok(())
     })
 }

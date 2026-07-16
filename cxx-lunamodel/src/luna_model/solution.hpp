@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <luna_model.h>
@@ -319,6 +320,20 @@ class Solution {
                                   energy ? &*energy : nullptr));
     }
 
+    /* Convenience overload accepting name/assignment pairs. */
+    void push(const std::vector<std::pair<std::string, LmAssignment>> &sample,
+              std::size_t counts = 1, std::optional<double> energy = std::nullopt) {
+        std::vector<std::string> names;
+        std::vector<LmAssignment> assignments;
+        names.reserve(sample.size());
+        assignments.reserve(sample.size());
+        for (const auto &entry : sample) {
+            names.push_back(entry.first);
+            assignments.push_back(entry.second);
+        }
+        push(names, assignments, counts, energy);
+    }
+
     /* Result view for the row at `index`, or `std::nullopt` if out of range. */
     std::optional<ResultView> result(std::size_t index) const {
         LmResultView *view = nullptr;
@@ -436,13 +451,26 @@ class Solution {
             lm_col_free(removed); // discard the returned column
         }
     }
-    void remove_cols(const std::vector<std::string> &names) {
+    std::vector<std::optional<Column>> remove_cols(const std::vector<std::string> &names) {
         std::vector<const char *> ptrs;
         ptrs.reserve(names.size());
         for (const std::string &name : names) {
             ptrs.push_back(name.c_str());
         }
-        detail::check(lm_sol_remove_cols(handle_, ptrs.data(), ptrs.size()));
+        LmColumnBuffer buffer = {nullptr, 0, 0};
+        detail::check(lm_sol_remove_cols(handle_, ptrs.data(), ptrs.size(), &buffer));
+        std::vector<std::optional<Column>> out;
+        out.reserve(buffer.len);
+        for (std::size_t index = 0; index < buffer.len; ++index) {
+            if (buffer.data[index] == nullptr) {
+                out.emplace_back(std::nullopt);
+            } else {
+                out.emplace_back(Column(buffer.data[index]));
+                buffer.data[index] = nullptr;
+            }
+        }
+        lm_column_buffer_free(buffer);
+        return out;
     }
 
     /* Aggregates duplicate sample rows in place. */

@@ -1,16 +1,17 @@
 use derive_more::Deref;
-use luna_model::python::PyValueSource as PyVS;
-use luna_model::types::ValueSource;
+use rs_lunamodel::ValueSource;
 
 #[repr(transparent)]
 /// A wrapper around a [`ValueSource`] that can be converted to and from python with `pyo3`.
 #[derive(Deref)]
 pub struct PyValueSource(pub ValueSource);
 
-enum_wrapper! {
+python_enum_wrapper! {
     wrapper: PyValueSource,
     public: ValueSource,
     inner: ValueSource,
-    bridge: PyVS,
-    from_py: "_from_pysrc",
+    variants: {
+        ValueSource::Raw => ("RAW", "Raw"),
+        ValueSource::Obj => ("OBJ", "Obj"),
+    },
 }

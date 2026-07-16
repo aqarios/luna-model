@@ -68,3 +68,8 @@ impl LmTryFrom<*mut LmVref> for Option<VarRef> {
         Ok((!value.is_null()).then(|| VarRef::from_raw(value)))
     }
 }
+
+// SAFETY: the host stores VarRef directly, while its environment is an ArcEnv
+// whose shared state is synchronized internally.
+unsafe impl Send for VarRef {}
+unsafe impl Sync for VarRef {}

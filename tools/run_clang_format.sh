@@ -18,7 +18,7 @@ style="${repo_root}/.clang-format"
 
 files=$(git -C "$repo_root" ls-files \
     | grep -E '\.(c|h|cpp|hpp)$' \
-    | grep -vE '^crates/cext/include/luna_model/(types|funcs|funcs_py|version)\.h$')
+    | grep -vE '^(crates/cext/include|py-lunamodel/src/luna_model/include)/luna_model/(types|funcs|funcs_py|version)\.h$')
 
 status=0
 for file in $files; do

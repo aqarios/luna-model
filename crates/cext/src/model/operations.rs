@@ -1,12 +1,15 @@
-use crate::utils::{handle_to_c, mut_from_c, opt_from_c, out_from_c, ref_from_c};
-use luna_model::core::solution::sample::SampleView;
-use luna_model::core::{Expression, Model, Solution, prelude::VarRef};
+use luna_model::core::prelude::VarRef;
+use lunamodel_cext_handle::{ConstraintCollectionHandle, new_shared};
 
-use crate::res::ResultViewHandle;
-use crate::sample::SampleViewHandle;
 use crate::{
     LmCC, LmExpr, LmModel, LmResultView, LmSampleView, LmSol, LmStatus, LmVref,
     error::{CapiError, guard},
+    res::ResultViewHandle,
+    sample::SampleViewHandle,
+    utils::{
+        handle_to_c, new_handle_out_from_c, opt_from_c, out_from_c, ref_from_c, shared_from_c,
+        storage_from_c, storage_out_from_c,
+    },
 };
 
 /// Evaluates the model for a given solution.
@@ -25,12 +28,10 @@ pub unsafe extern "C" fn lm_model_evaluate_solution(
     out: *mut *mut LmSol,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-        let sol = unsafe { ref_from_c(solution as *const Solution, "solution") }?;
-        let out = unsafe { out_from_c(out) }?;
-        let res = model.evaluate_solution(sol).map_err(CapiError::errored)?;
-        *out = handle_to_c(res);
-        Ok(())
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
+        let sol = unsafe { shared_from_c(solution, "solution") }?.read_arc();
+        let res = model.evaluate_solution(&sol).map_err(CapiError::errored)?;
+        unsafe { new_handle_out_from_c(out, res) }
     })
 }
 
@@ -54,29 +55,26 @@ pub unsafe extern "C" fn lm_model_evaluate_solution_with_tol(
     out: *mut *mut LmSol,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-        let sol = unsafe { ref_from_c(solution as *const Solution, "solution") }?;
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
+        let sol = unsafe { shared_from_c(solution, "solution") }?.read_arc();
         let tol = unsafe { opt_from_c(tol) };
-        let out = unsafe { out_from_c(out) }?;
 
         let res = model
-            .evaluate_solution_with_tol(sol, tol)
+            .evaluate_solution_with_tol(&sol, tol)
             .map_err(CapiError::errored)?;
-        *out = handle_to_c(res);
-        Ok(())
+        unsafe { new_handle_out_from_c(out, res) }
     })
 }
 
-/// Evaluates the model against a single sample row, returning the enriched
-/// result view for that row.
+/// Evaluates the model against a single sample row.
 ///
-/// The sample is extracted into a one-row solution and evaluated, mirroring the
-/// core evaluation path. `tol == NULL` uses the default tolerance.
+/// The returned result view owns a synchronized one-row evaluated solution and
+/// remains valid independently of the input sample handle.
 ///
 /// # Safety
 /// `model` and `sample` must be valid handles. `tol` must be null or point to a
 /// readable `double`. `out` must point to writable `LmResultView *` storage; the
-/// returned handle must be released with [`lm_result_view_free`].
+/// returned handle must be released with [`crate::res::lm_result_view_free`].
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_evaluate_sample(
     model: *const LmModel,
@@ -85,49 +83,26 @@ pub unsafe extern "C" fn lm_model_evaluate_sample(
     out: *mut *mut LmResultView,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let sample = unsafe { ref_from_c(sample as *const SampleViewHandle, "sample") }?;
-        let tol = unsafe { opt_from_c(tol) };
-        let out = unsafe { out_from_c(out) }?;
-
-        let row = sample.sol.extract(sample.index);
+        let row = {
+            let solution = sample.sol.read();
+            if sample.index >= solution.len() {
+                return Err(CapiError::new(
+                    LmStatus::Absent,
+                    "sample index is out of range",
+                ));
+            }
+            solution.extract(sample.index)
+        };
         let evaluated = model
-            .evaluate_solution_with_tol(&row, tol)
+            .evaluate_solution_with_tol(&row, unsafe { opt_from_c(tol) })
             .map_err(CapiError::errored)?;
+        let out = unsafe { out_from_c(out) }?;
         *out = handle_to_c(ResultViewHandle {
-            sol: evaluated,
+            sol: new_shared::<LmSol>(evaluated),
             index: 0,
         });
-        Ok(())
-    })
-}
-
-/// Returns the constraints violated by a single sample row.
-///
-/// `tol == NULL` uses the default tolerance for the floating-point comparisons.
-///
-/// # Safety
-/// `model` and `sample` must be valid handles. `tol` must be null or point to a
-/// readable `double`. `out` must point to writable `LmCC *` storage; the returned
-/// handle must be released with [`lm_cc_free`].
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn lm_model_violated_constraints(
-    model: *const LmModel,
-    sample: *const LmSampleView,
-    tol: *const f64,
-    out: *mut *mut LmCC,
-) -> LmStatus {
-    guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-        let sample = unsafe { ref_from_c(sample as *const SampleViewHandle, "sample") }?;
-        let tol = unsafe { opt_from_c(tol) };
-        let out = unsafe { out_from_c(out) }?;
-
-        let view = SampleView::new(&sample.sol, sample.index);
-        let violated = model
-            .violated_constraints(&view, tol)
-            .map_err(CapiError::errored)?;
-        *out = handle_to_c(violated);
         Ok(())
     })
 }
@@ -145,14 +120,41 @@ pub unsafe extern "C" fn lm_model_substitute(
     replacement: *const LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { mut_from_c(model as *mut Model, "model") }?;
         let target = unsafe { ref_from_c(target as *const VarRef, "target") }?;
-        let replacement = unsafe { ref_from_c(replacement as *const Expression, "replacement") }?;
-
+        let replacement = unsafe { storage_from_c(replacement, "replacement") }?
+            .read()
+            .clone();
+        let mut model = unsafe { shared_from_c(model, "model") }?.write_arc();
         model
-            .substitute(target, replacement)
+            .substitute(target, &replacement)
             .map_err(CapiError::errored)?;
-
         Ok(())
+    })
+}
+
+/// Returns the subset of model constraints violated by a sample view.
+///
+/// # Safety
+/// `model` and `sample` must be valid handles, `tol` may be null or readable,
+/// and `out` must point to writable `LmCC *` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_violated_constraints(
+    model: *const LmModel,
+    sample: *const LmSampleView,
+    tol: *const f64,
+    out: *mut *mut LmCC,
+) -> LmStatus {
+    guard(|| {
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
+        let sample = unsafe { ref_from_c(sample as *const SampleViewHandle, "sample") }?;
+        let solution = sample.sol.read();
+        let sample = solution
+            .sample(sample.index)
+            .ok_or_else(|| CapiError::new(LmStatus::Absent, "sample index is out of range"))?;
+        let tol = unsafe { opt_from_c(tol) };
+        let constraints = model
+            .violated_constraints(&sample, tol)
+            .map_err(CapiError::errored)?;
+        unsafe { storage_out_from_c(out, ConstraintCollectionHandle::new(constraints)) }
     })
 }

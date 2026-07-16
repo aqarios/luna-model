@@ -1,7 +1,11 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::types::Specs;
 
-use crate::{LmSpecs, LmStatus, error::guard};
+use crate::{
+    LmBuffer, LmSpecs, LmStatus,
+    buffer::buffer_from_vec,
+    error::{CapiError, guard},
+    utils::{handle_to_c, out_from_c, ref_from_c},
+};
 
 /// Returns whether `specs` satisfies all requirements expressed by `other`.
 ///
@@ -35,6 +39,25 @@ pub unsafe extern "C" fn lm_specs_clone(specs: *const LmSpecs, out: *mut *mut Lm
         let specs = unsafe { ref_from_c(specs as *const Specs, "specs") }?;
         let out = unsafe { out_from_c(out) }?;
         *out = handle_to_c(specs.clone());
+        Ok(())
+    })
+}
+
+/// Returns the human-readable difference between two specification values.
+///
+/// # Safety
+/// `specs` and `other` must be valid handles and `out` writable buffer storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_specs_diff(
+    specs: *const LmSpecs,
+    other: *const LmSpecs,
+    out: *mut LmBuffer,
+) -> LmStatus {
+    guard(|| {
+        let specs = unsafe { ref_from_c(specs as *const Specs, "specs") }?;
+        let other = unsafe { ref_from_c(other as *const Specs, "other") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = buffer_from_vec(specs.diff(other).map_err(CapiError::errored)?.into_bytes());
         Ok(())
     })
 }

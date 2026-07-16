@@ -558,8 +558,19 @@ dependencies = [
  "indexmap",
  "itertools 0.15.0",
  "luna-model",
+ "lunamodel-cext-handle",
  "lunamodel-cext-vtable",
  "syn",
+]
+
+[[package]]
+name = "lunamodel-cext-handle"
+version = "0.6.9"
+dependencies = [
+ "lunamodel-cext-vtable",
+ "lunamodel-core",
+ "lunamodel-types",
+ "parking_lot 0.12.5",
 ]
 
 [[package]]

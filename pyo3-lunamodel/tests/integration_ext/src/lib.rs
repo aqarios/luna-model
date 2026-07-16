@@ -1,9 +1,168 @@
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyRuntimeError, prelude::*};
 use pyo3_lunamodel::prelude::*;
+
+fn lm_error(error: rs_lunamodel::Error) -> PyErr {
+    PyRuntimeError::new_err(error.to_string())
+}
+
+#[pyclass]
+struct HeldModel {
+    model: PyModel,
+}
+
+#[pyclass]
+struct HeldSolution {
+    solution: PySolution,
+}
+
+#[pyclass]
+struct HeldEnvironment {
+    environment: PyEnvironment,
+}
+
+#[pyclass]
+struct HeldExpression {
+    expression: PyExpression,
+}
+
+#[pyclass]
+struct HeldConstraintCollection {
+    constraints: PyConstraintCollection,
+}
+
+#[pyclass]
+struct HeldConstraint {
+    constraint: PyConstraint,
+}
+
+#[pymethods]
+impl HeldModel {
+    #[new]
+    fn new(model: PyModel) -> Self {
+        Self { model }
+    }
+
+    fn name(&self, py: Python<'_>) -> PyResult<String> {
+        py.detach(|| self.model.name()).map_err(lm_error)
+    }
+
+    fn set_name(&mut self, py: Python<'_>, name: String) -> PyResult<()> {
+        py.detach(|| self.model.set_name(name)).map_err(lm_error)
+    }
+}
+
+#[pymethods]
+impl HeldSolution {
+    #[new]
+    fn new(solution: PySolution) -> Self {
+        Self { solution }
+    }
+
+    fn variable_names(&self, py: Python<'_>) -> PyResult<Vec<String>> {
+        py.detach(|| self.solution.variable_names())
+            .map_err(lm_error)
+    }
+
+    fn add_real(&mut self, py: Python<'_>, name: String, data: Vec<f64>) -> PyResult<()> {
+        py.detach(|| self.solution.add_real(&name, data))
+            .map_err(lm_error)
+    }
+}
+
+#[pymethods]
+impl HeldEnvironment {
+    #[new]
+    fn new(environment: PyEnvironment) -> Self {
+        Self { environment }
+    }
+
+    fn len(&self, py: Python<'_>) -> PyResult<usize> {
+        py.detach(|| self.environment.len()).map_err(lm_error)
+    }
+
+    fn insert_real(&mut self, py: Python<'_>, name: String) -> PyResult<()> {
+        py.detach(|| {
+            self.environment
+                .insert(&name, rs_lunamodel::Vtype::Real, None)
+                .map(|_| ())
+        })
+        .map_err(lm_error)
+    }
+}
+
+#[pymethods]
+impl HeldExpression {
+    #[new]
+    fn new(expression: PyExpression) -> Self {
+        Self { expression }
+    }
+
+    fn offset(&self, py: Python<'_>) -> PyResult<f64> {
+        py.detach(|| self.expression.offset()).map_err(lm_error)
+    }
+
+    fn add_bias(&mut self, py: Python<'_>, value: f64) -> PyResult<()> {
+        py.detach(|| {
+            rs_lunamodel::TryAddAssign::try_add_assign(self.expression.inner_mut(), value)
+        })
+        .map_err(lm_error)
+    }
+}
+
+#[pymethods]
+impl HeldConstraintCollection {
+    #[new]
+    fn new(constraints: PyConstraintCollection) -> Self {
+        Self { constraints }
+    }
+
+    fn len(&self, py: Python<'_>) -> PyResult<usize> {
+        py.detach(|| self.constraints.len()).map_err(lm_error)
+    }
+
+    fn add_constraint(
+        &mut self,
+        py: Python<'_>,
+        constraint: PyConstraint,
+        name: Option<String>,
+    ) -> PyResult<String> {
+        py.detach(|| {
+            self.constraints
+                .add_constraint(&constraint, name.as_deref())
+        })
+        .map_err(lm_error)
+    }
+}
+
+#[pymethods]
+impl HeldConstraint {
+    #[new]
+    fn new(constraint: PyConstraint) -> Self {
+        Self { constraint }
+    }
+
+    fn name(&self, py: Python<'_>) -> PyResult<String> {
+        py.detach(|| self.constraint.name()).map_err(lm_error)
+    }
+
+    fn set_name(&mut self, py: Python<'_>, name: String) -> PyResult<()> {
+        py.detach(|| self.constraint.set_name(name)).map_err(lm_error)
+    }
+}
 
 #[pyfunction]
 fn roundtrip_bounds(value: PyBounds) -> PyBounds {
     value
+}
+
+#[pyfunction]
+fn new_bounds(lower: f64, upper: f64) -> PyResult<PyBounds> {
+    rs_lunamodel::LazyBounds::new(
+        Some(rs_lunamodel::Bound::Bounded(lower)),
+        Some(rs_lunamodel::Bound::Bounded(upper)),
+    )
+    .map(PyBounds::from)
+    .map_err(lm_error)
 }
 
 #[pyfunction]
@@ -42,8 +201,35 @@ fn roundtrip_model(value: PyModel) -> PyModel {
 }
 
 #[pyfunction]
+fn new_model(name: String) -> PyResult<PyModel> {
+    rs_lunamodel::Model::new(Some(name), None)
+        .map(PyModel::from)
+        .map_err(lm_error)
+}
+
+#[pyfunction]
+fn model_environment(model: PyModel) -> PyResult<PyEnvironment> {
+    model
+        .env()
+        .map(PyEnvironment::from)
+        .map_err(lm_error)
+}
+
+#[pyfunction]
+fn model_variable(model: PyModel, name: String) -> PyResult<PyVariable> {
+    model.var(&name).map(PyVariable::from).map_err(lm_error)
+}
+
+#[pyfunction]
 fn roundtrip_model_specs(value: PyModelSpecs) -> PyModelSpecs {
     value
+}
+
+#[pyfunction]
+fn new_model_specs(max_degree: usize) -> PyResult<PyModelSpecs> {
+    rs_lunamodel::Specs::new(None, None, None, Some(max_degree), None, None)
+        .map(PyModelSpecs::from)
+        .map_err(lm_error)
 }
 
 #[pyfunction]
@@ -54,6 +240,14 @@ fn roundtrip_sense(value: PySense) -> PySense {
 #[pyfunction]
 fn roundtrip_solution(value: PySolution) -> PySolution {
     value
+}
+
+#[pyfunction]
+fn evaluate_model(model: PyModel, solution: PySolution) -> PyResult<PySolution> {
+    model
+        .evaluate_solution(&solution)
+        .map(PySolution::from)
+        .map_err(lm_error)
 }
 
 #[pyfunction]
@@ -84,6 +278,7 @@ fn roundtrip_vtype(value: PyVtype) -> PyVtype {
 #[pymodule]
 fn pyo3_lunamodel_integration_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(roundtrip_bounds, m)?)?;
+    m.add_function(wrap_pyfunction!(new_bounds, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_comparator, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_constraint, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_constraint_collection, m)?)?;
@@ -91,13 +286,26 @@ fn pyo3_lunamodel_integration_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(roundtrip_environment, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_expression, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_model, m)?)?;
+    m.add_function(wrap_pyfunction!(new_model, m)?)?;
+    m.add_function(wrap_pyfunction!(model_environment, m)?)?;
+    m.add_function(wrap_pyfunction!(model_variable, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_model_specs, m)?)?;
+    m.add_function(wrap_pyfunction!(new_model_specs, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_sense, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_solution, m)?)?;
+    m.add_function(wrap_pyfunction!(evaluate_model, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_translation_target, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_unbounded, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_value_source, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_variable, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_vtype, m)?)?;
+
+    m.add_class::<HeldModel>()?;
+    m.add_class::<HeldSolution>()?;
+    m.add_class::<HeldEnvironment>()?;
+    m.add_class::<HeldExpression>()?;
+    m.add_class::<HeldConstraintCollection>()?;
+    m.add_class::<HeldConstraint>()?;
+
     Ok(())
 }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import luna_model
 import pytest
 
 from luna_model import (
@@ -51,6 +52,12 @@ def test_roundtrip_bounds(ext):
     assert ext.roundtrip_bounds(value) == value
 
 
+def test_bounds_created_by_extension_transfers_through_c_handle(ext):
+    value = ext.new_bounds(-2, 5)
+    assert isinstance(value, Bounds)
+    assert value == Bounds(-2, 5)
+
+
 def test_roundtrip_expression(ext):
     model = sample_model()
     value = model.objective
@@ -74,6 +81,16 @@ def test_roundtrip_solution(ext):
     assert ext.roundtrip_solution(value) == value
 
 
+def test_model_evaluation_returns_c_backed_solution(ext):
+    model = sample_model()
+    value = Solution([{"x": 1, "y": 0}], counts=[1], env=model.environment)
+
+    evaluated = ext.evaluate_model(model, value)
+
+    assert evaluated.obj_values.tolist() == [1.0]
+    assert next(iter(evaluated.results)).feasible is True
+
+
 def test_roundtrip_model_specs(ext):
     value = ModelSpecs(
         sense=Sense.MIN,
@@ -92,6 +109,19 @@ def test_roundtrip_model_specs(ext):
     assert result.max_num_variables == value.max_num_variables
 
 
+def test_model_specs_created_by_extension_transfers_through_c_handle(ext):
+    value = ext.new_model_specs(4)
+    assert isinstance(value, ModelSpecs)
+    assert value.max_degree == 4
+
+
+def test_variable_created_by_c_facade_transfers_through_c_handle(ext):
+    model = sample_model()
+    value = ext.model_variable(model, "x")
+    assert isinstance(value, Variable)
+    assert value == model.get_variable("x")
+
+
 @pytest.mark.parametrize(
     ("function_name", "value"),
     [
@@ -105,6 +135,25 @@ def test_roundtrip_model_specs(ext):
 )
 def test_roundtrip_enums(ext, function_name: str, value):
     assert getattr(ext, function_name)(value) == value
+
+
+@pytest.mark.parametrize(
+    ("function_name", "value", "expected"),
+    [
+        ("roundtrip_vtype", luna_model._lm.PyVtype.Binary, Vtype.BINARY),
+        ("roundtrip_sense", luna_model._lm.PySense.Min, Sense.MIN),
+        ("roundtrip_ctype", luna_model._lm.PyCtype.Equality, Ctype.EQUALITY),
+        ("roundtrip_comparator", luna_model._lm.PyComparator.Eq, Comparator.EQ),
+        ("roundtrip_value_source", luna_model._lm.PyValueSource.Raw, ValueSource.RAW),
+        (
+            "roundtrip_translation_target",
+            luna_model._lm.PyTranslationTarget.Qubo,
+            TranslationTarget.QUBO,
+        ),
+    ],
+)
+def test_internal_enum_values_remain_accepted(ext, function_name, value, expected):
+    assert getattr(ext, function_name)(value) == expected
 
 
 def test_roundtrip_unbounded(ext):

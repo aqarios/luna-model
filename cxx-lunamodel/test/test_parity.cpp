@@ -31,6 +31,8 @@ int test_parity(int argc, char *argv[]) {
     CHECK(obj.linear(x.id()) == 2.0);
     CHECK(obj.linear_items().size() == 2u);
     CHECK(obj.items().size() == 2u); // two linear terms, zero offset
+    std::vector<const lm::Expression *> originals = {&obj};
+    CHECK(lm::Expression::deep_clone_many(originals).size() == 1u);
 
     // --- vref renames match rs (evaluate / to_variable) ---
     CHECK(x.evaluate(0.0));
@@ -48,6 +50,8 @@ int test_parity(int argc, char *argv[]) {
     CHECK(added.size() == 1u);
     CHECK(added[0] == "floor");
     CHECK(cc.iter().size() == 2u);
+    CHECK(!cap.evaluate_sample({{"x", 1.0}, {"y", 1.0}}));
+    CHECK(!cc.evaluate_sample({{"x", 1.0}, {"y", 1.0}}).at("cap"));
 
     // --- model over the environment ---
     lm::Model model = lm::Model::with_env(env.clone(), std::string("m"));

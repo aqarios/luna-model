@@ -701,8 +701,27 @@ dependencies = [
  "indexmap",
  "itertools 0.15.0",
  "luna-model",
+ "lunamodel-cext-handle",
  "lunamodel-cext-vtable",
  "syn",
+]
+
+[[package]]
+name = "lunamodel-cext-handle"
+version = "0.6.9"
+dependencies = [
+ "lunamodel-cext-vtable",
+ "lunamodel-core",
+ "lunamodel-types",
+ "parking_lot 0.12.5",
+]
+
+[[package]]
+name = "lunamodel-cext-pyffi"
+version = "0.6.9"
+dependencies = [
+ "lunamodel-cext-vtable",
+ "pyo3",
 ]
 
 [[package]]
@@ -776,6 +795,9 @@ dependencies = [
  "derive_more",
  "indexmap",
  "itertools 0.15.0",
+ "lunamodel-cext-handle",
+ "lunamodel-cext-pyffi",
+ "lunamodel-cext-vtable",
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-hashing",
@@ -1245,6 +1267,7 @@ name = "pylm"
 version = "0.6.9"
 dependencies = [
  "lunamodel-cext",
+ "lunamodel-cext-pyffi",
  "lunamodel-python",
  "pyo3",
 ]
@@ -1289,9 +1312,10 @@ name = "pyo3-lunamodel"
 version = "0.6.9"
 dependencies = [
  "derive_more",
- "luna-model",
- "parking_lot 0.12.5",
+ "lunamodel-cext-pyffi",
+ "lunamodel-cext-vtable",
  "pyo3",
+ "rs-lunamodel",
 ]
 
 [[package]]
@@ -1414,6 +1438,27 @@ name = "regex-syntax"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
+
+[[package]]
+name = "rs-lunamodel"
+version = "0.0.1"
+dependencies = [
+ "enumset",
+ "indexmap",
+ "itertools 0.15.0",
+ "lunamodel-cext-vtable",
+ "lunamodel-types",
+ "num",
+ "rs-lunamodel-derive",
+]
+
+[[package]]
+name = "rs-lunamodel-derive"
+version = "0.0.1"
+dependencies = [
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "rustc-hash"

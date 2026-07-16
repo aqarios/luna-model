@@ -3,31 +3,14 @@
 //! Thin wrappers over `core`'s `Expression::evaluate_sample` /
 //! `evaluate_sampleset`; no evaluation logic lives here.
 
-use std::collections::HashMap;
 use std::ffi::c_char;
 
-use luna_model::core::{Expression, Solution, TryIndex};
-use luna_model::error::LunaModelError;
-
+use super::utils::expression_from_c;
 use crate::buffer::f64_buffer_from_vec;
 use crate::error::{CapiError, guard};
-use crate::utils::{out_from_c, ref_from_c, slice_from_c, str_from_c};
+use crate::eval::NameSample;
+use crate::utils::{out_from_c, shared_from_c};
 use crate::{LmExpr, LmF64Buffer, LmSol, LmStatus};
-
-/// A name-keyed sample built from parallel C arrays; adapts to `TryIndex` so it
-/// can be handed to `core`'s evaluation without duplicating any logic.
-struct NameSample(HashMap<String, f64>);
-
-impl TryIndex<&str> for NameSample {
-    type Output = f64;
-    type Err = LunaModelError;
-
-    fn try_index(&self, var: &str) -> Result<&f64, LunaModelError> {
-        self.0
-            .get(var)
-            .ok_or_else(|| LunaModelError::VariableNotExisting(var.into()))
-    }
-}
 
 /// Evaluates the expression against a single name-keyed sample.
 ///
@@ -45,17 +28,10 @@ pub unsafe extern "C" fn lm_expr_evaluate_sample(
     out: *mut f64,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
-        let names = unsafe { slice_from_c(names, len, "names") }?;
-        let values = unsafe { slice_from_c(values, len, "values") }?;
-        let mut map = HashMap::with_capacity(len);
-        for (&name, &value) in names.iter().zip(values) {
-            map.insert(unsafe { str_from_c(name, "name") }?.to_owned(), value);
-        }
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
+        let sample = unsafe { NameSample::from_c(names, values, len) }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = expr
-            .evaluate_sample(&NameSample(map))
-            .map_err(CapiError::errored)?;
+        *out = expr.evaluate_sample(&sample).map_err(CapiError::errored)?;
         Ok(())
     })
 }
@@ -73,8 +49,8 @@ pub unsafe extern "C" fn lm_expr_evaluate(
     out: *mut LmF64Buffer,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read();
         let values = expr
             .evaluate_sampleset(sol.samples())
             .map_err(CapiError::errored)?;

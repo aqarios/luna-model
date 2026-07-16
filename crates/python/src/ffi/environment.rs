@@ -1,41 +1,26 @@
-//! Low-level capsule and pointer FFI helpers for Python environment wrappers.
+//! C-handle capsule transport for Python environment wrappers.
 
-use std::ffi::CStr;
-
-use lunamodel_core::ArcEnv;
+use lunamodel_cext_handle::{drop_handle, handle_from_storage, handle_into_storage};
+use lunamodel_cext_pyffi::{new_capsule, take_handle};
+use lunamodel_cext_vtable::LmEnv;
 use lunamodel_unwind::*;
-use pyo3::{prelude::*, types::PyCapsule};
+use pyo3::{Bound, PyResult, Python, pymethods, types::PyCapsule};
 
-use crate::{
-    PyEnvironment,
-    ffi::{CapsuleFFI, capsule_name},
-};
-
-const CAPSULE_NAME_ENV: &CStr = c"builtins.capsule.PyEnvironment";
-
-impl<'py> CapsuleFFI<'py> for ArcEnv {
-    fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new_with_value(py, self.clone(), capsule_name(CAPSULE_NAME_ENV))
-    }
-
-    fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        let ptr = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_ENV)))?;
-        let arc: ArcEnv = unsafe { ptr.cast::<ArcEnv>().as_ref().clone() };
-        Ok(arc)
-    }
-}
+use crate::PyEnvironment;
 
 #[unwindable]
 #[pymethods]
 impl PyEnvironment {
-    pub fn _to_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        self.env.to_capsule(py)
+    pub fn _to_c_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
+        let handle = handle_from_storage::<LmEnv>(self.env.clone());
+        new_capsule(py, handle, drop_handle::<LmEnv>)
     }
 
     #[staticmethod]
-    pub fn _from_capsule<'py>(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        Ok(PyEnvironment {
-            env: ArcEnv::from_capsule(capsule)?,
-        })
+    pub fn _from_c_capsule(capsule: Bound<'_, PyCapsule>) -> PyResult<Self> {
+        let handle = take_handle::<LmEnv>(&capsule)?;
+        let env = unsafe { handle_into_storage::<LmEnv>(handle) }
+            .expect("a consumed non-null environment handle must contain shared storage");
+        Ok(Self { env })
     }
 }

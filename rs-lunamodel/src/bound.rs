@@ -1,34 +1,12 @@
-//! Tagged-enum wrapper for a numeric bound endpoint.
-
-use std::fmt::Display;
+//! C-ABI conversion for LunaModel's shared numeric bound endpoint type.
 
 use lunamodel_cext_vtable::{LmBound, LmBoundTag};
+pub use lunamodel_types::Bound;
 
 use crate::{
     Result,
     traits::{LmFrom, LmTryFrom},
 };
-
-/// One side of a variable bound interval.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Bound {
-    /// A finite inclusive bound value.
-    Bounded(f64),
-    /// No bound on this side of the interval.
-    Unbounded,
-}
-
-impl Bound {
-    /// Returns whether the bound is finite.
-    pub fn is_bounded(&self) -> bool {
-        if crate::is_initialized() {
-            let raw = LmBound::lm_from(*self);
-            out_or!(bound_is_bounded(&raw), matches!(self, Self::Bounded(_)))
-        } else {
-            matches!(self, Self::Bounded(_))
-        }
-    }
-}
 
 impl LmFrom<LmBound> for Bound {
     fn lm_from(bound: LmBound) -> Self {
@@ -57,16 +35,6 @@ impl LmFrom<Bound> for LmBound {
 impl LmTryFrom<LmBound> for Bound {
     fn lm_try_from(bound: LmBound) -> Result<Self> {
         Ok(Self::lm_from(bound))
-    }
-}
-
-impl Display for Bound {
-    /// Formats bounded values numerically and unbounded values as `"Unbounded"`.
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Bounded(value) => write!(f, "{value}"),
-            Self::Unbounded => write!(f, "Unbounded"),
-        }
     }
 }
 

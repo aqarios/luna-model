@@ -82,6 +82,10 @@ impl TryIndex<(usize, usize)> for Solution {
     }
 }
 
+// SAFETY: every operation on an LmSol is synchronized by the host.
+unsafe impl Send for Solution {}
+unsafe impl Sync for Solution {}
+
 impl std::fmt::Debug for Solution {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Solution")

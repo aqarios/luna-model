@@ -1,7 +1,9 @@
-use crate::utils::{drop_from_c, handle_to_c};
-use luna_model::{core::prelude::HigherOrder, types::Specs};
+use luna_model::core::prelude::HigherOrder;
 
-use crate::LmHigherOrder;
+use crate::{
+    LmHigherOrder,
+    utils::{drop_from_c, handle_to_c},
+};
 
 /// Frees a higher_order handle. Passing null is a no-op.
 ///
@@ -9,7 +11,7 @@ use crate::LmHigherOrder;
 /// `higher_order` must originate from this library and must not be used or freed again.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_higher_order_free(higher_order: *mut LmHigherOrder) {
-    unsafe { drop_from_c(higher_order as *mut Specs) }
+    unsafe { drop_from_c(higher_order as *mut HigherOrder) }
 }
 
 /// Creates a new empty higher_order term.

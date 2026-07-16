@@ -50,15 +50,13 @@ impl Timing {
 
 impl TryClone for Timing {
     fn try_clone(&self) -> Result<Self> {
-        Self::new(self.start()?, self.end()?, self.qpu()?)
+        out!(timing_clone(@self))
     }
 }
 
 impl PartialEq for Timing {
     fn eq(&self, other: &Self) -> bool {
-        self.start().ok() == other.start().ok()
-            && self.end().ok() == other.end().ok()
-            && self.qpu().ok() == other.qpu().ok()
+        out_or!(timing_eq(@self, @other), false)
     }
 }
 

@@ -22,25 +22,17 @@ pub struct HigherOrder {
     handle: *mut LmHigherOrder,
 }
 
-struct HigherOrderEditItem {
-    key: String,
-    indices: Vec<u32>,
-    bias: f64,
-}
-
 /// Editable snapshot returned by [`HigherOrder::iter_mut`].
 #[must_use = "mutations are committed when the editor is dropped; call commit() to observe errors"]
 pub struct HigherOrderEditor<'a> {
     target: &'a mut HigherOrder,
-    items: Vec<HigherOrderEditItem>,
+    items: Vec<(String, f64)>,
     committed: bool,
 }
 
 impl HigherOrderEditor<'_> {
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (&String, &mut f64)> {
-        self.items
-            .iter_mut()
-            .map(|item| (&item.key, &mut item.bias))
+        self.items.iter_mut().map(higher_order_edit_item_mut)
     }
 
     pub fn commit(mut self) -> Result<()> {
@@ -51,9 +43,25 @@ impl HigherOrderEditor<'_> {
 
     fn commit_inner(&mut self) -> Result<()> {
         for item in &self.items {
-            self.target.set_bias(&item.indices, item.bias)?;
+            self.target.set_bias_key(&item.0, item.1)?;
         }
         Ok(())
+    }
+}
+
+fn higher_order_edit_item_mut(item: &mut (String, f64)) -> (&String, &mut f64) {
+    (&item.0, &mut item.1)
+}
+
+impl<'editor> IntoIterator for &'editor mut HigherOrderEditor<'_> {
+    type Item = (&'editor String, &'editor mut f64);
+    type IntoIter = std::iter::Map<
+        std::slice::IterMut<'editor, (String, f64)>,
+        fn(&mut (String, f64)) -> (&String, &mut f64),
+    >;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.items.iter_mut().map(higher_order_edit_item_mut)
     }
 }
 
@@ -75,16 +83,7 @@ impl TryIndex<&[u32]> for HigherOrder {
 impl TryIndex<&String> for HigherOrder {
     type Output = f64;
     fn try_index(&self, key: &String) -> Result<Self::Output> {
-        let indices = key
-            .split('-')
-            .map(|part| {
-                part.parse::<u32>().map_err(|error| crate::Error {
-                    status: crate::Status::InvalidArgument,
-                    message: format!("invalid higher-order key '{key}': {error}"),
-                })
-            })
-            .collect::<Result<Vec<_>>>()?;
-        self.index(&indices)
+        self.index_key(key)
     }
 }
 
@@ -149,37 +148,16 @@ impl HigherOrder {
     }
 
     pub fn iter(&self) -> Result<std::vec::IntoIter<(String, f64)>> {
-        Ok(self
-            .items()?
+        let keys: Vec<String> = out!(higher_order_keys(@self))?;
+        Ok(keys
             .into_iter()
-            .map(|(indices, bias)| {
-                (
-                    indices
-                        .into_iter()
-                        .map(|idx| idx.to_string())
-                        .collect::<Vec<_>>()
-                        .join("-"),
-                    bias,
-                )
-            })
-            .collect::<Vec<_>>()
+            .map(|key| self.index_key(&key).map(|bias| (key, bias)))
+            .collect::<Result<Vec<_>>>()?
             .into_iter())
     }
 
     pub fn iter_mut(&mut self) -> Result<HigherOrderEditor<'_>> {
-        let items = self
-            .items()?
-            .into_iter()
-            .map(|(indices, bias)| HigherOrderEditItem {
-                key: indices
-                    .iter()
-                    .map(u32::to_string)
-                    .collect::<Vec<_>>()
-                    .join("-"),
-                indices,
-                bias,
-            })
-            .collect();
+        let items = self.iter()?.collect();
         Ok(HigherOrderEditor {
             target: self,
             items,
@@ -199,6 +177,10 @@ impl HigherOrder {
         ))
     }
 
+    pub fn index_key(&self, key: &str) -> Result<f64> {
+        out!(higher_order_index_key(@self, !key))
+    }
+
     pub fn set_bias(&mut self, indices: &[u32], bias: f64) -> Result<()> {
         check!(higher_order_set_bias(
             @mut self,
@@ -206,6 +188,10 @@ impl HigherOrder {
             indices.len(),
             bias
         ))
+    }
+
+    pub fn set_bias_key(&mut self, key: &str, bias: f64) -> Result<()> {
+        check!(higher_order_set_bias_key(@mut self, !key, bias))
     }
 }
 

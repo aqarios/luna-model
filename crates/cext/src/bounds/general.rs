@@ -20,3 +20,22 @@ pub unsafe extern "C" fn lm_bounds_clone(
         Ok(())
     })
 }
+
+/// Compares two bounds values.
+///
+/// # Safety
+/// `bounds` and `other` must be valid handles and `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_bounds_eq(
+    bounds: *const LmBounds,
+    other: *const LmBounds,
+    out: *mut bool,
+) -> LmStatus {
+    crate::error::guard(|| {
+        let bounds = unsafe { ref_from_c(bounds as *const Bounds, "bounds") }?;
+        let other = unsafe { ref_from_c(other as *const Bounds, "other") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = bounds == other;
+        Ok(())
+    })
+}

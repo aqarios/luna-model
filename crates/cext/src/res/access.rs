@@ -5,7 +5,7 @@ use crate::{
     error::guard,
     res::ResultViewHandle,
     sample::SampleViewHandle,
-    utils::{handle_to_c, out_from_c, ref_from_c, result_view_from_c},
+    utils::{handle_to_c, out_from_c, ref_from_c},
 };
 
 /// Returns how often the result row occurred in the solution.
@@ -19,9 +19,9 @@ pub unsafe extern "C" fn lm_result_view_counts(
     out: *mut usize,
 ) -> LmStatus {
     guard(|| {
-        let view = unsafe { result_view_from_c(view) }?;
+        let view = unsafe { ref_from_c(view as *const ResultViewHandle, "view") }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = view.counts();
+        *out = view.read(|view| view.counts());
         Ok(())
     })
 }
@@ -36,9 +36,9 @@ pub unsafe extern "C" fn lm_result_view_constraints(
     out: *mut LmBoolMapBuffer,
 ) -> LmStatus {
     guard(|| {
-        let view = unsafe { result_view_from_c(view) }?;
+        let view = unsafe { ref_from_c(view as *const ResultViewHandle, "view") }?;
         let out = unsafe { out_from_c(out) }?;
-        let values = view.constraints().ok_or_else(|| {
+        let values = view.read(|view| view.constraints()).ok_or_else(|| {
             CapiError::new(LmStatus::Absent, "result row has no constraint results")
         })?;
         *out = bool_map_buffer_from_vec(
@@ -61,9 +61,9 @@ pub unsafe extern "C" fn lm_result_view_variable_bounds(
     out: *mut LmBoolMapBuffer,
 ) -> LmStatus {
     guard(|| {
-        let view = unsafe { result_view_from_c(view) }?;
+        let view = unsafe { ref_from_c(view as *const ResultViewHandle, "view") }?;
         let out = unsafe { out_from_c(out) }?;
-        let values = view.variable_bounds().ok_or_else(|| {
+        let values = view.read(|view| view.variable_bounds()).ok_or_else(|| {
             CapiError::new(LmStatus::Absent, "result row has no variable-bound results")
         })?;
         *out = bool_map_buffer_from_vec(
@@ -107,9 +107,9 @@ pub unsafe extern "C" fn lm_result_view_obj_value(
     out: *mut f64,
 ) -> LmStatus {
     guard(|| {
-        let view = unsafe { result_view_from_c(view) }?;
+        let view = unsafe { ref_from_c(view as *const ResultViewHandle, "view") }?;
         let out = unsafe { out_from_c(out) }?;
-        match view.obj_value() {
+        match view.read(|view| view.obj_value()) {
             Some(v) => {
                 *out = v;
                 Ok(())
@@ -133,9 +133,9 @@ pub unsafe extern "C" fn lm_result_view_raw_energy(
     out: *mut f64,
 ) -> LmStatus {
     guard(|| {
-        let view = unsafe { result_view_from_c(view) }?;
+        let view = unsafe { ref_from_c(view as *const ResultViewHandle, "view") }?;
         let out = unsafe { out_from_c(out) }?;
-        match view.raw_energy() {
+        match view.read(|view| view.raw_energy()) {
             Some(v) => {
                 *out = v;
                 Ok(())
@@ -159,9 +159,9 @@ pub unsafe extern "C" fn lm_result_view_feasible(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let view = unsafe { result_view_from_c(view) }?;
+        let view = unsafe { ref_from_c(view as *const ResultViewHandle, "view") }?;
         let out = unsafe { out_from_c(out) }?;
-        match view.feasible() {
+        match view.read(|view| view.feasible()) {
             Some(v) => {
                 *out = v;
                 Ok(())

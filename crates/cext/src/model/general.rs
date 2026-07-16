@@ -1,13 +1,17 @@
-use crate::utils::{handle_to_c, mut_from_c, out_from_c, ref_from_c, str_from_c};
 use std::ffi::c_char;
 
-use luna_model::core::{Bounds, Model};
+use luna_model::core::Bounds;
 use luna_model::types::Specs;
 use lunamodel_cext_vtable::LmLazyBounds;
 
-use crate::error::{CapiError, guard};
-use crate::utils::vtype_from_c;
-use crate::{LmModel, LmSpecs, LmStatus, LmVref, LmVtype};
+use crate::{
+    LmModel, LmSpecs, LmStatus, LmVref, LmVtype,
+    error::{CapiError, guard},
+    utils::{
+        handle_to_c, new_handle_out_from_c, out_from_c, ref_from_c, retained_handle_out_from_c,
+        shared_from_c, str_from_c, vtype_from_c,
+    },
+};
 
 /// Clones a model into a new, independent handle written to `out`.
 ///
@@ -17,10 +21,28 @@ use crate::{LmModel, LmSpecs, LmStatus, LmVref, LmVtype};
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_clone(model: *const LmModel, out: *mut *mut LmModel) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(model.clone());
-        Ok(())
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
+        unsafe { new_handle_out_from_c(out, model.clone()) }
+    })
+}
+
+/// Creates another owning handle to the same synchronized model.
+///
+/// Unlike [`lm_model_clone`], this does not clone the model contents: mutations
+/// made through either handle are visible through the other. The returned
+/// handle must be released with `lm_model_free`.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `LmModel *` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_retain(
+    model: *const LmModel,
+    out: *mut *mut LmModel,
+) -> LmStatus {
+    guard(|| {
+        let model = unsafe { shared_from_c(model, "model") }?;
+        unsafe { retained_handle_out_from_c(out, model.clone()) }
     })
 }
 
@@ -35,10 +57,8 @@ pub unsafe extern "C" fn lm_model_deep_clone(
     out: *mut *mut LmModel,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(model.deep_clone());
-        Ok(())
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
+        unsafe { new_handle_out_from_c(out, model.deep_clone()) }
     })
 }
 
@@ -57,14 +77,10 @@ pub unsafe extern "C" fn lm_model_satisfies(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let specs = unsafe { ref_from_c(specs as *const Specs, "specs") }?;
-
         let out = unsafe { out_from_c(out) }?;
-
         *out = model.satisfies(specs);
-
         Ok(())
     })
 }
@@ -91,27 +107,20 @@ pub unsafe extern "C" fn lm_model_add_var(
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { mut_from_c(model as *mut Model, "model") }?;
-
+        let mut model = unsafe { shared_from_c(model, "model") }?.write_arc();
         let name = unsafe { str_from_c(name, "name") }?;
-
         let vtype = vtype_from_c(vtype);
-
         let bounds = if bounds.is_null() {
             None
         } else {
             let bounds = unsafe { ref_from_c(bounds as *const Bounds, "bounds") }?;
             Some((*bounds).into())
         };
-
         let out = unsafe { out_from_c(out) }?;
-
         let var = model
             .add_var(name, vtype, bounds)
             .map_err(CapiError::invalid_argument)?;
-
         *out = handle_to_c(var);
-
         Ok(())
     })
 }
@@ -139,27 +148,20 @@ pub unsafe extern "C" fn lm_model_add_var_with_fallback(
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { mut_from_c(model as *mut Model, "model") }?;
-
+        let mut model = unsafe { shared_from_c(model, "model") }?.write_arc();
         let name = unsafe { str_from_c(name, "name") }?;
-
         let vtype = vtype_from_c(vtype);
-
         let bounds = if bounds.is_null() {
             None
         } else {
             let bounds = unsafe { ref_from_c(bounds as *const Bounds, "bounds") }?;
             Some((*bounds).into())
         };
-
         let out = unsafe { out_from_c(out) }?;
-
         let var = model
             .add_var_with_fallback(name, vtype, bounds, None)
             .map_err(CapiError::invalid_argument)?;
-
         *out = handle_to_c(var);
-
         Ok(())
     })
 }

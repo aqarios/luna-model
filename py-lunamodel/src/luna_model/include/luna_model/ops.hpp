@@ -64,13 +64,9 @@ inline Expression Expression::from_vref(const Vref &var) {
 }
 
 inline bool Expression::contains(const Vref &var) const {
-    std::uint32_t id = var.id();
-    for (const Vref &candidate : vars()) {
-        if (candidate.id() == id) {
-            return true;
-        }
-    }
-    return false;
+    bool out = false;
+    detail::check(lm_expr_contains(handle_, var.get(), &out));
+    return out;
 }
 
 inline std::vector<std::pair<Vref, double>> Expression::linear_items() const {

@@ -1,77 +1,31 @@
-//! Low-level capsule and pointer FFI helpers for Python model wrappers.
+//! C-handle capsule transport for Python model wrappers.
 
-use std::{ffi::CStr, sync::Arc};
-
-use lunamodel_core::Model;
+use lunamodel_cext_handle::{drop_handle, handle_from_shared, handle_into_shared};
+use lunamodel_cext_pyffi::{new_capsule, take_handle};
+use lunamodel_cext_vtable::LmModel;
 use lunamodel_unwind::*;
-use parking_lot::RwLock;
-use pyo3::{
-    Bound, Py, PyAny, PyResult, Python, pymethods,
-    types::{PyCapsule, PyCapsuleMethods},
-};
-use std::collections::HashMap;
+use pyo3::{Bound, PyResult, Python, pymethods, types::PyCapsule};
 
-use crate::{
-    PyModel, PyModelMetadata,
-    ffi::{CapsuleFFI, capsule_name},
-    model::PyModelContent,
-};
-
-const CAPSULE_NAME_MODEL: &CStr = c"builtins.capsule.PyModel";
-const CAPSULE_NAME_MODEL_METADATA: &CStr = c"builtins.capsule.PyModelMetadata";
-
-impl<'py> CapsuleFFI<'py, (pyo3::Bound<'py, PyCapsule>, pyo3::Bound<'py, PyCapsule>)>
-    for PyModelContent
-{
-    fn to_capsule(
-        &self,
-        py: pyo3::Python<'py>,
-    ) -> pyo3::PyResult<(pyo3::Bound<'py, PyCapsule>, pyo3::Bound<'py, PyCapsule>)> {
-        let capsule =
-            PyCapsule::new_with_value(py, self.m.clone(), capsule_name(CAPSULE_NAME_MODEL))?;
-        let capsule_metadata = PyCapsule::new_with_value(
-            py,
-            self._metadata.data.clone(),
-            capsule_name(CAPSULE_NAME_MODEL_METADATA),
-        )?;
-        Ok((capsule_metadata, capsule))
-    }
-
-    fn from_capsule(
-        capsule: (pyo3::Bound<'py, PyCapsule>, pyo3::Bound<'py, PyCapsule>),
-    ) -> pyo3::PyResult<Self> {
-        let (capsule_metadata, capsule) = capsule;
-        let ptr = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_MODEL)))?;
-        let ptr_metadata =
-            capsule_metadata.pointer_checked(Some(capsule_name(CAPSULE_NAME_MODEL_METADATA)))?;
-        let model = unsafe { ptr.cast::<Arc<RwLock<Model>>>().as_ref().clone() };
-        let metadata = unsafe {
-            ptr_metadata
-                .cast::<Arc<RwLock<HashMap<String, Py<PyAny>>>>>()
-                .as_ref()
-                .clone()
-        };
-        Ok(Self {
-            m: model,
-            _metadata: PyModelMetadata { data: metadata },
-        })
-    }
-}
+use crate::{PyModel, PyModelMetadata, model::PyModelContent};
 
 #[unwindable]
 #[pymethods]
 impl PyModel {
-    pub fn _to_capsule<'py>(
-        &self,
-        py: Python<'py>,
-    ) -> PyResult<(Bound<'py, PyCapsule>, Bound<'py, PyCapsule>)> {
-        self.0.to_capsule(py)
+    pub fn _to_c_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
+        let handle = handle_from_shared::<LmModel>(self.m.clone());
+        new_capsule(py, handle, drop_handle::<LmModel>)
     }
 
     #[staticmethod]
-    pub fn _from_capsule<'py>(
-        capsule: (Bound<'py, PyCapsule>, Bound<'py, PyCapsule>),
-    ) -> PyResult<Self> {
-        Ok(Self(PyModelContent::from_capsule(capsule)?))
+    pub fn _from_c_capsule(capsule: Bound<'_, PyCapsule>) -> PyResult<Self> {
+        let handle = take_handle::<LmModel>(&capsule)?;
+        // `take_handle` rejected null and transferred the owned host handle.
+        let model = unsafe { handle_into_shared::<LmModel>(handle) }
+            .expect("a consumed non-null model handle must contain shared storage");
+
+        Ok(Self(PyModelContent {
+            m: model,
+            _metadata: PyModelMetadata::default(),
+        }))
     }
 }

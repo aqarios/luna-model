@@ -1,14 +1,92 @@
 use std::ffi::{CStr, c_char};
 
 use luna_model::{
-    core::solution::{Assignment, result::ResultView},
+    core::solution::Assignment,
     types::{Bound, Comparator, Ctype, Sense, ValueSource, Vtype},
+};
+use lunamodel_cext_handle::{
+    HandleKind, Shared, SharedHandleKind, handle_from_shared, handle_ref, new_handle,
 };
 
 use crate::{
-    LmAssignment, LmBound, LmBoundTag, LmComparator, LmCtype, LmResultView, LmSense, LmStatus,
-    LmValueSource, LmVtype, error::CapiError, res::ResultViewHandle,
+    LmAssignment, LmBound, LmBoundTag, LmComparator, LmCtype, LmSense, LmStatus, LmValueSource,
+    LmVtype, error::CapiError,
 };
+
+/// Borrows the synchronized host storage behind an opaque C handle.
+///
+/// # Safety
+/// `ptr` must be null or a live handle of type `H` created by
+/// `lunamodel-cext-handle` and remain live for the returned lifetime.
+pub(crate) unsafe fn storage_from_c<'a, H: HandleKind>(
+    ptr: *const H,
+    what: &str,
+) -> Result<&'a H::Storage, CapiError> {
+    unsafe { handle_ref(ptr) }.ok_or_else(|| CapiError::null_pointer(what))
+}
+
+/// Borrows ordinary synchronized storage behind a C handle.
+///
+/// # Safety
+/// `ptr` must satisfy [`storage_from_c`].
+pub(crate) unsafe fn shared_from_c<'a, H>(
+    ptr: *const H,
+    what: &str,
+) -> Result<&'a Shared<H>, CapiError>
+where
+    H: SharedHandleKind<Storage = Shared<H>>,
+{
+    unsafe { storage_from_c(ptr, what) }
+}
+
+/// Writes a newly allocated synchronized handle to an opaque output slot.
+///
+/// # Safety
+/// `out` must be null or point to writable `H *` storage.
+pub(crate) unsafe fn new_handle_out_from_c<H>(
+    out: *mut *mut H,
+    value: H::Value,
+) -> Result<(), CapiError>
+where
+    H: SharedHandleKind<Storage = Shared<H>>,
+{
+    let out = unsafe { out_from_c(out) }?;
+    *out = new_handle::<H>(value);
+    Ok(())
+}
+
+/// Writes another owning handle for existing synchronized storage to an
+/// opaque output slot.
+///
+/// # Safety
+/// `out` must be null or point to writable `H *` storage.
+pub(crate) unsafe fn retained_handle_out_from_c<H>(
+    out: *mut *mut H,
+    shared: Shared<H>,
+) -> Result<(), CapiError>
+where
+    H: SharedHandleKind<Storage = Shared<H>>,
+{
+    let out = unsafe { out_from_c(out) }?;
+    *out = handle_from_shared::<H>(shared);
+    Ok(())
+}
+
+/// Writes concrete handle storage to an opaque output slot.
+///
+/// Used by internally synchronized handles such as `LmEnv`, whose storage is
+/// already an `Arc`-backed facade and therefore needs no outer lock.
+///
+/// # Safety
+/// `out` must be null or point to writable `H *` storage.
+pub(crate) unsafe fn storage_out_from_c<H: HandleKind>(
+    out: *mut *mut H,
+    storage: H::Storage,
+) -> Result<(), CapiError> {
+    let out = unsafe { out_from_c(out) }?;
+    *out = lunamodel_cext_handle::handle_from_storage::<H>(storage);
+    Ok(())
+}
 
 pub fn sense_from_c(sense: LmSense) -> Sense {
     match sense {
@@ -119,14 +197,6 @@ pub(crate) unsafe fn ref_from_c<'a, T>(ptr: *const T, what: &str) -> Result<&'a 
     unsafe { ptr.as_ref() }.ok_or_else(|| CapiError::null_pointer(what))
 }
 
-/// Borrows the Rust value behind a C pointer, returning None with `NullPointer`.
-///
-/// # Safety
-/// `ptr` must be null or valid for reads as a `T` for the returned lifetime.
-pub(crate) unsafe fn opt_ref_from_c<'a, T>(ptr: *const T) -> Option<&'a T> {
-    unsafe { ptr.as_ref() }
-}
-
 /// Mutably borrows the Rust value behind a C pointer, failing with `NullPointer`.
 ///
 /// # Safety
@@ -206,9 +276,33 @@ pub(crate) unsafe fn slice_from_c<'a, T>(
     what: &str,
 ) -> Result<&'a [T], CapiError> {
     if data.is_null() {
-        return Err(CapiError::null_pointer(what));
+        return if len == 0 {
+            Ok(&[])
+        } else {
+            Err(CapiError::null_pointer(what))
+        };
     }
     Ok(unsafe { std::slice::from_raw_parts(data, len) })
+}
+
+/// Borrows a required mutable `(ptr, len)` C array.
+///
+/// # Safety
+/// `data` must be null or point to `len` writable, initialized `T` values with
+/// no aliases for the returned lifetime.
+pub(crate) unsafe fn mut_slice_from_c<'a, T>(
+    data: *mut T,
+    len: usize,
+    what: &str,
+) -> Result<&'a mut [T], CapiError> {
+    if data.is_null() {
+        return if len == 0 {
+            Ok(&mut [])
+        } else {
+            Err(CapiError::null_pointer(what))
+        };
+    }
+    Ok(unsafe { std::slice::from_raw_parts_mut(data, len) })
 }
 
 /// Borrows an optional `(ptr, len)` C array.
@@ -257,14 +351,11 @@ pub fn assignment_to_c(assignment: Assignment) -> LmAssignment {
     }
 }
 
-/// Rebuilds the borrowed `ResultView` backing an `LmResultView` handle.
-///
-/// # Safety
-/// `view` must be a valid result-view handle created by this library whose
-/// owned solution snapshot is still alive.
-pub unsafe fn result_view_from_c<'a>(
-    view: *const LmResultView,
-) -> Result<ResultView<'a>, CapiError> {
-    let handle = unsafe { ref_from_c(view as *const ResultViewHandle, "view") }?;
-    Ok(ResultView::new(&handle.sol, handle.index))
+pub fn assignment_from_c(assignment: LmAssignment) -> Result<Assignment, CapiError> {
+    Assignment::try_from_value(vtype_from_c(assignment.vtype), assignment.value).ok_or_else(|| {
+        CapiError::new(
+            LmStatus::InvalidArgument,
+            "assignment value is incompatible with its variable type",
+        )
+    })
 }

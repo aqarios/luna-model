@@ -21,6 +21,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     ctype_buffer_free: crate::buffer::lm_ctype_buffer_free,
     cmp_buffer_free: crate::buffer::lm_cmp_buffer_free,
     vref_buffer_free: crate::buffer::lm_vref_buffer_free,
+    column_buffer_free: crate::buffer::lm_column_buffer_free,
     u32_buffer_free: crate::buffer::lm_u32_buffer_free,
     f64_buffer_free: crate::buffer::lm_f64_buffer_free,
     linear_item_buffer_free: crate::buffer::lm_linear_item_buffer_free,
@@ -39,6 +40,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     model_new: crate::model::lm_model_new,
     model_with_env: crate::model::lm_model_with_env,
     // Model -- general
+    model_retain: crate::model::lm_model_retain,
     model_clone: crate::model::lm_model_clone,
     model_deep_clone: crate::model::lm_model_deep_clone,
     model_satisfies: crate::model::lm_model_satisfies,
@@ -79,6 +81,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Env -- general
     env_clone: crate::env::lm_env_clone,
     env_deep_clone: crate::env::lm_env_deep_clone,
+    env_eq: crate::env::lm_env_eq,
     env_equal_contents: crate::env::lm_env_equal_contents,
     // Env -- access
     env_len: crate::env::lm_env_len,
@@ -104,10 +107,24 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // COLUMN //
     // ////// //
     col_free: crate::col::lm_col_free,
+    // Column -- creation
+    col_new: crate::col::lm_col_new,
+    col_with: crate::col::lm_col_with,
+    // Column -- general
+    col_clone: crate::col::lm_col_clone,
+    col_eq: crate::col::lm_col_eq,
+    col_filter_by_mask: crate::col::lm_col_filter_by_mask,
+    col_extract: crate::col::lm_col_extract,
+    // Column -- access
     col_len: crate::col::lm_col_len,
     col_is_empty: crate::col::lm_col_is_empty,
     col_vtype: crate::col::lm_col_vtype,
     col_assignment: crate::col::lm_col_assignment,
+    col_values: crate::col::lm_col_values,
+    // Column -- modification
+    col_push: crate::col::lm_col_push,
+    col_try_push: crate::col::lm_col_try_push,
+    col_remove: crate::col::lm_col_remove,
     // /////////// //
     // RESULT_VIEW //
     // /////////// //
@@ -182,6 +199,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     sol_add_col: crate::sol::lm_sol_add_col,
     sol_remove_col: crate::sol::lm_sol_remove_col,
     sol_remove_cols: crate::sol::lm_sol_remove_cols,
+    sol_set_counts: crate::sol::lm_sol_set_counts,
+    sol_set_timing: crate::sol::lm_sol_set_timing,
     sol_set_sense: crate::sol::lm_sol_set_sense,
     // Sol -- convenience
     sol_cvar: crate::sol::lm_sol_cvar,
@@ -209,6 +228,10 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Expr -- general
     expr_clone: crate::expr::lm_expr_clone,
     expr_deep_clone: crate::expr::lm_expr_deep_clone,
+    expr_deep_clone_many: crate::expr::lm_expr_deep_clone_many,
+    expr_evaluate_sample_quick: crate::expr::lm_expr_evaluate_sample_quick,
+    expr_evaluate_sample: crate::expr::lm_expr_evaluate_sample,
+    expr_evaluate: crate::expr::lm_expr_evaluate,
     // Expr -- serializer
     expr_serialize: crate::expr::lm_expr_serialize,
     expr_deserialize: crate::expr::lm_expr_deserialize,
@@ -217,8 +240,6 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_equal_contents: crate::expr::lm_expr_equal_contents,
     // Expr -- access
     expr_env: crate::expr::lm_expr_env,
-    expr_evaluate_sample: crate::expr::lm_expr_evaluate_sample,
-    expr_evaluate: crate::expr::lm_expr_evaluate,
     expr_offset: crate::expr::lm_expr_offset,
     expr_linear: crate::expr::lm_expr_linear,
     expr_quadratic: crate::expr::lm_expr_quadratic,
@@ -227,10 +248,16 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_vtypes: crate::expr::lm_expr_vtypes,
     expr_vars: crate::expr::lm_expr_vars,
     expr_complete_vars: crate::expr::lm_expr_complete_vars,
+    expr_contains: crate::expr::lm_expr_contains,
     expr_degree: crate::expr::lm_expr_degree,
     expr_is_constant: crate::expr::lm_expr_is_constant,
     expr_has_quadratic: crate::expr::lm_expr_has_quadratic,
     expr_has_higher_order: crate::expr::lm_expr_has_higher_order,
+    // Expr -- modification
+    expr_set_offset: crate::expr::lm_expr_set_offset,
+    expr_add_linear_term: crate::expr::lm_expr_add_linear_term,
+    expr_add_quadratic_term: crate::expr::lm_expr_add_quadratic_term,
+    expr_add_higher_order_term: crate::expr::lm_expr_add_higher_order_term,
     // Expr -- ops -- add
     expr_add_bias: crate::expr::lm_expr_add_bias,
     expr_add_vref: crate::expr::lm_expr_add_vref,
@@ -274,6 +301,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     constr_substitute: crate::constr::lm_constr_substitute,
     constr_equal_contents: crate::constr::lm_constr_equal_contents,
     constr_eq: crate::constr::lm_constr_eq,
+    constr_evaluate_sample: crate::constr::lm_constr_evaluate_sample,
+    constr_evaluate_sample_quick: crate::constr::lm_constr_evaluate_sample_quick,
     // Constraint -- access
     constr_lhs: crate::constr::lm_constr_lhs,
     constr_rhs: crate::constr::lm_constr_rhs,
@@ -294,6 +323,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     cc_deep_clone: crate::cc::lm_cc_deep_clone,
     cc_eq: crate::cc::lm_cc_eq,
     cc_equal_contents: crate::cc::lm_cc_equal_contents,
+    cc_evaluate_sample: crate::cc::lm_cc_evaluate_sample,
+    cc_evaluate_sample_quick: crate::cc::lm_cc_evaluate_sample_quick,
     // CC -- access
     cc_vtypes: crate::cc::lm_cc_vtypes,
     cc_ctypes: crate::cc::lm_cc_ctypes,
@@ -352,6 +383,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     var_new: crate::var::lm_var_new,
     // Variable -- general
     var_clone: crate::var::lm_var_clone,
+    var_eq: crate::var::lm_var_eq,
     // Variable -- access
     var_name: crate::var::lm_var_name,
     var_vtype: crate::var::lm_var_vtype,
@@ -364,8 +396,9 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Specs -- creation
     specs_new: crate::specs::lm_specs_new,
     // Specs -- general
-    specs_satisfies: crate::specs::lm_specs_satisfies,
     specs_clone: crate::specs::lm_specs_clone,
+    specs_satisfies: crate::specs::lm_specs_satisfies,
+    specs_diff: crate::specs::lm_specs_diff,
     // Specs -- access
     specs_sense: crate::specs::lm_specs_sense,
     specs_vtypes: crate::specs::lm_specs_vtypes,
@@ -377,6 +410,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Bound //
     // ///// //
     bound_is_bounded: crate::bound::lm_bound_is_bounded,
+    bound_value: crate::bound::lm_bound_value,
+    bound_eq: crate::bound::lm_bound_eq,
     // ////// //
     // Bounds //
     // ////// //
@@ -390,6 +425,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     bounds_default_for: crate::bounds::lm_bounds_default_for,
     // Bounds -- general
     bounds_clone: crate::bounds::lm_bounds_clone,
+    bounds_eq: crate::bounds::lm_bounds_eq,
     // Bounds -- access
     bounds_lower: crate::bounds::lm_bounds_lower,
     bounds_upper: crate::bounds::lm_bounds_upper,
@@ -415,6 +451,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Linear -- creation
     linear_default: crate::linear::lm_linear_default,
     linear_for_var: crate::linear::lm_linear_for_var,
+    linear_for_vars: crate::linear::lm_linear_for_vars,
     // Linear -- general
     linear_clone: crate::linear::lm_linear_clone,
     linear_eq: crate::linear::lm_linear_eq,
@@ -469,14 +506,17 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     higher_order_is_zero: crate::higher_order::lm_higher_order_is_zero,
     higher_order_is_empty: crate::higher_order::lm_higher_order_is_empty,
     higher_order_items: crate::higher_order::lm_higher_order_items,
+    higher_order_keys: crate::higher_order::lm_higher_order_keys,
     higher_order_degree: crate::higher_order::lm_higher_order_degree,
     higher_order_index: crate::higher_order::lm_higher_order_index,
+    higher_order_index_key: crate::higher_order::lm_higher_order_index_key,
     // HigherOrder -- modification
     higher_order_add_entry: crate::higher_order::lm_higher_order_add_entry,
     higher_order_add_higher_order: crate::higher_order::lm_higher_order_add_higher_order,
     higher_order_mul_bias: crate::higher_order::lm_higher_order_mul_bias,
     higher_order_clean: crate::higher_order::lm_higher_order_clean,
     higher_order_set_bias: crate::higher_order::lm_higher_order_set_bias,
+    higher_order_set_bias_key: crate::higher_order::lm_higher_order_set_bias_key,
     higher_order_neg: crate::higher_order::lm_higher_order_neg,
     // ///// //
     // Timer //
@@ -489,6 +529,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // ////// //
     timing_free: crate::timing::lm_timing_free,
     timing_new: crate::timing::lm_timing_new,
+    timing_clone: crate::timing::lm_timing_clone,
+    timing_eq: crate::timing::lm_timing_eq,
     timing_total_ns: crate::timing::lm_timing_total_ns,
     timing_start_ns: crate::timing::lm_timing_start_ns,
     timing_end_ns: crate::timing::lm_timing_end_ns,

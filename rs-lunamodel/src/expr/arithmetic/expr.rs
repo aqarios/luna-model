@@ -5,6 +5,35 @@ use crate::{
     traits::{TryAddAssign, TryMulAssign, TrySubAssign},
 };
 
+impl TryAddAssign<(u32, f64)> for Expression {
+    fn try_add_assign(&mut self, rhs: (u32, f64)) -> Result<()> {
+        check!(expr_add_linear_term(@mut self, rhs.0, rhs.1))
+    }
+}
+
+impl TryAddAssign<(u32, u32, f64)> for Expression {
+    fn try_add_assign(&mut self, rhs: (u32, u32, f64)) -> Result<()> {
+        check!(expr_add_quadratic_term(@mut self, rhs.0, rhs.1, rhs.2))
+    }
+}
+
+impl TryAddAssign<(&[u32], f64)> for Expression {
+    fn try_add_assign(&mut self, rhs: (&[u32], f64)) -> Result<()> {
+        check!(expr_add_higher_order_term(
+            @mut self,
+            rhs.0.as_ptr(),
+            rhs.0.len(),
+            rhs.1
+        ))
+    }
+}
+
+impl TryAddAssign<(Vec<u32>, f64)> for Expression {
+    fn try_add_assign(&mut self, rhs: (Vec<u32>, f64)) -> Result<()> {
+        self.try_add_assign((rhs.0.as_slice(), rhs.1))
+    }
+}
+
 impl TryAddAssign<Expression> for Expression {
     fn try_add_assign(&mut self, rhs: Expression) -> Result<()> {
         self.try_add_assign(&rhs)

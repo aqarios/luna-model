@@ -1,7 +1,7 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c, str_from_c};
 use std::ffi::c_char;
 
-use luna_model::core::ConstraintCollection;
+use super::utils::collection_from_c;
+use crate::utils::{handle_to_c, new_handle_out_from_c, out_from_c, str_from_c};
 
 use crate::{
     LmCC, LmCmpBuffer, LmComparator, LmConstraint, LmStatus, LmStrBuffer, LmVref, LmVrefBuffer,
@@ -20,7 +20,7 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_names(cc: *const LmCC, out: *mut LmStrBuffer) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
         let out = unsafe { out_from_c(out) }?;
         *out = str_buffer_from_vec(cc.iter().map(|(name, _)| name.clone()).collect());
         Ok(())
@@ -38,7 +38,7 @@ pub unsafe extern "C" fn lm_cc_contains(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
         let key = unsafe { str_from_c(key, "key") }?;
         let out = unsafe { out_from_c(out) }?;
         *out = cc.contains(key);
@@ -54,7 +54,7 @@ pub unsafe extern "C" fn lm_cc_contains(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_vtypes(cc: *const LmCC, out: *mut LmVtypeBuffer) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
         let out = unsafe { out_from_c(out) }?;
         let vtypes = cc.vtypes().map(vtype_to_c).collect::<Vec<LmVtype>>();
         *out = vtype_buffer_from_vec(vtypes);
@@ -70,7 +70,7 @@ pub unsafe extern "C" fn lm_cc_vtypes(cc: *const LmCC, out: *mut LmVtypeBuffer) 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_ctypes(cc: *const LmCC, out: *mut LmCmpBuffer) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
         let out = unsafe { out_from_c(out) }?;
         let ctypes = cc.ctypes().map(cmp_to_c).collect::<Vec<LmComparator>>();
         *out = cmp_buffer_from_vec(ctypes);
@@ -89,7 +89,7 @@ pub unsafe extern "C" fn lm_cc_ctypes(cc: *const LmCC, out: *mut LmCmpBuffer) ->
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_complete_vars(cc: *const LmCC, out: *mut LmVrefBuffer) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
         let out = unsafe { out_from_c(out) }?;
         let vars = cc
             .complete_vars()
@@ -111,7 +111,7 @@ pub unsafe extern "C" fn lm_cc_complete_vars(cc: *const LmCC, out: *mut LmVrefBu
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_vars(cc: *const LmCC, out: *mut LmVrefBuffer) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
         let out = unsafe { out_from_c(out) }?;
         let vars = cc.vars().map(handle_to_c).collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
@@ -127,7 +127,7 @@ pub unsafe extern "C" fn lm_cc_vars(cc: *const LmCC, out: *mut LmVrefBuffer) -> 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_is_empty(cc: *const LmCC, out: *mut bool) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
         let out = unsafe { out_from_c(out) }?;
         *out = cc.is_empty();
         Ok(())
@@ -142,7 +142,7 @@ pub unsafe extern "C" fn lm_cc_is_empty(cc: *const LmCC, out: *mut bool) -> LmSt
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_len(cc: *const LmCC, out: *mut usize) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
         let out = unsafe { out_from_c(out) }?;
         *out = cc.len();
         Ok(())
@@ -163,16 +163,11 @@ pub unsafe extern "C" fn lm_cc_get(
     out: *mut *mut LmConstraint,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
 
         let key = unsafe { str_from_c(key, "key") }?;
 
-        let out = unsafe { out_from_c(out) }?;
-
         let constr = cc.get(key).map_err(CapiError::errored)?;
-
-        *out = handle_to_c(constr.clone());
-
-        Ok(())
+        unsafe { new_handle_out_from_c(out, constr.clone()) }
     })
 }

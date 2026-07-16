@@ -1,4 +1,3 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::{
     core::prelude::{VarRef, Variable},
     error::LunaModelResult,
@@ -7,6 +6,7 @@ use luna_model::{
 use crate::{
     LmStatus, LmVar, LmVref,
     error::{CapiError, guard},
+    utils::{handle_to_c, out_from_c, ref_from_c},
 };
 
 /// Compares the variable index and the semantic contents of the environment.

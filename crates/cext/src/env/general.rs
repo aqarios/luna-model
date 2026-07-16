@@ -1,7 +1,10 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c};
-use luna_model::core::{ArcEnv, prelude::ContentEquality};
+use luna_model::core::prelude::ContentEquality;
 
-use crate::{LmEnv, LmStatus, error::guard};
+use crate::{
+    LmEnv, LmStatus,
+    error::guard,
+    utils::{out_from_c, storage_from_c, storage_out_from_c},
+};
 
 /// Clones an environment into a new, independent handle written to `out`.
 ///
@@ -11,10 +14,8 @@ use crate::{LmEnv, LmStatus, error::guard};
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_clone(env: *const LmEnv, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
-        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(env.clone());
-        Ok(())
+        let env = unsafe { storage_from_c(env, "env") }?;
+        unsafe { storage_out_from_c(out, env.clone()) }
     })
 }
 
@@ -26,9 +27,25 @@ pub unsafe extern "C" fn lm_env_clone(env: *const LmEnv, out: *mut *mut LmEnv) -
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_deep_clone(env: *const LmEnv, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
-        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(env.deep_clone());
+        let env = unsafe { storage_from_c(env, "env") }?;
+        unsafe { storage_out_from_c(out, env.deep_clone()) }
+    })
+}
+
+/// Compares complete environment values, including identity and allocator state.
+///
+/// # Safety
+/// `env` and `other` must be valid handles and `out` writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_env_eq(
+    env: *const LmEnv,
+    other: *const LmEnv,
+    out: *mut bool,
+) -> LmStatus {
+    guard(|| {
+        let env = unsafe { storage_from_c(env, "env") }?;
+        let other = unsafe { storage_from_c(other, "other") }?;
+        *unsafe { out_from_c(out) }? = *env.env.read() == *other.env.read();
         Ok(())
     })
 }
@@ -46,8 +63,8 @@ pub unsafe extern "C" fn lm_env_equal_contents(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { ref_from_c(env as *const ArcEnv, "env") }?;
-        let other = unsafe { ref_from_c(other as *const ArcEnv, "other") }?;
+        let env = unsafe { storage_from_c(env, "env") }?;
+        let other = unsafe { storage_from_c(other, "other") }?;
         let out = unsafe { out_from_c(out) }?;
         *out = env.equal_contents(other);
         Ok(())

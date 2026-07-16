@@ -41,7 +41,7 @@ pub unsafe extern "C" fn lm_sample_view_variable_names(
     guard(|| {
         let view = handle(view)?;
         let out = unsafe { out_from_c(out) }?;
-        *out = str_buffer_from_vec(view.sol.variable_names());
+        *out = str_buffer_from_vec(view.sol.read().variable_names());
         Ok(())
     })
 }
@@ -62,6 +62,7 @@ pub unsafe extern "C" fn lm_sample_view_assignment(
         let out = unsafe { out_from_c(out) }?;
         *out = assignment_to_c(
             view.sol
+                .read()
                 .try_assignment(view.index, var)
                 .map_err(CapiError::errored)?,
         );
@@ -84,6 +85,7 @@ pub unsafe extern "C" fn lm_sample_view_assignment_idx(
         let out = unsafe { out_from_c(out) }?;
         *out = assignment_to_c(
             view.sol
+                .read()
                 .try_assignment_idx(view.index, var)
                 .map_err(CapiError::errored)?,
         );

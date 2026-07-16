@@ -1,33 +1,10 @@
-use std::sync::Arc;
+//! C-API-backed PyO3 model conversion.
 
-use luna_model::{
-    core::Model,
-    python::{PyModelMetadata, prelude::PyModelContent},
-};
-use parking_lot::RwLock;
-
-#[repr(transparent)]
-pub struct PyModel(pub PyModelContent);
-
-impl PyModel {
-    pub fn inner(&self) -> Arc<RwLock<Model>> {
-        Arc::clone(&self.0.m)
-    }
-}
-
-impl From<Model> for PyModel {
-    fn from(value: Model) -> Self {
-        Self(PyModelContent {
-            m: Arc::new(RwLock::new(value)),
-            _metadata: PyModelMetadata::default(),
-        })
-    }
-}
-
-capsule_wrapper! {
+capi_wrapper! {
     wrapper: PyModel,
     public: Model,
-    inner: PyModelContent,
+    inner: ::rs_lunamodel::Model,
+    raw: ::lunamodel_cext_vtable::LmModel,
     attr: "_m",
     from_py: "_from_pym",
 }

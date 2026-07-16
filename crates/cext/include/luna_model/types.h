@@ -296,6 +296,26 @@ typedef struct {
 } LmCmpBuffer;
 
 /**
+ * Opaque handle to a solution column (all values of one variable).
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmColumn;
+
+/**
+ * Owned array of optional column handles.
+ *
+ * Null entries represent names that were not present. Release the buffer with
+ * [`lm_column_buffer_free`].
+ */
+typedef struct {
+    LmColumn **data;
+    uintptr_t len;
+    uintptr_t cap;
+} LmColumnBuffer;
+
+/**
  * An owned, heap-allocated Ctype buffer the caller takes ownership of.
  *
  * Ctype buffers returned by LunaModel must be released
@@ -396,14 +416,6 @@ typedef struct {
      */
     uintptr_t cap;
 } LmHigherOrderItemBuffer;
-
-/**
- * Opaque handle to a solution column (all values of one variable).
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmColumn;
 
 /**
  * One `(variable name, column)` entry of a solution's sample map.
@@ -834,6 +846,7 @@ typedef struct {
     void (*ctype_buffer_free)(LmCtypeBuffer);
     void (*cmp_buffer_free)(LmCmpBuffer);
     void (*vref_buffer_free)(LmVrefBuffer);
+    void (*column_buffer_free)(LmColumnBuffer);
     void (*u32_buffer_free)(LmU32Buffer);
     void (*f64_buffer_free)(LmF64Buffer);
     void (*linear_item_buffer_free)(LmLinearItemBuffer);
@@ -848,6 +861,7 @@ typedef struct {
     LmStatus (*model_new)(const char*, const LmSense*, LmModel**);
     LmStatus (*model_with_env)(const char*, const LmSense*, const LmEnv*, LmModel**);
     LmStatus (*model_clone)(const LmModel*, LmModel**);
+    LmStatus (*model_retain)(const LmModel*, LmModel**);
     LmStatus (*model_deep_clone)(const LmModel*, LmModel**);
     LmStatus (*model_satisfies)(const LmModel*, const LmSpecs*, bool*);
     LmStatus (*model_add_var)(LmModel*, const char*, LmVtype, const LmLazyBounds*, LmVref**);
@@ -884,7 +898,7 @@ typedef struct {
     LmStatus (*model_constraints)(const LmModel*, LmCC**);
     LmStatus (*model_set_name)(LmModel*, const char*);
     LmStatus (*model_set_sense)(LmModel*, LmSense);
-    LmStatus (*model_set_objective)(LmModel*, const LmExpr*);
+    LmStatus (*model_set_objective)(LmModel*, const LmExpr*, const LmSense*);
     LmStatus (*model_set_constraints)(LmModel*, const LmCC*);
     LmStatus (*model_serialize)(const LmModel*, LmBuffer*);
     LmStatus (*model_deserialize)(const uint8_t*, uintptr_t, LmModel**);
@@ -900,6 +914,7 @@ typedef struct {
                         LmEnv**);
     LmStatus (*env_clone)(const LmEnv*, LmEnv**);
     LmStatus (*env_deep_clone)(const LmEnv*, LmEnv**);
+    LmStatus (*env_eq)(const LmEnv*, const LmEnv*, bool*);
     LmStatus (*env_equal_contents)(const LmEnv*, const LmEnv*, bool*);
     LmStatus (*env_len)(const LmEnv*, uintptr_t*);
     LmStatus (*env_is_empty)(const LmEnv*, bool*);
@@ -925,10 +940,20 @@ typedef struct {
     LmStatus (*env_serialize)(const LmEnv*, LmBuffer*);
     LmStatus (*env_deserialize)(const uint8_t*, uintptr_t, LmEnv**);
     void (*col_free)(LmColumn*);
+    LmStatus (*col_new)(LmVtype, const double*, uintptr_t, LmColumn**);
+    LmStatus (*col_with)(LmAssignment, LmColumn**);
+    LmStatus (*col_clone)(const LmColumn*, LmColumn**);
+    LmStatus (*col_eq)(const LmColumn*, const LmColumn*, bool*);
+    LmStatus (*col_filter_by_mask)(const LmColumn*, const bool*, uintptr_t, LmColumn**);
+    LmStatus (*col_extract)(const LmColumn*, uintptr_t, LmColumn**);
     LmStatus (*col_len)(const LmColumn*, uintptr_t*);
     LmStatus (*col_is_empty)(const LmColumn*, bool*);
     LmStatus (*col_vtype)(const LmColumn*, LmVtype*);
     LmStatus (*col_assignment)(const LmColumn*, uintptr_t, LmAssignment*);
+    LmStatus (*col_values)(const LmColumn*, const double**, uintptr_t*);
+    LmStatus (*col_push)(LmColumn*, LmAssignment);
+    LmStatus (*col_try_push)(LmColumn*, double, const double*);
+    LmStatus (*col_remove)(LmColumn*, uintptr_t);
     void (*result_view_free)(LmResultView*);
     LmStatus (*result_view_counts)(const LmResultView*, uintptr_t*);
     LmStatus (*result_view_obj_value)(const LmResultView*, double*);
@@ -1004,7 +1029,9 @@ typedef struct {
     LmStatus (*sol_add_real)(LmSol*, const char*, const double*, uintptr_t);
     LmStatus (*sol_add_col)(LmSol*, LmVtype, const char*, const double*, uintptr_t, const double*);
     LmStatus (*sol_remove_col)(LmSol*, const char*, LmColumn**);
-    LmStatus (*sol_remove_cols)(LmSol*, const char*const *, uintptr_t);
+    LmStatus (*sol_remove_cols)(LmSol*, const char*const *, uintptr_t, LmColumnBuffer*);
+    LmStatus (*sol_set_counts)(LmSol*, const uintptr_t*, uintptr_t);
+    LmStatus (*sol_set_timing)(LmSol*, const LmTiming*);
     LmStatus (*sol_set_sense)(LmSol*, LmSense);
     LmStatus (*sol_cvar)(const LmSol*, double, const LmValueSource*, double*);
     LmStatus (*sol_expectation_value)(const LmSol*, const LmValueSource*, double*);
@@ -1030,17 +1057,19 @@ typedef struct {
                                           LmExpr**);
     LmStatus (*expr_clone)(const LmExpr*, LmExpr**);
     LmStatus (*expr_deep_clone)(const LmExpr*, const LmEnv*, LmExpr**);
-    LmStatus (*expr_serialize)(const LmExpr*, LmBuffer*);
-    LmStatus (*expr_deserialize)(const uint8_t*, uintptr_t, const LmEnv*, LmExpr**);
-    LmStatus (*expr_eq)(const LmExpr*, const LmExpr*, bool*);
-    LmStatus (*expr_equal_contents)(const LmExpr*, const LmExpr*, bool*);
-    LmStatus (*expr_env)(const LmExpr*, LmEnv**);
+    LmStatus (*expr_deep_clone_many)(const LmExpr*const *, uintptr_t, LmExpr**);
+    LmStatus (*expr_evaluate_sample_quick)(const LmExpr*, const double*, uintptr_t, double*);
     LmStatus (*expr_evaluate_sample)(const LmExpr*,
                                      const char*const *,
                                      const double*,
                                      uintptr_t,
                                      double*);
     LmStatus (*expr_evaluate)(const LmExpr*, const LmSol*, LmF64Buffer*);
+    LmStatus (*expr_serialize)(const LmExpr*, LmBuffer*);
+    LmStatus (*expr_deserialize)(const uint8_t*, uintptr_t, const LmEnv*, LmExpr**);
+    LmStatus (*expr_eq)(const LmExpr*, const LmExpr*, bool*);
+    LmStatus (*expr_equal_contents)(const LmExpr*, const LmExpr*, bool*);
+    LmStatus (*expr_env)(const LmExpr*, LmEnv**);
     LmStatus (*expr_offset)(const LmExpr*, double*);
     LmStatus (*expr_linear)(const LmExpr*, LmLinear**);
     LmStatus (*expr_quadratic)(const LmExpr*, LmQuadratic**);
@@ -1049,10 +1078,15 @@ typedef struct {
     LmStatus (*expr_vtypes)(const LmExpr*, LmVtypeBuffer*);
     LmStatus (*expr_vars)(const LmExpr*, LmVrefBuffer*);
     LmStatus (*expr_complete_vars)(const LmExpr*, LmVrefBuffer*);
+    LmStatus (*expr_contains)(const LmExpr*, const LmVref*, bool*);
     LmStatus (*expr_degree)(const LmExpr*, uintptr_t*);
     LmStatus (*expr_is_constant)(const LmExpr*, bool*);
     LmStatus (*expr_has_quadratic)(const LmExpr*, bool*);
     LmStatus (*expr_has_higher_order)(const LmExpr*, bool*);
+    LmStatus (*expr_set_offset)(LmExpr*, double);
+    LmStatus (*expr_add_linear_term)(LmExpr*, uint32_t, double);
+    LmStatus (*expr_add_quadratic_term)(LmExpr*, uint32_t, uint32_t, double);
+    LmStatus (*expr_add_higher_order_term)(LmExpr*, const uint32_t*, uintptr_t, double);
     LmStatus (*expr_add_bias)(const LmExpr*, double, LmExpr**);
     LmStatus (*expr_add_vref)(const LmExpr*, const LmVref*, LmExpr**);
     LmStatus (*expr_add_expr)(const LmExpr*, const LmExpr*, LmExpr**);
@@ -1084,6 +1118,17 @@ typedef struct {
     LmStatus (*constr_substitute)(LmConstraint*, const LmVref*, const LmExpr*);
     LmStatus (*constr_equal_contents)(const LmConstraint*, const LmConstraint*, bool*);
     LmStatus (*constr_eq)(const LmConstraint*, const LmConstraint*, bool*);
+    LmStatus (*constr_evaluate_sample)(const LmConstraint*,
+                                       const char*const *,
+                                       const double*,
+                                       uintptr_t,
+                                       const double*,
+                                       bool*);
+    LmStatus (*constr_evaluate_sample_quick)(const LmConstraint*,
+                                             const double*,
+                                             uintptr_t,
+                                             const double*,
+                                             bool*);
     LmStatus (*constr_lhs)(const LmConstraint*, LmExpr**);
     LmStatus (*constr_rhs)(const LmConstraint*, double*);
     LmStatus (*constr_comparator)(const LmConstraint*, LmComparator*);
@@ -1097,6 +1142,17 @@ typedef struct {
     LmStatus (*cc_deep_clone)(const LmCC*, const LmEnv*, LmCC**);
     LmStatus (*cc_eq)(const LmCC*, const LmCC*, bool*);
     LmStatus (*cc_equal_contents)(const LmCC*, const LmCC*, bool*);
+    LmStatus (*cc_evaluate_sample)(const LmCC*,
+                                   const char*const *,
+                                   const double*,
+                                   uintptr_t,
+                                   const double*,
+                                   LmBoolMapBuffer*);
+    LmStatus (*cc_evaluate_sample_quick)(const LmCC*,
+                                         const double*,
+                                         uintptr_t,
+                                         const double*,
+                                         LmBoolMapBuffer*);
     LmStatus (*cc_vtypes)(const LmCC*, LmVtypeBuffer*);
     LmStatus (*cc_ctypes)(const LmCC*, LmCmpBuffer*);
     LmStatus (*cc_vars)(const LmCC*, LmVrefBuffer*);
@@ -1140,6 +1196,7 @@ typedef struct {
     void (*var_free)(LmVar*);
     LmStatus (*var_new)(const char*, LmVtype, const LmLazyBounds*, LmVar**);
     LmStatus (*var_clone)(const LmVar*, LmVar**);
+    LmStatus (*var_eq)(const LmVar*, const LmVar*, bool*);
     LmStatus (*var_name)(const LmVar*, LmBuffer*);
     LmStatus (*var_vtype)(const LmVar*, LmVtype*);
     LmStatus (*var_bounds)(const LmVar*, LmBounds**);
@@ -1154,8 +1211,9 @@ typedef struct {
                           const uintptr_t*,
                           const uintptr_t*,
                           LmSpecs**);
-    LmStatus (*specs_satisfies)(const LmSpecs*, const LmSpecs*, bool*);
     LmStatus (*specs_clone)(const LmSpecs*, LmSpecs**);
+    LmStatus (*specs_satisfies)(const LmSpecs*, const LmSpecs*, bool*);
+    LmStatus (*specs_diff)(const LmSpecs*, const LmSpecs*, LmBuffer*);
     LmStatus (*specs_sense)(const LmSpecs*, LmSense*);
     LmStatus (*specs_vtypes)(const LmSpecs*, LmVtypeBuffer*);
     LmStatus (*specs_ctypes)(const LmSpecs*, LmCtypeBuffer*);
@@ -1163,6 +1221,8 @@ typedef struct {
     LmStatus (*specs_max_constraint_degree)(const LmSpecs*, uintptr_t*);
     LmStatus (*specs_max_num_variables)(const LmSpecs*, uintptr_t*);
     LmStatus (*bound_is_bounded)(const LmBound*, bool*);
+    LmStatus (*bound_value)(const LmBound*, double*);
+    LmStatus (*bound_eq)(const LmBound*, const LmBound*, bool*);
     void (*bounds_free)(LmBounds*);
     LmStatus (*bounds_new)(LmBound, LmBound, LmBounds**);
     LmStatus (*bounds_binary)(LmBounds**);
@@ -1171,6 +1231,7 @@ typedef struct {
     LmStatus (*bounds_real)(LmBounds**);
     LmStatus (*bounds_default_for)(LmVtype, LmBounds**);
     LmStatus (*bounds_clone)(const LmBounds*, LmBounds**);
+    LmStatus (*bounds_eq)(const LmBounds*, const LmBounds*, bool*);
     LmStatus (*bounds_lower)(const LmBounds*, LmBound*);
     LmStatus (*bounds_upper)(const LmBounds*, LmBound*);
     LmStatus (*bounds_eval)(const LmBounds*, double, const double*, bool*);
@@ -1184,6 +1245,7 @@ typedef struct {
     void (*linear_free)(LmLinear*);
     LmLinear *(*linear_default)(void);
     LmStatus (*linear_for_var)(uint32_t, double, LmLinear**);
+    LmStatus (*linear_for_vars)(uint32_t, double, uint32_t, double, LmLinear**);
     LmStatus (*linear_clone)(const LmLinear*, LmLinear**);
     LmStatus (*linear_eq)(const LmLinear*, const LmLinear*, bool*);
     LmStatus (*linear_len)(const LmLinear*, uintptr_t*);
@@ -1222,19 +1284,24 @@ typedef struct {
     LmStatus (*higher_order_is_zero)(const LmHigherOrder*, bool*);
     LmStatus (*higher_order_is_empty)(const LmHigherOrder*, bool*);
     LmStatus (*higher_order_items)(const LmHigherOrder*, LmHigherOrderItemBuffer*);
+    LmStatus (*higher_order_keys)(const LmHigherOrder*, LmStrBuffer*);
     LmStatus (*higher_order_degree)(const LmHigherOrder*, uintptr_t*);
     LmStatus (*higher_order_index)(const LmHigherOrder*, const uint32_t*, uintptr_t, double*);
+    LmStatus (*higher_order_index_key)(const LmHigherOrder*, const char*, double*);
     LmStatus (*higher_order_add_entry)(LmHigherOrder*, const uint32_t*, uintptr_t, double);
     LmStatus (*higher_order_add_higher_order)(LmHigherOrder*, const LmHigherOrder*);
     LmStatus (*higher_order_mul_bias)(LmHigherOrder*, double);
     LmStatus (*higher_order_clean)(LmHigherOrder*);
     LmStatus (*higher_order_set_bias)(LmHigherOrder*, const uint32_t*, uintptr_t, double);
+    LmStatus (*higher_order_set_bias_key)(LmHigherOrder*, const char*, double);
     LmStatus (*higher_order_neg)(const LmHigherOrder*, LmHigherOrder**);
     void (*timer_free)(LmTimer*);
     LmTimer *(*timer_start)(void);
     LmStatus (*timer_stop)(const LmTimer*, LmTiming**);
     void (*timing_free)(LmTiming*);
     LmStatus (*timing_new)(uint64_t, uint64_t, const double*, LmTiming**);
+    LmStatus (*timing_clone)(const LmTiming*, LmTiming**);
+    LmStatus (*timing_eq)(const LmTiming*, const LmTiming*, bool*);
     LmStatus (*timing_total_ns)(const LmTiming*, uint64_t*);
     LmStatus (*timing_start_ns)(const LmTiming*, uint64_t*);
     LmStatus (*timing_end_ns)(const LmTiming*, uint64_t*);

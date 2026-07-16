@@ -1,13 +1,16 @@
+pub(crate) mod utils;
+
 mod access;
 mod creation;
 mod equality;
 mod eval;
 mod general;
+mod modification;
 mod ops;
 mod serialize;
 
 pub use access::{
-    lm_expr_complete_vars, lm_expr_degree, lm_expr_env, lm_expr_has_higher_order,
+    lm_expr_complete_vars, lm_expr_contains, lm_expr_degree, lm_expr_env, lm_expr_has_higher_order,
     lm_expr_has_quadratic, lm_expr_higher_order, lm_expr_is_constant, lm_expr_linear,
     lm_expr_num_vars, lm_expr_offset, lm_expr_quadratic, lm_expr_vars, lm_expr_vtypes,
 };
@@ -18,7 +21,13 @@ pub use creation::{
 };
 pub use equality::{lm_expr_eq, lm_expr_equal_contents};
 pub use eval::{lm_expr_evaluate, lm_expr_evaluate_sample};
-pub use general::{lm_expr_clone, lm_expr_deep_clone};
+pub use general::{
+    lm_expr_clone, lm_expr_deep_clone, lm_expr_deep_clone_many, lm_expr_evaluate_sample_quick,
+};
+pub use modification::{
+    lm_expr_add_higher_order_term, lm_expr_add_linear_term, lm_expr_add_quadratic_term,
+    lm_expr_set_offset,
+};
 pub use serialize::{lm_expr_deserialize, lm_expr_serialize};
 
 pub use ops::{

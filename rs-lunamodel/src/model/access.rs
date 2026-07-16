@@ -15,6 +15,11 @@ impl Model {
         out!(model_env(@self))
     }
 
+    /// Native-compatible name for [`env`](Self::env).
+    pub fn environment(&self) -> Result<Env> {
+        self.env()
+    }
+
     pub fn specs(&self) -> Result<Specs> {
         out!(model_specs(@self))
     }

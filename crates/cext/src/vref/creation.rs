@@ -1,7 +1,10 @@
-use crate::utils::{drop_from_c, handle_to_c, out_from_c};
 use luna_model::core::prelude::VarRef;
 
-use crate::{LmEnv, LmStatus, LmVref, env::utils::environment_from_c, error::guard};
+use crate::{
+    LmEnv, LmStatus, LmVref,
+    error::guard,
+    utils::{drop_from_c, handle_to_c, out_from_c, storage_from_c},
+};
 
 /// Frees a vref handle. Passing null is a no-op.
 ///
@@ -31,7 +34,7 @@ pub unsafe extern "C" fn lm_vref_new(
     guard(|| {
         let out = unsafe { out_from_c(out) }?;
 
-        let env = unsafe { environment_from_c(env) }?;
+        let env = unsafe { storage_from_c(env, "env") }?;
         let vref = VarRef::new(id, env.clone());
         *out = handle_to_c(vref);
         Ok(())

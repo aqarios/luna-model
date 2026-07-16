@@ -25,7 +25,7 @@ pub use modification::{
     lm_sol_add_binary, lm_sol_add_col, lm_sol_add_empty_binary, lm_sol_add_empty_integer,
     lm_sol_add_empty_real, lm_sol_add_empty_spin, lm_sol_add_integer, lm_sol_add_real,
     lm_sol_add_spin, lm_sol_aggregate, lm_sol_filter_by_mask, lm_sol_push, lm_sol_remove_col,
-    lm_sol_remove_cols, lm_sol_set_sense,
+    lm_sol_remove_cols, lm_sol_set_counts, lm_sol_set_sense, lm_sol_set_timing,
 };
 pub use properties::{
     lm_sol_constraints, lm_sol_counts, lm_sol_feasible, lm_sol_obj_values, lm_sol_raw_energies,

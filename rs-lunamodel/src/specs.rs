@@ -86,16 +86,9 @@ impl Specs {
     pub fn satisfies(&self, other: &Specs) -> Result<bool> {
         out!(specs_satisfies(@self, @other))
     }
-}
 
-impl PartialEq for Specs {
-    fn eq(&self, other: &Self) -> bool {
-        self.sense().ok() == other.sense().ok()
-            && self.vtypes().ok() == other.vtypes().ok()
-            && self.ctypes().ok() == other.ctypes().ok()
-            && self.max_degree().ok() == other.max_degree().ok()
-            && self.max_constraint_degree().ok() == other.max_constraint_degree().ok()
-            && self.max_num_variables().ok() == other.max_num_variables().ok()
+    pub fn diff(&self, other: &Specs) -> Result<String> {
+        out!(specs_diff(@self, @other))
     }
 }
 
@@ -132,3 +125,8 @@ impl std::fmt::Display for Specs {
         )
     }
 }
+
+// SAFETY: Specs is immutable through this facade and every C operation only
+// reads the uniquely owned handle.
+unsafe impl Send for Specs {}
+unsafe impl Sync for Specs {}

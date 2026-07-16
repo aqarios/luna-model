@@ -59,7 +59,7 @@ impl Bounds {
 
 impl PartialEq for Bounds {
     fn eq(&self, other: &Self) -> bool {
-        self.lower().ok() == other.lower().ok() && self.upper().ok() == other.upper().ok()
+        out_or!(bounds_eq(@self, @other), false)
     }
 }
 

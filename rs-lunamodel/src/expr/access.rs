@@ -1,7 +1,7 @@
 use lunamodel_cext_vtable::{LmHigherOrder, LmQuadratic};
 use lunamodel_types::Vtype;
 
-use crate::{Env, HigherOrder, Linear, Quadratic, TryClone, VarRef, error::Result};
+use crate::{Env, HigherOrder, Linear, Quadratic, VarRef, error::Result};
 
 use super::Expression;
 
@@ -14,6 +14,11 @@ impl Expression {
     /// Returns the constant offset.
     pub fn offset(&self) -> Result<f64> {
         out!(expr_offset(@self))
+    }
+
+    /// Replaces the constant offset while keeping all variable terms unchanged.
+    pub fn set_offset(&mut self, value: f64) -> Result<()> {
+        check!(expr_set_offset(@mut self, value))
     }
 
     /// Returns the number of distinct variables.
@@ -177,10 +182,6 @@ impl Expression {
     }
 
     pub fn contains(&self, var: &VarRef) -> Result<bool> {
-        let id = var.id()?;
-        Ok(self
-            .vars()?
-            .into_iter()
-            .any(|candidate| candidate.id().ok() == Some(id)))
+        out!(expr_contains(@self, @var))
     }
 }

@@ -2,12 +2,12 @@ mod access;
 
 use std::ffi::c_char;
 
-use crate::utils::{drop_from_c, handle_to_c, out_from_c, ref_from_c, str_from_c, vtype_from_c};
 use luna_model::core::prelude::{LazyBounds, Variable};
 
 use crate::{
     LmLazyBounds, LmStatus, LmVar, LmVtype,
     error::{CapiError, guard},
+    utils::{drop_from_c, handle_to_c, out_from_c, ref_from_c, str_from_c, vtype_from_c},
 };
 
 /// Frees a variable handle. Passing null is a no-op.
@@ -55,6 +55,24 @@ pub unsafe extern "C" fn lm_var_clone(var: *const LmVar, out: *mut *mut LmVar) -
         let var = unsafe { ref_from_c(var as *const Variable, "var") }?;
         let out = unsafe { out_from_c(out) }?;
         *out = handle_to_c(var.clone());
+        Ok(())
+    })
+}
+
+/// Compares two variable records.
+///
+/// # Safety
+/// `var` and `other` must be valid handles and `out` writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_var_eq(
+    var: *const LmVar,
+    other: *const LmVar,
+    out: *mut bool,
+) -> LmStatus {
+    guard(|| {
+        let var = unsafe { ref_from_c(var as *const Variable, "var") }?;
+        let other = unsafe { ref_from_c(other as *const Variable, "other") }?;
+        *unsafe { out_from_c(out) }? = var == other;
         Ok(())
     })
 }

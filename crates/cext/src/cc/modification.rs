@@ -1,12 +1,14 @@
-use crate::utils::{mut_from_c, opt_str_from_c, out_from_c, ref_from_c, str_from_c};
 use std::ffi::c_char;
 
-use luna_model::core::{Constraint, ConstraintCollection, Expression, prelude::VarRef};
+use luna_model::core::prelude::VarRef;
 
+use super::utils::collection_from_c;
 use crate::{
     LmBuffer, LmCC, LmConstraint, LmExpr, LmStatus, LmStrBuffer, LmVref,
     buffer::{buffer_from_vec, str_buffer_from_vec},
     error::{CapiError, guard},
+    expr::utils::expression_from_c,
+    utils::{opt_str_from_c, out_from_c, ref_from_c, shared_from_c, str_from_c},
 };
 
 /// Inserts a constraint, optionally overriding its current name.
@@ -28,14 +30,16 @@ pub unsafe extern "C" fn lm_cc_add_constraint(
     out: *mut LmBuffer,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { mut_from_c(cc as *mut ConstraintCollection, "cc") }?;
-        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
+        let constr = unsafe { shared_from_c(constr, "constr") }?
+            .read_arc()
+            .clone();
         let out = unsafe { out_from_c(out) }?;
 
         let name = unsafe { opt_str_from_c(name, "name") }?.map(str::to_owned);
 
+        let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
         let cname = cc
-            .add_constraint(constr.clone(), name)
+            .add_constraint(constr, name)
             .map_err(CapiError::errored)?;
 
         *out = buffer_from_vec(cname.into_bytes());
@@ -58,12 +62,12 @@ pub unsafe extern "C" fn lm_cc_add_collection(
     out: *mut LmStrBuffer,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { mut_from_c(cc as *mut ConstraintCollection, "cc") }?;
-        let other = unsafe { ref_from_c(other as *const ConstraintCollection, "other") }?;
+        let other = unsafe { collection_from_c(other, "other") }?.read().clone();
         let prefix = unsafe { opt_str_from_c(prefix, "prefix") }?.map(str::to_owned);
         let out = unsafe { out_from_c(out) }?;
+        let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
         *out = str_buffer_from_vec(
-            cc.add_collection(other.clone(), prefix)
+            cc.add_collection(other, prefix)
                 .map_err(CapiError::errored)?,
         );
         Ok(())
@@ -83,13 +87,14 @@ pub unsafe extern "C" fn lm_cc_set_constraint(
     constr: *const LmConstraint,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { mut_from_c(cc as *mut ConstraintCollection, "cc") }?;
-        let constr = unsafe { ref_from_c(constr as *const Constraint, "constr") }?;
+        let constr = unsafe { shared_from_c(constr, "constr") }?
+            .read_arc()
+            .clone();
 
         let key = unsafe { str_from_c(key, "key") }?;
 
-        cc.set_constraint(key, constr.clone())
-            .map_err(CapiError::errored)?;
+        let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
+        cc.set_constraint(key, constr).map_err(CapiError::errored)?;
         Ok(())
     })
 }
@@ -102,10 +107,8 @@ pub unsafe extern "C" fn lm_cc_set_constraint(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_remove_constraint(cc: *mut LmCC, key: *const c_char) -> LmStatus {
     guard(|| {
-        let cc = unsafe { mut_from_c(cc as *mut ConstraintCollection, "cc") }?;
-
         let key = unsafe { str_from_c(key, "key") }?;
-
+        let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
         cc.remove_constraint(key).map_err(CapiError::errored)?;
         Ok(())
     })
@@ -124,11 +127,13 @@ pub unsafe extern "C" fn lm_cc_substitute(
     replacement: *const LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { mut_from_c(cc as *mut ConstraintCollection, "cc") }?;
         let target = unsafe { ref_from_c(target as *const VarRef, "target") }?;
-        let replacement = unsafe { ref_from_c(replacement as *const Expression, "replacement") }?;
+        let replacement = unsafe { expression_from_c(replacement, "replacement") }?
+            .read()
+            .clone();
+        let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
 
-        cc.substitute(target, replacement)
+        cc.substitute(target, &replacement)
             .map_err(CapiError::errored)?;
 
         Ok(())

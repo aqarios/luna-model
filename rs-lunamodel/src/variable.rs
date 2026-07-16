@@ -55,10 +55,7 @@ impl TryClone for Variable {
 
 impl PartialEq for Variable {
     fn eq(&self, other: &Self) -> bool {
-        self.name().ok() == other.name().ok()
-            && self.vtype().ok() == other.vtype().ok()
-            && self.bounds().ok() == other.bounds().ok()
-            && self.inverted().ok() == other.inverted().ok()
+        out_or!(var_eq(@self, @other), false)
     }
 }
 

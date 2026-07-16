@@ -6,7 +6,7 @@ use lunamodel_cext_vtable::{LmAssignment, LmColumn};
 use lunamodel_types::{Sense, Vtype};
 
 use crate::{
-    Assignment, Column, Result, ResultView, Solution,
+    Assignment, Column, Result, ResultView, Solution, Timing,
     traits::{LmFrom, ToPtrList},
 };
 
@@ -60,7 +60,7 @@ impl Solution {
     }
 
     pub fn remove_cols(&mut self, vars: &[String]) -> Result<Vec<Option<Column>>> {
-        vars.iter().map(|var| self.remove_col(var)).collect()
+        out!(sol_remove_cols(@mut self, *vars))
     }
 
     pub fn iter_remove_cols(
@@ -70,10 +70,8 @@ impl Solution {
         Ok(self.remove_cols(vars)?.into_iter())
     }
 
-    /// Retains the older bulk ABI operation for extension authors that do not
-    /// need the removed columns.
     pub fn remove_cols_discarding(&mut self, vars: &[String]) -> Result<()> {
-        check!(sol_remove_cols(@mut self, *vars))
+        self.remove_cols(vars).map(drop)
     }
 
     pub fn aggregate(&mut self) -> Result<()> {
@@ -112,6 +110,16 @@ impl Solution {
             counts,
             ?energy
         ))
+    }
+
+    /// Replaces the per-row sample counts.
+    pub fn set_counts(&mut self, counts: Vec<usize>) -> Result<()> {
+        check!(sol_set_counts(@mut self, counts.as_ptr(), counts.len()))
+    }
+
+    /// Replaces or clears the solution timing metadata.
+    pub fn set_timing(&mut self, timing: Option<&Timing>) -> Result<()> {
+        check!(sol_set_timing(@mut self, ?@timing))
     }
 
     pub fn set_sense(mut self, sense: Sense) -> Result<Self> {

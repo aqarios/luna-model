@@ -5,7 +5,7 @@
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `Quadratic` still return `Result` here.
 
-use std::ops::{Deref, DerefMut, Mul, Neg};
+use std::ops::{Deref, Mul, Neg};
 
 use lunamodel_cext_vtable::LmQuadratic;
 use rs_lunamodel_derive::RawHandle;
@@ -62,12 +62,6 @@ impl Deref for QuadraticEditor<'_> {
     type Target = [(u32, Neighborhood)];
     fn deref(&self) -> &Self::Target {
         &self.items
-    }
-}
-
-impl DerefMut for QuadraticEditor<'_> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.items
     }
 }
 

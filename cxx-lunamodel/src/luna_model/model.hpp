@@ -175,9 +175,9 @@ class Model {
         return Expression(out);
     }
 
-    /* Sets the objective expression. */
-    void set_objective(const Expression &expr) {
-        detail::check(lm_model_set_objective(handle_, expr.get()));
+    /* Sets the objective expression and optionally updates the model sense. */
+    void set_objective(const Expression &expr, std::optional<LmSense> sense = std::nullopt) {
+        detail::check(lm_model_set_objective(handle_, expr.get(), sense ? &*sense : nullptr));
     }
 
     /* A copy of the constraint collection. */

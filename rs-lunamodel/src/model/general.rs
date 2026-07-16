@@ -4,6 +4,13 @@ use crate::{
 };
 
 impl Model {
+    /// Retains the same synchronized host model.
+    ///
+    /// Unlike `try_clone`, mutations through either handle remain mutually visible.
+    pub fn try_retain(&self) -> Result<Self> {
+        out!(model_retain(@self))
+    }
+
     pub fn satisfies(&self, specs: &Specs) -> Result<bool> {
         out!(model_satisfies(@self, @specs))
     }

@@ -24,6 +24,22 @@ extern "C" {
 LmStatus lm_bound_is_bounded(const LmBound *bound, bool *out);
 
 /**
+ * Returns the finite bound value, or `Absent` for an unbounded endpoint.
+ *
+ * # Safety
+ * `bound` must be readable and `out` writable.
+ */
+LmStatus lm_bound_value(const LmBound *bound, double *out);
+
+/**
+ * Compares two bound endpoints.
+ *
+ * # Safety
+ * `bound`, `other`, and `out` must be valid readable/writable pointers.
+ */
+LmStatus lm_bound_eq(const LmBound *bound, const LmBound *other, bool *out);
+
+/**
  * Returns a copy of the bounds' lower bound.
  *
  * # Safety
@@ -111,6 +127,14 @@ LmStatus lm_bounds_default_for(LmVtype vtype, LmBounds **out);
 LmStatus lm_bounds_clone(const LmBounds *bounds, LmBounds **out);
 
 /**
+ * Compares two bounds values.
+ *
+ * # Safety
+ * `bounds` and `other` must be valid handles and `out` must be writable.
+ */
+LmStatus lm_bounds_eq(const LmBounds *bounds, const LmBounds *other, bool *out);
+
+/**
  * Returns whether `val` lies within the closed interval represented by these bounds.
  * Unbounded sides are treated as always satisfied.
  *
@@ -151,6 +175,14 @@ void lm_buffer_free(LmBuffer buffer);
  * `buffer` must have been produced by this library and not already freed.
  */
 void lm_cmp_buffer_free(LmCmpBuffer buffer);
+
+/**
+ * Releases an owned optional-column buffer and every non-null handle in it.
+ *
+ * # Safety
+ * `buffer` must have been returned by LunaModel and not previously freed.
+ */
+void lm_column_buffer_free(LmColumnBuffer buffer);
 
 /**
  * Frees a ctype buffer previously returned by LunaModel.
@@ -392,6 +424,20 @@ LmCC *lm_cc_default(void);
 LmCC *lm_cc_new(void);
 
 /**
+ * Evaluates every constraint against a name-keyed sample.
+ *
+ * # Safety
+ * `cc` must be valid, `names` and `values` must reference `len` readable
+ * elements, `tol` may be null or readable, and `out` must be writable.
+ */
+LmStatus lm_cc_evaluate_sample(const LmCC *cc,
+                               const char *const *names,
+                               const double *values,
+                               uintptr_t len,
+                               const double *tol,
+                               LmBoolMapBuffer *out);
+
+/**
  * Clones a constraint-collection into a new, independent handle written to `out`.
  *
  * # Safety
@@ -428,6 +474,19 @@ LmStatus lm_cc_eq(const LmCC *cc, const LmCC *other, bool *out);
  * `out` must point to writable `bool` storage.
  */
 LmStatus lm_cc_equal_contents(const LmCC *cc, const LmCC *other, bool *out);
+
+/**
+ * Evaluates every constraint against an index-aligned dense lookup.
+ *
+ * # Safety
+ * `cc` must be a valid collection handle, `lookup` must reference `len`
+ * readable doubles, `tol` may be null or readable, and `out` must be writable.
+ */
+LmStatus lm_cc_evaluate_sample_quick(const LmCC *cc,
+                                     const double *lookup,
+                                     uintptr_t len,
+                                     const double *tol,
+                                     LmBoolMapBuffer *out);
 
 /**
  * Inserts a constraint, optionally overriding its current name.
@@ -519,6 +578,57 @@ LmStatus lm_cc_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env,
 void lm_col_free(LmColumn *column);
 
 /**
+ * Creates a column from raw numeric values and a logical variable type.
+ *
+ * # Safety
+ * `data` must reference `len` readable doubles and `out` must be writable.
+ */
+LmStatus lm_col_new(LmVtype vtype, const double *data, uintptr_t len, LmColumn **out);
+
+/**
+ * Creates a one-row column from a typed assignment.
+ *
+ * # Safety
+ * `out` must point to writable `LmColumn *` storage.
+ */
+LmStatus lm_col_with(LmAssignment assignment, LmColumn **out);
+
+/**
+ * Clones a column.
+ *
+ * # Safety
+ * `column` must be valid and `out` writable.
+ */
+LmStatus lm_col_clone(const LmColumn *column, LmColumn **out);
+
+/**
+ * Compares two columns structurally.
+ *
+ * # Safety
+ * Both columns must be valid and `out` writable.
+ */
+LmStatus lm_col_eq(const LmColumn *column, const LmColumn *other, bool *out);
+
+/**
+ * Returns a filtered copy of a column.
+ *
+ * # Safety
+ * `column` and `mask` must be readable and `out` writable.
+ */
+LmStatus lm_col_filter_by_mask(const LmColumn *column,
+                               const bool *mask,
+                               uintptr_t len,
+                               LmColumn **out);
+
+/**
+ * Extracts one row into a new one-row column.
+ *
+ * # Safety
+ * `column` must be valid and `out` writable.
+ */
+LmStatus lm_col_extract(const LmColumn *column, uintptr_t row, LmColumn **out);
+
+/**
  * Returns the logical variable type stored by the column.
  *
  * # Safety
@@ -552,6 +662,40 @@ LmStatus lm_col_is_empty(const LmColumn *column, bool *out);
  * `out` must point to writable `LmAssignment` storage.
  */
 LmStatus lm_col_assignment(const LmColumn *column, uintptr_t index, LmAssignment *out);
+
+/**
+ * Returns a borrowed view of the raw numeric values.
+ *
+ * The pointer remains valid until the column is mutated or freed.
+ *
+ * # Safety
+ * `column`, `data`, and `len` must be valid pointers.
+ */
+LmStatus lm_col_values(const LmColumn *column, const double **data, uintptr_t *len);
+
+/**
+ * Appends a typed assignment.
+ *
+ * # Safety
+ * `column` must be a valid mutable handle.
+ */
+LmStatus lm_col_push(LmColumn *column, LmAssignment assignment);
+
+/**
+ * Attempts to append a numeric value using the column's native coercion.
+ *
+ * # Safety
+ * `column` must be a valid mutable handle and `tol` may be null or readable.
+ */
+LmStatus lm_col_try_push(LmColumn *column, double value, const double *tol);
+
+/**
+ * Removes one row from the column.
+ *
+ * # Safety
+ * `column` must be a valid mutable handle.
+ */
+LmStatus lm_col_remove(LmColumn *column, uintptr_t index);
 
 /**
  * Returns a copy of the constraint's name as an owned UTF-8 byte buffer.
@@ -645,6 +789,20 @@ LmStatus lm_constr_new(const LmExpr *lhs,
                        LmConstraint **out);
 
 /**
+ * Evaluates a constraint against a name-keyed sample.
+ *
+ * # Safety
+ * `constr` must be valid, `names` and `values` must reference `len` readable
+ * elements, `tol` may be null or readable, and `out` must be writable.
+ */
+LmStatus lm_constr_evaluate_sample(const LmConstraint *constr,
+                                   const char *const *names,
+                                   const double *values,
+                                   uintptr_t len,
+                                   const double *tol,
+                                   bool *out);
+
+/**
  * Clones a constraint into a new, independent handle written to `out`.
  *
  * # Safety
@@ -693,6 +851,19 @@ LmStatus lm_constr_equal_contents(const LmConstraint *constr, const LmConstraint
  * `out` must point to writable `bool` storage.
  */
 LmStatus lm_constr_eq(const LmConstraint *constr, const LmConstraint *other, bool *out);
+
+/**
+ * Evaluates a constraint against an index-aligned dense lookup.
+ *
+ * # Safety
+ * `constr` must be a valid constraint handle, `lookup` must reference `len`
+ * readable doubles, `tol` may be null or readable, and `out` must be writable.
+ */
+LmStatus lm_constr_evaluate_sample_quick(const LmConstraint *constr,
+                                         const double *lookup,
+                                         uintptr_t len,
+                                         const double *tol,
+                                         bool *out);
 
 /**
  * Sorts names by their variable order in the environment.
@@ -837,6 +1008,14 @@ LmStatus lm_env_clone(const LmEnv *env, LmEnv **out);
  * `out` must point to writable `LmEnv *` storage.
  */
 LmStatus lm_env_deep_clone(const LmEnv *env, LmEnv **out);
+
+/**
+ * Compares complete environment values, including identity and allocator state.
+ *
+ * # Safety
+ * `env` and `other` must be valid handles and `out` writable.
+ */
+LmStatus lm_env_eq(const LmEnv *env, const LmEnv *other, bool *out);
 
 /**
  * Compares two environments for content equality.
@@ -1035,6 +1214,14 @@ LmStatus lm_expr_vars(const LmExpr *expr, LmVrefBuffer *out);
  * `out` must point to writable `LmVrefBuffer` storage.
  */
 LmStatus lm_expr_complete_vars(const LmExpr *expr, LmVrefBuffer *out);
+
+/**
+ * Returns whether the expression contains `var`.
+ *
+ * # Safety
+ * `expr` and `var` must be valid handles and `out` must be writable.
+ */
+LmStatus lm_expr_contains(const LmExpr *expr, const LmVref *var, bool *out);
 
 /**
  * Returns the degree of the expression.
@@ -1240,6 +1427,67 @@ LmStatus lm_expr_clone(const LmExpr *expr, LmExpr **out);
  * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_expr_deep_clone(const LmExpr *expr, const LmEnv *env, LmExpr **out);
+
+/**
+ * Deep-clones expressions into one newly cloned shared environment.
+ *
+ * `out` is caller-provided storage for exactly `len` owned expression
+ * handles. Each returned handle must be released with [`lm_expr_free`].
+ *
+ * # Safety
+ * `exprs` must reference `len` valid expression handles and `out` must
+ * reference `len` writable handle slots.
+ */
+LmStatus lm_expr_deep_clone_many(const LmExpr *const *exprs, uintptr_t len, LmExpr **out);
+
+/**
+ * Evaluates an expression against an index-aligned dense lookup.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle, `lookup` must reference `len`
+ * readable doubles, and `out` must be writable.
+ */
+LmStatus lm_expr_evaluate_sample_quick(const LmExpr *expr,
+                                       const double *lookup,
+                                       uintptr_t len,
+                                       double *out);
+
+/**
+ * Replaces an expression's constant offset.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ */
+LmStatus lm_expr_set_offset(LmExpr *expr, double offset);
+
+/**
+ * Adds one raw linear contribution to an expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ */
+LmStatus lm_expr_add_linear_term(LmExpr *expr, uint32_t variable, double bias);
+
+/**
+ * Adds one raw quadratic contribution to an expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ */
+LmStatus lm_expr_add_quadratic_term(LmExpr *expr, uint32_t u, uint32_t v, double bias);
+
+/**
+ * Adds one raw higher-order contribution to an expression.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `variables` must be null when `len` is zero or point to `len` readable
+ * variable indices.
+ */
+LmStatus lm_expr_add_higher_order_term(LmExpr *expr,
+                                       const uint32_t *variables,
+                                       uintptr_t len,
+                                       double bias);
 
 /**
  * Adds a variable reference to the expression in place.
@@ -1548,6 +1796,14 @@ LmStatus lm_higher_order_items(const LmHigherOrder *higher_order,
                                LmHigherOrderItemBuffer *out);
 
 /**
+ * Returns the canonical keys stored by the higher-order term.
+ *
+ * # Safety
+ * `higher_order` must be valid and `out` must be writable.
+ */
+LmStatus lm_higher_order_keys(const LmHigherOrder *higher_order, LmStrBuffer *out);
+
+/**
  * Returns the bias stored in the higher_order term for the given variable index.
  *
  * # Safety
@@ -1558,6 +1814,14 @@ LmStatus lm_higher_order_index(const LmHigherOrder *higher_order,
                                const uint32_t *indices,
                                uintptr_t indices_len,
                                double *out);
+
+/**
+ * Returns the bias stored under a canonical higher-order key.
+ *
+ * # Safety
+ * `higher_order` and `key` must be valid and `out` must be writable.
+ */
+LmStatus lm_higher_order_index_key(const LmHigherOrder *higher_order, const char *key, double *out);
 
 /**
  * Frees a higher_order handle. Passing null is a no-op.
@@ -1661,6 +1925,14 @@ LmStatus lm_higher_order_set_bias(LmHigherOrder *higher_order,
                                   const uint32_t *indices,
                                   uintptr_t indices_len,
                                   double bias);
+
+/**
+ * Sets the bias stored under a canonical higher-order key.
+ *
+ * # Safety
+ * `higher_order` and `key` must be valid.
+ */
+LmStatus lm_higher_order_set_bias_key(LmHigherOrder *higher_order, const char *key, double bias);
 
 /**
  * Returns a copy of the lazy-bounds' lower bound.
@@ -1810,6 +2082,18 @@ LmLinear *lm_linear_default(void);
  * `out` must point to writable `LmLinear *` storage.
  */
 LmStatus lm_linear_for_var(uint32_t var, double bias, LmLinear **out);
+
+/**
+ * Creates a linear term containing two variable/bias entries.
+ *
+ * # Safety
+ * `out` must point to writable `LmLinear *` storage.
+ */
+LmStatus lm_linear_for_vars(uint32_t var_a,
+                            double bias_a,
+                            uint32_t var_b,
+                            double bias_b,
+                            LmLinear **out);
 
 /**
  * Compares two linear terms for equality.
@@ -2061,6 +2345,19 @@ LmStatus lm_model_equal_contents(const LmModel *model, const LmModel *other, boo
 LmStatus lm_model_clone(const LmModel *model, LmModel **out);
 
 /**
+ * Creates another owning handle to the same synchronized model.
+ *
+ * Unlike [`lm_model_clone`], this does not clone the model contents: mutations
+ * made through either handle are visible through the other. The returned
+ * handle must be released with `lm_model_free`.
+ *
+ * # Safety
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `LmModel *` storage.
+ */
+LmStatus lm_model_retain(const LmModel *model, LmModel **out);
+
+/**
  * Deep-clones a model into a new, independent handle written to `out`.
  *
  * # Safety
@@ -2157,36 +2454,20 @@ LmStatus lm_model_evaluate_solution_with_tol(const LmModel *model,
                                              LmSol **out);
 
 /**
- * Evaluates the model against a single sample row, returning the enriched
- * result view for that row.
+ * Evaluates the model against a single sample row.
  *
- * The sample is extracted into a one-row solution and evaluated, mirroring the
- * core evaluation path. `tol == NULL` uses the default tolerance.
+ * The returned result view owns a synchronized one-row evaluated solution and
+ * remains valid independently of the input sample handle.
  *
  * # Safety
  * `model` and `sample` must be valid handles. `tol` must be null or point to a
  * readable `double`. `out` must point to writable `LmResultView *` storage; the
- * returned handle must be released with [`lm_result_view_free`].
+ * returned handle must be released with [`crate::res::lm_result_view_free`].
  */
 LmStatus lm_model_evaluate_sample(const LmModel *model,
                                   const LmSampleView *sample,
                                   const double *tol,
                                   LmResultView **out);
-
-/**
- * Returns the constraints violated by a single sample row.
- *
- * `tol == NULL` uses the default tolerance for the floating-point comparisons.
- *
- * # Safety
- * `model` and `sample` must be valid handles. `tol` must be null or point to a
- * readable `double`. `out` must point to writable `LmCC *` storage; the returned
- * handle must be released with [`lm_cc_free`].
- */
-LmStatus lm_model_violated_constraints(const LmModel *model,
-                                       const LmSampleView *sample,
-                                       const double *tol,
-                                       LmCC **out);
 
 /**
  * Substitutes every occurrence of `target` in the model with `replacement`.
@@ -2197,6 +2478,18 @@ LmStatus lm_model_violated_constraints(const LmModel *model,
  * `replacement` must be a valid expression handle created by this library.
  */
 LmStatus lm_model_substitute(LmModel *model, const LmVref *target, const LmExpr *replacement);
+
+/**
+ * Returns the subset of model constraints violated by a sample view.
+ *
+ * # Safety
+ * `model` and `sample` must be valid handles, `tol` may be null or readable,
+ * and `out` must point to writable `LmCC *` storage.
+ */
+LmStatus lm_model_violated_constraints(const LmModel *model,
+                                       const LmSampleView *sample,
+                                       const double *tol,
+                                       LmCC **out);
 
 /**
  * Serializes a model to bytes, writing an owned buffer to `out`.
@@ -2243,9 +2536,10 @@ LmStatus lm_model_set_sense(LmModel *model, LmSense sense);
  *
  * # Safety
  * `model` must be a valid mutable model handle created by this library.
- * `expr` must point to a valid `LmExpr` handle
+ * `expr` must point to a valid `LmExpr` handle. `sense` may be null; when
+ * non-null it must point to a readable `LmSense`.
  */
-LmStatus lm_model_set_objective(LmModel *model, const LmExpr *expr);
+LmStatus lm_model_set_objective(LmModel *model, const LmExpr *expr, const LmSense *sense);
 
 /**
  * Sets the constraints of the model.
@@ -2962,7 +3256,10 @@ LmStatus lm_sol_remove_col(LmSol *sol, const char *name, LmColumn **out);
  * `names` must point to `len` readable `char *` values.
  * Each entry in `names` must be non-null and point to a valid NUL-terminated UTF-8 C string.
  */
-LmStatus lm_sol_remove_cols(LmSol *sol, const char *const *names, uintptr_t len);
+LmStatus lm_sol_remove_cols(LmSol *sol,
+                            const char *const *names,
+                            uintptr_t len,
+                            LmColumnBuffer *out);
 
 /**
  * Combines duplicate sample rows into a single row and sums their counts.
@@ -2998,6 +3295,26 @@ LmStatus lm_sol_push(LmSol *sol,
                      uintptr_t len,
                      uintptr_t counts,
                      const double *energy);
+
+/**
+ * Replaces the per-row sample counts.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle. `counts` must be null when
+ * `len` is zero or point to `len` readable values.
+ */
+LmStatus lm_sol_set_counts(LmSol *sol, const uintptr_t *counts, uintptr_t len);
+
+/**
+ * Replaces the optional solution timing metadata.
+ *
+ * A null `timing` clears the timing value.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle. When non-null, `timing` must
+ * be a valid timing handle created by this library.
+ */
+LmStatus lm_sol_set_timing(LmSol *sol, const LmTiming *timing);
 
 /**
  * Sets the solution optimization sense.
@@ -3264,6 +3581,14 @@ LmStatus lm_specs_satisfies(const LmSpecs *specs, const LmSpecs *other, bool *ou
 LmStatus lm_specs_clone(const LmSpecs *specs, LmSpecs **out);
 
 /**
+ * Returns the human-readable difference between two specification values.
+ *
+ * # Safety
+ * `specs` and `other` must be valid handles and `out` writable buffer storage.
+ */
+LmStatus lm_specs_diff(const LmSpecs *specs, const LmSpecs *other, LmBuffer *out);
+
+/**
  * Frees a timer handle. Passing null is a no-op.
  *
  * # Safety
@@ -3347,6 +3672,22 @@ LmStatus lm_timing_new(uint64_t start_unix_ns,
                        LmTiming **out);
 
 /**
+ * Clones a timing record.
+ *
+ * # Safety
+ * `timing` must be valid and `out` writable.
+ */
+LmStatus lm_timing_clone(const LmTiming *timing, LmTiming **out);
+
+/**
+ * Compares two timing records.
+ *
+ * # Safety
+ * `timing` and `other` must be valid and `out` writable.
+ */
+LmStatus lm_timing_eq(const LmTiming *timing, const LmTiming *other, bool *out);
+
+/**
  * Frees a variable handle. Passing null is a no-op.
  *
  * # Safety
@@ -3369,6 +3710,14 @@ LmStatus lm_var_new(const char *name, LmVtype vtype, const LmLazyBounds *bounds,
  * `var` must be a valid variable handle and `out` must be writable.
  */
 LmStatus lm_var_clone(const LmVar *var, LmVar **out);
+
+/**
+ * Compares two variable records.
+ *
+ * # Safety
+ * `var` and `other` must be valid handles and `out` writable.
+ */
+LmStatus lm_var_eq(const LmVar *var, const LmVar *other, bool *out);
 
 /**
  * Returns a copy of the variable's name as an owned UTF-8 byte buffer.

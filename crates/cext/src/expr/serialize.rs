@@ -1,11 +1,13 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c};
 use luna_model::core::Expression;
 use luna_model::serializer::prelude::*;
 
-use crate::buffer::buffer_from_vec;
-use crate::env::utils::environment_from_c;
-use crate::error::{CapiError, guard};
-use crate::{LmBuffer, LmEnv, LmExpr, LmStatus};
+use super::utils::{expression_from_c, expression_out_from_c};
+use crate::{
+    buffer::buffer_from_vec,
+    error::{CapiError, guard},
+    utils::{out_from_c, slice_from_c, storage_from_c},
+    {LmBuffer, LmEnv, LmExpr, LmStatus},
+};
 
 /// Serializes an expression to bytes, writing an owned buffer to `out`.
 ///
@@ -17,7 +19,7 @@ use crate::{LmBuffer, LmEnv, LmExpr, LmStatus};
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_serialize(expr: *const LmExpr, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
         let out = unsafe { out_from_c(out) }?;
         let bytes = expr
             .encode(Some(true), None)
@@ -43,16 +45,14 @@ pub unsafe extern "C" fn lm_expr_deserialize(
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let out = unsafe { out_from_c(out) }?;
         let bytes = unsafe { slice_from_c(data, len, "data") }?;
-        let env = unsafe { environment_from_c(env)? };
+        let env = unsafe { storage_from_c(env, "env")? };
         let expr: Expression = bytes
             .unversionize()
             .decompress()
             .map_err(CapiError::deserialization)?
             .decode(env.clone())
             .map_err(CapiError::deserialization)?;
-        *out = handle_to_c(expr);
-        Ok(())
+        unsafe { expression_out_from_c(out, expr) }
     })
 }

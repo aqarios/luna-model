@@ -1,7 +1,5 @@
 use std::ffi::c_char;
 
-use luna_model::core::Solution;
-
 use crate::{
     LmAssignment, LmColumn, LmResultView, LmResultViewBuffer, LmSampleView, LmSampleViewBuffer,
     LmSol, LmStatus, LmStrBuffer,
@@ -9,7 +7,9 @@ use crate::{
     error::{CapiError, guard},
     res::ResultViewHandle,
     sample::SampleViewHandle,
-    utils::{assignment_to_c, handle_to_c, out_from_c, ref_from_c, str_from_c},
+    utils::{
+        assignment_to_c, handle_to_c, new_handle_out_from_c, out_from_c, shared_from_c, str_from_c,
+    },
 };
 
 /// Returns the number of samples stored in the solution.
@@ -20,7 +20,7 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_n_samples(sol: *const LmSol, out: *mut usize) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         *out = sol.n_samples();
         Ok(())
@@ -35,7 +35,7 @@ pub unsafe extern "C" fn lm_sol_n_samples(sol: *const LmSol, out: *mut usize) ->
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_len(sol: *const LmSol, out: *mut usize) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         *out = sol.len();
         Ok(())
@@ -55,7 +55,7 @@ pub unsafe extern "C" fn lm_sol_variable_names(
     out: *mut LmStrBuffer,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         *out = str_buffer_from_vec(sol.variable_names());
         Ok(())
@@ -70,7 +70,7 @@ pub unsafe extern "C" fn lm_sol_variable_names(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_is_empty(sol: *const LmSol, out: *mut bool) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         *out = sol.is_empty();
         Ok(())
@@ -85,7 +85,7 @@ pub unsafe extern "C" fn lm_sol_is_empty(sol: *const LmSol, out: *mut bool) -> L
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_sample_len(sol: *const LmSol, out: *mut usize) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         *out = sol.sample_len();
         Ok(())
@@ -106,7 +106,7 @@ pub unsafe extern "C" fn lm_sol_value(
     out: *mut f64,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let var = unsafe { str_from_c(var, "var") }?;
         let out = unsafe { out_from_c(out) }?;
         match sol.value(sample, var) {
@@ -138,7 +138,7 @@ pub unsafe extern "C" fn lm_sol_assignment(
     out: *mut LmAssignment,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let var = unsafe { str_from_c(var, "var") }?;
         let out = unsafe { out_from_c(out) }?;
         let assignment = sol
@@ -164,7 +164,7 @@ pub unsafe extern "C" fn lm_sol_assignment_idx(
     out: *mut LmAssignment,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
         let assignment = sol
             .try_assignment_idx(sample, var)
@@ -189,17 +189,18 @@ pub unsafe extern "C" fn lm_sol_result(
     out: *mut *mut LmResultView,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?;
+        let exists = sol.read().result(index).is_some();
         let out = unsafe { out_from_c(out) }?;
-        match sol.result(index) {
-            Some(_) => {
+        match exists {
+            true => {
                 *out = handle_to_c(ResultViewHandle {
                     sol: sol.clone(),
                     index,
                 });
                 Ok(())
             }
-            None => Err(CapiError::new(
+            false => Err(CapiError::new(
                 LmStatus::Absent,
                 format!("solution has no result row at index '{index}'"),
             )),
@@ -221,14 +222,19 @@ pub unsafe extern "C" fn lm_sol_results(
     out: *mut LmResultViewBuffer,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
-        let out = unsafe { out_from_c(out) }?;
-        let views = sol
+        let sol = unsafe { shared_from_c(sol, "sol") }?;
+        let indices = sol
+            .read()
             .results()
-            .map(|r| {
+            .map(|result| result.idx)
+            .collect::<Vec<_>>();
+        let out = unsafe { out_from_c(out) }?;
+        let views = indices
+            .into_iter()
+            .map(|index| {
                 handle_to_c(ResultViewHandle {
                     sol: sol.clone(),
-                    index: r.idx,
+                    index,
                 })
             })
             .collect::<Vec<*mut LmResultView>>();
@@ -252,17 +258,18 @@ pub unsafe extern "C" fn lm_sol_sample_view(
     out: *mut *mut LmSampleView,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?;
+        let exists = sol.read().sample(index).is_some();
         let out = unsafe { out_from_c(out) }?;
-        match sol.sample(index) {
-            Some(_) => {
+        match exists {
+            true => {
                 *out = handle_to_c(SampleViewHandle {
                     sol: sol.clone(),
                     index,
                 });
                 Ok(())
             }
-            None => Err(CapiError::new(
+            false => Err(CapiError::new(
                 LmStatus::Absent,
                 format!("solution has no sample at index '{index}'"),
             )),
@@ -284,14 +291,19 @@ pub unsafe extern "C" fn lm_sol_sample_views(
     out: *mut LmSampleViewBuffer,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
-        let out = unsafe { out_from_c(out) }?;
-        let views = sol
+        let sol = unsafe { shared_from_c(sol, "sol") }?;
+        let indices = sol
+            .read()
             .samples()
-            .map(|r| {
+            .map(|sample| sample.idx)
+            .collect::<Vec<_>>();
+        let out = unsafe { out_from_c(out) }?;
+        let views = indices
+            .into_iter()
+            .map(|index| {
                 handle_to_c(SampleViewHandle {
                     sol: sol.clone(),
-                    index: r.idx,
+                    index,
                 })
             })
             .collect::<Vec<*mut LmSampleView>>();
@@ -311,22 +323,28 @@ pub unsafe extern "C" fn lm_sol_sample_views(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_best(sol: *const LmSol, out: *mut LmResultViewBuffer) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?;
         let out = unsafe { out_from_c(out) }?;
-        let bests = sol.best().ok_or_else(|| {
-            CapiError::new(
-                LmStatus::Absent,
-                "solution has no best result (missing feasibility or objective
-  values)"
-                    .to_string(),
-            )
-        })?;
-        let views = bests
+        let indices = {
+            let solution = sol.read();
+            solution
+                .best()
+                .ok_or_else(|| {
+                    CapiError::new(
+                        LmStatus::Absent,
+                        "solution has no best result (missing feasibility or objective values)",
+                    )
+                })?
+                .into_iter()
+                .map(|result| result.idx)
+                .collect::<Vec<_>>()
+        };
+        let views = indices
             .into_iter()
-            .map(|r| {
+            .map(|index| {
                 handle_to_c(ResultViewHandle {
                     sol: sol.clone(),
-                    index: r.idx,
+                    index,
                 })
             })
             .collect::<Vec<*mut LmResultView>>();
@@ -347,11 +365,9 @@ pub unsafe extern "C" fn lm_sol_extract(
     out: *mut *mut LmSol,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
-        let out = unsafe { out_from_c(out) }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let ex = sol.extract(row);
-        *out = handle_to_c(ex);
-        Ok(())
+        unsafe { new_handle_out_from_c(out, ex) }
     })
 }
 
@@ -370,7 +386,7 @@ pub unsafe extern "C" fn lm_sol_column(
     out: *mut *mut LmColumn,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { ref_from_c(sol as *const Solution, "sol") }?;
+        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let var = unsafe { str_from_c(var, "var") }?;
         let out = unsafe { out_from_c(out) }?;
         let col = sol.samples.get(var).ok_or_else(|| {

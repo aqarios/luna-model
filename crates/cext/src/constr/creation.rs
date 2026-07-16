@@ -1,12 +1,14 @@
-use crate::utils::{drop_from_c, handle_to_c, opt_str_from_c, out_from_c, ref_from_c};
 use std::ffi::c_char;
 
-use luna_model::core::{Expression, prelude::Constraint};
+use luna_model::core::prelude::Constraint;
+use lunamodel_cext_handle::drop_handle;
 
 use crate::{
     LmComparator, LmConstraint, LmExpr, LmStatus,
     error::{CapiError, guard},
+    expr::utils::expression_from_c,
     utils::cmp_from_c,
+    utils::{new_handle_out_from_c, opt_str_from_c},
 };
 
 /// Frees a constraint handle. Passing null is a no-op.
@@ -15,7 +17,7 @@ use crate::{
 /// `constr` must originate from this library and must not be used or freed again.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_constr_free(constr: *mut LmConstraint) {
-    unsafe { drop_from_c(constr as *mut Constraint) }
+    unsafe { drop_handle(constr) }
 }
 
 /// Creates a new constraint and normalizes its left-hand side.
@@ -41,15 +43,12 @@ pub unsafe extern "C" fn lm_constr_new(
     out: *mut *mut LmConstraint,
 ) -> LmStatus {
     guard(|| {
-        let lhs = unsafe { ref_from_c(lhs as *const Expression, "lhs") }?;
-        let out = unsafe { out_from_c(out) }?;
+        let lhs = unsafe { expression_from_c(lhs, "lhs") }?.read().clone();
         let cmp = cmp_from_c(comparator);
 
         let name = unsafe { opt_str_from_c(name, "name") }?.map(str::to_owned);
 
-        let constr = Constraint::new(lhs.clone(), rhs, cmp, name).map_err(CapiError::errored)?;
-        *out = handle_to_c(constr);
-
-        Ok(())
+        let constr = Constraint::new(lhs, rhs, cmp, name).map_err(CapiError::errored)?;
+        unsafe { new_handle_out_from_c(out, constr) }
     })
 }

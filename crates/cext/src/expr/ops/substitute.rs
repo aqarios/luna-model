@@ -1,9 +1,10 @@
-use luna_model::core::{Expression, prelude::VarRef};
+use luna_model::core::prelude::VarRef;
 
 use crate::{
     LmExpr, LmStatus, LmVref,
     error::{CapiError, guard},
-    utils::{handle_to_c, out_from_c, ref_from_c},
+    expr::utils::{expression_from_c, expression_out_from_c},
+    utils::ref_from_c,
 };
 
 /// Replaces every occurrence of `target` with `replacement`.
@@ -25,14 +26,12 @@ pub unsafe extern "C" fn lm_expr_substitute(
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
         let target = unsafe { ref_from_c(target as *const VarRef, "target") }?;
-        let replacement = unsafe { ref_from_c(replacement as *const Expression, "replacement") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(
-            expr.substitute(target, replacement)
-                .map_err(CapiError::errored)?,
-        );
-        Ok(())
+        let replacement = unsafe { expression_from_c(replacement, "replacement") }?.read();
+        let result = expr
+            .substitute(target, &replacement)
+            .map_err(CapiError::errored)?;
+        unsafe { expression_out_from_c(out, result) }
     })
 }

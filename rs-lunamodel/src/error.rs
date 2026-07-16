@@ -10,6 +10,12 @@ use crate::api::api;
 /// Result type returned by fallible C-ABI calls.
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Native-compatible name for [`Result`].
+pub type LunaModelResult<T> = Result<T>;
+
+/// Native-compatible name for [`Error`].
+pub type LunaModelError = Error;
+
 /// A failure returned across the C ABI, mirroring the non-`Ok` `LmStatus` codes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Status {
@@ -37,6 +43,26 @@ pub struct Error {
     pub status: Status,
     /// The associated message, if any.
     pub message: String,
+}
+
+impl Error {
+    /// Creates an error for adapter-side validation or callback failures.
+    pub fn new(status: Status, message: impl Into<String>) -> Self {
+        Self {
+            status,
+            message: message.into(),
+        }
+    }
+
+    /// Creates a generic error for a failed external computation.
+    pub fn computation(message: impl Into<String>) -> Self {
+        Self::new(Status::Errored, message)
+    }
+
+    /// Creates an error for an unexpected adapter-side state.
+    pub fn internal(message: impl Into<String>) -> Self {
+        Self::new(Status::Panic, message)
+    }
 }
 
 impl fmt::Display for Error {

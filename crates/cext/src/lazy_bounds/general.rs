@@ -1,10 +1,10 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::{core::bounds::Concretize, core::prelude::LazyBounds};
 
 use crate::{
     LmBounds, LmLazyBounds, LmStatus, LmVtype,
     error::{CapiError, guard},
     utils::vtype_from_c,
+    utils::{handle_to_c, out_from_c, ref_from_c},
 };
 
 /// Resolves optional caller-supplied bounds against the variable type defaults.

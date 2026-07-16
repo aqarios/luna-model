@@ -27,7 +27,7 @@ members = ["derive"]
 enumset = "1.1.13"
 indexmap = "2.14.0"
 itertools = "0.15.0"
-# ABI table plus LunaModel's lightweight shared value/utility crates. No
+# ABI table plus LunaModel's lightweight shared value-type crate. No
 # `luna-model` core is linked: model operations dispatch into the host table.
 lunamodel-cext-vtable = { path = "../crates/cext-vtable" }
 lunamodel-types = { path = "../crates/types" }

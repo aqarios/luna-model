@@ -1,14 +1,14 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c, str_from_c};
 use std::ffi::c_char;
 
-use luna_model::core::Model;
+use lunamodel_cext_handle::{ConstraintCollectionHandle, ExpressionHandle};
 
-use crate::buffer::{buffer_from_vec, vref_buffer_from_vec, vtype_buffer_from_vec};
-use crate::error::{CapiError, guard};
-use crate::utils::{sense_to_c, vtype_to_c};
 use crate::{
     LmBuffer, LmCC, LmEnv, LmExpr, LmModel, LmSense, LmSpecs, LmStatus, LmVref, LmVrefBuffer,
     LmVtype, LmVtypeBuffer,
+    buffer::{buffer_from_vec, vref_buffer_from_vec, vtype_buffer_from_vec},
+    error::{CapiError, guard},
+    utils::{handle_to_c, out_from_c, shared_from_c, storage_out_from_c, str_from_c},
+    utils::{sense_to_c, vtype_to_c},
 };
 
 /// Returns a copy of the model name as an owned UTF-8 byte buffer.
@@ -25,12 +25,9 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_name(model: *const LmModel, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-
         *out = buffer_from_vec(model.name.as_bytes().to_vec());
-
         Ok(())
     })
 }
@@ -43,12 +40,9 @@ pub unsafe extern "C" fn lm_model_name(model: *const LmModel, out: *mut LmBuffer
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_sense(model: *const LmModel, out: *mut LmSense) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-
         *out = sense_to_c(model.sense);
-
         Ok(())
     })
 }
@@ -61,13 +55,8 @@ pub unsafe extern "C" fn lm_model_sense(model: *const LmModel, out: *mut LmSense
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_env(model: *const LmModel, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-
-        let out = unsafe { out_from_c(out) }?;
-
-        *out = handle_to_c(model.environment.clone());
-
-        Ok(())
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
+        unsafe { storage_out_from_c(out, model.environment.clone()) }
     })
 }
 
@@ -79,12 +68,9 @@ pub unsafe extern "C" fn lm_model_env(model: *const LmModel, out: *mut *mut LmEn
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_specs(model: *const LmModel, out: *mut *mut LmSpecs) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-
         *out = handle_to_c(model.specs());
-
         Ok(())
     })
 }
@@ -104,14 +90,10 @@ pub unsafe extern "C" fn lm_model_vtypes(
     out: *mut LmVtypeBuffer,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-
         let vtypes = model.vtypes().map(vtype_to_c).collect::<Vec<LmVtype>>();
-
         *out = vtype_buffer_from_vec(vtypes);
-
         Ok(())
     })
 }
@@ -130,12 +112,9 @@ pub unsafe extern "C" fn lm_model_num_variables(
     out: *mut usize,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-
         *out = model.num_variables();
-
         Ok(())
     })
 }
@@ -152,14 +131,10 @@ pub unsafe extern "C" fn lm_model_num_variables(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_vars(model: *const LmModel, out: *mut LmVrefBuffer) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-
         let vars = model.vars().map(handle_to_c).collect::<Vec<*mut LmVref>>();
-
         *out = vref_buffer_from_vec(vars);
-
         Ok(())
     })
 }
@@ -181,16 +156,11 @@ pub unsafe extern "C" fn lm_model_var(
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-
         let name = unsafe { str_from_c(name, "name") }?;
-
         let var = model.var(name).map_err(CapiError::invalid_argument)?;
-
         *out = handle_to_c(var);
-
         Ok(())
     })
 }
@@ -206,10 +176,8 @@ pub unsafe extern "C" fn lm_model_objective(
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(model.objective.clone());
-        Ok(())
+        let model = unsafe { shared_from_c(model, "model") }?;
+        unsafe { storage_out_from_c(out, ExpressionHandle::for_model(model.clone())) }
     })
 }
 
@@ -224,9 +192,7 @@ pub unsafe extern "C" fn lm_model_constraints(
     out: *mut *mut LmCC,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { ref_from_c(model as *const Model, "model") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(model.constraints.clone());
-        Ok(())
+        let model = unsafe { shared_from_c(model, "model") }?;
+        unsafe { storage_out_from_c(out, ConstraintCollectionHandle::for_model(model.clone())) }
     })
 }

@@ -132,6 +132,15 @@ class Specs {
         return out;
     }
 
+    /* Describes why this specification does not satisfy `other`. */
+    std::string diff(const Specs &other) const {
+        LmBuffer buffer = {nullptr, 0, 0};
+        detail::check(lm_specs_diff(handle_, other.handle_, &buffer));
+        std::string out(reinterpret_cast<const char *>(buffer.data), buffer.len);
+        lm_buffer_free(buffer);
+        return out;
+    }
+
     /* Clones into an independent handle. */
     Specs clone() const {
         LmSpecs *out = nullptr;

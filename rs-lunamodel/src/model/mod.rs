@@ -21,6 +21,33 @@ pub struct Model {
     handle: *mut LmModel,
 }
 
+impl Model {
+    /// Clones into a new handle sharing the model's environment and contents.
+    pub fn try_clone(&self) -> crate::Result<Self> {
+        <Self as TryClone>::try_clone(self)
+    }
+
+    /// Deep-clones the model and its contents into an independent environment.
+    pub fn deep_clone(&self) -> crate::Result<Self> {
+        <Self as TryDeepClone>::try_deep_clone(self, ())
+    }
+
+    /// Content equality, ignoring environment identity.
+    pub fn equal_contents(&self, other: &Self) -> crate::Result<bool> {
+        <Self as ContentEquality>::equal_contents(self, other)
+    }
+
+    /// Serializes the model to bytes.
+    pub fn serialize(&self) -> crate::Result<Vec<u8>> {
+        <Self as Serialization>::serialize(self)
+    }
+
+    /// Deserializes a model from bytes.
+    pub fn deserialize(data: &[u8]) -> crate::Result<Self> {
+        <Self as Serialization>::deserialize(data, ())
+    }
+}
+
 impl Drop for Model {
     fn drop(&mut self) {
         if !self.handle.is_null() {
@@ -85,3 +112,7 @@ impl std::fmt::Debug for Model {
             .finish()
     }
 }
+
+// SAFETY: every operation on an LmModel is synchronized by the host.
+unsafe impl Send for Model {}
+unsafe impl Sync for Model {}
