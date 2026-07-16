@@ -10,48 +10,46 @@
 
 namespace lm {
 
-/* Owning handle to a LunaModel bounds (frees on destruction).
- *
- * Mirrors the Rust `Bounds { lower: Bound, upper: Bound }`.
- */
+/* Owning handle to a concrete `[lower, upper]` bounds pair (frees on
+ * destruction). */
 class Bounds {
   public:
-    /* Rust `Bounds::new(lower, upper)`. */
+    /* Bounds with explicit lower and upper endpoints. */
     Bounds(Bound lower, Bound upper) {
         LmBounds *out = nullptr;
         detail::check(lm_bounds_new(lower.get(), upper.get(), &out));
         handle_ = out;
     }
 
-    /* Rust `Bounds::binary()` — [0, 1]. */
+    /* The binary domain, [0, 1]. */
     static Bounds binary() {
         LmBounds *out = nullptr;
         detail::check(lm_bounds_binary(&out));
         return Bounds(out);
     }
 
-    /* Rust `Bounds::spin()` — [-1, 1]. */
+    /* The spin domain, [-1, 1]. */
     static Bounds spin() {
         LmBounds *out = nullptr;
         detail::check(lm_bounds_spin(&out));
         return Bounds(out);
     }
 
-    /* Rust `Bounds::integer()`. */
+    /* The default integer domain. */
     static Bounds integer() {
         LmBounds *out = nullptr;
         detail::check(lm_bounds_integer(&out));
         return Bounds(out);
     }
 
-    /* Rust `Bounds::real()`. */
+    /* The default real domain. */
     static Bounds real() {
         LmBounds *out = nullptr;
         detail::check(lm_bounds_real(&out));
         return Bounds(out);
     }
 
-    /* Rust `Bounds::default_for(&vtype)` — the default bounds for a variable type. */
+    /* The default bounds for a variable type. */
     static Bounds default_for(LmVtype vtype) {
         LmBounds *out = nullptr;
         detail::check(lm_bounds_default_for(vtype, &out));
@@ -81,38 +79,38 @@ class Bounds {
     Bounds(const Bounds &) = delete;
     Bounds &operator=(const Bounds &) = delete;
 
-    /* Rust `bounds.lower` — a copy of the lower bound. */
+    /* A copy of the lower endpoint. */
     Bound lower() const {
         LmBound out;
         detail::check(lm_bounds_lower(handle_, &out));
         return Bound(out);
     }
 
-    /* Rust `bounds.upper` — a copy of the upper bound. */
+    /* A copy of the upper endpoint. */
     Bound upper() const {
         LmBound out;
         detail::check(lm_bounds_upper(handle_, &out));
         return Bound(out);
     }
 
-    /* Rust `Clone`. */
+    /* Clones into an independent handle. */
     Bounds clone() const {
         LmBounds *out = nullptr;
         detail::check(lm_bounds_clone(handle_, &out));
         return Bounds(out);
     }
 
+    /* Whether `value` lies within the interval, within an optional tolerance. */
     bool eval(double value, std::optional<double> tol) const {
         bool out = false;
         detail::check(lm_bounds_eval(handle_, value, tol ? &tol.value() : nullptr, &out));
         return out;
     }
 
-    /* Rust `PartialEq`. */
+    /* Endpoint-wise equality. (No lm_bounds_eq in the C API; composed from the
+     * endpoint getters.) */
     bool operator==(const Bounds &other) const {
-        bool out = false;
-        detail::check(lm_bounds_eq(handle_, other.handle_, &out));
-        return out;
+        return lower() == other.lower() && upper() == other.upper();
     }
     bool operator!=(const Bounds &other) const { return !(*this == other); }
 

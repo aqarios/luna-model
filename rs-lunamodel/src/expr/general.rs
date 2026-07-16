@@ -1,5 +1,5 @@
-use crate::traits::LmTryInto;
-use crate::{Expression, Result, TryIndex, VarRef};
+use crate::traits::{LmTryInto, ToPtrList};
+use crate::{Expression, Result, Solution, TryIndex, VarRef};
 
 impl Expression {
     pub fn deep_clone_many(exprs: &[&Expression]) -> Result<Vec<Expression>> {
@@ -26,14 +26,26 @@ impl Expression {
     where
         for<'a> S: TryIndex<&'a str, Output = f64>,
     {
-        let env = self.env()?;
-        let mut lookup = vec![0.0; env.len()?];
-        for var in self.complete_vars()? {
-            let idx = var.id()? as usize;
+        let vars = self.complete_vars()?;
+        let mut names = Vec::with_capacity(vars.len());
+        let mut values = Vec::with_capacity(vars.len());
+        for var in vars {
             let name = var.name()?;
-            lookup[idx] = sample.try_index(name.as_str())?;
+            values.push(sample.try_index(name.as_str())?);
+            names.push(name);
         }
-        self.evaluate_sample_quick(&lookup)
+        let names = names.as_slice().to_ptr_list()?;
+        out!(expr_evaluate_sample(
+            @self,
+            names.as_ptr(),
+            values.as_ptr(),
+            values.len()
+        ))
+    }
+
+    /// Evaluates the expression across every sample row of `solution`.
+    pub fn evaluate(&self, solution: &Solution) -> Result<Vec<f64>> {
+        out!(expr_evaluate(@self, @solution))
     }
 
     pub fn evaluate_sampleset<'a, S, I>(&self, samples: I) -> Result<Vec<f64>>

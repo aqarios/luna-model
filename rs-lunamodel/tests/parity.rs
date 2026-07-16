@@ -174,10 +174,7 @@ fn model_children_are_live_parent_retaining_views() -> Result<()> {
     objective.try_add_assign(2.0)?;
     assert_eq!(model.objective()?.offset()?, 2.0);
 
-    model.set_objective(
-        rs_lunamodel::Expression::from_f64(7.0)?,
-        Some(Sense::Max),
-    )?;
+    model.set_objective(rs_lunamodel::Expression::from_f64(7.0)?, Some(Sense::Max))?;
     assert_eq!(objective.offset()?, 7.0);
     assert_eq!(model.sense()?, Sense::Max);
 
@@ -219,5 +216,48 @@ fn column_facade_dispatches_to_host() -> Result<()> {
     let cloned = column.try_clone()?;
     assert_eq!(cloned, column);
     assert_eq!(column.extract(2)?.assignment(0)?, Assignment::Binary(1));
+    Ok(())
+}
+
+#[test]
+fn expression_and_model_evaluation_via_capi() -> Result<()> {
+    init();
+
+    let mut env = rs_lunamodel::ArcEnv::default();
+    let x = env.insert("x", Vtype::Binary, None)?;
+    let y = env.insert("y", Vtype::Binary, None)?;
+
+    // Objective x + y. `evaluate_sample` dispatches to the C ABI (no host-side
+    // summation); the sample is a name->value map.
+    let obj = (&x + &y)?;
+    let sample = HashMap::from([("x".to_owned(), 1.0), ("y".to_owned(), 1.0)]);
+    assert_eq!(obj.evaluate_sample(&sample)?, 2.0);
+
+    // A one-row solution; `evaluate` runs the expression over every row.
+    let mut sol = Solution::with_sense(Sense::Min);
+    sol.push(
+        indexmap! {
+            "x".into() => rs_lunamodel::Assignment::Binary(1),
+            "y".into() => rs_lunamodel::Assignment::Binary(1),
+        },
+        1,
+        None,
+    )?;
+    assert_eq!(obj.evaluate(&sol)?, vec![2.0]);
+
+    // Model with the objective and a constraint x + y <= 1.
+    let mut model = rs_lunamodel::Model::with_env(Some("m".into()), None, &env)?;
+    model.set_objective(obj.try_clone()?, None)?;
+    let cap = Constraint::new((&x + &y)?, 1.0, Comparator::Le, Some("cap".into()))?;
+    let mut cc = ConstraintCollection::new();
+    cc.add_constraint(&cap, None)?;
+    model.set_constraints(cc)?;
+
+    // evaluate_sample -> ResultView; violated_constraints -> collection.
+    let sample_view = sol.sample(0)?.unwrap();
+    let result = model.evaluate_sample(&sample_view, None)?;
+    assert_eq!(result.obj_value()?, Some(2.0));
+    let violated = model.violated_constraints(&sample_view, None)?;
+    assert!(violated.contains("cap")?); // x + y = 2 > 1
     Ok(())
 }

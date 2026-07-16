@@ -35,6 +35,14 @@ pub unsafe trait SharedHandleKind: HandleKind + Sized + 'static {
 /// Shared synchronized storage for an ordinary mutable handle.
 pub type Shared<H> = Arc<RwLock<<H as SharedHandleKind>::Value>>;
 
+/// Creates synchronized storage for a shared opaque handle.
+pub fn new_shared<H>(value: H::Value) -> Shared<H>
+where
+    H: SharedHandleKind,
+{
+    Arc::new(RwLock::new(value))
+}
+
 unsafe impl HandleKind for LmModel {
     type Storage = Shared<Self>;
 }
@@ -252,7 +260,7 @@ pub fn new_handle<H>(value: H::Value) -> *mut H
 where
     H: SharedHandleKind<Storage = Shared<H>>,
 {
-    handle_from_shared::<H>(Arc::new(RwLock::new(value)))
+    handle_from_shared::<H>(new_shared::<H>(value))
 }
 
 /// Creates an owned handle retaining ordinary synchronized storage.

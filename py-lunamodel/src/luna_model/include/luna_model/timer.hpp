@@ -31,10 +31,10 @@ class Timer {
     Timer(const Timer &) = delete;
     Timer &operator=(const Timer &) = delete;
 
-    /* Starts a new wall-clock timer (Rust `Timer::start()`). */
+    /* Starts a new wall-clock timer. */
     static Timer start() { return Timer(lm_timer_start()); }
 
-    /* Stops the timer, producing a timing record (Rust `timer.stop()`). */
+    /* Stops the timer, producing a timing record. */
     Timing stop() const {
         LmTiming *out = nullptr;
         detail::check(lm_timer_stop(handle_, &out));

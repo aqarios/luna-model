@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <luna_model.h>
@@ -15,6 +16,7 @@
 #include "luna_model/detail/capi.hpp"
 #include "luna_model/env.hpp"
 #include "luna_model/error.hpp"
+#include "luna_model/expr.hpp"
 #include "luna_model/result_view.hpp"
 #include "luna_model/sample_view.hpp"
 #include "luna_model/timing.hpp"
@@ -22,28 +24,25 @@
 namespace lm {
 
 /* One `(variable name, column)` entry of a solution's sample map, carrying its
- * position in the underlying `IndexMap` (Rust `Solution::samples` entry). */
+ * position in the underlying insertion order. */
 struct SampleColumn {
     std::size_t index;
     std::string key;
     Column column;
 };
 
-/* Owning handle to a LunaModel solution (frees on destruction).
- *
- * Mirrors the Rust `Solution`: move-only, with accessors for the stored sample
- * data and per-sample metadata.
- */
+/* Owning handle to a solution: sample rows and their per-sample metadata
+ * (frees on destruction). */
 class Solution {
   public:
-    /* Creates an empty minimization solution (Rust `Solution::default()`). */
+    /* Creates an empty minimization solution. */
     Solution() : handle_(lm_sol_default()) {
         if (handle_ == nullptr) {
             throw Error(LmStatus_Panic, "failed to allocate a LunaModel solution");
         }
     }
 
-    /* Creates an empty solution for a given sense (Rust `Solution::with_sense`). */
+    /* Creates an empty solution for a given sense. */
     explicit Solution(LmSense sense) : handle_(lm_sol_with_sense(sense)) {
         if (handle_ == nullptr) {
             throw Error(LmStatus_Panic, "failed to allocate a LunaModel solution");
@@ -73,7 +72,7 @@ class Solution {
     Solution(const Solution &) = delete;
     Solution &operator=(const Solution &) = delete;
 
-    /* Creates an empty solution with reserved capacity (Rust `with_capacity`). */
+    /* Creates an empty solution with reserved capacity. */
     static Solution with_capacity(std::size_t capacity) {
         LmSol *handle = lm_sol_with_capacity(capacity);
         if (handle == nullptr) {
@@ -82,18 +81,17 @@ class Solution {
         return Solution(handle);
     }
 
-    /* Builds an empty solution shaped from an environment (Rust `from_env`). */
+    /* Builds an empty solution shaped from an environment. */
     static Solution from_env(const Env &env) {
         LmSol *out = nullptr;
         detail::check(lm_sol_from_env(env.get(), &out));
         return Solution(out);
     }
 
-    /* Builds a random solution (Rust `Solution::from_random`).
+    /* Builds a random solution.
      *
-     * `context` / `model` are optional raw handles used to shape and evaluate the
-     * samples; pass `nullptr` (or `env.get()` / `model.get()`) as needed.
-     */
+     * `context` / `model` are optional raw handles used to shape and evaluate
+     * the samples; pass `nullptr` (or `env.get()` / `model.get()`) as needed. */
     static Solution from_random(std::size_t n_samples,
                                 std::optional<std::uint64_t> seed = std::nullopt,
                                 const LmEnv *context = nullptr, const LmModel *model = nullptr,
@@ -105,21 +103,21 @@ class Solution {
         return Solution(out);
     }
 
-    /* Number of unique samples (Rust `Solution::n_samples`). */
+    /* Number of unique samples. */
     std::size_t n_samples() const {
         std::size_t out = 0;
         detail::check(lm_sol_n_samples(handle_, &out));
         return out;
     }
 
-    /* Number of sample rows (Rust `Solution::len`). */
+    /* Number of sample rows. */
     std::size_t len() const {
         std::size_t out = 0;
         detail::check(lm_sol_len(handle_, &out));
         return out;
     }
 
-    /* Whether the solution has no sample rows (Rust `Solution::is_empty`). */
+    /* Whether the solution has no sample rows. */
     bool is_empty() const {
         bool out = false;
         detail::check(lm_sol_is_empty(handle_, &out));
@@ -127,15 +125,14 @@ class Solution {
     }
     bool empty() const { return is_empty(); }
 
-    /* Number of variables per sample row (Rust `Solution::sample_len`). */
+    /* Number of variables per sample row. */
     std::size_t sample_len() const {
         std::size_t out = 0;
         detail::check(lm_sol_sample_len(handle_, &out));
         return out;
     }
 
-    /* Raw stored value for `var` in `sample`, or `std::nullopt` if absent
-     * (Rust `Solution::value`). */
+    /* Raw stored value for `var` in `sample`, or `std::nullopt` if absent. */
     std::optional<double> value(std::size_t sample, const std::string &var) const {
         double out = 0.0;
         LmStatus st = lm_sol_value(handle_, sample, var.c_str(), &out);
@@ -146,22 +143,21 @@ class Solution {
         return out;
     }
 
-    /* Typed assignment for `var` in `sample` (Rust `Solution::try_assignment`).
-     * Throws `lm::Error` when the sample or variable is absent. */
+    /* Typed assignment for `var` in `sample`. Throws when absent. */
     LmAssignment assignment(std::size_t sample, const std::string &var) const {
         LmAssignment out;
         detail::check(lm_sol_assignment(handle_, sample, var.c_str(), &out));
         return out;
     }
 
-    /* Typed assignment by column position (Rust `Solution::try_assignment_idx`). */
+    /* Typed assignment by column position. */
     LmAssignment assignment_idx(std::size_t sample, std::size_t var_index) const {
         LmAssignment out;
         detail::check(lm_sol_assignment_idx(handle_, sample, var_index, &out));
         return out;
     }
 
-    /* Stored variable names in column order (Rust `Solution::variable_names`). */
+    /* Stored variable names in column order. */
     std::vector<std::string> variable_names() const {
         LmStrBuffer buf = {nullptr, 0, 0};
         detail::check(lm_sol_variable_names(handle_, &buf));
@@ -174,14 +170,14 @@ class Solution {
         return out;
     }
 
-    /* A copy of the column stored for `var` (Rust `Solution::samples[var]`). */
+    /* A copy of the column stored for `var`. */
     Column column(const std::string &var) const {
         LmColumn *out = nullptr;
         detail::check(lm_sol_column(handle_, var.c_str(), &out));
         return Column(out);
     }
 
-    /* The `(index, name, column)` entries of the sample map (Rust `samples`). */
+    /* The `(index, name, column)` entries of the sample map. */
     std::vector<SampleColumn> samples() const {
         LmIndexMapItemBuffer buf = {nullptr, 0, 0};
         detail::check(lm_sol_samples(handle_, &buf));
@@ -198,7 +194,39 @@ class Solution {
         return out;
     }
 
-    /* Per-sample occurrence counts (Rust `Solution::counts`). */
+    /* A single sample row as an owned view. */
+    SampleView sample_view(std::size_t index) const {
+        LmSampleView *out = nullptr;
+        detail::check(lm_sol_sample_view(handle_, index, &out));
+        return SampleView(out);
+    }
+
+    /* The sample row at `index`, or `std::nullopt` if out of range. */
+    std::optional<SampleView> sample(std::size_t index) const {
+        LmSampleView *out = nullptr;
+        LmStatus st = lm_sol_sample_view(handle_, index, &out);
+        if (st == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(st);
+        return SampleView(out);
+    }
+
+    /* Every sample row as an owned view. */
+    std::vector<SampleView> sample_views() const {
+        LmSampleViewBuffer buf = {nullptr, 0, 0};
+        detail::check(lm_sol_sample_views(handle_, &buf));
+        std::vector<SampleView> out;
+        out.reserve(buf.len);
+        for (std::size_t i = 0; i < buf.len; ++i) {
+            out.emplace_back(buf.data[i]); // SampleView adopts the handle,
+            buf.data[i] = nullptr;         // so the buffer must not free it.
+        }
+        lm_sample_view_buffer_free(buf);
+        return out;
+    }
+
+    /* Per-sample occurrence counts. */
     std::vector<std::size_t> counts() const {
         const std::size_t *data = nullptr;
         std::size_t len = 0;
@@ -206,7 +234,7 @@ class Solution {
         return std::vector<std::size_t>(data, data + len);
     }
 
-    /* Raw solver energies, or `std::nullopt` if unevaluated (Rust `raw_energies`). */
+    /* Raw solver energies, or `std::nullopt` if unevaluated. */
     std::optional<std::vector<double>> raw_energies() const {
         const double *data = nullptr;
         std::size_t len = 0;
@@ -218,7 +246,7 @@ class Solution {
         return std::vector<double>(data, data + len);
     }
 
-    /* Model-evaluated objective values, or `std::nullopt` (Rust `obj_values`). */
+    /* Model-evaluated objective values, or `std::nullopt`. */
     std::optional<std::vector<double>> obj_values() const {
         const double *data = nullptr;
         std::size_t len = 0;
@@ -230,7 +258,7 @@ class Solution {
         return std::vector<double>(data, data + len);
     }
 
-    /* Per-sample feasibility flags, or `std::nullopt` (Rust `feasible`). */
+    /* Per-sample feasibility flags, or `std::nullopt`. */
     std::optional<std::vector<bool>> feasible() const {
         const bool *data = nullptr;
         std::size_t len = 0;
@@ -242,33 +270,21 @@ class Solution {
         return std::vector<bool>(data, data + len);
     }
 
-    /* Per-constraint feasibility flags keyed by name (Rust `constraints`). */
+    /* Per-constraint feasibility flags keyed by name. */
     std::map<std::string, std::vector<bool>> constraints() const {
         LmBoolMapBuffer buf = {nullptr, 0, 0};
         detail::check(lm_sol_constraints(handle_, &buf));
-        std::map<std::string, std::vector<bool>> out;
-        for (std::size_t i = 0; i < buf.len; ++i) {
-            const LmBoolMapEntry &e = buf.data[i];
-            out.emplace(std::string(e.key), std::vector<bool>(e.data, e.data + e.len));
-        }
-        lm_bool_map_buffer_free(buf);
-        return out;
+        return detail::read_bool_map(buf);
     }
 
-    /* Per-variable bound-check flags keyed by name (Rust `variable_bounds`). */
+    /* Per-variable bound-check flags keyed by name. */
     std::map<std::string, std::vector<bool>> variable_bounds() const {
         LmBoolMapBuffer buf = {nullptr, 0, 0};
         detail::check(lm_sol_variable_bounds(handle_, &buf));
-        std::map<std::string, std::vector<bool>> out;
-        for (std::size_t i = 0; i < buf.len; ++i) {
-            const LmBoolMapEntry &e = buf.data[i];
-            out.emplace(std::string(e.key), std::vector<bool>(e.data, e.data + e.len));
-        }
-        lm_bool_map_buffer_free(buf);
-        return out;
+        return detail::read_bool_map(buf);
     }
 
-    /* Timing metadata, or `std::nullopt` if unset (Rust `Solution::timing`). */
+    /* Timing metadata, or `std::nullopt` if unset. */
     std::optional<Timing> timing() const {
         LmTiming *out = nullptr;
         LmStatus st = lm_sol_timing(handle_, &out);
@@ -279,15 +295,46 @@ class Solution {
         return Timing(out);
     }
 
-    /* Optimization sense the solution was created with (Rust `Solution::sense`). */
+    /* Optimization sense the solution was created with. */
     LmSense sense() const {
         LmSense out;
         detail::check(lm_sol_sense(handle_, &out));
         return out;
     }
 
-    /* Result view for the row at `index`, or `std::nullopt` if out of range
-     * (Rust `Solution::result`). */
+    /* Sets the optimization sense. */
+    void set_sense(LmSense sense) { detail::check(lm_sol_set_sense(handle_, sense)); }
+
+    /* Appends a sample row from typed assignments.
+     *
+     * `names` and `assignments` must have equal length; `counts` is the number
+     * of occurrences of this row; `energy` is the optional raw solver energy. */
+    void push(const std::vector<std::string> &names, const std::vector<LmAssignment> &assignments,
+              std::size_t counts = 1, std::optional<double> energy = std::nullopt) {
+        std::vector<const char *> ptrs;
+        ptrs.reserve(names.size());
+        for (const std::string &name : names) {
+            ptrs.push_back(name.c_str());
+        }
+        detail::check(lm_sol_push(handle_, ptrs.data(), assignments.data(), ptrs.size(), counts,
+                                  energy ? &*energy : nullptr));
+    }
+
+    /* Convenience overload accepting name/assignment pairs. */
+    void push(const std::vector<std::pair<std::string, LmAssignment>> &sample,
+              std::size_t counts = 1, std::optional<double> energy = std::nullopt) {
+        std::vector<std::string> names;
+        std::vector<LmAssignment> assignments;
+        names.reserve(sample.size());
+        assignments.reserve(sample.size());
+        for (const auto &entry : sample) {
+            names.push_back(entry.first);
+            assignments.push_back(entry.second);
+        }
+        push(names, assignments, counts, energy);
+    }
+
+    /* Result view for the row at `index`, or `std::nullopt` if out of range. */
     std::optional<ResultView> result(std::size_t index) const {
         LmResultView *view = nullptr;
         LmStatus st = lm_sol_result(handle_, index, &view);
@@ -298,45 +345,14 @@ class Solution {
         return ResultView(view);
     }
 
-    /* Result views over all rows (Rust `Solution::results`). */
+    /* Result views over all rows. */
     std::vector<ResultView> results() const {
         LmResultViewBuffer buf = {nullptr, 0, 0};
         detail::check(lm_sol_results(handle_, &buf));
-        std::vector<ResultView> out;
-        out.reserve(buf.len);
-        for (std::size_t i = 0; i < buf.len; ++i) {
-            out.emplace_back(buf.data[i]);
-            buf.data[i] = nullptr;
-        }
-        lm_result_view_buffer_free(buf);
-        return out;
+        return adopt_result_views(buf);
     }
 
-    std::optional<SampleView> sample(std::size_t index) const {
-        LmSampleView *view = nullptr;
-        const LmStatus status = lm_sol_sample_view(handle_, index, &view);
-        if (status == LmStatus_Absent) {
-            return std::nullopt;
-        }
-        detail::check(status);
-        return SampleView(view);
-    }
-
-    std::vector<SampleView> sample_views() const {
-        LmSampleViewBuffer buffer = {nullptr, 0, 0};
-        detail::check(lm_sol_sample_views(handle_, &buffer));
-        std::vector<SampleView> out;
-        out.reserve(buffer.len);
-        for (std::size_t index = 0; index < buffer.len; ++index) {
-            out.emplace_back(buffer.data[index]);
-            buffer.data[index] = nullptr;
-        }
-        lm_sample_view_buffer_free(buffer);
-        return out;
-    }
-
-    /* Best feasible result views, or `std::nullopt` when unavailable
-     * (Rust `Solution::best`). */
+    /* Best feasible result views, or `std::nullopt` when unavailable. */
     std::optional<std::vector<ResultView>> best() const {
         LmResultViewBuffer buf = {nullptr, 0, 0};
         LmStatus st = lm_sol_best(handle_, &buf);
@@ -344,31 +360,24 @@ class Solution {
             return std::nullopt;
         }
         detail::check(st);
-        std::vector<ResultView> out;
-        out.reserve(buf.len);
-        for (std::size_t i = 0; i < buf.len; ++i) {
-            out.emplace_back(buf.data[i]);
-            buf.data[i] = nullptr;
-        }
-        lm_result_view_buffer_free(buf);
-        return out;
+        return adopt_result_views(buf);
     }
 
-    /* Conditional value at risk (Rust `Solution::cvar`). */
+    /* Conditional value at risk. */
     double cvar(double alpha, std::optional<LmValueSource> toggle = std::nullopt) const {
         double out = 0.0;
         detail::check(lm_sol_cvar(handle_, alpha, toggle ? &*toggle : nullptr, &out));
         return out;
     }
 
-    /* Expectation value of the selected series (Rust `Solution::expectation_value`). */
+    /* Expectation value of the selected series. */
     double expectation_value(std::optional<LmValueSource> toggle = std::nullopt) const {
         double out = 0.0;
         detail::check(lm_sol_expectation_value(handle_, toggle ? &*toggle : nullptr, &out));
         return out;
     }
 
-    /* Temperature-weighted average (Rust `Solution::temperature_weighted`). */
+    /* Temperature-weighted average. */
     double temperature_weighted(double beta,
                                 std::optional<LmValueSource> toggle = std::nullopt) const {
         double out = 0.0;
@@ -377,15 +386,14 @@ class Solution {
         return out;
     }
 
-    /* Fraction of feasible samples (Rust `Solution::feasibility_ratio`). */
+    /* Fraction of feasible samples. */
     double feasibility_ratio() const {
         double out = 0.0;
         detail::check(lm_sol_feasibility_ratio(handle_, &out));
         return out;
     }
 
-    /* Name of the most frequently violated constraint, or `std::nullopt`
-     * (Rust `Solution::highest_constraint_violations`). */
+    /* Name of the most frequently violated constraint, or `std::nullopt`. */
     std::optional<std::string> highest_constraint_violations() const {
         LmBuffer buf = {nullptr, 0, 0};
         LmStatus st = lm_sol_highest_constraint_violations(handle_, &buf);
@@ -423,41 +431,6 @@ class Solution {
                                      tol ? &*tol : nullptr));
     }
 
-    void push(const std::vector<std::pair<std::string, LmAssignment>> &sample,
-              std::size_t counts = 1, std::optional<double> energy = std::nullopt) {
-        std::vector<const char *> names;
-        std::vector<LmAssignment> assignments;
-        names.reserve(sample.size());
-        assignments.reserve(sample.size());
-        for (const auto &entry : sample) {
-            names.push_back(entry.first.c_str());
-            assignments.push_back(entry.second);
-        }
-        detail::check(lm_sol_push(handle_, names.data(), assignments.data(), names.size(), counts,
-                                  energy ? &*energy : nullptr));
-    }
-
-    Solution filter_by_mask(const std::vector<bool> &mask) const {
-        std::unique_ptr<bool[]> values(new bool[mask.size()]);
-        for (std::size_t index = 0; index < mask.size(); ++index) {
-            values[index] = mask[index];
-        }
-        LmSol *out = nullptr;
-        detail::check(lm_sol_filter_by_mask(handle_, values.get(), mask.size(), &out));
-        return Solution(out);
-    }
-
-    void set_counts(const std::vector<std::size_t> &counts) {
-        detail::check(lm_sol_set_counts(handle_, counts.data(), counts.size()));
-    }
-
-    void set_timing(const Timing &timing) {
-        detail::check(lm_sol_set_timing(handle_, timing.get()));
-    }
-    void clear_timing() { detail::check(lm_sol_set_timing(handle_, nullptr)); }
-
-    void set_sense(LmSense sense) { detail::check(lm_sol_set_sense(handle_, sense)); }
-
     void add_empty_binary(const std::string &name) {
         detail::check(lm_sol_add_empty_binary(handle_, name.c_str()));
     }
@@ -471,13 +444,12 @@ class Solution {
         detail::check(lm_sol_add_empty_real(handle_, name.c_str()));
     }
 
-    std::optional<Column> remove_col(const std::string &name) {
-        LmColumn *out = nullptr;
-        detail::check(lm_sol_remove_col(handle_, name.c_str(), &out));
-        if (out == nullptr) {
-            return std::nullopt;
+    void remove_col(const std::string &name) {
+        LmColumn *removed = nullptr;
+        detail::check(lm_sol_remove_col(handle_, name.c_str(), &removed));
+        if (removed != nullptr) {
+            lm_col_free(removed); // discard the returned column
         }
-        return Column(out);
     }
     void remove_cols(const std::vector<std::string> &names) {
         std::vector<const char *> ptrs;
@@ -488,17 +460,40 @@ class Solution {
         detail::check(lm_sol_remove_cols(handle_, ptrs.data(), ptrs.size()));
     }
 
-    /* Aggregates duplicate sample rows in place (Rust `Solution::aggregate`). */
+    /* Aggregates duplicate sample rows in place. */
     void aggregate() { detail::check(lm_sol_aggregate(handle_)); }
 
-    /* Clones into an independent solution (Rust `Clone`). */
+    /* Returns a new solution containing only the rows selected by `mask`. */
+    Solution filter_by_mask(const std::vector<bool> &mask) const {
+        std::unique_ptr<bool[]> flags(new bool[mask.size()]);
+        for (std::size_t i = 0; i < mask.size(); ++i) {
+            flags[i] = mask[i];
+        }
+        LmSol *out = nullptr;
+        detail::check(lm_sol_filter_by_mask(handle_, flags.get(), mask.size(), &out));
+        return Solution(out);
+    }
+
+    /* Returns a new solution containing only the rows for which `predicate`
+     * returns true. `predicate` is invoked with each row's `const ResultView&`. */
+    template <class Predicate> Solution filter(Predicate predicate) const {
+        std::vector<ResultView> views = results();
+        std::vector<bool> mask;
+        mask.reserve(views.size());
+        for (const ResultView &view : views) {
+            mask.push_back(static_cast<bool>(predicate(view)));
+        }
+        return filter_by_mask(mask);
+    }
+
+    /* Clones into an independent solution. */
     Solution clone() const {
         LmSol *out = nullptr;
         detail::check(lm_sol_clone(handle_, &out));
         return Solution(out);
     }
 
-    /* Structural equality (Rust `PartialEq`). */
+    /* Structural equality. */
     bool operator==(const Solution &other) const {
         bool out = false;
         detail::check(lm_sol_eq(handle_, other.handle_, &out));
@@ -506,25 +501,24 @@ class Solution {
     }
     bool operator!=(const Solution &other) const { return !(*this == other); }
 
-    /* Order-independent content equality (Rust `Solution::equal_contents`). */
+    /* Order-independent content equality. */
     bool equal_contents(const Solution &other) const {
         bool out = false;
         detail::check(lm_sol_equal_contents(handle_, other.handle_, &out));
         return out;
     }
 
-    /* Extracts a single row as a standalone one-row solution (Rust `extract`). */
+    /* Extracts a single row as a standalone one-row solution. */
     Solution extract(std::size_t row) const {
         LmSol *out = nullptr;
         detail::check(lm_sol_extract(handle_, row, &out));
         return Solution(out);
     }
 
-    /* Merges solutions sharing the same schema and sense (Rust `merge_many`).
+    /* Merges solutions sharing the same schema and sense.
      *
      * `model` is an optional raw handle; when non-null the merged solution is
-     * re-evaluated with `tol`.
-     */
+     * re-evaluated with `tol`. */
     static Solution merge_many(const std::vector<const Solution *> &sols,
                                const LmModel *model = nullptr,
                                std::optional<double> tol = std::nullopt) {
@@ -539,6 +533,7 @@ class Solution {
         return Solution(out);
     }
 
+    /* Serializes the solution to bytes. */
     std::vector<std::uint8_t> serialize() const {
         LmBuffer buf = {nullptr, 0, 0};
         detail::check(lm_sol_serialize(handle_, &buf));
@@ -564,8 +559,31 @@ class Solution {
     }
 
   private:
+    /* Adopts each handle of a result-view buffer into an owning `ResultView`,
+     * then releases the outer array (nulled slots are skipped). */
+    static std::vector<ResultView> adopt_result_views(LmResultViewBuffer buf) {
+        std::vector<ResultView> out;
+        out.reserve(buf.len);
+        for (std::size_t i = 0; i < buf.len; ++i) {
+            out.emplace_back(buf.data[i]);
+            buf.data[i] = nullptr;
+        }
+        lm_result_view_buffer_free(buf);
+        return out;
+    }
+
     LmSol *handle_;
 };
+
+/* Expression<->Solution bridge: declared in expr.hpp, defined here where
+ * `Solution` is complete. Evaluates the expression across every sample row. */
+inline std::vector<double> Expression::evaluate(const Solution &sol) const {
+    LmF64Buffer buf = {nullptr, 0, 0};
+    detail::check(lm_expr_evaluate(handle_, sol.get(), &buf));
+    std::vector<double> out(buf.data, buf.data + buf.len);
+    lm_f64_buffer_free(buf);
+    return out;
+}
 
 } // namespace lm
 

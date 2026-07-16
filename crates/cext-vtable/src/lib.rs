@@ -282,6 +282,22 @@ pub struct LmU32Buffer {
     pub cap: usize,
 }
 
+/// An owned, heap-allocated `f64` buffer the caller takes ownership of.
+///
+/// f64 buffers returned by LunaModel must be released with
+/// [`lm_f64_buffer_free`]. The fields mirror a `Vec<f64>` so it can be rebuilt
+/// for deallocation.
+#[repr(C)]
+#[derive(Default)]
+pub struct LmF64Buffer {
+    /// Pointer to the first f64, or null for an empty buffer.
+    pub data: *mut f64,
+    /// Number of valid f64s.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
 /// An owned, heap-allocated ResultView buffer the caller takes ownership of.
 ///
 /// ResultView buffers returned by LunaModel must be released
@@ -638,6 +654,7 @@ pub struct LunaModelCApi {
     pub cmp_buffer_free: unsafe extern "C" fn(LmCmpBuffer),
     pub vref_buffer_free: unsafe extern "C" fn(LmVrefBuffer),
     pub u32_buffer_free: unsafe extern "C" fn(LmU32Buffer),
+    pub f64_buffer_free: unsafe extern "C" fn(LmF64Buffer),
     pub linear_item_buffer_free: unsafe extern "C" fn(LmLinearItemBuffer),
     pub quadratic_item_buffer_free: unsafe extern "C" fn(LmQuadraticItemBuffer),
     pub higher_order_item_buffer_free: unsafe extern "C" fn(LmHigherOrderItemBuffer),
@@ -686,6 +703,12 @@ pub struct LunaModelCApi {
         unsafe extern "C" fn(*const LmModel, *const LmSol, *mut *mut LmSol) -> LmStatus,
     pub model_evaluate_solution_with_tol:
         unsafe extern "C" fn(*const LmModel, *const LmSol, *const f64, *mut *mut LmSol) -> LmStatus,
+    pub model_evaluate_sample: unsafe extern "C" fn(
+        *const LmModel,
+        *const LmSampleView,
+        *const f64,
+        *mut *mut LmResultView,
+    ) -> LmStatus,
     pub model_violated_constraints: unsafe extern "C" fn(
         *const LmModel,
         *const LmSampleView,
@@ -961,6 +984,15 @@ pub struct LunaModelCApi {
         unsafe extern "C" fn(*const *const LmExpr, usize, *mut *mut LmExpr) -> LmStatus,
     pub expr_evaluate_sample_quick:
         unsafe extern "C" fn(*const LmExpr, *const f64, usize, *mut f64) -> LmStatus,
+    pub expr_evaluate_sample: unsafe extern "C" fn(
+        *const LmExpr,
+        *const *const c_char,
+        *const f64,
+        usize,
+        *mut f64,
+    ) -> LmStatus,
+    pub expr_evaluate:
+        unsafe extern "C" fn(*const LmExpr, *const LmSol, *mut LmF64Buffer) -> LmStatus,
     pub expr_serialize: unsafe extern "C" fn(*const LmExpr, *mut LmBuffer) -> LmStatus,
     pub expr_deserialize:
         unsafe extern "C" fn(*const u8, usize, *const LmEnv, *mut *mut LmExpr) -> LmStatus,

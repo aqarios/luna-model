@@ -22,6 +22,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     cmp_buffer_free: crate::buffer::lm_cmp_buffer_free,
     vref_buffer_free: crate::buffer::lm_vref_buffer_free,
     u32_buffer_free: crate::buffer::lm_u32_buffer_free,
+    f64_buffer_free: crate::buffer::lm_f64_buffer_free,
     linear_item_buffer_free: crate::buffer::lm_linear_item_buffer_free,
     quadratic_item_buffer_free: crate::buffer::lm_quadratic_item_buffer_free,
     higher_order_item_buffer_free: crate::buffer::lm_higher_order_item_buffer_free,
@@ -48,6 +49,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     model_equal_contents: crate::model::lm_model_equal_contents,
     model_evaluate_solution: crate::model::lm_model_evaluate_solution,
     model_evaluate_solution_with_tol: crate::model::lm_model_evaluate_solution_with_tol,
+    model_evaluate_sample: crate::model::lm_model_evaluate_sample,
     model_violated_constraints: crate::model::lm_model_violated_constraints,
     model_substitute: crate::model::lm_model_substitute,
     // Model -- access
@@ -227,6 +229,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_deep_clone: crate::expr::lm_expr_deep_clone,
     expr_deep_clone_many: crate::expr::lm_expr_deep_clone_many,
     expr_evaluate_sample_quick: crate::expr::lm_expr_evaluate_sample_quick,
+    expr_evaluate_sample: crate::expr::lm_expr_evaluate_sample,
+    expr_evaluate: crate::expr::lm_expr_evaluate,
     // Expr -- serializer
     expr_serialize: crate::expr::lm_expr_serialize,
     expr_deserialize: crate::expr::lm_expr_deserialize,

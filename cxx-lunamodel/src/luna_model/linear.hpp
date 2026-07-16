@@ -11,17 +11,13 @@
 
 namespace lm {
 
-/* Owning handle to a LunaModel linear term store (frees on destruction).
- *
- * Mirrors the Rust `Linear`.
- */
+/* Owning handle to a linear term store (frees on destruction). */
 class Linear {
   public:
-    /* Creates an empty linear term store (Rust `Linear::default()`). */
+    /* Creates an empty linear term store. */
     Linear() : handle_(lm_linear_default()) {}
 
-    /* Creates a linear store with a single variable contribution
-     * (Rust `Linear::for_var(var, bias)`). */
+    /* Creates a linear store with a single variable contribution. */
     static Linear for_var(std::uint32_t var, double bias) {
         LmLinear *out = nullptr;
         detail::check(lm_linear_for_var(var, bias, &out));
@@ -57,29 +53,28 @@ class Linear {
     Linear(const Linear &) = delete;
     Linear &operator=(const Linear &) = delete;
 
-    /* Returns the number of explicitly stored entries (Rust `linear.len()`). */
+    /* Number of explicitly stored entries. */
     std::size_t len() const {
         std::size_t out = 0;
         detail::check(lm_linear_len(handle_, &out));
         return out;
     }
 
-    /* Returns whether all stored biases sum to zero (Rust `linear.is_zero()`). */
+    /* Whether all stored biases sum to zero. */
     bool is_zero() const {
         bool out = false;
         detail::check(lm_linear_is_zero(handle_, &out));
         return out;
     }
 
-    /* Returns whether the store contains no explicit terms
-     * (Rust `linear.is_empty()`). */
+    /* Whether the store contains no explicit terms. */
     bool is_empty() const {
         bool out = false;
         detail::check(lm_linear_is_empty(handle_, &out));
         return out;
     }
 
-    /* Returns the `(variable, bias)` items (Rust `linear.iter()`). */
+    /* The `(variable, bias)` items. */
     std::vector<LmLinearItem> items() const {
         LmLinearItemBuffer buf = {nullptr, 0, 0};
         detail::check(lm_linear_items(handle_, &buf));
@@ -88,43 +83,42 @@ class Linear {
         return out;
     }
 
-    /* Returns the bias for a variable index (Rust `linear[idx]`). */
+    /* The bias for a variable index. */
     double operator[](std::uint32_t idx) const {
         double out = 0.0;
         detail::check(lm_linear_index(handle_, idx, &out));
         return out;
     }
 
-    /* Adds a `(variable, bias)` contribution (Rust `linear += (id, bias)`). */
+    /* Adds a `(variable, bias)` contribution. */
     void add_entry(std::uint32_t id, double bias) {
         detail::check(lm_linear_add_entry(handle_, id, bias));
     }
 
-    /* Adds another linear store in place (Rust `linear += &other`). */
+    /* Adds another linear store in place. */
     Linear &operator+=(const Linear &other) {
         detail::check(lm_linear_add_linear(handle_, other.handle_));
         return *this;
     }
 
-    /* Scales every bias in place (Rust `linear *= bias`). */
+    /* Scales every bias in place. */
     Linear &operator*=(double bias) {
         detail::check(lm_linear_mul_bias(handle_, bias));
         return *this;
     }
 
-    /* Returns a negated copy (Rust `-&linear`). */
+    /* Returns a negated copy. */
     Linear operator-() const {
         LmLinear *out = nullptr;
         detail::check(lm_linear_neg(handle_, &out));
         return Linear(out);
     }
 
-    /* Sets the bias for a variable index (Rust `linear[id] = bias`). */
+    /* Sets the bias for a variable index. */
     void set_bias(std::uint32_t id, double bias) {
         detail::check(lm_linear_set_bias(handle_, id, bias));
     }
 
-    /* Rust `PartialEq`. */
     bool operator==(const Linear &other) const {
         bool out = false;
         detail::check(lm_linear_eq(handle_, other.handle_, &out));
@@ -132,7 +126,7 @@ class Linear {
     }
     bool operator!=(const Linear &other) const { return !(*this == other); }
 
-    /* Rust `Clone`. */
+    /* Clones into an independent handle. */
     Linear clone() const {
         LmLinear *out = nullptr;
         detail::check(lm_linear_clone(handle_, &out));

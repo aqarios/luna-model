@@ -1,13 +1,14 @@
 use luna_model::core::prelude::VarRef;
-use lunamodel_cext_handle::ConstraintCollectionHandle;
+use lunamodel_cext_handle::{ConstraintCollectionHandle, new_shared};
 
 use crate::{
-    LmCC, LmExpr, LmModel, LmSampleView, LmSol, LmStatus, LmVref,
+    LmCC, LmExpr, LmModel, LmResultView, LmSampleView, LmSol, LmStatus, LmVref,
     error::{CapiError, guard},
+    res::ResultViewHandle,
     sample::SampleViewHandle,
     utils::{
-        new_handle_out_from_c, opt_from_c, ref_from_c, shared_from_c, storage_from_c,
-        storage_out_from_c,
+        handle_to_c, new_handle_out_from_c, opt_from_c, out_from_c, ref_from_c, shared_from_c,
+        storage_from_c, storage_out_from_c,
     },
 };
 
@@ -62,6 +63,47 @@ pub unsafe extern "C" fn lm_model_evaluate_solution_with_tol(
             .evaluate_solution_with_tol(&sol, tol)
             .map_err(CapiError::errored)?;
         unsafe { new_handle_out_from_c(out, res) }
+    })
+}
+
+/// Evaluates the model against a single sample row.
+///
+/// The returned result view owns a synchronized one-row evaluated solution and
+/// remains valid independently of the input sample handle.
+///
+/// # Safety
+/// `model` and `sample` must be valid handles. `tol` must be null or point to a
+/// readable `double`. `out` must point to writable `LmResultView *` storage; the
+/// returned handle must be released with [`crate::res::lm_result_view_free`].
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_evaluate_sample(
+    model: *const LmModel,
+    sample: *const LmSampleView,
+    tol: *const f64,
+    out: *mut *mut LmResultView,
+) -> LmStatus {
+    guard(|| {
+        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
+        let sample = unsafe { ref_from_c(sample as *const SampleViewHandle, "sample") }?;
+        let row = {
+            let solution = sample.sol.read();
+            if sample.index >= solution.len() {
+                return Err(CapiError::new(
+                    LmStatus::Absent,
+                    "sample index is out of range",
+                ));
+            }
+            solution.extract(sample.index)
+        };
+        let evaluated = model
+            .evaluate_solution_with_tol(&row, unsafe { opt_from_c(tol) })
+            .map_err(CapiError::errored)?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = handle_to_c(ResultViewHandle {
+            sol: new_shared::<LmSol>(evaluated),
+            index: 0,
+        });
+        Ok(())
     })
 }
 

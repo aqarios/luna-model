@@ -11,13 +11,10 @@
 
 namespace lm {
 
-/* Owning handle to a LunaModel quadratic term store (frees on destruction).
- *
- * Mirrors the Rust `Quadratic`.
- */
+/* Owning handle to a quadratic term store (frees on destruction). */
 class Quadratic {
   public:
-    /* Creates an empty quadratic term store (Rust `Quadratic::default()`). */
+    /* Creates an empty quadratic term store. */
     Quadratic() : handle_(lm_quadratic_default()) {}
 
     /* Adopts ownership of a raw C handle (for C interop). */
@@ -43,29 +40,28 @@ class Quadratic {
     Quadratic(const Quadratic &) = delete;
     Quadratic &operator=(const Quadratic &) = delete;
 
-    /* Returns the number of explicitly stored entries (Rust `quadratic.len()`). */
+    /* Number of explicitly stored entries. */
     std::size_t len() const {
         std::size_t out = 0;
         detail::check(lm_quadratic_len(handle_, &out));
         return out;
     }
 
-    /* Returns whether all stored biases sum to zero (Rust `quadratic.is_zero()`). */
+    /* Whether all stored biases sum to zero. */
     bool is_zero() const {
         bool out = false;
         detail::check(lm_quadratic_is_zero(handle_, &out));
         return out;
     }
 
-    /* Returns whether the store contains no explicit terms
-     * (Rust `quadratic.is_empty()`). */
+    /* Whether the store contains no explicit terms. */
     bool is_empty() const {
         bool out = false;
         detail::check(lm_quadratic_is_empty(handle_, &out));
         return out;
     }
 
-    /* Returns the `(u, v, bias)` items (Rust `quadratic.iter_flat()`). */
+    /* The `(u, v, bias)` items. */
     std::vector<LmQuadraticItem> items() const {
         LmQuadraticItemBuffer buf = {nullptr, 0, 0};
         detail::check(lm_quadratic_items(handle_, &buf));
@@ -74,53 +70,55 @@ class Quadratic {
         return out;
     }
 
-    /* Returns the bias for a variable pair (Rust `quadratic[(u, v)]`). */
+    /* The bias for a variable pair. */
     double operator()(std::uint32_t u, std::uint32_t v) const {
         double out = 0.0;
         detail::check(lm_quadratic_index(handle_, u, v, &out));
         return out;
     }
 
-    /* Adds a `(u, v, bias)` contribution (Rust `quadratic += (u, v, bias)`). */
+    /* Adds a `(u, v, bias)` contribution. */
     void add_entry(std::uint32_t u, std::uint32_t v, double bias) {
         detail::check(lm_quadratic_add_entry(handle_, u, v, bias));
     }
 
-    void clean() { detail::check(lm_quadratic_clean(handle_)); }
-
-    void push_back_empty(std::uint32_t index) {
-        detail::check(lm_quadratic_push_back_empty(handle_, index));
-    }
-
-    void insert_empty(std::size_t position, std::uint32_t index) {
-        detail::check(lm_quadratic_insert_empty(handle_, position, index));
-    }
-
-    /* Adds another quadratic store in place (Rust `quadratic += &other`). */
+    /* Adds another quadratic store in place. */
     Quadratic &operator+=(const Quadratic &other) {
         detail::check(lm_quadratic_add_quadratic(handle_, other.handle_));
         return *this;
     }
 
-    /* Scales every bias in place (Rust `quadratic *= bias`). */
+    /* Scales every bias in place. */
     Quadratic &operator*=(double bias) {
         detail::check(lm_quadratic_mul_bias(handle_, bias));
         return *this;
     }
 
-    /* Returns a negated copy (Rust `-&quadratic`). */
+    /* Returns a negated copy. */
     Quadratic operator-() const {
         LmQuadratic *out = nullptr;
         detail::check(lm_quadratic_neg(handle_, &out));
         return Quadratic(out);
     }
 
-    /* Sets the bias for a variable pair (Rust `quadratic[(u, v)] = bias`). */
+    /* Sets the bias for a variable pair. */
     void set_bias(std::uint32_t u, std::uint32_t v, double bias) {
         detail::check(lm_quadratic_set_bias(handle_, u, v, bias));
     }
 
-    /* Rust `PartialEq`. */
+    /* Drops stored terms whose bias is zero. */
+    void clean() { detail::check(lm_quadratic_clean(handle_)); }
+
+    /* Inserts an empty adjacency row for `idx` at outer position `pos`. */
+    void insert_empty(std::size_t pos, std::uint32_t idx) {
+        detail::check(lm_quadratic_insert_empty(handle_, pos, idx));
+    }
+
+    /* Appends an empty adjacency row for `idx`. */
+    void push_back_empty(std::uint32_t idx) {
+        detail::check(lm_quadratic_push_back_empty(handle_, idx));
+    }
+
     bool operator==(const Quadratic &other) const {
         bool out = false;
         detail::check(lm_quadratic_eq(handle_, other.handle_, &out));
@@ -128,7 +126,7 @@ class Quadratic {
     }
     bool operator!=(const Quadratic &other) const { return !(*this == other); }
 
-    /* Rust `Clone`. */
+    /* Clones into an independent handle. */
     Quadratic clone() const {
         LmQuadratic *out = nullptr;
         detail::check(lm_quadratic_clone(handle_, &out));

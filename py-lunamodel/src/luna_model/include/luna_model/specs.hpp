@@ -1,6 +1,7 @@
 #ifndef LUNA_MODEL_SPECS_HPP
 #define LUNA_MODEL_SPECS_HPP
 
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <vector>
@@ -8,26 +9,24 @@
 #include <luna_model.h>
 
 #include "luna_model/detail/capi.hpp"
-#include "luna_model/types.h"
 
 namespace lm {
 
+/* Owning handle to a model specification: the structural properties a model is
+ * expected to satisfy (frees on destruction). Every property is optional; an
+ * unspecified property reads back as `std::nullopt`. */
 class Specs {
   public:
-    Specs(std::optional<LmSense> sense, std::optional<std::vector<LmVtype>> vtypes,
-          std::optional<std::vector<LmCtype>> ctypes, std::optional<std::size_t> max_degree,
-          std::optional<std::size_t> max_constraint_degree,
-          std::optional<std::size_t> max_num_variables) {
-        const LmVtype empty_vtype = LmVtype_Binary;
-        const LmCtype empty_ctype = LmCtype_Unconstrained;
-        const LmVtype *vtype_data =
-            vtypes ? (vtypes->empty() ? &empty_vtype : vtypes->data()) : nullptr;
-        const LmCtype *ctype_data =
-            ctypes ? (ctypes->empty() ? &empty_ctype : ctypes->data()) : nullptr;
+    /* Builds a specification. Any argument left empty (`std::nullopt` / empty
+     * vector) is treated as unspecified. */
+    Specs(std::optional<LmSense> sense, const std::vector<LmVtype> &vtypes,
+          const std::vector<LmCtype> &ctypes, std::optional<std::size_t> max_degree = std::nullopt,
+          std::optional<std::size_t> max_constraint_degree = std::nullopt,
+          std::optional<std::size_t> max_num_variables = std::nullopt) {
         LmSpecs *out = nullptr;
-        detail::check(lm_specs_new(sense ? &*sense : nullptr, vtype_data,
-                                   vtypes ? vtypes->size() : 0, ctype_data,
-                                   ctypes ? ctypes->size() : 0, max_degree ? &*max_degree : nullptr,
+        detail::check(lm_specs_new(sense ? &*sense : nullptr, vtypes.data(), vtypes.size(),
+                                   ctypes.data(), ctypes.size(),
+                                   max_degree ? &*max_degree : nullptr,
                                    max_constraint_degree ? &*max_constraint_degree : nullptr,
                                    max_num_variables ? &*max_num_variables : nullptr, &out));
         handle_ = out;
@@ -56,93 +55,110 @@ class Specs {
     Specs(const Specs &) = delete;
     Specs &operator=(const Specs &) = delete;
 
-    Specs clone() const {
-        LmSpecs *out = nullptr;
-        detail::check(lm_specs_clone(handle_, &out));
-        return Specs(out);
+    /* The optimization sense, or `std::nullopt` if unspecified. */
+    std::optional<LmSense> sense() const {
+        LmSense out;
+        LmStatus st = lm_specs_sense(handle_, &out);
+        if (st == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(st);
+        return out;
     }
 
+    /* The maximum objective degree, or `std::nullopt` if unspecified. */
+    std::optional<std::size_t> max_degree() const {
+        std::size_t out = 0;
+        LmStatus st = lm_specs_max_degree(handle_, &out);
+        if (st == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(st);
+        return out;
+    }
+
+    /* The maximum constraint degree, or `std::nullopt` if unspecified. */
+    std::optional<std::size_t> max_constraint_degree() const {
+        std::size_t out = 0;
+        LmStatus st = lm_specs_max_constraint_degree(handle_, &out);
+        if (st == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(st);
+        return out;
+    }
+
+    /* The maximum number of variables, or `std::nullopt` if unspecified. */
+    std::optional<std::size_t> max_num_variables() const {
+        std::size_t out = 0;
+        LmStatus st = lm_specs_max_num_variables(handle_, &out);
+        if (st == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(st);
+        return out;
+    }
+
+    /* The allowed variable types, or `std::nullopt` if unspecified. */
+    std::optional<std::vector<LmVtype>> vtypes() const {
+        LmVtypeBuffer buf = {nullptr, 0, 0};
+        LmStatus st = lm_specs_vtypes(handle_, &buf);
+        if (st == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(st);
+        std::vector<LmVtype> out(buf.data, buf.data + buf.len);
+        lm_vtype_buffer_free(buf);
+        return out;
+    }
+
+    /* The allowed constraint types, or `std::nullopt` if unspecified. */
+    std::optional<std::vector<LmCtype>> ctypes() const {
+        LmCtypeBuffer buf = {nullptr, 0, 0};
+        LmStatus st = lm_specs_ctypes(handle_, &buf);
+        if (st == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(st);
+        std::vector<LmCtype> out(buf.data, buf.data + buf.len);
+        lm_ctype_buffer_free(buf);
+        return out;
+    }
+
+    /* Whether this specification satisfies (is at least as strict as) `other`. */
     bool satisfies(const Specs &other) const {
         bool out = false;
         detail::check(lm_specs_satisfies(handle_, other.handle_, &out));
         return out;
     }
 
+    /* Describes why this specification does not satisfy `other`. */
     std::string diff(const Specs &other) const {
         LmBuffer buffer = {nullptr, 0, 0};
         detail::check(lm_specs_diff(handle_, other.handle_, &buffer));
-        std::string out =
-            buffer.len == 0 ? std::string()
-                            : std::string(reinterpret_cast<const char *>(buffer.data), buffer.len);
+        std::string out(reinterpret_cast<const char *>(buffer.data), buffer.len);
         lm_buffer_free(buffer);
         return out;
     }
 
-    std::optional<LmSense> sense() const {
-        LmSense out;
-        const LmStatus status = lm_specs_sense(handle_, &out);
-        if (status == LmStatus_Absent) {
-            return std::nullopt;
-        }
-        detail::check(status);
-        return out;
-    }
-
-    std::optional<std::vector<LmVtype>> vtypes() const {
-        LmVtypeBuffer buffer = {nullptr, 0, 0};
-        const LmStatus status = lm_specs_vtypes(handle_, &buffer);
-        if (status == LmStatus_Absent) {
-            return std::nullopt;
-        }
-        detail::check(status);
-        std::vector<LmVtype> out(buffer.data, buffer.data + buffer.len);
-        lm_vtype_buffer_free(buffer);
-        return out;
-    }
-
-    std::optional<std::vector<LmCtype>> ctypes() const {
-        LmCtypeBuffer buffer = {nullptr, 0, 0};
-        const LmStatus status = lm_specs_ctypes(handle_, &buffer);
-        if (status == LmStatus_Absent) {
-            return std::nullopt;
-        }
-        detail::check(status);
-        std::vector<LmCtype> out(buffer.data, buffer.data + buffer.len);
-        lm_ctype_buffer_free(buffer);
-        return out;
-    }
-
-    std::optional<std::size_t> max_degree() const { return optional_size(lm_specs_max_degree); }
-    std::optional<std::size_t> max_constraint_degree() const {
-        return optional_size(lm_specs_max_constraint_degree);
-    }
-    std::optional<std::size_t> max_num_variables() const {
-        return optional_size(lm_specs_max_num_variables);
+    /* Clones into an independent handle. */
+    Specs clone() const {
+        LmSpecs *out = nullptr;
+        detail::check(lm_specs_clone(handle_, &out));
+        return Specs(out);
     }
 
     LmSpecs *get() const noexcept { return handle_; }
     LmSpecs *release() noexcept {
-        LmSpecs *handle = handle_;
+        LmSpecs *h = handle_;
         handle_ = nullptr;
-        return handle;
+        return h;
     }
 
   private:
-    using SizeGetter = LmStatus (*)(const LmSpecs *, std::size_t *);
-
-    std::optional<std::size_t> optional_size(SizeGetter getter) const {
-        std::size_t out = 0;
-        const LmStatus status = getter(handle_, &out);
-        if (status == LmStatus_Absent) {
-            return std::nullopt;
-        }
-        detail::check(status);
-        return out;
-    }
-
     LmSpecs *handle_;
 };
 
 } // namespace lm
-  //
+
 #endif // LUNA_MODEL_SPECS_HPP

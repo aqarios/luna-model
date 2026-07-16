@@ -13,7 +13,7 @@
 namespace lm {
 
 /* Owning handle to a solution column: all values of one variable across the
- * sample rows (frees on destruction). Mirrors the Rust `Column`. */
+ * sample rows (frees on destruction). */
 class Column {
   public:
     static Column with(LmAssignment assignment) {
@@ -54,14 +54,14 @@ class Column {
     Column(const Column &) = delete;
     Column &operator=(const Column &) = delete;
 
-    /* Number of stored values / sample rows (Rust `Column::len`). */
+    /* Number of stored values / sample rows. */
     std::size_t len() const {
         std::size_t out = 0;
         detail::check(lm_col_len(handle_, &out));
         return out;
     }
 
-    /* Whether the column has no stored values (Rust `Column::is_empty`). */
+    /* Whether the column has no stored values. */
     bool is_empty() const {
         bool out = false;
         detail::check(lm_col_is_empty(handle_, &out));
@@ -69,13 +69,14 @@ class Column {
     }
     bool empty() const { return is_empty(); }
 
+    /* The variable type of the column. */
     LmVtype vtype() const {
         LmVtype out;
         detail::check(lm_col_vtype(handle_, &out));
         return out;
     }
 
-    /* Typed assignment at a row position (Rust `Column::as_assignment`).
+    /* Typed assignment at a row position.
      *
      * Throws `lm::Error` (status `Absent`) when `index` is out of range.
      */

@@ -3,6 +3,7 @@ pub(crate) mod utils;
 mod access;
 mod creation;
 mod equality;
+mod eval;
 mod general;
 mod modification;
 mod ops;
@@ -19,6 +20,7 @@ pub use creation::{
     lm_expr_new, lm_expr_new_constant,
 };
 pub use equality::{lm_expr_eq, lm_expr_equal_contents};
+pub use eval::{lm_expr_evaluate, lm_expr_evaluate_sample};
 pub use general::{
     lm_expr_clone, lm_expr_deep_clone, lm_expr_deep_clone_many, lm_expr_evaluate_sample_quick,
 };

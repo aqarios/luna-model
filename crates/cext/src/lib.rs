@@ -10,7 +10,7 @@ pub use lunamodel_cext_vtable::LunaModelCApi;
 pub use lunamodel_cext_vtable::{
     LmAssignment, LmBoolMapBuffer, LmBoolMapEntry, LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC,
     LmCmpBuffer, LmColumn, LmComparator, LmConstraint, LmCtype, LmCtypeBuffer, LmEnv, LmEnvId,
-    LmExpr, LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer, LmIndexMapItem,
+    LmExpr, LmF64Buffer, LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer, LmIndexMapItem,
     LmIndexMapItemBuffer, LmLazyBounds, LmLinear, LmLinearItem, LmLinearItemBuffer, LmModel,
     LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer, LmResultView, LmResultViewBuffer,
     LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSpecs, LmStatus, LmStrBuffer, LmTimer,

@@ -2,6 +2,7 @@ mod bool_map;
 mod bytes;
 mod cmp;
 mod ctype;
+mod f64s;
 mod hoitems;
 mod idxmap;
 mod linitem;

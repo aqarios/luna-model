@@ -8,27 +8,34 @@
 #include "luna_model/bound.hpp"
 #include "luna_model/bounds.hpp"
 #include "luna_model/detail/capi.hpp"
-#include "luna_model/error.hpp"
-#include "luna_model/types.h"
 
 namespace lm {
 
+/* Owning handle to lazily-resolved variable bounds (frees on destruction).
+ *
+ * A `LazyBounds` defers picking concrete numeric bounds until it is
+ * concretized against a variable type. */
 class LazyBounds {
   public:
-    LazyBounds() : handle_(lm_lazy_bounds_default()) {
-        if (handle_ == nullptr) {
-            throw Error(LmStatus_Panic, "failed to allocate LunaModel lazy bounds");
+    /* Creates lazy bounds from optional lower/upper endpoints; `std::nullopt`
+     * leaves that side to be filled in at concretization time. */
+    LazyBounds(std::optional<Bound> lower = std::nullopt,
+               std::optional<Bound> upper = std::nullopt) {
+        LmBound lo{};
+        LmBound hi{};
+        if (lower) {
+            lo = lower->get();
         }
-    }
-
-    LazyBounds(std::optional<Bound> lower, std::optional<Bound> upper) {
-        const std::optional<LmBound> lower_raw = lower ? std::optional(lower->get()) : std::nullopt;
-        const std::optional<LmBound> upper_raw = upper ? std::optional(upper->get()) : std::nullopt;
+        if (upper) {
+            hi = upper->get();
+        }
         LmLazyBounds *out = nullptr;
-        detail::check(lm_lazy_bounds_new(lower_raw ? &*lower_raw : nullptr,
-                                         upper_raw ? &*upper_raw : nullptr, &out));
+        detail::check(lm_lazy_bounds_new(lower ? &lo : nullptr, upper ? &hi : nullptr, &out));
         handle_ = out;
     }
+
+    /* Creates the default lazy bounds. */
+    static LazyBounds default_bounds() { return LazyBounds(lm_lazy_bounds_default()); }
 
     /* Adopts ownership of a raw C handle (for C interop). */
     explicit LazyBounds(LmLazyBounds *handle) noexcept : handle_(handle) {}
@@ -53,44 +60,53 @@ class LazyBounds {
     LazyBounds(const LazyBounds &) = delete;
     LazyBounds &operator=(const LazyBounds &) = delete;
 
-    LazyBounds clone() const {
-        LmLazyBounds *out = nullptr;
-        detail::check(lm_lazy_bounds_clone(handle_, &out));
-        return LazyBounds(out);
+    /* The explicit lower endpoint, or `std::nullopt` if unspecified. */
+    std::optional<Bound> lower() const {
+        LmBound out{};
+        LmStatus st = lm_lazy_bounds_lower(handle_, &out);
+        if (st == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(st);
+        return Bound(out);
     }
 
+    /* The explicit upper endpoint, or `std::nullopt` if unspecified. */
+    std::optional<Bound> upper() const {
+        LmBound out{};
+        LmStatus st = lm_lazy_bounds_upper(handle_, &out);
+        if (st == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(st);
+        return Bound(out);
+    }
+
+    /* Resolves the lazy bounds into concrete bounds for a variable type. */
     Bounds concretize(LmVtype vtype) const {
         LmBounds *out = nullptr;
         detail::check(lm_lazy_bounds_concretize(handle_, vtype, &out));
         return Bounds(out);
     }
 
-    std::optional<Bound> lower() const { return endpoint(lm_lazy_bounds_lower); }
-    std::optional<Bound> upper() const { return endpoint(lm_lazy_bounds_upper); }
+    /* Clones into an independent handle. */
+    LazyBounds clone() const {
+        LmLazyBounds *out = nullptr;
+        detail::check(lm_lazy_bounds_clone(handle_, &out));
+        return LazyBounds(out);
+    }
 
     LmLazyBounds *get() const noexcept { return handle_; }
     LmLazyBounds *release() noexcept {
-        LmLazyBounds *handle = handle_;
+        LmLazyBounds *h = handle_;
         handle_ = nullptr;
-        return handle;
+        return h;
     }
 
   private:
-    using EndpointGetter = LmStatus (*)(const LmLazyBounds *, LmBound *);
-
-    std::optional<Bound> endpoint(EndpointGetter getter) const {
-        LmBound out;
-        const LmStatus status = getter(handle_, &out);
-        if (status == LmStatus_Absent) {
-            return std::nullopt;
-        }
-        detail::check(status);
-        return Bound(out);
-    }
-
     LmLazyBounds *handle_;
 };
 
 } // namespace lm
-  //
+
 #endif // LUNA_MODEL_LAZY_BOUNDS_HPP
