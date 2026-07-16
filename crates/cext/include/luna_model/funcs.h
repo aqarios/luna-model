@@ -177,6 +177,14 @@ void lm_buffer_free(LmBuffer buffer);
 void lm_cmp_buffer_free(LmCmpBuffer buffer);
 
 /**
+ * Releases an owned optional-column buffer and every non-null handle in it.
+ *
+ * # Safety
+ * `buffer` must have been returned by LunaModel and not previously freed.
+ */
+void lm_column_buffer_free(LmColumnBuffer buffer);
+
+/**
  * Frees a ctype buffer previously returned by LunaModel.
  *
  * A null/empty buffer is a no-op. Each ctype buffer must be freed at most once.
@@ -414,6 +422,20 @@ LmCC *lm_cc_default(void);
  * Returns a non-null handle that must be released with [`lm_cc_free`].
  */
 LmCC *lm_cc_new(void);
+
+/**
+ * Evaluates every constraint against a name-keyed sample.
+ *
+ * # Safety
+ * `cc` must be valid, `names` and `values` must reference `len` readable
+ * elements, `tol` may be null or readable, and `out` must be writable.
+ */
+LmStatus lm_cc_evaluate_sample(const LmCC *cc,
+                               const char *const *names,
+                               const double *values,
+                               uintptr_t len,
+                               const double *tol,
+                               LmBoolMapBuffer *out);
 
 /**
  * Clones a constraint-collection into a new, independent handle written to `out`.
@@ -765,6 +787,20 @@ LmStatus lm_constr_new(const LmExpr *lhs,
                        LmComparator comparator,
                        const char *name,
                        LmConstraint **out);
+
+/**
+ * Evaluates a constraint against a name-keyed sample.
+ *
+ * # Safety
+ * `constr` must be valid, `names` and `values` must reference `len` readable
+ * elements, `tol` may be null or readable, and `out` must be writable.
+ */
+LmStatus lm_constr_evaluate_sample(const LmConstraint *constr,
+                                   const char *const *names,
+                                   const double *values,
+                                   uintptr_t len,
+                                   const double *tol,
+                                   bool *out);
 
 /**
  * Clones a constraint into a new, independent handle written to `out`.
@@ -1178,6 +1214,14 @@ LmStatus lm_expr_vars(const LmExpr *expr, LmVrefBuffer *out);
  * `out` must point to writable `LmVrefBuffer` storage.
  */
 LmStatus lm_expr_complete_vars(const LmExpr *expr, LmVrefBuffer *out);
+
+/**
+ * Returns whether the expression contains `var`.
+ *
+ * # Safety
+ * `expr` and `var` must be valid handles and `out` must be writable.
+ */
+LmStatus lm_expr_contains(const LmExpr *expr, const LmVref *var, bool *out);
 
 /**
  * Returns the degree of the expression.
@@ -1752,6 +1796,14 @@ LmStatus lm_higher_order_items(const LmHigherOrder *higher_order,
                                LmHigherOrderItemBuffer *out);
 
 /**
+ * Returns the canonical keys stored by the higher-order term.
+ *
+ * # Safety
+ * `higher_order` must be valid and `out` must be writable.
+ */
+LmStatus lm_higher_order_keys(const LmHigherOrder *higher_order, LmStrBuffer *out);
+
+/**
  * Returns the bias stored in the higher_order term for the given variable index.
  *
  * # Safety
@@ -1762,6 +1814,14 @@ LmStatus lm_higher_order_index(const LmHigherOrder *higher_order,
                                const uint32_t *indices,
                                uintptr_t indices_len,
                                double *out);
+
+/**
+ * Returns the bias stored under a canonical higher-order key.
+ *
+ * # Safety
+ * `higher_order` and `key` must be valid and `out` must be writable.
+ */
+LmStatus lm_higher_order_index_key(const LmHigherOrder *higher_order, const char *key, double *out);
 
 /**
  * Frees a higher_order handle. Passing null is a no-op.
@@ -1865,6 +1925,14 @@ LmStatus lm_higher_order_set_bias(LmHigherOrder *higher_order,
                                   const uint32_t *indices,
                                   uintptr_t indices_len,
                                   double bias);
+
+/**
+ * Sets the bias stored under a canonical higher-order key.
+ *
+ * # Safety
+ * `higher_order` and `key` must be valid.
+ */
+LmStatus lm_higher_order_set_bias_key(LmHigherOrder *higher_order, const char *key, double bias);
 
 /**
  * Returns a copy of the lazy-bounds' lower bound.
@@ -3188,7 +3256,10 @@ LmStatus lm_sol_remove_col(LmSol *sol, const char *name, LmColumn **out);
  * `names` must point to `len` readable `char *` values.
  * Each entry in `names` must be non-null and point to a valid NUL-terminated UTF-8 C string.
  */
-LmStatus lm_sol_remove_cols(LmSol *sol, const char *const *names, uintptr_t len);
+LmStatus lm_sol_remove_cols(LmSol *sol,
+                            const char *const *names,
+                            uintptr_t len,
+                            LmColumnBuffer *out);
 
 /**
  * Combines duplicate sample rows into a single row and sums their counts.

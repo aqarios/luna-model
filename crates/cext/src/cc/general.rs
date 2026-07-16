@@ -1,3 +1,5 @@
+use std::ffi::c_char;
+
 use luna_model::core::prelude::ContentEquality;
 
 use super::utils::{collection_from_c, collection_out_from_c};
@@ -5,8 +7,37 @@ use crate::{
     LmBoolMapBuffer, LmCC, LmEnv, LmStatus,
     buffer::bool_map_buffer_from_vec,
     error::{CapiError, guard},
+    eval::NameSample,
     utils::{opt_from_c, out_from_c, slice_from_c, storage_from_c},
 };
+
+/// Evaluates every constraint against a name-keyed sample.
+///
+/// # Safety
+/// `cc` must be valid, `names` and `values` must reference `len` readable
+/// elements, `tol` may be null or readable, and `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_cc_evaluate_sample(
+    cc: *const LmCC,
+    names: *const *const c_char,
+    values: *const f64,
+    len: usize,
+    tol: *const f64,
+    out: *mut LmBoolMapBuffer,
+) -> LmStatus {
+    guard(|| {
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
+        let sample = unsafe { NameSample::from_c(names, values, len) }?;
+        let values = cc
+            .evaluate_sample(&sample, unsafe { opt_from_c(tol) })
+            .map_err(CapiError::errored)?
+            .into_iter()
+            .map(|(name, value)| (name, vec![value]))
+            .collect();
+        *unsafe { out_from_c(out) }? = bool_map_buffer_from_vec(values);
+        Ok(())
+    })
+}
 
 /// Clones a constraint-collection into a new, independent handle written to `out`.
 ///

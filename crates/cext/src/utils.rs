@@ -352,14 +352,10 @@ pub fn assignment_to_c(assignment: Assignment) -> LmAssignment {
 }
 
 pub fn assignment_from_c(assignment: LmAssignment) -> Result<Assignment, CapiError> {
-    match assignment.vtype {
-        LmVtype::Binary => Ok(Assignment::Binary(assignment.value as u8)),
-        LmVtype::Spin => Ok(Assignment::Spin(assignment.value as i8)),
-        LmVtype::Integer => Ok(Assignment::Integer(assignment.value as i64)),
-        LmVtype::Real => Ok(Assignment::Real(assignment.value)),
-        LmVtype::InvertedBinary => Err(CapiError::new(
+    Assignment::try_from_value(vtype_from_c(assignment.vtype), assignment.value).ok_or_else(|| {
+        CapiError::new(
             LmStatus::InvalidArgument,
-            "inverted binary has no standalone assignment",
-        )),
-    }
+            "assignment value is incompatible with its variable type",
+        )
+    })
 }

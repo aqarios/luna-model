@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include <luna_model.h>
@@ -99,10 +100,30 @@ class HigherOrder {
         return out;
     }
 
+    /* The canonical keys stored by the higher-order term. */
+    std::vector<std::string> keys() const {
+        LmStrBuffer buf = {nullptr, 0, 0};
+        detail::check(lm_higher_order_keys(handle_, &buf));
+        std::vector<std::string> out;
+        out.reserve(buf.len);
+        for (std::size_t i = 0; i < buf.len; ++i) {
+            out.emplace_back(buf.data[i]);
+        }
+        lm_str_buffer_free(buf);
+        return out;
+    }
+
     /* The bias for a variable tuple. */
     double operator()(const std::vector<std::uint32_t> &indices) const {
         double out = 0.0;
         detail::check(lm_higher_order_index(handle_, indices.data(), indices.size(), &out));
+        return out;
+    }
+
+    /* The bias stored under a canonical key returned by `keys()`. */
+    double operator()(const std::string &key) const {
+        double out = 0.0;
+        detail::check(lm_higher_order_index_key(handle_, key.c_str(), &out));
         return out;
     }
 
@@ -133,6 +154,11 @@ class HigherOrder {
     /* Sets the bias for a variable tuple. */
     void set_bias(const std::vector<std::uint32_t> &indices, double bias) {
         detail::check(lm_higher_order_set_bias(handle_, indices.data(), indices.size(), bias));
+    }
+
+    /* Sets the bias under a canonical key returned by `keys()`. */
+    void set_bias(const std::string &key, double bias) {
+        detail::check(lm_higher_order_set_bias_key(handle_, key.c_str(), bias));
     }
 
     /* Drops stored terms whose bias is zero. */

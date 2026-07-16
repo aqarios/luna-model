@@ -232,6 +232,7 @@ fn expression_and_model_evaluation_via_capi() -> Result<()> {
     let obj = (&x + &y)?;
     let sample = HashMap::from([("x".to_owned(), 1.0), ("y".to_owned(), 1.0)]);
     assert_eq!(obj.evaluate_sample(&sample)?, 2.0);
+    assert!(obj.contains(&x)?);
 
     // A one-row solution; `evaluate` runs the expression over every row.
     let mut sol = Solution::with_sense(Sense::Min);
@@ -251,6 +252,8 @@ fn expression_and_model_evaluation_via_capi() -> Result<()> {
     let cap = Constraint::new((&x + &y)?, 1.0, Comparator::Le, Some("cap".into()))?;
     let mut cc = ConstraintCollection::new();
     cc.add_constraint(&cap, None)?;
+    assert!(!cap.evaluate_sample(&sample, None)?);
+    assert!(!cc.evaluate_sample(&sample, None)?["cap"]);
     model.set_constraints(cc)?;
 
     // evaluate_sample -> ResultView; violated_constraints -> collection.

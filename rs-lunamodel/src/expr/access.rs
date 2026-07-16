@@ -182,10 +182,6 @@ impl Expression {
     }
 
     pub fn contains(&self, var: &VarRef) -> Result<bool> {
-        let id = var.id()?;
-        Ok(self
-            .vars()?
-            .into_iter()
-            .any(|candidate| candidate.id().ok() == Some(id)))
+        out!(expr_contains(@self, @var))
     }
 }

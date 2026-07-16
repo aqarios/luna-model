@@ -1,7 +1,6 @@
 use std::ffi::{CString, c_char};
 
 use lunamodel_cext_vtable::{LmEnvId, LmSol, LmVref};
-use num::ToPrimitive;
 
 use crate::{
     Error, Result, Solution, Status, VarRef,
@@ -101,50 +100,5 @@ impl ToPtrList for &[String] {
 impl LmTryFrom<LmEnvId> for u128 {
     fn lm_try_from(value: LmEnvId) -> Result<Self> {
         Ok(((value.hi as u128) << 64) | (value.lo as u128))
-    }
-}
-
-impl LmTryFrom<f64> for u8 {
-    fn lm_try_from(value: f64) -> Result<Self> {
-        if value.fract() != 0.0 {
-            return Err(Error {
-                status: Status::InvalidArgument,
-                message: format!("{value} is not an integer"),
-            });
-        }
-        value.to_u8().ok_or_else(|| Error {
-            status: Status::InvalidArgument,
-            message: format!("{value} is out of range for u8"),
-        })
-    }
-}
-
-impl LmTryFrom<f64> for i8 {
-    fn lm_try_from(value: f64) -> Result<Self> {
-        if value.fract() != 0.0 {
-            return Err(Error {
-                status: Status::InvalidArgument,
-                message: format!("{value} is not an integer"),
-            });
-        }
-        value.to_i8().ok_or_else(|| Error {
-            status: Status::InvalidArgument,
-            message: format!("{value} is out of range for i8"),
-        })
-    }
-}
-
-impl LmTryFrom<f64> for i64 {
-    fn lm_try_from(value: f64) -> Result<Self> {
-        if value.fract() != 0.0 {
-            return Err(Error {
-                status: Status::InvalidArgument,
-                message: format!("{value} is not an integer"),
-            });
-        }
-        value.to_i64().ok_or_else(|| Error {
-            status: Status::InvalidArgument,
-            message: format!("{value} is out of range for i64"),
-        })
     }
 }

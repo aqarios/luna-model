@@ -199,6 +199,24 @@ class ConstraintCollection {
         detail::check(lm_cc_substitute(handle_, target.get(), replacement.get()));
     }
 
+    /* Evaluates all constraints against a name-keyed sample. */
+    std::unordered_map<std::string, bool>
+    evaluate_sample(const std::map<std::string, double> &sample,
+                    std::optional<double> tol = std::nullopt) const {
+        std::vector<const char *> names;
+        std::vector<double> values;
+        names.reserve(sample.size());
+        values.reserve(sample.size());
+        for (const auto &[name, value] : sample) {
+            names.push_back(name.c_str());
+            values.push_back(value);
+        }
+        LmBoolMapBuffer buffer = {nullptr, 0, 0};
+        detail::check(lm_cc_evaluate_sample(handle_, names.data(), values.data(), names.size(),
+                                            tol ? &*tol : nullptr, &buffer));
+        return read_single_evaluations(buffer);
+    }
+
     /* Evaluates all constraints against an index-aligned dense lookup. */
     std::unordered_map<std::string, bool>
     evaluate_sample_quick(const std::vector<double> &lookup,
@@ -206,15 +224,7 @@ class ConstraintCollection {
         LmBoolMapBuffer buffer = {nullptr, 0, 0};
         detail::check(lm_cc_evaluate_sample_quick(handle_, lookup.data(), lookup.size(),
                                                   tol ? &*tol : nullptr, &buffer));
-        std::unordered_map<std::string, bool> out;
-        for (std::size_t index = 0; index < buffer.len; ++index) {
-            const LmBoolMapEntry &entry = buffer.data[index];
-            if (entry.len != 0) {
-                out.emplace(entry.key, entry.data[0]);
-            }
-        }
-        lm_bool_map_buffer_free(buffer);
-        return out;
+        return read_single_evaluations(buffer);
     }
 
     // --- copying / comparison / serialization ---
@@ -276,6 +286,18 @@ class ConstraintCollection {
     }
 
   private:
+    static std::unordered_map<std::string, bool> read_single_evaluations(LmBoolMapBuffer buffer) {
+        std::unordered_map<std::string, bool> out;
+        for (std::size_t index = 0; index < buffer.len; ++index) {
+            const LmBoolMapEntry &entry = buffer.data[index];
+            if (entry.len != 0) {
+                out.emplace(entry.key, entry.data[0]);
+            }
+        }
+        lm_bool_map_buffer_free(buffer);
+        return out;
+    }
+
     /* Adopts an owned vref buffer into `Vref`s and releases the outer array. */
     static std::vector<Vref> adopt_vrefs(LmVrefBuffer buf) {
         std::vector<Vref> out;

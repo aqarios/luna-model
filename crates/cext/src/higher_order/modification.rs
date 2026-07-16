@@ -1,11 +1,14 @@
-use std::ops::{AddAssign, MulAssign, Neg};
+use std::{
+    ffi::c_char,
+    ops::{AddAssign, MulAssign, Neg},
+};
 
 use luna_model::core::prelude::HigherOrder;
 
 use crate::{
     LmHigherOrder, LmStatus,
     error::guard,
-    utils::{handle_to_c, mut_from_c, opt_slice_from_c, out_from_c, ref_from_c},
+    utils::{handle_to_c, mut_from_c, opt_slice_from_c, out_from_c, ref_from_c, str_from_c},
 };
 
 /// Adds a new entry with its bias to the higher_order term.
@@ -116,6 +119,24 @@ pub unsafe extern "C" fn lm_higher_order_set_bias(
         let indices = unsafe { opt_slice_from_c(indices, indices_len) }.unwrap_or(&[]);
 
         higher_order[indices] = bias;
+        Ok(())
+    })
+}
+
+/// Sets the bias stored under a canonical higher-order key.
+///
+/// # Safety
+/// `higher_order` and `key` must be valid.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_higher_order_set_bias_key(
+    higher_order: *mut LmHigherOrder,
+    key: *const c_char,
+    bias: f64,
+) -> LmStatus {
+    guard(|| {
+        let higher_order = unsafe { mut_from_c(higher_order as *mut HigherOrder, "higher_order") }?;
+        let key = unsafe { str_from_c(key, "key") }?.to_owned();
+        higher_order[&key] = bias;
         Ok(())
     })
 }

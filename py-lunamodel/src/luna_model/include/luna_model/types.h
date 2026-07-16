@@ -296,6 +296,26 @@ typedef struct {
 } LmCmpBuffer;
 
 /**
+ * Opaque handle to a solution column (all values of one variable).
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmColumn;
+
+/**
+ * Owned array of optional column handles.
+ *
+ * Null entries represent names that were not present. Release the buffer with
+ * [`lm_column_buffer_free`].
+ */
+typedef struct {
+    LmColumn **data;
+    uintptr_t len;
+    uintptr_t cap;
+} LmColumnBuffer;
+
+/**
  * An owned, heap-allocated Ctype buffer the caller takes ownership of.
  *
  * Ctype buffers returned by LunaModel must be released
@@ -396,14 +416,6 @@ typedef struct {
      */
     uintptr_t cap;
 } LmHigherOrderItemBuffer;
-
-/**
- * Opaque handle to a solution column (all values of one variable).
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmColumn;
 
 /**
  * One `(variable name, column)` entry of a solution's sample map.
@@ -834,6 +846,7 @@ typedef struct {
     void (*ctype_buffer_free)(LmCtypeBuffer);
     void (*cmp_buffer_free)(LmCmpBuffer);
     void (*vref_buffer_free)(LmVrefBuffer);
+    void (*column_buffer_free)(LmColumnBuffer);
     void (*u32_buffer_free)(LmU32Buffer);
     void (*f64_buffer_free)(LmF64Buffer);
     void (*linear_item_buffer_free)(LmLinearItemBuffer);
@@ -1016,7 +1029,7 @@ typedef struct {
     LmStatus (*sol_add_real)(LmSol*, const char*, const double*, uintptr_t);
     LmStatus (*sol_add_col)(LmSol*, LmVtype, const char*, const double*, uintptr_t, const double*);
     LmStatus (*sol_remove_col)(LmSol*, const char*, LmColumn**);
-    LmStatus (*sol_remove_cols)(LmSol*, const char*const *, uintptr_t);
+    LmStatus (*sol_remove_cols)(LmSol*, const char*const *, uintptr_t, LmColumnBuffer*);
     LmStatus (*sol_set_counts)(LmSol*, const uintptr_t*, uintptr_t);
     LmStatus (*sol_set_timing)(LmSol*, const LmTiming*);
     LmStatus (*sol_set_sense)(LmSol*, LmSense);
@@ -1065,6 +1078,7 @@ typedef struct {
     LmStatus (*expr_vtypes)(const LmExpr*, LmVtypeBuffer*);
     LmStatus (*expr_vars)(const LmExpr*, LmVrefBuffer*);
     LmStatus (*expr_complete_vars)(const LmExpr*, LmVrefBuffer*);
+    LmStatus (*expr_contains)(const LmExpr*, const LmVref*, bool*);
     LmStatus (*expr_degree)(const LmExpr*, uintptr_t*);
     LmStatus (*expr_is_constant)(const LmExpr*, bool*);
     LmStatus (*expr_has_quadratic)(const LmExpr*, bool*);
@@ -1104,6 +1118,12 @@ typedef struct {
     LmStatus (*constr_substitute)(LmConstraint*, const LmVref*, const LmExpr*);
     LmStatus (*constr_equal_contents)(const LmConstraint*, const LmConstraint*, bool*);
     LmStatus (*constr_eq)(const LmConstraint*, const LmConstraint*, bool*);
+    LmStatus (*constr_evaluate_sample)(const LmConstraint*,
+                                       const char*const *,
+                                       const double*,
+                                       uintptr_t,
+                                       const double*,
+                                       bool*);
     LmStatus (*constr_evaluate_sample_quick)(const LmConstraint*,
                                              const double*,
                                              uintptr_t,
@@ -1122,6 +1142,12 @@ typedef struct {
     LmStatus (*cc_deep_clone)(const LmCC*, const LmEnv*, LmCC**);
     LmStatus (*cc_eq)(const LmCC*, const LmCC*, bool*);
     LmStatus (*cc_equal_contents)(const LmCC*, const LmCC*, bool*);
+    LmStatus (*cc_evaluate_sample)(const LmCC*,
+                                   const char*const *,
+                                   const double*,
+                                   uintptr_t,
+                                   const double*,
+                                   LmBoolMapBuffer*);
     LmStatus (*cc_evaluate_sample_quick)(const LmCC*,
                                          const double*,
                                          uintptr_t,
@@ -1258,13 +1284,16 @@ typedef struct {
     LmStatus (*higher_order_is_zero)(const LmHigherOrder*, bool*);
     LmStatus (*higher_order_is_empty)(const LmHigherOrder*, bool*);
     LmStatus (*higher_order_items)(const LmHigherOrder*, LmHigherOrderItemBuffer*);
+    LmStatus (*higher_order_keys)(const LmHigherOrder*, LmStrBuffer*);
     LmStatus (*higher_order_degree)(const LmHigherOrder*, uintptr_t*);
     LmStatus (*higher_order_index)(const LmHigherOrder*, const uint32_t*, uintptr_t, double*);
+    LmStatus (*higher_order_index_key)(const LmHigherOrder*, const char*, double*);
     LmStatus (*higher_order_add_entry)(LmHigherOrder*, const uint32_t*, uintptr_t, double);
     LmStatus (*higher_order_add_higher_order)(LmHigherOrder*, const LmHigherOrder*);
     LmStatus (*higher_order_mul_bias)(LmHigherOrder*, double);
     LmStatus (*higher_order_clean)(LmHigherOrder*);
     LmStatus (*higher_order_set_bias)(LmHigherOrder*, const uint32_t*, uintptr_t, double);
+    LmStatus (*higher_order_set_bias_key)(LmHigherOrder*, const char*, double);
     LmStatus (*higher_order_neg)(const LmHigherOrder*, LmHigherOrder**);
     void (*timer_free)(LmTimer*);
     LmTimer *(*timer_start)(void);

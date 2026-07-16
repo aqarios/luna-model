@@ -52,7 +52,6 @@ mod result_view;
 mod sample_view;
 mod sol;
 mod specs;
-mod term_types;
 mod timer;
 mod timing;
 pub mod types;
@@ -80,7 +79,6 @@ pub use result_view::ResultView;
 pub use sample_view::{SampleView, SampleViewIdx};
 pub use sol::Solution;
 pub use specs::Specs;
-pub use term_types::{Neighborhood, OneVarTerm, TwoVarTerm};
 pub use timer::Timer;
 pub use timing::Timing;
 pub use traits::{
@@ -97,8 +95,8 @@ pub use lunamodel_cext_vtable::LunaModelCApi;
 
 pub use lunamodel_types::{
     Bias, BinaryAssignment, Comparator, Ctype, DEFAULT_BIAS, EnumSet, EnumSetFromVec, EnvIdx,
-    IntegerAssignment, RealAssignment, Sense, SpinAssignment, ValueSource, VarId, VarIdx, VarName,
-    Vtype,
+    IntegerAssignment, Neighborhood, OneVarTerm, RealAssignment, Sense, SpinAssignment, TwoVarTerm,
+    ValueSource, VarId, VarIdx, VarName, Vtype,
 };
 
 /// The name used when a model is created without an explicit name.

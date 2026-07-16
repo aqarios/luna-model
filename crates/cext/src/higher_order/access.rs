@@ -1,11 +1,12 @@
 use luna_model::core::prelude::HigherOrder;
 
 use crate::{
-    LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer, LmStatus,
-    buffer::{higher_order_item_buffer_from_vec, u32_buffer_from_vec},
+    LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer, LmStatus, LmStrBuffer,
+    buffer::{higher_order_item_buffer_from_vec, str_buffer_from_vec, u32_buffer_from_vec},
     error::guard,
-    utils::{opt_slice_from_c, out_from_c, ref_from_c},
+    utils::{opt_slice_from_c, out_from_c, ref_from_c, str_from_c},
 };
+use std::ffi::c_char;
 
 /// Returns the number of explicitly stored entries of the higher_order term.
 ///
@@ -111,6 +112,24 @@ pub unsafe extern "C" fn lm_higher_order_items(
     })
 }
 
+/// Returns the canonical keys stored by the higher-order term.
+///
+/// # Safety
+/// `higher_order` must be valid and `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_higher_order_keys(
+    higher_order: *const LmHigherOrder,
+    out: *mut LmStrBuffer,
+) -> LmStatus {
+    guard(|| {
+        let higher_order =
+            unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
+        *unsafe { out_from_c(out) }? =
+            str_buffer_from_vec(higher_order.iter().map(|(key, _)| key.clone()).collect());
+        Ok(())
+    })
+}
+
 /// Returns the bias stored in the higher_order term for the given variable index.
 ///
 /// # Safety
@@ -131,6 +150,25 @@ pub unsafe extern "C" fn lm_higher_order_index(
         let indices = unsafe { opt_slice_from_c(indices, indices_len) }.unwrap_or(&[]);
 
         *out = higher_order[indices];
+        Ok(())
+    })
+}
+
+/// Returns the bias stored under a canonical higher-order key.
+///
+/// # Safety
+/// `higher_order` and `key` must be valid and `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_higher_order_index_key(
+    higher_order: *const LmHigherOrder,
+    key: *const c_char,
+    out: *mut f64,
+) -> LmStatus {
+    guard(|| {
+        let higher_order =
+            unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
+        let key = unsafe { str_from_c(key, "key") }?.to_owned();
+        *unsafe { out_from_c(out) }? = higher_order[&key];
         Ok(())
     })
 }

@@ -3,7 +3,8 @@ use std::ffi::c_char;
 use luna_model::core::Timing;
 
 use crate::{
-    LmAssignment, LmColumn, LmSense, LmSol, LmStatus, LmTiming, LmVtype,
+    LmAssignment, LmColumn, LmColumnBuffer, LmSense, LmSol, LmStatus, LmTiming, LmVtype,
+    buffer::column_buffer_from_vec,
     error::{CapiError, guard},
     utils::{
         assignment_from_c, handle_to_c, new_handle_out_from_c, opt_from_c, out_from_c, ref_from_c,
@@ -241,6 +242,7 @@ pub unsafe extern "C" fn lm_sol_remove_cols(
     sol: *mut LmSol,
     names: *const *const c_char,
     len: usize,
+    out: *mut LmColumnBuffer,
 ) -> LmStatus {
     guard(|| {
         let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
@@ -249,7 +251,12 @@ pub unsafe extern "C" fn lm_sol_remove_cols(
             .iter()
             .map(|&name| unsafe { str_from_c(name, "names") }.map(str::to_owned))
             .collect::<Result<_, _>>()?;
-        sol.remove_cols(&names);
+        let removed = sol
+            .remove_cols(&names)
+            .into_iter()
+            .map(|column| column.map(handle_to_c).unwrap_or(std::ptr::null_mut()))
+            .collect();
+        *unsafe { out_from_c(out) }? = column_buffer_from_vec(removed);
         Ok(())
     })
 }

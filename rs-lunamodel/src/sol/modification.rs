@@ -60,7 +60,7 @@ impl Solution {
     }
 
     pub fn remove_cols(&mut self, vars: &[String]) -> Result<Vec<Option<Column>>> {
-        vars.iter().map(|var| self.remove_col(var)).collect()
+        out!(sol_remove_cols(@mut self, *vars))
     }
 
     pub fn iter_remove_cols(
@@ -70,10 +70,8 @@ impl Solution {
         Ok(self.remove_cols(vars)?.into_iter())
     }
 
-    /// Retains the older bulk ABI operation for extension authors that do not
-    /// need the removed columns.
     pub fn remove_cols_discarding(&mut self, vars: &[String]) -> Result<()> {
-        check!(sol_remove_cols(@mut self, *vars))
+        self.remove_cols(vars).map(drop)
     }
 
     pub fn aggregate(&mut self) -> Result<()> {

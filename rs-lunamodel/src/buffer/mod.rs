@@ -1,6 +1,7 @@
 mod bool_map;
 mod bytes;
 mod cmp;
+mod column;
 mod ctype;
 mod f64s;
 mod hoitems;

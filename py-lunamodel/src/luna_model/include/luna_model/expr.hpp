@@ -96,21 +96,17 @@ class Expression {
     /* Deep-clones many expressions of the same environment into one shared
      * deep-cloned environment. */
     static std::vector<Expression> deep_clone_many(const std::vector<const Expression *> &exprs) {
-        std::vector<Expression> out;
-        if (exprs.empty()) {
-            return out;
-        }
-        Env source = exprs.front()->env();
-        LmEnvId source_id = source.id();
-        Env target = source.deep_clone();
-        out.reserve(exprs.size());
+        std::vector<const LmExpr *> inputs;
+        std::vector<LmExpr *> outputs(exprs.size(), nullptr);
+        inputs.reserve(exprs.size());
         for (const Expression *expr : exprs) {
-            LmEnvId eid = expr->env().id();
-            if (eid.hi != source_id.hi || eid.lo != source_id.lo) {
-                throw Error(LmStatus_InvalidArgument,
-                            "expressions belong to different environments");
-            }
-            out.push_back(expr->deep_clone(target));
+            inputs.push_back(expr->get());
+        }
+        detail::check(lm_expr_deep_clone_many(inputs.data(), inputs.size(), outputs.data()));
+        std::vector<Expression> out;
+        out.reserve(outputs.size());
+        for (LmExpr *output : outputs) {
+            out.emplace_back(output);
         }
         return out;
     }

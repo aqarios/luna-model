@@ -21,6 +21,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     ctype_buffer_free: crate::buffer::lm_ctype_buffer_free,
     cmp_buffer_free: crate::buffer::lm_cmp_buffer_free,
     vref_buffer_free: crate::buffer::lm_vref_buffer_free,
+    column_buffer_free: crate::buffer::lm_column_buffer_free,
     u32_buffer_free: crate::buffer::lm_u32_buffer_free,
     f64_buffer_free: crate::buffer::lm_f64_buffer_free,
     linear_item_buffer_free: crate::buffer::lm_linear_item_buffer_free,
@@ -247,6 +248,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_vtypes: crate::expr::lm_expr_vtypes,
     expr_vars: crate::expr::lm_expr_vars,
     expr_complete_vars: crate::expr::lm_expr_complete_vars,
+    expr_contains: crate::expr::lm_expr_contains,
     expr_degree: crate::expr::lm_expr_degree,
     expr_is_constant: crate::expr::lm_expr_is_constant,
     expr_has_quadratic: crate::expr::lm_expr_has_quadratic,
@@ -299,6 +301,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     constr_substitute: crate::constr::lm_constr_substitute,
     constr_equal_contents: crate::constr::lm_constr_equal_contents,
     constr_eq: crate::constr::lm_constr_eq,
+    constr_evaluate_sample: crate::constr::lm_constr_evaluate_sample,
     constr_evaluate_sample_quick: crate::constr::lm_constr_evaluate_sample_quick,
     // Constraint -- access
     constr_lhs: crate::constr::lm_constr_lhs,
@@ -320,6 +323,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     cc_deep_clone: crate::cc::lm_cc_deep_clone,
     cc_eq: crate::cc::lm_cc_eq,
     cc_equal_contents: crate::cc::lm_cc_equal_contents,
+    cc_evaluate_sample: crate::cc::lm_cc_evaluate_sample,
     cc_evaluate_sample_quick: crate::cc::lm_cc_evaluate_sample_quick,
     // CC -- access
     cc_vtypes: crate::cc::lm_cc_vtypes,
@@ -502,14 +506,17 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     higher_order_is_zero: crate::higher_order::lm_higher_order_is_zero,
     higher_order_is_empty: crate::higher_order::lm_higher_order_is_empty,
     higher_order_items: crate::higher_order::lm_higher_order_items,
+    higher_order_keys: crate::higher_order::lm_higher_order_keys,
     higher_order_degree: crate::higher_order::lm_higher_order_degree,
     higher_order_index: crate::higher_order::lm_higher_order_index,
+    higher_order_index_key: crate::higher_order::lm_higher_order_index_key,
     // HigherOrder -- modification
     higher_order_add_entry: crate::higher_order::lm_higher_order_add_entry,
     higher_order_add_higher_order: crate::higher_order::lm_higher_order_add_higher_order,
     higher_order_mul_bias: crate::higher_order::lm_higher_order_mul_bias,
     higher_order_clean: crate::higher_order::lm_higher_order_clean,
     higher_order_set_bias: crate::higher_order::lm_higher_order_set_bias,
+    higher_order_set_bias_key: crate::higher_order::lm_higher_order_set_bias_key,
     higher_order_neg: crate::higher_order::lm_higher_order_neg,
     // ///// //
     // Timer //

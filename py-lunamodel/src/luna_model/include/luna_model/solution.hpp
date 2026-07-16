@@ -451,13 +451,26 @@ class Solution {
             lm_col_free(removed); // discard the returned column
         }
     }
-    void remove_cols(const std::vector<std::string> &names) {
+    std::vector<std::optional<Column>> remove_cols(const std::vector<std::string> &names) {
         std::vector<const char *> ptrs;
         ptrs.reserve(names.size());
         for (const std::string &name : names) {
             ptrs.push_back(name.c_str());
         }
-        detail::check(lm_sol_remove_cols(handle_, ptrs.data(), ptrs.size()));
+        LmColumnBuffer buffer = {nullptr, 0, 0};
+        detail::check(lm_sol_remove_cols(handle_, ptrs.data(), ptrs.size(), &buffer));
+        std::vector<std::optional<Column>> out;
+        out.reserve(buffer.len);
+        for (std::size_t index = 0; index < buffer.len; ++index) {
+            if (buffer.data[index] == nullptr) {
+                out.emplace_back(std::nullopt);
+            } else {
+                out.emplace_back(Column(buffer.data[index]));
+                buffer.data[index] = nullptr;
+            }
+        }
+        lm_column_buffer_free(buffer);
+        return out;
     }
 
     /* Aggregates duplicate sample rows in place. */

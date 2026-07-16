@@ -1,6 +1,6 @@
 use lunamodel_types::Comparator;
 
-use crate::{Constraint, Expression, Result, TryIndex};
+use crate::{Constraint, Expression, Result, TryIndex, traits::ToPtrList};
 
 impl Constraint {
     pub fn lhs(&self) -> Result<Expression> {
@@ -27,13 +27,22 @@ impl Constraint {
     where
         for<'a> S: TryIndex<&'a str, Output = f64>,
     {
-        let lhs = self.lhs()?;
-        let env = lhs.env()?;
-        let mut lookup = vec![0.0; env.len()?];
-        for var in lhs.complete_vars()? {
-            lookup[var.id()? as usize] = sample.try_index(var.name()?.as_str())?;
+        let vars = self.lhs()?.complete_vars()?;
+        let mut names = Vec::with_capacity(vars.len());
+        let mut values = Vec::with_capacity(vars.len());
+        for var in vars {
+            let name = var.name()?;
+            values.push(sample.try_index(name.as_str())?);
+            names.push(name);
         }
-        self.evaluate_sample_quick(&lookup, tol)
+        let names = names.as_slice().to_ptr_list()?;
+        out!(constr_evaluate_sample(
+            @self,
+            names.as_ptr(),
+            values.as_ptr(),
+            values.len(),
+            ?tol
+        ))
     }
 
     pub fn evaluate_sample_quick(&self, lookup: &[f64], tol: Option<f64>) -> Result<bool> {

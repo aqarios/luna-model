@@ -107,10 +107,11 @@ class Bounds {
         return out;
     }
 
-    /* Endpoint-wise equality. (No lm_bounds_eq in the C API; composed from the
-     * endpoint getters.) */
+    /* Endpoint-wise equality. */
     bool operator==(const Bounds &other) const {
-        return lower() == other.lower() && upper() == other.upper();
+        bool out = false;
+        detail::check(lm_bounds_eq(handle_, other.handle_, &out));
+        return out;
     }
     bool operator!=(const Bounds &other) const { return !(*this == other); }
 

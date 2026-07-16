@@ -1,6 +1,7 @@
 #ifndef LUNA_MODEL_CONSTRAINT_HPP
 #define LUNA_MODEL_CONSTRAINT_HPP
 
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -84,6 +85,23 @@ class Constraint {
     LmComparator comparator() const {
         LmComparator out = {};
         detail::check(lm_constr_comparator(handle_, &out));
+        return out;
+    }
+
+    /* Evaluates the constraint against a name-keyed sample. */
+    bool evaluate_sample(const std::map<std::string, double> &sample,
+                         std::optional<double> tol = std::nullopt) const {
+        std::vector<const char *> names;
+        std::vector<double> values;
+        names.reserve(sample.size());
+        values.reserve(sample.size());
+        for (const auto &[name, value] : sample) {
+            names.push_back(name.c_str());
+            values.push_back(value);
+        }
+        bool out = false;
+        detail::check(lm_constr_evaluate_sample(handle_, names.data(), values.data(), names.size(),
+                                                tol ? &*tol : nullptr, &out));
         return out;
     }
 

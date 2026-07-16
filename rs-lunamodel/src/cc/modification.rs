@@ -1,4 +1,4 @@
-use crate::{Constraint, Expression, Result, TryIndex, VarRef};
+use crate::{Constraint, Expression, Result, TryIndex, VarRef, traits::ToPtrList};
 
 use super::{ConstraintCollection, editor::ConstraintCollectionEditor};
 
@@ -31,18 +31,22 @@ impl ConstraintCollection {
         for<'a> S: TryIndex<&'a str, Output = f64>,
     {
         let vars = self.complete_vars()?;
-        let len = vars
-            .iter()
-            .map(|var| var.id())
-            .collect::<Result<Vec<_>>>()?
-            .into_iter()
-            .max()
-            .map_or(0, |id| id as usize + 1);
-        let mut lookup = vec![0.0; len];
+        let mut names = Vec::with_capacity(vars.len());
+        let mut values = Vec::with_capacity(vars.len());
         for var in vars {
-            lookup[var.id()? as usize] = sample.try_index(var.name()?.as_str())?;
+            let name = var.name()?;
+            values.push(sample.try_index(name.as_str())?);
+            names.push(name);
         }
-        self.evaluate_sample_quick(&lookup, tol)
+        let names = names.as_slice().to_ptr_list()?;
+        let values: std::collections::HashMap<String, Vec<bool>> = out!(cc_evaluate_sample(
+            @self,
+            names.as_ptr(),
+            values.as_ptr(),
+            values.len(),
+            ?tol
+        ))?;
+        single_evaluations(values)
     }
 
     pub fn evaluate_sample_quick(
@@ -53,19 +57,7 @@ impl ConstraintCollection {
         let values: std::collections::HashMap<String, Vec<bool>> = out!(
             cc_evaluate_sample_quick(@self, lookup.as_ptr(), lookup.len(), ?tol)
         )?;
-        values
-            .into_iter()
-            .map(|(name, values)| {
-                values
-                    .into_iter()
-                    .next()
-                    .map(|value| (name, value))
-                    .ok_or_else(|| crate::Error {
-                        status: crate::Status::InvalidArgument,
-                        message: "C API returned an empty constraint evaluation".to_owned(),
-                    })
-            })
-            .collect()
+        single_evaluations(values)
     }
 
     pub fn add_constraint(&mut self, constr: &Constraint, name: Option<&str>) -> Result<String> {
@@ -87,4 +79,22 @@ impl ConstraintCollection {
     pub fn substitute(&mut self, target: &VarRef, replacement: &Expression) -> Result<()> {
         check!(cc_substitute(@mut self, @target, @replacement))
     }
+}
+
+fn single_evaluations(
+    values: std::collections::HashMap<String, Vec<bool>>,
+) -> Result<std::collections::HashMap<String, bool>> {
+    values
+        .into_iter()
+        .map(|(name, values)| {
+            values
+                .into_iter()
+                .next()
+                .map(|value| (name, value))
+                .ok_or_else(|| crate::Error {
+                    status: crate::Status::InvalidArgument,
+                    message: "C API returned an empty constraint evaluation".to_owned(),
+                })
+        })
+        .collect()
 }

@@ -6,7 +6,7 @@ use lunamodel_error::LunaModelResult;
 use lunamodel_types::{Bias, Vtype};
 use std::collections::HashMap;
 
-use crate::solution::{Column, col::Assignment};
+use crate::solution::{Assignment, Column};
 
 use super::Solution;
 

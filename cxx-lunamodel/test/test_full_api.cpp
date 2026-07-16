@@ -113,7 +113,12 @@ int test_full_api(int argc, char *argv[]) {
 
     lm::HigherOrder ho;
     ho.add_entry({0, 1, 2}, 1.0);
-    ho.set_bias({0, 1, 2}, 0.0);
+    const std::vector<std::string> ho_keys = ho.keys();
+    CHECK(ho_keys.size() == 1u);
+    if (!ho_keys.empty()) {
+        CHECK(ho(ho_keys.front()) == 1.0);
+        ho.set_bias(ho_keys.front(), 0.0);
+    }
     ho.clean();
     CHECK(ho.is_zero());
 

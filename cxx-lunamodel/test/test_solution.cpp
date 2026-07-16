@@ -108,8 +108,12 @@ int test_solution(int argc, char *argv[]) {
     CHECK(cloned.equal_contents(sol));
     CHECK(cloned == sol);
 
+    std::vector<std::optional<lm::Column>> removed = cloned.remove_cols({"x", "missing"});
+    CHECK(removed.size() == 2u);
+    CHECK(removed[0].has_value());
+    CHECK(!removed[1].has_value());
+
     // Mutation on the clone does not affect the original.
-    cloned.remove_col("x");
     CHECK(cloned.sample_len() == 1u);
     CHECK(sol.sample_len() == 2u);
 

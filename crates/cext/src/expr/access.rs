@@ -5,8 +5,9 @@ use crate::{
     buffer::{vref_buffer_from_vec, vtype_buffer_from_vec},
     error::guard,
     utils::vtype_to_c,
-    utils::{handle_to_c, out_from_c, storage_out_from_c},
+    utils::{handle_to_c, out_from_c, ref_from_c, storage_out_from_c},
 };
+use luna_model::core::prelude::VarRef;
 
 /// Returns the environment of the expression.
 ///
@@ -181,6 +182,25 @@ pub unsafe extern "C" fn lm_expr_complete_vars(
             .map(handle_to_c)
             .collect::<Vec<*mut LmVref>>();
         *out = vref_buffer_from_vec(vars);
+        Ok(())
+    })
+}
+
+/// Returns whether the expression contains `var`.
+///
+/// # Safety
+/// `expr` and `var` must be valid handles and `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_expr_contains(
+    expr: *const LmExpr,
+    var: *const LmVref,
+    out: *mut bool,
+) -> LmStatus {
+    guard(|| {
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
+        let var = unsafe { ref_from_c(var as *const VarRef, "var") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = expr.contains(var);
         Ok(())
     })
 }

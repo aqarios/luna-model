@@ -12,7 +12,8 @@ pub use access::{
 };
 pub use creation::{lm_cc_default, lm_cc_free, lm_cc_new};
 pub use general::{
-    lm_cc_clone, lm_cc_deep_clone, lm_cc_eq, lm_cc_equal_contents, lm_cc_evaluate_sample_quick,
+    lm_cc_clone, lm_cc_deep_clone, lm_cc_eq, lm_cc_equal_contents, lm_cc_evaluate_sample,
+    lm_cc_evaluate_sample_quick,
 };
 pub use modification::{
     lm_cc_add_collection, lm_cc_add_constraint, lm_cc_remove_constraint, lm_cc_set_constraint,

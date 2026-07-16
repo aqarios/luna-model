@@ -9,5 +9,5 @@ pub use access::{
 pub use creation::{lm_constr_free, lm_constr_new};
 pub use general::{
     lm_constr_clone, lm_constr_deep_clone, lm_constr_eq, lm_constr_equal_contents,
-    lm_constr_evaluate_sample_quick, lm_constr_substitute,
+    lm_constr_evaluate_sample, lm_constr_evaluate_sample_quick, lm_constr_substitute,
 };

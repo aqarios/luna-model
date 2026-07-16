@@ -266,6 +266,18 @@ pub struct LmVrefBuffer {
     pub cap: usize,
 }
 
+/// Owned array of optional column handles.
+///
+/// Null entries represent names that were not present. Release the buffer with
+/// [`lm_column_buffer_free`].
+#[repr(C)]
+#[derive(Default)]
+pub struct LmColumnBuffer {
+    pub data: *mut *mut LmColumn,
+    pub len: usize,
+    pub cap: usize,
+}
+
 /// An owned, heap-allocated u32 buffer the caller takes ownership of.
 ///
 /// u32 buffers returned by LunaModel must be released
@@ -653,6 +665,7 @@ pub struct LunaModelCApi {
     pub ctype_buffer_free: unsafe extern "C" fn(LmCtypeBuffer),
     pub cmp_buffer_free: unsafe extern "C" fn(LmCmpBuffer),
     pub vref_buffer_free: unsafe extern "C" fn(LmVrefBuffer),
+    pub column_buffer_free: unsafe extern "C" fn(LmColumnBuffer),
     pub u32_buffer_free: unsafe extern "C" fn(LmU32Buffer),
     pub f64_buffer_free: unsafe extern "C" fn(LmF64Buffer),
     pub linear_item_buffer_free: unsafe extern "C" fn(LmLinearItemBuffer),
@@ -939,7 +952,12 @@ pub struct LunaModelCApi {
     ) -> LmStatus,
     pub sol_remove_col:
         unsafe extern "C" fn(*mut LmSol, *const c_char, *mut *mut LmColumn) -> LmStatus,
-    pub sol_remove_cols: unsafe extern "C" fn(*mut LmSol, *const *const c_char, usize) -> LmStatus,
+    pub sol_remove_cols: unsafe extern "C" fn(
+        *mut LmSol,
+        *const *const c_char,
+        usize,
+        *mut LmColumnBuffer,
+    ) -> LmStatus,
     pub sol_set_counts: unsafe extern "C" fn(*mut LmSol, *const usize, usize) -> LmStatus,
     pub sol_set_timing: unsafe extern "C" fn(*mut LmSol, *const LmTiming) -> LmStatus,
     pub sol_set_sense: unsafe extern "C" fn(*mut LmSol, LmSense) -> LmStatus,
@@ -1008,6 +1026,7 @@ pub struct LunaModelCApi {
     pub expr_vtypes: unsafe extern "C" fn(*const LmExpr, *mut LmVtypeBuffer) -> LmStatus,
     pub expr_vars: unsafe extern "C" fn(*const LmExpr, *mut LmVrefBuffer) -> LmStatus,
     pub expr_complete_vars: unsafe extern "C" fn(*const LmExpr, *mut LmVrefBuffer) -> LmStatus,
+    pub expr_contains: unsafe extern "C" fn(*const LmExpr, *const LmVref, *mut bool) -> LmStatus,
     pub expr_degree: unsafe extern "C" fn(*const LmExpr, *mut usize) -> LmStatus,
     pub expr_is_constant: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
     pub expr_has_quadratic: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
@@ -1078,6 +1097,14 @@ pub struct LunaModelCApi {
         unsafe extern "C" fn(*const LmConstraint, *const LmConstraint, *mut bool) -> LmStatus,
     pub constr_eq:
         unsafe extern "C" fn(*const LmConstraint, *const LmConstraint, *mut bool) -> LmStatus,
+    pub constr_evaluate_sample: unsafe extern "C" fn(
+        *const LmConstraint,
+        *const *const c_char,
+        *const f64,
+        usize,
+        *const f64,
+        *mut bool,
+    ) -> LmStatus,
     pub constr_evaluate_sample_quick: unsafe extern "C" fn(
         *const LmConstraint,
         *const f64,
@@ -1101,6 +1128,14 @@ pub struct LunaModelCApi {
     pub cc_deep_clone: unsafe extern "C" fn(*const LmCC, *const LmEnv, *mut *mut LmCC) -> LmStatus,
     pub cc_eq: unsafe extern "C" fn(*const LmCC, *const LmCC, *mut bool) -> LmStatus,
     pub cc_equal_contents: unsafe extern "C" fn(*const LmCC, *const LmCC, *mut bool) -> LmStatus,
+    pub cc_evaluate_sample: unsafe extern "C" fn(
+        *const LmCC,
+        *const *const c_char,
+        *const f64,
+        usize,
+        *const f64,
+        *mut LmBoolMapBuffer,
+    ) -> LmStatus,
     pub cc_evaluate_sample_quick: unsafe extern "C" fn(
         *const LmCC,
         *const f64,
@@ -1297,9 +1332,12 @@ pub struct LunaModelCApi {
     pub higher_order_is_empty: unsafe extern "C" fn(*const LmHigherOrder, *mut bool) -> LmStatus,
     pub higher_order_items:
         unsafe extern "C" fn(*const LmHigherOrder, *mut LmHigherOrderItemBuffer) -> LmStatus,
+    pub higher_order_keys: unsafe extern "C" fn(*const LmHigherOrder, *mut LmStrBuffer) -> LmStatus,
     pub higher_order_degree: unsafe extern "C" fn(*const LmHigherOrder, *mut usize) -> LmStatus,
     pub higher_order_index:
         unsafe extern "C" fn(*const LmHigherOrder, *const u32, usize, *mut f64) -> LmStatus,
+    pub higher_order_index_key:
+        unsafe extern "C" fn(*const LmHigherOrder, *const c_char, *mut f64) -> LmStatus,
     pub higher_order_add_entry:
         unsafe extern "C" fn(*mut LmHigherOrder, *const u32, usize, f64) -> LmStatus,
     pub higher_order_add_higher_order:
@@ -1308,6 +1346,8 @@ pub struct LunaModelCApi {
     pub higher_order_clean: unsafe extern "C" fn(*mut LmHigherOrder) -> LmStatus,
     pub higher_order_set_bias:
         unsafe extern "C" fn(*mut LmHigherOrder, *const u32, usize, f64) -> LmStatus,
+    pub higher_order_set_bias_key:
+        unsafe extern "C" fn(*mut LmHigherOrder, *const c_char, f64) -> LmStatus,
     pub higher_order_neg:
         unsafe extern "C" fn(*const LmHigherOrder, *mut *mut LmHigherOrder) -> LmStatus,
     // ///// //
