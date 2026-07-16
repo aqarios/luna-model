@@ -1,7 +1,10 @@
-use crate::utils::{new_handle_out_from_c, out_from_c, shared_from_c};
 use luna_model::core::prelude::ContentEquality;
 
-use crate::{LmEnv, LmStatus, error::guard};
+use crate::{
+    LmEnv, LmStatus,
+    error::guard,
+    utils::{out_from_c, storage_from_c, storage_out_from_c},
+};
 
 /// Clones an environment into a new, independent handle written to `out`.
 ///
@@ -11,8 +14,8 @@ use crate::{LmEnv, LmStatus, error::guard};
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_clone(env: *const LmEnv, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
-        unsafe { new_handle_out_from_c(out, env.clone()) }
+        let env = unsafe { storage_from_c(env, "env") }?;
+        unsafe { storage_out_from_c(out, env.clone()) }
     })
 }
 
@@ -24,8 +27,8 @@ pub unsafe extern "C" fn lm_env_clone(env: *const LmEnv, out: *mut *mut LmEnv) -
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_deep_clone(env: *const LmEnv, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
-        unsafe { new_handle_out_from_c(out, env.deep_clone()) }
+        let env = unsafe { storage_from_c(env, "env") }?;
+        unsafe { storage_out_from_c(out, env.deep_clone()) }
     })
 }
 
@@ -40,8 +43,8 @@ pub unsafe extern "C" fn lm_env_eq(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
-        let other = unsafe { shared_from_c(other, "other") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
+        let other = unsafe { storage_from_c(other, "other") }?;
         *unsafe { out_from_c(out) }? = *env.env.read() == *other.env.read();
         Ok(())
     })
@@ -60,10 +63,10 @@ pub unsafe extern "C" fn lm_env_equal_contents(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
-        let other = unsafe { shared_from_c(other, "other") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
+        let other = unsafe { storage_from_c(other, "other") }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = env.equal_contents(&other);
+        *out = env.equal_contents(other);
         Ok(())
     })
 }

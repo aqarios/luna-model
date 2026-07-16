@@ -75,3 +75,7 @@ impl std::fmt::Debug for Constraint {
             .finish()
     }
 }
+
+// SAFETY: every operation on an LmConstraint is synchronized by the host.
+unsafe impl Send for Constraint {}
+unsafe impl Sync for Constraint {}

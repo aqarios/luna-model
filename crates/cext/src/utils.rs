@@ -1,14 +1,16 @@
 use std::ffi::{CStr, c_char};
 
 use luna_model::{
-    core::solution::{Assignment, result::ResultView},
+    core::solution::Assignment,
     types::{Bound, Comparator, Ctype, Sense, ValueSource, Vtype},
 };
-use lunamodel_cext_handle::{HandleKind, Shared, handle_from_shared, handle_ref, new_handle};
+use lunamodel_cext_handle::{
+    HandleKind, Shared, SharedHandleKind, handle_from_shared, handle_ref, new_handle,
+};
 
 use crate::{
-    LmAssignment, LmBound, LmBoundTag, LmComparator, LmCtype, LmResultView, LmSense, LmStatus,
-    LmValueSource, LmVtype, error::CapiError, res::ResultViewHandle,
+    LmAssignment, LmBound, LmBoundTag, LmComparator, LmCtype, LmSense, LmStatus, LmValueSource,
+    LmVtype, error::CapiError,
 };
 
 /// Borrows the synchronized host storage behind an opaque C handle.
@@ -16,21 +18,38 @@ use crate::{
 /// # Safety
 /// `ptr` must be null or a live handle of type `H` created by
 /// `lunamodel-cext-handle` and remain live for the returned lifetime.
-pub(crate) unsafe fn shared_from_c<'a, H: HandleKind>(
+pub(crate) unsafe fn storage_from_c<'a, H: HandleKind>(
     ptr: *const H,
     what: &str,
-) -> Result<&'a Shared<H>, CapiError> {
+) -> Result<&'a H::Storage, CapiError> {
     unsafe { handle_ref(ptr) }.ok_or_else(|| CapiError::null_pointer(what))
+}
+
+/// Borrows ordinary synchronized storage behind a C handle.
+///
+/// # Safety
+/// `ptr` must satisfy [`storage_from_c`].
+pub(crate) unsafe fn shared_from_c<'a, H>(
+    ptr: *const H,
+    what: &str,
+) -> Result<&'a Shared<H>, CapiError>
+where
+    H: SharedHandleKind<Storage = Shared<H>>,
+{
+    unsafe { storage_from_c(ptr, what) }
 }
 
 /// Writes a newly allocated synchronized handle to an opaque output slot.
 ///
 /// # Safety
 /// `out` must be null or point to writable `H *` storage.
-pub(crate) unsafe fn new_handle_out_from_c<H: HandleKind>(
+pub(crate) unsafe fn new_handle_out_from_c<H>(
     out: *mut *mut H,
     value: H::Value,
-) -> Result<(), CapiError> {
+) -> Result<(), CapiError>
+where
+    H: SharedHandleKind<Storage = Shared<H>>,
+{
     let out = unsafe { out_from_c(out) }?;
     *out = new_handle::<H>(value);
     Ok(())
@@ -41,12 +60,31 @@ pub(crate) unsafe fn new_handle_out_from_c<H: HandleKind>(
 ///
 /// # Safety
 /// `out` must be null or point to writable `H *` storage.
-pub(crate) unsafe fn retained_handle_out_from_c<H: HandleKind>(
+pub(crate) unsafe fn retained_handle_out_from_c<H>(
     out: *mut *mut H,
     shared: Shared<H>,
-) -> Result<(), CapiError> {
+) -> Result<(), CapiError>
+where
+    H: SharedHandleKind<Storage = Shared<H>>,
+{
     let out = unsafe { out_from_c(out) }?;
     *out = handle_from_shared::<H>(shared);
+    Ok(())
+}
+
+/// Writes concrete handle storage to an opaque output slot.
+///
+/// Used by internally synchronized handles such as `LmEnv`, whose storage is
+/// already an `Arc`-backed facade and therefore needs no outer lock.
+///
+/// # Safety
+/// `out` must be null or point to writable `H *` storage.
+pub(crate) unsafe fn storage_out_from_c<H: HandleKind>(
+    out: *mut *mut H,
+    storage: H::Storage,
+) -> Result<(), CapiError> {
+    let out = unsafe { out_from_c(out) }?;
+    *out = lunamodel_cext_handle::handle_from_storage::<H>(storage);
     Ok(())
 }
 
@@ -324,16 +362,4 @@ pub fn assignment_from_c(assignment: LmAssignment) -> Result<Assignment, CapiErr
             "inverted binary has no standalone assignment",
         )),
     }
-}
-
-/// Rebuilds the borrowed `ResultView` backing an `LmResultView` handle.
-///
-/// # Safety
-/// `view` must be a valid result-view handle created by this library whose
-/// owned solution snapshot is still alive.
-pub unsafe fn result_view_from_c<'a>(
-    view: *const LmResultView,
-) -> Result<ResultView<'a>, CapiError> {
-    let handle = unsafe { ref_from_c(view as *const ResultViewHandle, "view") }?;
-    Ok(ResultView::new(&handle.sol, handle.index))
 }

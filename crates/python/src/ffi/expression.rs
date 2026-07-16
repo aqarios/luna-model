@@ -1,73 +1,36 @@
-//! Low-level capsule and pointer FFI helpers for Python expression wrappers.
+//! C-handle capsule transport for Python expression wrappers.
 
-use std::{ffi::CStr, sync::Arc};
-
-use lunamodel_core::{Expression, Model};
+use lunamodel_cext_handle::{
+    ExpressionHandle, drop_handle, handle_from_storage, handle_into_storage,
+};
+use lunamodel_cext_pyffi::{new_capsule, take_handle};
+use lunamodel_cext_vtable::LmExpr;
 use lunamodel_unwind::*;
-use parking_lot::RwLock;
-use pyo3::{
-    Bound, PyResult, Python,
-    exceptions::PyValueError,
-    pymethods,
-    types::{PyCapsule, PyCapsuleMethods},
-};
+use pyo3::{Bound, PyResult, Python, pymethods, types::PyCapsule};
 
-use crate::{
-    PyExprContent, PyExpression,
-    ffi::{capsule_ffi::CapsuleFFI, capsule_name},
-};
-
-const CAPSULE_NAME_EXPR: &CStr = c"builtins.capsule.PyExprContent.Expr";
-const CAPSULE_NAME_MODEL: &CStr = c"builtins.capsule.PyExprContent.Model";
-
-impl<'py> CapsuleFFI<'py> for PyExprContent {
-    fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        match &self {
-            Self::Expr(arc_expr) => {
-                let capsule = PyCapsule::new_with_value(
-                    py,
-                    arc_expr.clone(),
-                    capsule_name(CAPSULE_NAME_EXPR),
-                )?;
-                Ok(capsule)
-            }
-            Self::Model(arc_model) => {
-                let capsule = PyCapsule::new_with_value(
-                    py,
-                    arc_model.clone(),
-                    capsule_name(CAPSULE_NAME_MODEL),
-                )?;
-                Ok(capsule)
-            }
-        }
-    }
-
-    fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        if let Ok(ptr) = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_EXPR))) {
-            let arc_expr = unsafe { ptr.cast::<Arc<RwLock<Expression>>>().as_ref().clone() };
-            Ok(Self::Expr(arc_expr))
-        } else if let Ok(ptr) = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_MODEL))) {
-            let arc_model = unsafe { ptr.cast::<Arc<RwLock<Model>>>().as_ref().clone() };
-            Ok(Self::Model(arc_model))
-        } else {
-            Err(PyValueError::new_err(
-                "input is an unexpected capsule type.",
-            ))
-        }
-    }
-}
+use crate::{PyExprContent, PyExpression};
 
 #[unwindable]
 #[pymethods]
 impl PyExpression {
-    pub fn _to_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        self.expr.to_capsule(py)
+    pub fn _to_c_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
+        let storage = match &self.expr {
+            PyExprContent::Expr(expression) => ExpressionHandle::Expression(expression.clone()),
+            PyExprContent::Model(model) => ExpressionHandle::Model(model.clone()),
+        };
+        let handle = handle_from_storage::<LmExpr>(storage);
+        new_capsule(py, handle, drop_handle::<LmExpr>)
     }
 
     #[staticmethod]
-    pub fn _from_capsule<'py>(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        Ok(Self {
-            expr: PyExprContent::from_capsule(capsule)?,
-        })
+    pub fn _from_c_capsule(capsule: Bound<'_, PyCapsule>) -> PyResult<Self> {
+        let handle = take_handle::<LmExpr>(&capsule)?;
+        let storage = unsafe { handle_into_storage::<LmExpr>(handle) }
+            .expect("a consumed non-null expression handle must contain storage");
+        let expr = match storage {
+            ExpressionHandle::Expression(expression) => PyExprContent::Expr(expression),
+            ExpressionHandle::Model(model) => PyExprContent::Model(model),
+        };
+        Ok(Self { expr })
     }
 }

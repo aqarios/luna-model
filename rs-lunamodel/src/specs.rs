@@ -125,3 +125,8 @@ impl std::fmt::Display for Specs {
         )
     }
 }
+
+// SAFETY: Specs is immutable through this facade and every C operation only
+// reads the uniquely owned handle.
+unsafe impl Send for Specs {}
+unsafe impl Sync for Specs {}

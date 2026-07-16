@@ -1,9 +1,12 @@
-use crate::utils::{handle_to_c, mut_from_c, out_from_c, ref_from_c};
 use std::ops::{AddAssign, MulAssign, Neg};
 
 use luna_model::core::prelude::Linear;
 
-use crate::{LmLinear, LmStatus, error::guard};
+use crate::{
+    LmLinear, LmStatus,
+    error::guard,
+    utils::{handle_to_c, mut_from_c, out_from_c, ref_from_c},
+};
 
 /// Adds a new entry with its bias to the linear term.
 ///

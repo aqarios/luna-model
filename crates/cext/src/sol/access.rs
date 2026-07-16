@@ -189,17 +189,18 @@ pub unsafe extern "C" fn lm_sol_result(
     out: *mut *mut LmResultView,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
+        let sol = unsafe { shared_from_c(sol, "sol") }?;
+        let exists = sol.read().result(index).is_some();
         let out = unsafe { out_from_c(out) }?;
-        match sol.result(index) {
-            Some(_) => {
+        match exists {
+            true => {
                 *out = handle_to_c(ResultViewHandle {
                     sol: sol.clone(),
                     index,
                 });
                 Ok(())
             }
-            None => Err(CapiError::new(
+            false => Err(CapiError::new(
                 LmStatus::Absent,
                 format!("solution has no result row at index '{index}'"),
             )),
@@ -221,14 +222,19 @@ pub unsafe extern "C" fn lm_sol_results(
     out: *mut LmResultViewBuffer,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
-        let out = unsafe { out_from_c(out) }?;
-        let views = sol
+        let sol = unsafe { shared_from_c(sol, "sol") }?;
+        let indices = sol
+            .read()
             .results()
-            .map(|r| {
+            .map(|result| result.idx)
+            .collect::<Vec<_>>();
+        let out = unsafe { out_from_c(out) }?;
+        let views = indices
+            .into_iter()
+            .map(|index| {
                 handle_to_c(ResultViewHandle {
                     sol: sol.clone(),
-                    index: r.idx,
+                    index,
                 })
             })
             .collect::<Vec<*mut LmResultView>>();
@@ -252,17 +258,18 @@ pub unsafe extern "C" fn lm_sol_sample_view(
     out: *mut *mut LmSampleView,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
+        let sol = unsafe { shared_from_c(sol, "sol") }?;
+        let exists = sol.read().sample(index).is_some();
         let out = unsafe { out_from_c(out) }?;
-        match sol.sample(index) {
-            Some(_) => {
+        match exists {
+            true => {
                 *out = handle_to_c(SampleViewHandle {
                     sol: sol.clone(),
                     index,
                 });
                 Ok(())
             }
-            None => Err(CapiError::new(
+            false => Err(CapiError::new(
                 LmStatus::Absent,
                 format!("solution has no sample at index '{index}'"),
             )),
@@ -284,14 +291,19 @@ pub unsafe extern "C" fn lm_sol_sample_views(
     out: *mut LmSampleViewBuffer,
 ) -> LmStatus {
     guard(|| {
-        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
-        let out = unsafe { out_from_c(out) }?;
-        let views = sol
+        let sol = unsafe { shared_from_c(sol, "sol") }?;
+        let indices = sol
+            .read()
             .samples()
-            .map(|r| {
+            .map(|sample| sample.idx)
+            .collect::<Vec<_>>();
+        let out = unsafe { out_from_c(out) }?;
+        let views = indices
+            .into_iter()
+            .map(|index| {
                 handle_to_c(SampleViewHandle {
                     sol: sol.clone(),
-                    index: r.idx,
+                    index,
                 })
             })
             .collect::<Vec<*mut LmSampleView>>();
@@ -311,22 +323,28 @@ pub unsafe extern "C" fn lm_sol_sample_views(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_sol_best(sol: *const LmSol, out: *mut LmResultViewBuffer) -> LmStatus {
     guard(|| {
-        let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
+        let sol = unsafe { shared_from_c(sol, "sol") }?;
         let out = unsafe { out_from_c(out) }?;
-        let bests = sol.best().ok_or_else(|| {
-            CapiError::new(
-                LmStatus::Absent,
-                "solution has no best result (missing feasibility or objective
-  values)"
-                    .to_string(),
-            )
-        })?;
-        let views = bests
+        let indices = {
+            let solution = sol.read();
+            solution
+                .best()
+                .ok_or_else(|| {
+                    CapiError::new(
+                        LmStatus::Absent,
+                        "solution has no best result (missing feasibility or objective values)",
+                    )
+                })?
+                .into_iter()
+                .map(|result| result.idx)
+                .collect::<Vec<_>>()
+        };
+        let views = indices
             .into_iter()
-            .map(|r| {
+            .map(|index| {
                 handle_to_c(ResultViewHandle {
                     sol: sol.clone(),
-                    index: r.idx,
+                    index,
                 })
             })
             .collect::<Vec<*mut LmResultView>>();

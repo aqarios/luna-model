@@ -712,6 +712,7 @@ version = "0.6.9"
 dependencies = [
  "lunamodel-cext-vtable",
  "lunamodel-core",
+ "lunamodel-types",
  "parking_lot 0.12.5",
 ]
 
@@ -1311,10 +1312,8 @@ name = "pyo3-lunamodel"
 version = "0.6.9"
 dependencies = [
  "derive_more",
- "luna-model",
  "lunamodel-cext-pyffi",
  "lunamodel-cext-vtable",
- "parking_lot 0.12.5",
  "pyo3",
  "rs-lunamodel",
 ]

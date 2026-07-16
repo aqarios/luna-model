@@ -1,4 +1,3 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c, shared_from_c, slice_from_c, str_from_c};
 use std::ffi::c_char;
 
 use luna_model::core::prelude::{LazyBounds, VarRef};
@@ -7,6 +6,7 @@ use crate::{
     LmEnv, LmLazyBounds, LmStatus, LmVref, LmVtype,
     error::{CapiError, guard},
     utils::vtype_from_c,
+    utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c, storage_from_c, str_from_c},
 };
 
 /// Inserts a new variable and returns a reference tied to this environment.
@@ -24,7 +24,7 @@ pub unsafe extern "C" fn lm_env_insert(
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
-        let mut env = unsafe { shared_from_c(env, "env") }?.write_arc();
+        let mut env = unsafe { storage_from_c(env, "env") }?.clone();
         let name = unsafe { str_from_c(name, "name") }?;
         let vtype = vtype_from_c(vtype);
         let bounds = if bounds.is_null() {
@@ -59,7 +59,7 @@ pub unsafe extern "C" fn lm_env_insert_with_fallback(
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
-        let mut env = unsafe { shared_from_c(env, "env") }?.write_arc();
+        let mut env = unsafe { storage_from_c(env, "env") }?.clone();
         let name = unsafe { str_from_c(name, "name") }?;
         let vtype = vtype_from_c(vtype);
         let bounds = if bounds.is_null() {
@@ -95,7 +95,7 @@ pub unsafe extern "C" fn lm_env_set_inverted(
     inverted: u32,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.write_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
         env.env
             .write()
             .get_mut(index)
@@ -118,7 +118,7 @@ pub unsafe extern "C" fn lm_env_insert_inverted(
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
-        let mut env = unsafe { shared_from_c(env, "env") }?.write_arc();
+        let mut env = unsafe { storage_from_c(env, "env") }?.clone();
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
         let out = unsafe { out_from_c(out) }?;
         let var = env.insert_inverted(vref).map_err(CapiError::errored)?;
@@ -135,7 +135,7 @@ pub unsafe extern "C" fn lm_env_insert_inverted(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_remove(env: *mut LmEnv, vref: *const LmVref) -> LmStatus {
     guard(|| {
-        let mut env = unsafe { shared_from_c(env, "env") }?.write_arc();
+        let mut env = unsafe { storage_from_c(env, "env") }?.clone();
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
         env.remove(vref);
         Ok(())

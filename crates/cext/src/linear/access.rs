@@ -1,9 +1,10 @@
-use crate::utils::{out_from_c, ref_from_c};
 use luna_model::core::prelude::Linear;
 
 use crate::{
-    LmLinear, LmLinearItem, LmLinearItemBuffer, LmStatus, buffer::linear_item_buffer_from_vec,
+    LmLinear, LmLinearItem, LmLinearItemBuffer, LmStatus,
+    buffer::linear_item_buffer_from_vec,
     error::guard,
+    utils::{out_from_c, ref_from_c},
 };
 
 /// Returns the number of explicitly stored entries of the linear term.

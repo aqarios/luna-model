@@ -1,7 +1,10 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::core::prelude::Linear;
 
-use crate::{LmLinear, LmStatus, error::guard};
+use crate::{
+    LmLinear, LmStatus,
+    error::guard,
+    utils::{handle_to_c, out_from_c, ref_from_c},
+};
 
 /// Compares two linear terms for equality.
 ///

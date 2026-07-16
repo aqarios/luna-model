@@ -1,7 +1,10 @@
-use crate::utils::{drop_from_c, handle_to_c, out_from_c, ref_from_c};
 use luna_model::core::prelude::Timer;
 
-use crate::{LmStatus, LmTimer, LmTiming, error::guard};
+use crate::{
+    LmStatus, LmTimer, LmTiming,
+    error::guard,
+    utils::{drop_from_c, handle_to_c, out_from_c, ref_from_c},
+};
 
 /// Frees a timer handle. Passing null is a no-op.
 ///

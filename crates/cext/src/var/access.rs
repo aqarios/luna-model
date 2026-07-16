@@ -1,4 +1,3 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::core::prelude::Variable;
 
 use crate::{
@@ -6,6 +5,7 @@ use crate::{
     buffer::buffer_from_vec,
     error::{CapiError, guard},
     utils::vtype_to_c,
+    utils::{handle_to_c, out_from_c, ref_from_c},
 };
 
 /// Returns a copy of the variable's name as an owned UTF-8 byte buffer.

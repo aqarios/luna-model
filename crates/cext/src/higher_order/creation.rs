@@ -1,7 +1,9 @@
-use crate::utils::{drop_from_c, handle_to_c};
 use luna_model::core::prelude::HigherOrder;
 
-use crate::LmHigherOrder;
+use crate::{
+    LmHigherOrder,
+    utils::{drop_from_c, handle_to_c},
+};
 
 /// Frees a higher_order handle. Passing null is a no-op.
 ///

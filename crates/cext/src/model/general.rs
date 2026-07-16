@@ -1,16 +1,17 @@
-use crate::utils::{
-    handle_to_c, new_handle_out_from_c, out_from_c, ref_from_c, retained_handle_out_from_c,
-    shared_from_c, str_from_c,
-};
 use std::ffi::c_char;
 
 use luna_model::core::Bounds;
 use luna_model::types::Specs;
 use lunamodel_cext_vtable::LmLazyBounds;
 
-use crate::error::{CapiError, guard};
-use crate::utils::vtype_from_c;
-use crate::{LmModel, LmSpecs, LmStatus, LmVref, LmVtype};
+use crate::{
+    LmModel, LmSpecs, LmStatus, LmVref, LmVtype,
+    error::{CapiError, guard},
+    utils::{
+        handle_to_c, new_handle_out_from_c, out_from_c, ref_from_c, retained_handle_out_from_c,
+        shared_from_c, str_from_c, vtype_from_c,
+    },
+};
 
 /// Clones a model into a new, independent handle written to `out`.
 ///
@@ -25,6 +26,15 @@ pub unsafe extern "C" fn lm_model_clone(model: *const LmModel, out: *mut *mut Lm
     })
 }
 
+/// Creates another owning handle to the same synchronized model.
+///
+/// Unlike [`lm_model_clone`], this does not clone the model contents: mutations
+/// made through either handle are visible through the other. The returned
+/// handle must be released with `lm_model_free`.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `LmModel *` storage.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_retain(
     model: *const LmModel,

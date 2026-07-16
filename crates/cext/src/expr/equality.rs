@@ -1,7 +1,7 @@
-use crate::utils::{out_from_c, ref_from_c};
-use luna_model::core::{Expression, prelude::ContentEquality};
+use luna_model::core::prelude::ContentEquality;
 
-use crate::{LmExpr, LmStatus, error::guard};
+use super::utils::expression_from_c;
+use crate::{LmExpr, LmStatus, error::guard, utils::out_from_c};
 
 /// Compares two expressions for equality.
 ///
@@ -16,10 +16,10 @@ pub unsafe extern "C" fn lm_expr_eq(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
-        let other = unsafe { ref_from_c(other as *const Expression, "other") }?;
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
+        let other = unsafe { expression_from_c(other, "other") }?.read();
         let out = unsafe { out_from_c(out) }?;
-        *out = expr.eq(other);
+        *out = expr.eq(&other);
         Ok(())
     })
 }
@@ -37,10 +37,10 @@ pub unsafe extern "C" fn lm_expr_equal_contents(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
-        let other = unsafe { ref_from_c(other as *const Expression, "other") }?;
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
+        let other = unsafe { expression_from_c(other, "other") }?.read();
         let out = unsafe { out_from_c(out) }?;
-        *out = expr.equal_contents(other);
+        *out = expr.equal_contents(&other);
         Ok(())
     })
 }

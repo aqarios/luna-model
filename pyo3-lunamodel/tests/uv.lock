@@ -28,93 +28,95 @@ wheels = [
 name = "luna-model"
 source = { editable = "../../py-lunamodel" }
 dependencies = [
-    { name = "numpy" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "numpy", marker = "extra == 'group-20-pyo3-lunamodel-tests-local'" },
+    { name = "typing-extensions", marker = "(python_full_version < '3.13' and extra == 'group-20-pyo3-lunamodel-tests-local') or (extra == 'group-20-pyo3-lunamodel-tests-local' and extra == 'group-20-pyo3-lunamodel-tests-pypi')" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "dimod", marker = "extra == 'dimod'", specifier = ">=0.12.21" },
-    { name = "numpy", specifier = ">=1.0.0" },
-    { name = "pyscipopt", marker = "extra == 'scip'", specifier = ">=6.0.0" },
+    { name = "dimod", marker = "extra == 'dimod'", specifier = ">=0.12.22" },
+    { name = "numpy", specifier = ">=1.21.0" },
+    { name = "pyscipopt", marker = "extra == 'scip'", specifier = ">=6.2.1" },
     { name = "qiskit", marker = "extra == 'qiskit'", specifier = ">=2.1.2" },
+    { name = "qiskit-addon-opt-mapper", marker = "extra == 'qiskit'", specifier = ">=0.1.0" },
     { name = "qiskit-optimization", marker = "extra == 'qiskit'", specifier = ">=0.6.1" },
     { name = "typing-extensions", marker = "python_full_version < '3.13'", specifier = ">=4.15.0" },
 ]
 provides-extras = ["dimod", "qiskit", "scip"]
 
 [package.metadata.requires-dev]
-build = [{ name = "maturin", extras = ["zig"], specifier = ">=1.13.1" }]
+build = [{ name = "maturin", extras = ["zig"], specifier = ">=1.14.1" }]
 dev = [
-    { name = "auditwheel", specifier = ">=6.6.0" },
-    { name = "dimod", specifier = ">=0.12.21" },
+    { name = "auditwheel", specifier = ">=6.7.0" },
+    { name = "dimod", specifier = ">=0.12.22" },
     { name = "docplex", specifier = ">=2.30.251" },
     { name = "gurobipy", specifier = ">=13.0.2" },
     { name = "gurobipy", marker = "python_full_version < '3.14'", specifier = ">=13.0.0" },
-    { name = "ipython", specifier = ">=9.8.0" },
+    { name = "ipython", specifier = ">=9.14.1" },
     { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "mypy", specifier = ">=2.0.0" },
-    { name = "numpy", specifier = ">=2.3.5" },
+    { name = "mypy", specifier = ">=2.1.0" },
+    { name = "numpy", specifier = ">=2.4.6" },
     { name = "pre-commit", specifier = ">=4.5.0" },
-    { name = "pyscipopt", specifier = ">=6.0.0" },
+    { name = "pyscipopt", specifier = ">=6.2.1" },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-xdist", specifier = ">=3.8.0" },
     { name = "qiskit", specifier = ">=2.1.2" },
+    { name = "qiskit-addon-opt-mapper", specifier = ">=0.1.0" },
     { name = "qiskit-aer", marker = "python_full_version < '3.14'", specifier = ">=0.17.1" },
-    { name = "qiskit-ibm-runtime", specifier = ">=0.41.1" },
+    { name = "qiskit-ibm-runtime", specifier = ">=0.47.0" },
     { name = "qiskit-optimization", specifier = ">=0.6.1" },
     { name = "rich", specifier = ">=14.2.0" },
-    { name = "ruff", specifier = ">=0.14.14" },
+    { name = "ruff", specifier = ">=0.15.16" },
     { name = "scipy", specifier = ">=1.16.3" },
 ]
 docs = [
     { name = "mkdocs-jupyter", specifier = ">=0.24.1" },
     { name = "mkdocs-macros-plugin", specifier = ">=1.5.0" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0.4" },
-    { name = "zensical", specifier = ">=0.0.40" },
+    { name = "zensical", specifier = ">=0.0.45" },
 ]
 
 [[package]]
 name = "luna-model"
-version = "0.6.0"
+version = "0.6.11"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "typing-extensions", marker = "(python_full_version < '3.13' and extra != 'group-20-pyo3-lunamodel-tests-local') or (extra == 'group-20-pyo3-lunamodel-tests-local' and extra == 'group-20-pyo3-lunamodel-tests-pypi')" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9f/73/40a42316536293d2952fb494a153ba94692e08178212e9a2a713b9a3a6df/luna_model-0.6.0-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:4d517d02a2d657524fdc043d226260a06977ad7c22d0232ad452be9b016b7898", size = 3706540, upload-time = "2026-04-23T10:42:53.433Z" },
-    { url = "https://files.pythonhosted.org/packages/90/4e/49fe5d99802f916b35fb7922bacda9e8f3bfae9442a35b459ee2581f0a86/luna_model-0.6.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:bafba25a482f86658a9dacef7a54fc19976c2863509d82ee655f525455bcf397", size = 3446283, upload-time = "2026-04-23T10:42:51.535Z" },
-    { url = "https://files.pythonhosted.org/packages/dd/05/0df8184e817966532c35b1e780247f1abcf0b780a1635ba2e6865836db36/luna_model-0.6.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1909983387b2bba1833ddd3e5b59e1e3d7a7d8bec0cda3b9cb9b560a989b2459", size = 2682969, upload-time = "2026-04-23T10:43:36.371Z" },
-    { url = "https://files.pythonhosted.org/packages/3d/75/52ed85a2752fc5a962dccf1a786b94c572505e1a6063bd6fab324f372cdf/luna_model-0.6.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:38897ac4542c409f2ab5697f7182668fb5449aec9bdb51e973a5562229b8d470", size = 2873570, upload-time = "2026-04-23T10:42:58.538Z" },
-    { url = "https://files.pythonhosted.org/packages/9c/66/b51a55ec1d01dd5a624bc770d2ea60d433a716131e7eb77e69dacde0139b/luna_model-0.6.0-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:ce90fda3fb00b574eacb2a78ff5742d7562a09f330ef15b265edfa53834cbadb", size = 2662598, upload-time = "2026-04-23T10:42:48.095Z" },
-    { url = "https://files.pythonhosted.org/packages/1e/11/f9f78bbce627f448795157eed9abc113f14d14c8234c0bfbbf058e6b3688/luna_model-0.6.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:f73d5a26179922c619ad599495cee778004b30c22e6fef1395e7cb2bc81b91a2", size = 2874624, upload-time = "2026-04-23T10:43:04.578Z" },
-    { url = "https://files.pythonhosted.org/packages/6d/26/9adb8c482aa451f485ca53a2630c457b7abedd49cc7eaf5cdb2ebe7115e3/luna_model-0.6.0-cp311-cp311-win_amd64.whl", hash = "sha256:eaaa6235446fbf5bc12aa5828214a1ddcb71568b0dd18416fe11d2c78a28fedf", size = 2828661, upload-time = "2026-04-23T10:42:46.159Z" },
-    { url = "https://files.pythonhosted.org/packages/ae/41/6036b5b4cc5e880c1c06e2a0b61b5822b465e2d21d64242921e078ec1e67/luna_model-0.6.0-cp311-cp311-win_arm64.whl", hash = "sha256:e4b5684c3b349e93cdcfa48eede96bba0434464e6956ab6b3298b9c875b1dcb0", size = 2604996, upload-time = "2026-04-23T10:43:22.209Z" },
-    { url = "https://files.pythonhosted.org/packages/b0/0b/3d893aa67366e600122374e245f73818bd44a5ceb3604a7ba8d4b7b2989a/luna_model-0.6.0-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:5ddfe28a3ac4dd102b692da592773cdec6af47195cb58eba38183a38d3ea8cd2", size = 3696293, upload-time = "2026-04-23T10:43:13.252Z" },
-    { url = "https://files.pythonhosted.org/packages/31/ab/f1f2d1b30f7cf6f5186b349ee9494b655edab5f395bee8f137ed20948234/luna_model-0.6.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:08d8a24370bdb42d161e7d82e7566e123435d1acc54f1897741ed6d22ff74c80", size = 3434557, upload-time = "2026-04-23T10:42:56.951Z" },
-    { url = "https://files.pythonhosted.org/packages/c5/2d/3255656527f1ff30d347f07a09e753c81f16490f44b97a9896079a75dca8/luna_model-0.6.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:70a2f8b8ba2db8ecefb125256c4dd05356d490905683e45bbc15f473eff7b31f", size = 2674226, upload-time = "2026-04-23T10:43:31.837Z" },
-    { url = "https://files.pythonhosted.org/packages/6b/15/88b9d16e85cb3ede9aff63c9265d4c7e9d97a8d19a54d8d8ea5ab2bf93a3/luna_model-0.6.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:923331d2f6eb125f437ddca804c93f3e0d968bbab66b364ba718698fe912dc5a", size = 2868563, upload-time = "2026-04-23T10:43:10.267Z" },
-    { url = "https://files.pythonhosted.org/packages/d6/f3/a490b3700714e912c3c7157414371e75afddbf970f7d727ee5f00a6b7ff0/luna_model-0.6.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:58e20a3d538fa6122685c6abb651f944d180d24d5b2780ff918369319de7d88c", size = 2653255, upload-time = "2026-04-23T10:43:02.396Z" },
-    { url = "https://files.pythonhosted.org/packages/47/64/2a373d768c7cd372f4fdb5b246a347045f9dfd4fe0f36f79c5500cb57b42/luna_model-0.6.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:2aaa0341257889cda0cefb2bb03b5de7ffb38e167e0d738ef6d011cf1d0d53d1", size = 2867557, upload-time = "2026-04-23T10:43:38.307Z" },
-    { url = "https://files.pythonhosted.org/packages/df/06/e93092ef5faff7e350b33e621d78e72e497967267ee3f5c86f26c1dcbd1f/luna_model-0.6.0-cp312-cp312-win_amd64.whl", hash = "sha256:77cf10d18bb45a301f99c13cecc3fdd4aee484856409d27e9be9bd28ae19b756", size = 2815711, upload-time = "2026-04-23T10:42:49.956Z" },
-    { url = "https://files.pythonhosted.org/packages/05/d3/d79158c390546451d08b4a27ac3664e2d861e3be8f9b3109b3f5cd69f8c0/luna_model-0.6.0-cp312-cp312-win_arm64.whl", hash = "sha256:211f11ca2262fe973b07b54322ecaf0139f6d92b73e3cdb6142b5e346b5f6eb0", size = 2581762, upload-time = "2026-04-23T10:43:27.05Z" },
-    { url = "https://files.pythonhosted.org/packages/85/ad/92c674a852069591223d1991ce00392def93cc55d5e2433dcbbb6330fbd0/luna_model-0.6.0-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:d87a3aeec64a9fb5770328f64cf73efb9e515de98529f51742fea8977cf13b9b", size = 3694352, upload-time = "2026-04-23T10:43:25.259Z" },
-    { url = "https://files.pythonhosted.org/packages/b0/6b/1aa39ef2a1568375d34cff9ade5fcb034ff6dc09c2e6c7bfc0477a55804e/luna_model-0.6.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:c747ce79d70ffba6a37b2cebf1634d8048d071f9da2c1fed9e85da2577fb9740", size = 3516517, upload-time = "2026-04-23T10:42:55.212Z" },
-    { url = "https://files.pythonhosted.org/packages/3e/c0/6d2f99ba7b1cdf75da0a8bf38195a7744682f2b15922eb170b0c7fd51011/luna_model-0.6.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6d8934f3d87dc7be9d74cf4b8d384bd4b24ee89af9ed6f20a775b73a7b67ff40", size = 2674030, upload-time = "2026-04-23T10:43:15.039Z" },
-    { url = "https://files.pythonhosted.org/packages/63/6b/8ae731a2bcd938430a18c95f49634dee961c593dac134ce959c27d636390/luna_model-0.6.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:dc25ff7c1fe6788cd0937c41229959cd61379f7fed7f98f5a7f679a52b32d0a0", size = 2867570, upload-time = "2026-04-23T10:43:20.612Z" },
-    { url = "https://files.pythonhosted.org/packages/fb/2f/0d78cc72a8b7573902fd1f5c3d44e1487dfb02591b5e7a3eca4f5f25aca0/luna_model-0.6.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:fa395d36bc1163cd1981a5cf727facad84ab1fdc3066441f59011aa56c26b5e1", size = 2674286, upload-time = "2026-04-23T10:43:33.182Z" },
-    { url = "https://files.pythonhosted.org/packages/ee/ba/f1e5f820a88355bfea555394c3401d5b52d5cc7ec78d9f478c7f313fbc5b/luna_model-0.6.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:71438057efb2c1cb0fe7cfacc2cd532e2230b4e7dd258391c4c9d0366803dcc8", size = 2871392, upload-time = "2026-04-23T10:43:34.604Z" },
-    { url = "https://files.pythonhosted.org/packages/83/6c/9ed74ad9e5c05896477a4f3cd4c5b0dc5bfe45e3ea39d06266eb693e2266/luna_model-0.6.0-cp313-cp313-win_amd64.whl", hash = "sha256:b351b248804e909d8364f0bc1bc1c44dd44809bceb235cba2a73f65b2a28e6d3", size = 2815459, upload-time = "2026-04-23T10:43:00.089Z" },
-    { url = "https://files.pythonhosted.org/packages/b7/ba/d5b21a04030db61a21cd25f24fb55d6b330eb17b6a49971deff71c2e23ed/luna_model-0.6.0-cp313-cp313-win_arm64.whl", hash = "sha256:af515b0f33f049d07c943c0a58e653f9e63d37b02b9fce5bd4d2f7dbe4f8cfac", size = 2582625, upload-time = "2026-04-23T10:43:06.521Z" },
-    { url = "https://files.pythonhosted.org/packages/22/1e/d5e522cb4bac98921ad5ac5cc77b3630c9996b1266b95f0407bb73162d22/luna_model-0.6.0-cp314-cp314-macosx_10_12_x86_64.whl", hash = "sha256:46004cd1a7ac5c8247f674b4d5d047ce1cd377dbc28f083943c8a51c96963ef6", size = 3703431, upload-time = "2026-04-23T10:43:18.759Z" },
-    { url = "https://files.pythonhosted.org/packages/6b/ba/cf85efa4a70d59dea3ba695872c669080481ecbdbc50ed692aea9a9bc94b/luna_model-0.6.0-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:355bb628c9d091e78e074d1988e901e83309450eca968b429f83dc313c73a885", size = 3526794, upload-time = "2026-04-23T10:43:30.453Z" },
-    { url = "https://files.pythonhosted.org/packages/8c/2e/e428c45e9098491e0406ced45d0b07903b4ea1c4bfb0849a029ce00a488f/luna_model-0.6.0-cp314-cp314-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2fc1b821c0c5d6dc9bff55dd6f34e978387719c9dcf3b2faad64737198aa6f83", size = 2674627, upload-time = "2026-04-23T10:43:11.855Z" },
-    { url = "https://files.pythonhosted.org/packages/0d/da/6116fdf8a374f17fd90c09d02ba41cb4e20574c866ac4833568cc1c75c54/luna_model-0.6.0-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ce65ceaf9d8dfee0fad56100da13fccb34452b04d73d5603c43b025334a42987", size = 2877011, upload-time = "2026-04-23T10:43:28.717Z" },
-    { url = "https://files.pythonhosted.org/packages/1b/14/19247eadb255181544adc1e1d85fcdd259989b3741ae97e7b8929fc2147f/luna_model-0.6.0-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:e0fc418501a39f1106bf41455b640f0bb1efe25af0808967eade2f136d9ac045", size = 2655380, upload-time = "2026-04-23T10:43:16.894Z" },
-    { url = "https://files.pythonhosted.org/packages/31/5e/208147c112131815301c3e8a6fde5f02b196c976c9b0e8aa7259668615f0/luna_model-0.6.0-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:33359bf2d6a534457a4d9b6bb86ec6fb39e510d5b736122e1c96d61528cabc6e", size = 2887112, upload-time = "2026-04-23T10:43:40.224Z" },
-    { url = "https://files.pythonhosted.org/packages/a9/f4/6e4bd5754073067af69d4d648862b53ad781786b52a510304dd8800fefce/luna_model-0.6.0-cp314-cp314-win_amd64.whl", hash = "sha256:a25c504075eac71fd61e579f31859eb790cef37525e0d1e9caf4c52512fbf129", size = 2810976, upload-time = "2026-04-23T10:43:08.449Z" },
-    { url = "https://files.pythonhosted.org/packages/b9/0b/031aacaa85fc195948faaf33b677adbd9a296fb5fa4a2043cad08e1db87b/luna_model-0.6.0-cp314-cp314-win_arm64.whl", hash = "sha256:9907d0a011e2228354aa1fe2f8414bcb70c5c269939eae45f919fa4a25c0386a", size = 2588349, upload-time = "2026-04-23T10:43:23.534Z" },
+    { url = "https://files.pythonhosted.org/packages/a5/2a/7b919fcc7877c528b4eca26671444186a0144ac964cd50b889c9939d226c/luna_model-0.6.11-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:b8ee2ad7716634408f50574200016765972bf2f456f761e8c46c255e1ffbe551", size = 2621034, upload-time = "2026-07-14T12:55:30.093Z" },
+    { url = "https://files.pythonhosted.org/packages/d0/27/944925ac3dec661f6d58f23a55774820db7a2552474d9285589f447f0ddf/luna_model-0.6.11-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:eb3b297700fcfadafa0ea4d62d4f09fe3b550a46abc7395280b77032b2afd46c", size = 2451681, upload-time = "2026-07-14T12:55:31.967Z" },
+    { url = "https://files.pythonhosted.org/packages/09/51/c9f5b3f8b1d6a1e0ee1a5fcd8546a6a739913177e0935870d3cafffc23e5/luna_model-0.6.11-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:14491046c01c9d8e07bd55f6211c4a9f024ae040f9a63b2abaad6a8b681648e8", size = 2525362, upload-time = "2026-07-14T12:55:33.735Z" },
+    { url = "https://files.pythonhosted.org/packages/70/2e/1014601420010eb431c1cde5fcca6786dd7416a09db3a0602c7f1f499eae/luna_model-0.6.11-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:edc930d89a582cf3f3d7d597974e5b620837aab5c21cdb87239f2522a10e9b58", size = 2751546, upload-time = "2026-07-14T12:55:35.899Z" },
+    { url = "https://files.pythonhosted.org/packages/26/0a/734914e681aba2f8a61784c082b486a999805a71761af55059e6c6aea154/luna_model-0.6.11-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:876354eae296491b3f0237f314eb6f03cc6967d7747c7b69d545312b963da788", size = 2525025, upload-time = "2026-07-14T12:55:38.104Z" },
+    { url = "https://files.pythonhosted.org/packages/35/36/b4b17fb91dbfc21e29bad43ca4a444d63e54349f632d66891108b67f3808/luna_model-0.6.11-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:a57d50f98c3755f8cc86f200deef8d39430a02c24cd478b584e34ade8ba6f2f1", size = 2750371, upload-time = "2026-07-14T12:55:39.931Z" },
+    { url = "https://files.pythonhosted.org/packages/50/44/e655b086ba841a363f16e8a7493d522ead34e1ef8442c24b0a55d19d032e/luna_model-0.6.11-cp311-cp311-win_amd64.whl", hash = "sha256:c9e575128c76a01f4164ce75ea2336913242422586b02333ef18ee00e0721357", size = 2844875, upload-time = "2026-07-14T12:55:41.9Z" },
+    { url = "https://files.pythonhosted.org/packages/83/e4/76e1dd1dfe66b3be133be4c628096975efc35bd822b5d9be0d0b03d0ef87/luna_model-0.6.11-cp311-cp311-win_arm64.whl", hash = "sha256:7512d9018acefeb379de1716bf561e4f413de1688236cab800d5b11c796ee48a", size = 2595322, upload-time = "2026-07-14T12:55:44.31Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/20/0c6c7b10e9cc6e1903f28cfeb7b5ab80ba09d473ce299296da7ab82e0465/luna_model-0.6.11-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:14f14a61a5a5b472962f5171bea5d2d67c36f69b5a0a0076db16fb1960371725", size = 2659098, upload-time = "2026-07-14T12:55:45.99Z" },
+    { url = "https://files.pythonhosted.org/packages/59/25/6f218b1c91c05152c1b0b81f267170d53f65b32cd9277144863adf0f4b15/luna_model-0.6.11-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:4bd47d596392c402f693d07dfb107323865989f74217a491fa5e8af9b54b2f3a", size = 2427190, upload-time = "2026-07-14T12:55:47.888Z" },
+    { url = "https://files.pythonhosted.org/packages/41/bb/495dffade4f833edffbf848e9e42a85ae077eb0d0db6f01382995b2931e1/luna_model-0.6.11-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:fc427337c3a3aec1b027d33c0aaa63e831cfd9dff9643f83fd4c3dfda2a85d5d", size = 2517366, upload-time = "2026-07-14T12:55:49.667Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/20/79847f23f5949f499d266f47345e1aaf96a279c37568692509c45d6403c3/luna_model-0.6.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d1c03c89acd445a652f84084a97fdce09d8e6f5a6429c1071a2841df20492e78", size = 2748402, upload-time = "2026-07-14T12:55:51.488Z" },
+    { url = "https://files.pythonhosted.org/packages/e1/13/4af3a4d4dbb30da357ccedd69aff3f308bc86b4b3db71bbc054112a8dbb9/luna_model-0.6.11-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:a5dee830a09752c5bffa4e1c19aebfd17a63b96072153dcca50ac25e2507ad71", size = 2516812, upload-time = "2026-07-14T12:55:53.362Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/e3/e345063b06897c7ab1110dd4811fef7d0f619dc4169eb21ba1cf9ba0f627/luna_model-0.6.11-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:8a57abc33812dce75a11ccb390484433ea51f50cfe60a166e53fff3b8c859b18", size = 2747166, upload-time = "2026-07-14T12:55:55.183Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/30/785a63436ade62c5dd0f0dff2165bc052b2431f6084102248599c012c4ae/luna_model-0.6.11-cp312-cp312-win_amd64.whl", hash = "sha256:0e7fc69909f6c2752393f8ee170f6f51ca49a161fc5eabc54cd4820c8f2b283c", size = 2826629, upload-time = "2026-07-14T12:55:56.993Z" },
+    { url = "https://files.pythonhosted.org/packages/21/f7/28b329d74da33c68fc1e96887caff316787b8aed641deb25c09670f2afca/luna_model-0.6.11-cp312-cp312-win_arm64.whl", hash = "sha256:b92444a1379b1917c6a73b776b02e8f60c23c1131d7e78515511fbfb327505cc", size = 2582802, upload-time = "2026-07-14T12:55:58.942Z" },
+    { url = "https://files.pythonhosted.org/packages/a5/2d/56e658453f7d2b716ba5a99d8ba67a22672880b6d6ee02c5262714d87ee1/luna_model-0.6.11-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:65b5ba7838355612ed9f83907af858889fdfb5611457fa20660a2643381250d7", size = 2660657, upload-time = "2026-07-14T12:56:01.324Z" },
+    { url = "https://files.pythonhosted.org/packages/13/50/f9974b1fb0ffc7ab8474c002fa6d6f24fc2d1f61fe139d0e7de103229828/luna_model-0.6.11-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:502d9c8e3c038d46c62bedcf2000caaf6b0b2c6a9fc65f6dfea8d118575e35a6", size = 2428377, upload-time = "2026-07-14T12:56:03.066Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/51/cbb5017df59d9096d913ae1eb5b9e63ebcf204653cf3ad580e4d340e86fe/luna_model-0.6.11-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2a5f3da8bf05bb7dddf9f1f39805442ad51d74a4f518dc871f1af7b929689edc", size = 2518644, upload-time = "2026-07-14T12:56:05.835Z" },
+    { url = "https://files.pythonhosted.org/packages/c2/a9/8fb14d8a6933835ca41de9454f0d2ef3682855b6e30b7feeb3fe391201d5/luna_model-0.6.11-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f5c6347aa638e5ba0e4920b56db3a10bad1d1a33105ad88e8bbdefa6eb68bf64", size = 2749646, upload-time = "2026-07-14T12:56:07.514Z" },
+    { url = "https://files.pythonhosted.org/packages/36/6a/8072cf06d1e3e0e254297db3688ae892614f925eadb09217b00f68086d0a/luna_model-0.6.11-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:b3ea5c3fd74ce87a340eea2271a347f3668dee6d38fd3f1e4e86c85afcf5d4e6", size = 2518010, upload-time = "2026-07-14T12:56:09.244Z" },
+    { url = "https://files.pythonhosted.org/packages/59/87/02927b356cbc007071a5dd9b0acf49bb7e6961bd411442b2fe8e225d1404/luna_model-0.6.11-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:c6605fa0ec20bbf1167b3531f81236b56e41278a6b2240028119da1b19f6acd8", size = 2748947, upload-time = "2026-07-14T12:56:11.269Z" },
+    { url = "https://files.pythonhosted.org/packages/f2/b3/dbd367f677ae3247101e8bb0627d584f8355b9916267fd6ebf92c03c2439/luna_model-0.6.11-cp313-cp313-win_amd64.whl", hash = "sha256:ee47963250af880777f2205a0747a07b70ee7fd2c3459cc3efd7684486c51c7d", size = 2828205, upload-time = "2026-07-14T12:56:13.257Z" },
+    { url = "https://files.pythonhosted.org/packages/78/3d/54f1cc2a1709a8473e04024f3ad82ed0639f51d75aa61295548e84ae2806/luna_model-0.6.11-cp313-cp313-win_arm64.whl", hash = "sha256:54d772f9287af88810cadcbf00663fe8459db4ec4c0cc0100d8f76291332c7ce", size = 2584415, upload-time = "2026-07-14T12:56:16.043Z" },
+    { url = "https://files.pythonhosted.org/packages/fb/93/5a9e2a99084bab9f5c9e17e8ef4ee0ff155b37c503083fb463708acc1122/luna_model-0.6.11-cp314-cp314-macosx_10_12_x86_64.whl", hash = "sha256:1978eeb30f6f52b86fd267a12d7c753cb6523e16e83d476b88c36ec23815819a", size = 2655488, upload-time = "2026-07-14T12:56:18.259Z" },
+    { url = "https://files.pythonhosted.org/packages/f4/81/158cbc1d7cdedd1d43897e48e0e381f5b44792b690ef5af553dc11a3f21d/luna_model-0.6.11-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:ffcf1bea8b92a8281300617cf5281e43db2718b78a1556473c177084ccc4ee6c", size = 2424894, upload-time = "2026-07-14T12:56:20.254Z" },
+    { url = "https://files.pythonhosted.org/packages/e3/e3/a05690cea4321b6869da529fbb70a03fb32f8341fbcb410e25e39f6d86bd/luna_model-0.6.11-cp314-cp314-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:be099ab01602d5563366c9eb75aae4e6fdff5cc0f5ce411b366dc2be6d0c78c2", size = 2514618, upload-time = "2026-07-14T12:56:22.166Z" },
+    { url = "https://files.pythonhosted.org/packages/be/db/f4ef52baa35fb2c45ba3850cd145befddcbd76a1d6f3d1c62b0b9222ee07/luna_model-0.6.11-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0f26197bcb28d7c6d1cca84a41cca3850cdb02c859fc04a9f1af8cf9f4a63a7a", size = 2746586, upload-time = "2026-07-14T12:56:24.064Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/11/ef21afa8ab682eac35f117ec07c5849cf75a3877d4548ed79709baa8e283/luna_model-0.6.11-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:3982300d370974875aff7490a27079eec1e20e2399f998132b0598d46cef32b6", size = 2514070, upload-time = "2026-07-14T12:56:26.081Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/d5/750137c865ee068f4febb2408ea55a52a3c2ac4df046c6ba65afaa2925e8/luna_model-0.6.11-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:723b1ef0ac510e6e7ef6c7d23bc67ffc4d2741d5324e1998084703dfede7c335", size = 2745911, upload-time = "2026-07-14T12:56:28.093Z" },
+    { url = "https://files.pythonhosted.org/packages/8b/ec/8d963ce6edc47f1072a84062628ec1be4b0194c4268c03db7692bf3d9954/luna_model-0.6.11-cp314-cp314-win_amd64.whl", hash = "sha256:753adbd30153604818bdb4265aaf533252413983365cdd506c0c2f8fcd2192c3", size = 2821431, upload-time = "2026-07-14T12:56:29.944Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/03/d949ef673bc60e705566d0ade2bf06fdb053958255d8e4af20d2536b9698/luna_model-0.6.11-cp314-cp314-win_arm64.whl", hash = "sha256:563d918f929aef5d54c6d7000309c063087fe139c574bb84599c2727f25dd763", size = 2577555, upload-time = "2026-07-14T12:56:31.952Z" },
 ]
 
 [[package]]
@@ -225,8 +227,18 @@ wheels = [
 
 [[package]]
 name = "pyo3-lunamodel-integration-ext"
-version = "0.0.0"
+version = "0.0.1"
 source = { editable = "integration_ext" }
+dependencies = [
+    { name = "luna-model", source = { editable = "../../py-lunamodel" }, marker = "extra == 'group-20-pyo3-lunamodel-tests-local'" },
+    { name = "luna-model", version = "0.6.11", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-20-pyo3-lunamodel-tests-pypi' or extra != 'group-20-pyo3-lunamodel-tests-local'" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "luna-model" }]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.1.0" }]
 
 [[package]]
 name = "pyo3-lunamodel-tests"
@@ -242,7 +254,7 @@ local = [
     { name = "luna-model", source = { editable = "../../py-lunamodel" } },
 ]
 pypi = [
-    { name = "luna-model", version = "0.6.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "luna-model", version = "0.6.11", source = { registry = "https://pypi.org/simple" } },
 ]
 
 [package.metadata]

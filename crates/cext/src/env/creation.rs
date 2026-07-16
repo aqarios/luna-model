@@ -1,10 +1,14 @@
-use crate::utils::{new_handle_out_from_c, ref_from_c, slice_from_c, str_from_c};
-use indexmap::IndexMap;
-use luna_model::core::{ArcEnv, Environment, prelude::Variable};
-use lunamodel_cext_handle::{drop_handle, new_handle};
 use std::collections::HashMap;
 
-use crate::{LmEnv, LmStatus, LmVar, error::guard};
+use indexmap::IndexMap;
+use luna_model::core::{ArcEnv, Environment, prelude::Variable};
+use lunamodel_cext_handle::{drop_handle, handle_from_storage};
+
+use crate::{
+    LmEnv, LmStatus, LmVar,
+    error::guard,
+    utils::{ref_from_c, slice_from_c, storage_out_from_c, str_from_c},
+};
 
 /// Frees an environment handle. Passing null is a no-op.
 ///
@@ -20,7 +24,7 @@ pub unsafe extern "C" fn lm_env_free(env: *mut LmEnv) {
 /// Returns a non-null handle that must be released with [`lm_env_free`].
 #[unsafe(no_mangle)]
 pub extern "C" fn lm_env_default() -> *mut LmEnv {
-    new_handle(ArcEnv::default())
+    handle_from_storage::<LmEnv>(ArcEnv::default())
 }
 
 /// Creates an environment from owned variable records and explicit indices.
@@ -57,7 +61,7 @@ pub unsafe extern "C" fn lm_env_new(
             );
         }
         unsafe {
-            new_handle_out_from_c(
+            storage_out_from_c(
                 out,
                 ArcEnv::from(Environment::new(storage, lookup, next_idx)),
             )

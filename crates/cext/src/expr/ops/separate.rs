@@ -1,9 +1,10 @@
-use luna_model::core::{Expression, prelude::VarRef};
+use luna_model::core::prelude::VarRef;
 
 use crate::{
     LmExpr, LmStatus, LmVref,
     error::{CapiError, guard},
-    utils::{handle_to_c, out_from_c, ref_from_c, slice_from_c},
+    expr::utils::{expression_from_c, expression_to_c},
+    utils::{out_from_c, ref_from_c, slice_from_c},
 };
 
 /// Splits an expression into terms that do and do not touch the given variables.
@@ -25,7 +26,7 @@ pub unsafe extern "C" fn lm_expr_separate(
     second: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
         let vars = unsafe { slice_from_c(vars, vars_len, "vars") }?;
         let vrefs = vars
             .iter()
@@ -34,8 +35,8 @@ pub unsafe extern "C" fn lm_expr_separate(
         let first = unsafe { out_from_c(first) }?;
         let second = unsafe { out_from_c(second) }?;
         let (first_expr, second_expr) = expr.separate(&vrefs).map_err(CapiError::errored)?;
-        *first = handle_to_c(first_expr);
-        *second = handle_to_c(second_expr);
+        *first = expression_to_c(first_expr);
+        *second = expression_to_c(second_expr);
         Ok(())
     })
 }

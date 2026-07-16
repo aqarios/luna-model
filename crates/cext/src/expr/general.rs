@@ -1,11 +1,10 @@
-use crate::utils::{
-    handle_to_c, mut_slice_from_c, out_from_c, ref_from_c, shared_from_c, slice_from_c,
-};
 use luna_model::core::Expression;
 
+use super::utils::{expression_from_c, expression_out_from_c, expression_to_c};
 use crate::{
     LmEnv, LmExpr, LmStatus,
     error::{CapiError, guard},
+    utils::{mut_slice_from_c, out_from_c, slice_from_c, storage_from_c},
 };
 
 /// Clones an expression into a new, independent handle written to `out`.
@@ -16,10 +15,8 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_clone(expr: *const LmExpr, out: *mut *mut LmExpr) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(expr.clone());
-        Ok(())
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read().clone();
+        unsafe { expression_out_from_c(out, expr) }
     })
 }
 
@@ -37,11 +34,9 @@ pub unsafe extern "C" fn lm_expr_deep_clone(
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
-        let env = unsafe { shared_from_c(env, "env")? }.read_arc();
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(expr.deep_clone(env.clone()));
-        Ok(())
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
+        let env = unsafe { storage_from_c(env, "env")? };
+        unsafe { expression_out_from_c(out, expr.deep_clone(env.clone())) }
     })
 }
 
@@ -63,12 +58,13 @@ pub unsafe extern "C" fn lm_expr_deep_clone_many(
         let exprs = unsafe { slice_from_c(exprs, len, "exprs") }?;
         let exprs = exprs
             .iter()
-            .map(|expr| unsafe { ref_from_c(*expr as *const Expression, "expr") })
+            .map(|expr| unsafe { expression_from_c(*expr, "expr") }.map(|expr| expr.read().clone()))
             .collect::<Result<Vec<_>, _>>()?;
-        let cloned = Expression::deep_clone_many(&exprs).map_err(CapiError::errored)?;
+        let refs = exprs.iter().collect::<Vec<_>>();
+        let cloned = Expression::deep_clone_many(&refs).map_err(CapiError::errored)?;
         let out = unsafe { mut_slice_from_c(out, len, "out") }?;
         for (slot, expr) in out.iter_mut().zip(cloned) {
-            *slot = handle_to_c(expr);
+            *slot = expression_to_c(expr);
         }
         Ok(())
     })
@@ -87,7 +83,7 @@ pub unsafe extern "C" fn lm_expr_evaluate_sample_quick(
     out: *mut f64,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
         let lookup = unsafe { slice_from_c(lookup, len, "lookup") }?;
         let out = unsafe { out_from_c(out) }?;
         *out = expr

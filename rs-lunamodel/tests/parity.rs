@@ -141,6 +141,9 @@ fn solution_optional_values_buffers_and_owned_views() -> Result<()> {
 
     let result = solution.result(0)?.unwrap();
     let sample = result.sample()?;
+    solution.add_real("y", vec![3.0])?;
+    assert_eq!(sample.variable_names()?, vec!["x", "y"]);
+    assert_eq!(result.sample()?.try_index("y")?, 3.0);
     drop(solution);
     assert_eq!(result.counts()?, 2);
     assert_eq!(sample.try_index("x")?, 1.0);
@@ -149,6 +152,37 @@ fn solution_optional_values_buffers_and_owned_views() -> Result<()> {
     let timing = Timing::new(start, start + Duration::from_nanos(20), None)?;
     assert_eq!(timing.qpu()?, None);
     assert_eq!(timing.total()?, Duration::from_nanos(20));
+    Ok(())
+}
+
+#[test]
+fn model_children_are_live_parent_retaining_views() -> Result<()> {
+    init();
+
+    let mut model = rs_lunamodel::Model::default();
+    let mut objective = model.objective()?;
+    objective.try_add_assign(2.0)?;
+    assert_eq!(model.objective()?.offset()?, 2.0);
+
+    model.set_objective(rs_lunamodel::Expression::from_f64(7.0)?)?;
+    assert_eq!(objective.offset()?, 7.0);
+
+    let mut constraints = model.constraints()?;
+    let constraint = Constraint::new(
+        rs_lunamodel::Expression::from_f64(0.0)?,
+        1.0,
+        Comparator::Le,
+        Some("first".into()),
+    )?;
+    constraints.add_constraint(&constraint, None)?;
+    assert_eq!(model.constraints()?.len()?, 1);
+
+    model.set_constraints(ConstraintCollection::new())?;
+    assert!(constraints.is_empty()?);
+
+    drop(model);
+    assert_eq!(objective.offset()?, 7.0);
+    assert!(constraints.is_empty()?);
     Ok(())
 }
 

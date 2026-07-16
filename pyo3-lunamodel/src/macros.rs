@@ -138,18 +138,16 @@ macro_rules! capi_wrapper {
     };
 }
 
-/// Generates `FromPyObject` and `IntoPyObject` impls for a capsule-shaped
-/// wrapper. Requires the wrapper to be a tuple struct `pub struct $wrapper($inner)`,
-/// where `$inner` implements `CapsuleFFI<'py, R>` for exactly one `R`
-/// (which is inferred).
-#[macro_export]
-macro_rules! capsule_wrapper {
+/// Converts a Python public enum by stable member name.
+///
+/// Enum values are C-ABI scalars, not owned host objects, so no capsule or
+/// Rust-layout bridge is necessary. Object wrappers use [`capi_wrapper!`].
+macro_rules! python_enum_wrapper {
     (
         wrapper: $wrapper:ident,
         public: $public:ident,
         inner: $inner:ty,
-        attr: $attr:literal,
-        from_py: $from_py:literal $(,)?
+        variants: { $($variant:path => ($name:literal, $inner_name:literal)),+ $(,)? } $(,)?
     ) => {
         impl<'a, 'py> ::pyo3::FromPyObject<'a, 'py> for $wrapper {
             type Error = ::pyo3::PyErr;
@@ -160,79 +158,28 @@ macro_rules! capsule_wrapper {
                 use ::pyo3::types::PyAnyMethods;
                 use $crate::utils::TypeCheck;
                 obj.check_type(::std::stringify!($public))?;
-                let capsule_obj = if let Ok(x) = obj.getattr($attr) {
-                    x.call_method0("_to_capsule")
-                } else {
-                    obj.call_method0("_to_capsule")
-                }?;
-                Ok($wrapper(
-                    <$inner as ::luna_model::python::ffi::CapsuleFFI<'py, _>>::from_capsule(
-                        capsule_obj.extract()?,
-                    )?,
-                ))
-            }
-        }
+                if let Ok(name) = obj.getattr("name") {
+                    let name: ::std::string::String = name.extract()?;
+                    return match name.as_str() {
+                        $($name => Ok($wrapper($variant)),)+
+                        _ => Err(::pyo3::exceptions::PyValueError::new_err(format!(
+                            "unknown {} member {name:?}",
+                            ::core::stringify!($public),
+                        ))),
+                    };
+                }
 
-        impl<'py> ::pyo3::IntoPyObject<'py> for $wrapper {
-            type Target = ::pyo3::PyAny;
-            type Output = ::pyo3::Bound<'py, Self::Target>;
-            type Error = ::pyo3::PyErr;
-
-            fn into_pyobject(
-                self,
-                py: ::pyo3::Python<'py>,
-            ) -> ::std::result::Result<Self::Output, Self::Error> {
-                use ::pyo3::types::PyAnyMethods;
-                let capsule =
-                    <$inner as ::luna_model::python::ffi::CapsuleFFI<'py, _>>::to_capsule(
-                        &self.0, py,
-                    )?;
-                let lm = $crate::luna_model(py)?;
-                let pye = lm
+                let inner = $crate::luna_model(obj.py())?
                     .getattr("_lm")?
-                    .getattr(::std::concat!("Py", ::std::stringify!($public)))?
-                    .call_method1("_from_capsule", (capsule,))?;
-                lm.getattr(::std::stringify!($public))?
-                    .call_method1($from_py, (pye,))
-            }
-        }
-    };
-}
-
-/// Generates `FromPyObject` and `IntoPyObject` impls for an enum-shaped
-/// wrapper. Inner is a Rust enum with `From<$bridge>`/`Into<$bridge>` impls;
-/// the bridge implements `CapsuleFFI<'py, String>`. The Python-side attribute
-/// is always `_val`.
-#[macro_export]
-macro_rules! enum_wrapper {
-    (
-        wrapper: $wrapper:ident,
-        public: $public:ident,
-        inner: $inner:ty,
-        bridge: $bridge:ty,
-        from_py: $from_py:literal $(,)?
-    ) => {
-        impl<'a, 'py> ::pyo3::FromPyObject<'a, 'py> for $wrapper {
-            type Error = ::pyo3::PyErr;
-
-            fn extract(
-                obj: ::pyo3::Borrowed<'a, 'py, ::pyo3::PyAny>,
-            ) -> ::std::result::Result<Self, Self::Error> {
-                use ::pyo3::types::PyAnyMethods;
-                use $crate::utils::TypeCheck;
-                obj.check_type(::std::stringify!($public))?;
-                let capsule: ::std::string::String = if let Ok(x) = obj.getattr("_val") {
-                    x.call_method0("_to_capsule")
-                } else {
-                    obj.call_method0("_to_capsule")
-                }?
-                .extract()?;
-                let bridge = <$bridge as ::luna_model::python::ffi::CapsuleFFI<
-                    'py,
-                    ::std::string::String,
-                >>::from_capsule(capsule)?;
-                Ok($wrapper(<$inner as ::core::convert::From<$bridge>>::from(
-                    bridge,
+                    .getattr(::core::concat!("Py", ::core::stringify!($public)))?;
+                $(
+                    if obj.is(&inner.getattr($inner_name)?) {
+                        return Ok($wrapper($variant));
+                    }
+                )+
+                Err(::pyo3::exceptions::PyValueError::new_err(format!(
+                    "unknown internal {} member",
+                    ::core::stringify!($public),
                 )))
             }
         }
@@ -247,18 +194,12 @@ macro_rules! enum_wrapper {
                 py: ::pyo3::Python<'py>,
             ) -> ::std::result::Result<Self::Output, Self::Error> {
                 use ::pyo3::types::PyAnyMethods;
-                let bridge: $bridge = <$bridge as ::core::convert::From<$inner>>::from(self.0);
-                let capsule = <$bridge as ::luna_model::python::ffi::CapsuleFFI<
-                    'py,
-                    ::std::string::String,
-                >>::to_capsule(&bridge, py)?;
-                let lm = $crate::luna_model(py)?;
-                let pyv = lm
-                    .getattr("_lm")?
-                    .getattr(::std::concat!("Py", ::std::stringify!($public)))?
-                    .call_method1("_from_capsule", (capsule,))?;
-                lm.getattr(::std::stringify!($public))?
-                    .call_method1($from_py, (pyv,))
+                let name = match self.0 {
+                    $($variant => $name,)+
+                };
+                $crate::luna_model(py)?
+                    .getattr(::core::stringify!($public))?
+                    .getattr(name)
             }
         }
     };

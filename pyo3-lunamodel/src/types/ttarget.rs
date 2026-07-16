@@ -1,15 +1,32 @@
 use derive_more::Deref;
-use luna_model::python::{PyTranslationTarget as PyTT, TranslationTarget};
+
+/// Translation targets are Python-facing dispatch values rather than core
+/// model objects. Keeping this small enum local avoids linking the translator
+/// implementation into an extension.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TranslationTarget {
+    Qubo,
+    Lp,
+    Mps,
+    Bqm,
+    Cqm,
+    OptMapper,
+}
 
 #[repr(transparent)]
-/// A wrapper around a [`TranslationTarget`] that can be converted to and from python with `pyo3`.
 #[derive(Deref)]
 pub struct PyTranslationTarget(pub TranslationTarget);
 
-enum_wrapper! {
+python_enum_wrapper! {
     wrapper: PyTranslationTarget,
     public: TranslationTarget,
     inner: TranslationTarget,
-    bridge: PyTT,
-    from_py: "_from_pyttarget",
+    variants: {
+        TranslationTarget::Qubo => ("QUBO", "Qubo"),
+        TranslationTarget::Lp => ("LP", "Lp"),
+        TranslationTarget::Mps => ("MPS", "Mps"),
+        TranslationTarget::Bqm => ("BQM", "Bqm"),
+        TranslationTarget::Cqm => ("CQM", "Cqm"),
+        TranslationTarget::OptMapper => ("OPT_MAPPER", "OptMapper"),
+    },
 }

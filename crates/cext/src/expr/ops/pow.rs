@@ -1,12 +1,9 @@
-use luna_model::core::{
-    Expression,
-    ops::{LmPow, LmPowAssign},
-};
+use luna_model::core::ops::{LmPow, LmPowAssign};
 
 use crate::{
     LmExpr, LmStatus,
     error::{CapiError, guard},
-    utils::{handle_to_c, mut_from_c, out_from_c, ref_from_c},
+    expr::utils::{expression_from_c, expression_out_from_c},
 };
 
 /// Raises the expression to a non-negative power in-place.
@@ -16,7 +13,7 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_ipow(expr: *mut LmExpr, n: usize) -> LmStatus {
     guard(|| {
-        let expr = unsafe { mut_from_c(expr as *mut Expression, "expr") }?;
+        let mut expr = unsafe { expression_from_c(expr, "expr") }?.write();
         expr.pow_assign(n).map_err(CapiError::errored)?;
         Ok(())
     })
@@ -34,9 +31,8 @@ pub unsafe extern "C" fn lm_expr_pow(
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(expr.pow(n));
-        Ok(())
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
+        let result = expr.pow(n).map_err(CapiError::errored)?;
+        unsafe { expression_out_from_c(out, result) }
     })
 }

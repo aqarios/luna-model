@@ -1,4 +1,3 @@
-use crate::utils::{handle_to_c, out_from_c, shared_from_c, slice_from_c, str_from_c};
 use std::ffi::c_char;
 
 use crate::{
@@ -6,6 +5,7 @@ use crate::{
     buffer::{str_buffer_from_vec, vref_buffer_from_vec},
     error::{CapiError, guard},
     utils::vtype_to_c,
+    utils::{handle_to_c, out_from_c, slice_from_c, storage_from_c, str_from_c},
 };
 
 /// Sorts names by their variable order in the environment.
@@ -21,7 +21,7 @@ pub unsafe extern "C" fn lm_env_sort(
     out: *mut LmStrBuffer,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
         let names = unsafe { slice_from_c(names, len, "names") }?
             .iter()
             .map(|&name| unsafe { str_from_c(name, "name") }.map(str::to_owned))
@@ -39,7 +39,7 @@ pub unsafe extern "C" fn lm_env_sort(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_next_idx(env: *const LmEnv, out: *mut u32) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
         let out = unsafe { out_from_c(out) }?;
         *out = env.env.read().next_idx();
         Ok(())
@@ -54,7 +54,7 @@ pub unsafe extern "C" fn lm_env_next_idx(env: *const LmEnv, out: *mut u32) -> Lm
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_len(env: *const LmEnv, out: *mut usize) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
         let out = unsafe { out_from_c(out) }?;
         *out = env.len();
         Ok(())
@@ -69,7 +69,7 @@ pub unsafe extern "C" fn lm_env_len(env: *const LmEnv, out: *mut usize) -> LmSta
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_is_empty(env: *const LmEnv, out: *mut bool) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
         let out = unsafe { out_from_c(out) }?;
         *out = env.is_empty();
         Ok(())
@@ -84,7 +84,7 @@ pub unsafe extern "C" fn lm_env_is_empty(env: *const LmEnv, out: *mut bool) -> L
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_vars(env: *const LmEnv, out: *mut LmVrefBuffer) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
         let out = unsafe { out_from_c(out) }?;
         let vars = env
             .vars()
@@ -104,7 +104,7 @@ pub unsafe extern "C" fn lm_env_vars(env: *const LmEnv, out: *mut LmVrefBuffer) 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_id(env: *const LmEnv, out: *mut LmEnvId) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
         let out = unsafe { out_from_c(out) }?;
         let id = env.id();
         *out = LmEnvId {
@@ -128,7 +128,7 @@ pub unsafe extern "C" fn lm_env_lookup(
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
         let name = unsafe { str_from_c(name, "name") }?;
         let out = unsafe { out_from_c(out) }?;
         let var = env.lookup(name).map_err(CapiError::errored)?;
@@ -152,7 +152,7 @@ pub unsafe extern "C" fn lm_env_get(
     out: *mut *mut LmVref,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
         let out = unsafe { out_from_c(out) }?;
         let var = env.get(vid);
         *out = handle_to_c(var);
@@ -173,7 +173,7 @@ pub unsafe extern "C" fn lm_env_contains(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
         let name = unsafe { str_from_c(name, "name") }?;
         let out = unsafe { out_from_c(out) }?;
         *out = env.contains(name);
@@ -194,7 +194,7 @@ pub unsafe extern "C" fn lm_env_vtype_of(
     out: *mut LmVtype,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
         let name = unsafe { str_from_c(name, "name") }?;
         let out = unsafe { out_from_c(out) }?;
         let vt = env.vtype_of(name).map_err(CapiError::errored)?;

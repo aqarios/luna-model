@@ -1,13 +1,10 @@
-use luna_model::core::prelude::VarRef;
+//! C-API-backed PyO3 variable conversion.
 
-#[repr(transparent)]
-/// A wrapper around a [`VarRef`] that can be converted to and from python with `pyo3`.
-pub struct PyVariable(pub VarRef);
-
-capsule_wrapper! {
+capi_wrapper! {
     wrapper: PyVariable,
     public: Variable,
-    inner: VarRef,
+    inner: ::rs_lunamodel::VarRef,
+    raw: ::lunamodel_cext_vtable::LmVref,
     attr: "_v",
     from_py: "_from_pyvar",
 }

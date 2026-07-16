@@ -1,12 +1,10 @@
-use crate::{
-    buffer::buffer_from_vec,
-    utils::{handle_to_c, out_from_c, ref_from_c},
-};
 use luna_model::types::Specs;
 
 use crate::{
     LmBuffer, LmSpecs, LmStatus,
+    buffer::buffer_from_vec,
     error::{CapiError, guard},
+    utils::{handle_to_c, out_from_c, ref_from_c},
 };
 
 /// Returns whether `specs` satisfies all requirements expressed by `other`.

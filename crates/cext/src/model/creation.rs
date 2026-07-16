@@ -1,11 +1,15 @@
-use crate::utils::{new_handle_out_from_c, opt_from_c, opt_str_from_c, shared_from_c};
 use std::ffi::c_char;
 
 use luna_model::core::Model;
 use lunamodel_cext_handle::{drop_handle, new_handle};
 use lunamodel_cext_vtable::LmEnv;
 
-use crate::{LmModel, LmSense, LmStatus, error::guard, utils::sense_from_c};
+use crate::{
+    LmModel, LmSense, LmStatus,
+    error::guard,
+    utils::sense_from_c,
+    utils::{new_handle_out_from_c, opt_from_c, opt_str_from_c, storage_from_c},
+};
 
 /// Frees a model handle. Passing null is a no-op.
 ///
@@ -68,7 +72,7 @@ pub unsafe extern "C" fn lm_model_with_env(
     out: *mut *mut LmModel,
 ) -> LmStatus {
     guard(|| {
-        let env = unsafe { shared_from_c(env, "env") }?.read_arc();
+        let env = unsafe { storage_from_c(env, "env") }?;
 
         let name = unsafe { opt_str_from_c(name, "name") }?.map(str::to_owned);
         let sense = unsafe { opt_from_c(sense) }.map(sense_from_c);

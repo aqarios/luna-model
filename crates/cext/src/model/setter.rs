@@ -1,11 +1,11 @@
-use crate::utils::{ref_from_c, shared_from_c, str_from_c};
 use std::ffi::c_char;
 
-use luna_model::core::{ConstraintCollection, Expression};
-
-use crate::error::guard;
-use crate::utils::sense_from_c;
-use crate::{LmCC, LmExpr, LmModel, LmSense, LmStatus};
+use crate::{
+    LmCC, LmExpr, LmModel, LmSense, LmStatus,
+    error::guard,
+    utils::sense_from_c,
+    utils::{shared_from_c, storage_from_c, str_from_c},
+};
 
 /// Sets the model name.
 ///
@@ -48,9 +48,9 @@ pub unsafe extern "C" fn lm_model_set_objective(
     expr: *const LmExpr,
 ) -> LmStatus {
     guard(|| {
+        let expr = unsafe { storage_from_c(expr, "expr") }?.read().clone();
         let mut model = unsafe { shared_from_c(model, "model") }?.write_arc();
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
-        model.objective = expr.clone();
+        model.objective = expr;
         Ok(())
     })
 }
@@ -66,9 +66,9 @@ pub unsafe extern "C" fn lm_model_set_constraints(
     cc: *const LmCC,
 ) -> LmStatus {
     guard(|| {
+        let cc = unsafe { storage_from_c(cc, "cc") }?.read().clone();
         let mut model = unsafe { shared_from_c(model, "model") }?.write_arc();
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
-        model.constraints = cc.clone();
+        model.constraints = cc;
         Ok(())
     })
 }

@@ -1,10 +1,10 @@
-use crate::utils::{opt_slice_from_c, out_from_c, ref_from_c};
 use luna_model::core::prelude::HigherOrder;
 
 use crate::{
     LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer, LmStatus,
     buffer::{higher_order_item_buffer_from_vec, u32_buffer_from_vec},
     error::guard,
+    utils::{opt_slice_from_c, out_from_c, ref_from_c},
 };
 
 /// Returns the number of explicitly stored entries of the higher_order term.

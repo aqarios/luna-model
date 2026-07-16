@@ -5,16 +5,16 @@ pub use access::{
     lm_sample_view_variable_names,
 };
 
-use luna_model::core::Solution;
+use lunamodel_cext_handle::Shared;
 
-use crate::{LmSampleView, utils::drop_from_c};
+use crate::{LmSampleView, LmSol, utils::drop_from_c};
 
 /// Owned backing for an [`LmSampleView`].
 ///
-/// Keeping a solution snapshot makes the opaque view independent from the
-/// lifetime and subsequent mutation of the solution handle that created it.
+/// Retaining the shared solution keeps the view live and independent from the
+/// lifetime of the particular solution handle that created it.
 pub struct SampleViewHandle {
-    pub sol: Solution,
+    pub sol: Shared<LmSol>,
     pub index: usize,
 }
 

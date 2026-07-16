@@ -2204,6 +2204,17 @@ LmStatus lm_model_equal_contents(const LmModel *model, const LmModel *other, boo
  */
 LmStatus lm_model_clone(const LmModel *model, LmModel **out);
 
+/**
+ * Creates another owning handle to the same synchronized model.
+ *
+ * Unlike [`lm_model_clone`], this does not clone the model contents: mutations
+ * made through either handle are visible through the other. The returned
+ * handle must be released with `lm_model_free`.
+ *
+ * # Safety
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `LmModel *` storage.
+ */
 LmStatus lm_model_retain(const LmModel *model, LmModel **out);
 
 /**

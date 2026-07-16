@@ -1,10 +1,10 @@
-use crate::utils::{drop_from_c, handle_to_c, opt_from_c, opt_slice_from_c, out_from_c};
 use luna_model::types::{Ctype, EnumSetFromVec, Specs, Vtype};
 
 use crate::{
     LmCtype, LmSense, LmSpecs, LmStatus, LmVtype,
     error::guard,
     utils::{ctype_from_c, sense_from_c, vtype_from_c},
+    utils::{drop_from_c, handle_to_c, opt_from_c, opt_slice_from_c, out_from_c},
 };
 
 /// Frees a specs handle. Passing null is a no-op.

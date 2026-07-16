@@ -62,3 +62,45 @@ def test_environment_returned_from_model_retains_identity(ext):
     Variable("shared", env=environment)
     assert model.environment.num_variables == 1
     assert model.environment.id == environment.id
+
+
+def test_model_objective_is_a_live_gil_independent_view(ext):
+    model = Model("objective")
+    held = ext.HeldExpression(model.objective)
+
+    held.add_bias(2.0)
+    assert model.objective.get_offset() == 2.0
+
+    model.objective = 7.0
+    assert held.offset() == 7.0
+
+    del model
+    assert held.offset() == 7.0
+
+
+def test_model_constraints_are_a_live_gil_independent_view(ext):
+    model = Model("constraints")
+    x = model.add_variable("x")
+    held = ext.HeldConstraintCollection(model.constraints)
+
+    model.add_constraint(x <= 1, "upper")
+    assert held.len() == 1
+
+    held.add_constraint(x >= 0, "lower")
+    assert model.num_constraints == 2
+
+    model.constraints = type(model.constraints)()
+    assert held.len() == 0
+
+
+def test_constraint_is_shared_and_gil_independent(ext):
+    environment = Environment()
+    x = Variable("x", env=environment)
+    constraint = x <= 1
+    held = ext.HeldConstraint(constraint)
+
+    held.set_name("from-rust")
+    assert constraint.name == "from-rust"
+
+    constraint.name = "from-python"
+    assert held.name() == "from-python"

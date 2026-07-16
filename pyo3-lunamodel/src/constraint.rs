@@ -1,16 +1,10 @@
-use std::sync::Arc;
+//! C-API-backed PyO3 constraint conversion.
 
-use luna_model::core::prelude::Constraint;
-use parking_lot::RwLock;
-
-#[repr(transparent)]
-/// A wrapper around a [`Constraint`] that can be converted to and from python with `pyo3`.
-pub struct PyConstraint(pub Arc<RwLock<Constraint>>);
-
-capsule_wrapper! {
+capi_wrapper! {
     wrapper: PyConstraint,
     public: Constraint,
-    inner: Arc<RwLock<Constraint>>,
+    inner: ::rs_lunamodel::Constraint,
+    raw: ::lunamodel_cext_vtable::LmConstraint,
     attr: "_c",
     from_py: "_from_pyc",
 }

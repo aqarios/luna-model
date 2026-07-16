@@ -1,12 +1,14 @@
-use crate::utils::{
-    handle_to_c, new_handle_out_from_c, opt_from_c, out_from_c, ref_from_c, shared_from_c,
-};
-use luna_model::core::{Expression, prelude::VarRef};
+use luna_model::core::prelude::VarRef;
+use lunamodel_cext_handle::ConstraintCollectionHandle;
 
 use crate::{
     LmCC, LmExpr, LmModel, LmSampleView, LmSol, LmStatus, LmVref,
     error::{CapiError, guard},
     sample::SampleViewHandle,
+    utils::{
+        new_handle_out_from_c, opt_from_c, ref_from_c, shared_from_c, storage_from_c,
+        storage_out_from_c,
+    },
 };
 
 /// Evaluates the model for a given solution.
@@ -76,11 +78,13 @@ pub unsafe extern "C" fn lm_model_substitute(
     replacement: *const LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let mut model = unsafe { shared_from_c(model, "model") }?.write_arc();
         let target = unsafe { ref_from_c(target as *const VarRef, "target") }?;
-        let replacement = unsafe { ref_from_c(replacement as *const Expression, "replacement") }?;
+        let replacement = unsafe { storage_from_c(replacement, "replacement") }?
+            .read()
+            .clone();
+        let mut model = unsafe { shared_from_c(model, "model") }?.write_arc();
         model
-            .substitute(target, replacement)
+            .substitute(target, &replacement)
             .map_err(CapiError::errored)?;
         Ok(())
     })
@@ -101,17 +105,14 @@ pub unsafe extern "C" fn lm_model_violated_constraints(
     guard(|| {
         let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let sample = unsafe { ref_from_c(sample as *const SampleViewHandle, "sample") }?;
-        let sample = sample
-            .sol
+        let solution = sample.sol.read();
+        let sample = solution
             .sample(sample.index)
             .ok_or_else(|| CapiError::new(LmStatus::Absent, "sample index is out of range"))?;
         let tol = unsafe { opt_from_c(tol) };
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(
-            model
-                .violated_constraints(&sample, tol)
-                .map_err(CapiError::errored)?,
-        );
-        Ok(())
+        let constraints = model
+            .violated_constraints(&sample, tol)
+            .map_err(CapiError::errored)?;
+        unsafe { storage_out_from_c(out, ConstraintCollectionHandle::new(constraints)) }
     })
 }

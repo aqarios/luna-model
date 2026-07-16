@@ -14,9 +14,6 @@ dependencies = [
 module-name = "pyo3_lunamodel_integration_ext"
 manifest-path = "Cargo.toml"
 
-[tool.uv.sources]
-luna-model = { path = "../../../py-lunamodel" }
-
 [dependency-groups]
 dev = [
     "pytest>=9.1.0",

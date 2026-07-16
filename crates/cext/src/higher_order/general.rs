@@ -1,7 +1,10 @@
-use crate::utils::{handle_to_c, out_from_c, ref_from_c};
 use luna_model::core::prelude::HigherOrder;
 
-use crate::{LmHigherOrder, LmStatus, error::guard};
+use crate::{
+    LmHigherOrder, LmStatus,
+    error::guard,
+    utils::{handle_to_c, out_from_c, ref_from_c},
+};
 
 /// Compares two higher_order terms for equality.
 ///

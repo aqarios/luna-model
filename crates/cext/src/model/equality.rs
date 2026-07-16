@@ -1,7 +1,10 @@
-use crate::utils::{out_from_c, shared_from_c};
 use luna_model::core::prelude::ContentEquality;
 
-use crate::{LmModel, LmStatus, error::guard};
+use crate::{
+    LmModel, LmStatus,
+    error::guard,
+    utils::{out_from_c, shared_from_c},
+};
 
 /// Compares two models for equality.
 ///

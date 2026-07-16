@@ -1,44 +1,28 @@
-//! Low-level capsule and pointer FFI helpers for Python bounds wrappers.
+//! C-handle capsule transport for Python bounds wrappers.
 
-use std::ffi::CStr;
-use std::sync::Arc;
-
+use lunamodel_cext_handle::{drop_handle, handle_from_storage, handle_into_storage};
+use lunamodel_cext_pyffi::{new_capsule, take_handle};
+use lunamodel_cext_vtable::LmLazyBounds;
+use lunamodel_core::prelude::LazyBounds;
 use lunamodel_unwind::*;
-use parking_lot::RwLock;
-use pyo3::{
-    Bound, PyResult, Python, pymethods,
-    types::{PyCapsule, PyCapsuleMethods},
-};
+use pyo3::{Bound, PyResult, Python, pymethods, types::PyCapsule};
 
-use crate::{
-    PyBounds, PyBoundsContent,
-    bounds::BoundsContent,
-    ffi::{CapsuleFFI, capsule_name},
-};
-
-const CAPSULE_NAME_BOUNDS: &CStr = c"builtins.capsule.PyBounds";
-
-impl<'py> CapsuleFFI<'py> for PyBoundsContent {
-    fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new_with_value(py, self.clone(), capsule_name(CAPSULE_NAME_BOUNDS))
-    }
-
-    fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<PyBoundsContent> {
-        let ptr = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_BOUNDS)))?;
-        let content = unsafe { ptr.cast::<Arc<RwLock<BoundsContent>>>().as_ref().clone() };
-        Ok(content)
-    }
-}
+use crate::{PyBounds, bounds::BoundsContent};
 
 #[unwindable]
 #[pymethods]
 impl PyBounds {
-    pub fn _to_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        self.0.to_capsule(py)
+    pub fn _to_c_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
+        let bounds: LazyBounds = self.0.read().clone().into();
+        let handle = handle_from_storage::<LmLazyBounds>(bounds);
+        new_capsule(py, handle, drop_handle::<LmLazyBounds>)
     }
 
     #[staticmethod]
-    pub fn _from_capsule<'py>(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        Ok(PyBounds(PyBoundsContent::from_capsule(capsule)?))
+    pub fn _from_c_capsule(capsule: Bound<'_, PyCapsule>) -> PyResult<Self> {
+        let handle = take_handle::<LmLazyBounds>(&capsule)?;
+        let bounds = unsafe { handle_into_storage::<LmLazyBounds>(handle) }
+            .expect("a consumed non-null bounds handle must contain storage");
+        Ok(BoundsContent::Lazy(bounds).into())
     }
 }

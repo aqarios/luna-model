@@ -1,7 +1,9 @@
-use crate::utils::{drop_from_c, handle_to_c};
 use luna_model::core::prelude::Quadratic;
 
-use crate::LmQuadratic;
+use crate::{
+    LmQuadratic,
+    utils::{drop_from_c, handle_to_c},
+};
 
 /// Frees a quadratic handle. Passing null is a no-op.
 ///

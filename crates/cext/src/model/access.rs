@@ -1,12 +1,14 @@
-use crate::utils::{handle_to_c, new_handle_out_from_c, out_from_c, shared_from_c, str_from_c};
 use std::ffi::c_char;
 
-use crate::buffer::{buffer_from_vec, vref_buffer_from_vec, vtype_buffer_from_vec};
-use crate::error::{CapiError, guard};
-use crate::utils::{sense_to_c, vtype_to_c};
+use lunamodel_cext_handle::{ConstraintCollectionHandle, ExpressionHandle};
+
 use crate::{
     LmBuffer, LmCC, LmEnv, LmExpr, LmModel, LmSense, LmSpecs, LmStatus, LmVref, LmVrefBuffer,
     LmVtype, LmVtypeBuffer,
+    buffer::{buffer_from_vec, vref_buffer_from_vec, vtype_buffer_from_vec},
+    error::{CapiError, guard},
+    utils::{handle_to_c, out_from_c, shared_from_c, storage_out_from_c, str_from_c},
+    utils::{sense_to_c, vtype_to_c},
 };
 
 /// Returns a copy of the model name as an owned UTF-8 byte buffer.
@@ -54,7 +56,7 @@ pub unsafe extern "C" fn lm_model_sense(model: *const LmModel, out: *mut LmSense
 pub unsafe extern "C" fn lm_model_env(model: *const LmModel, out: *mut *mut LmEnv) -> LmStatus {
     guard(|| {
         let model = unsafe { shared_from_c(model, "model") }?.read_arc();
-        unsafe { new_handle_out_from_c(out, model.environment.clone()) }
+        unsafe { storage_out_from_c(out, model.environment.clone()) }
     })
 }
 
@@ -174,10 +176,8 @@ pub unsafe extern "C" fn lm_model_objective(
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(model.objective.clone());
-        Ok(())
+        let model = unsafe { shared_from_c(model, "model") }?;
+        unsafe { storage_out_from_c(out, ExpressionHandle::for_model(model.clone())) }
     })
 }
 
@@ -192,9 +192,7 @@ pub unsafe extern "C" fn lm_model_constraints(
     out: *mut *mut LmCC,
 ) -> LmStatus {
     guard(|| {
-        let model = unsafe { shared_from_c(model, "model") }?.read_arc();
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(model.constraints.clone());
-        Ok(())
+        let model = unsafe { shared_from_c(model, "model") }?;
+        unsafe { storage_out_from_c(out, ConstraintCollectionHandle::for_model(model.clone())) }
     })
 }

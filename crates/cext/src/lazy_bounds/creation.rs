@@ -1,7 +1,11 @@
-use crate::utils::{drop_from_c, handle_to_c, opt_from_c, out_from_c};
 use luna_model::core::prelude::LazyBounds;
 
-use crate::{LmBound, LmLazyBounds, LmStatus, error::guard, utils::bound_from_c};
+use crate::{
+    LmBound, LmLazyBounds, LmStatus,
+    error::guard,
+    utils::bound_from_c,
+    utils::{drop_from_c, handle_to_c, opt_from_c, out_from_c},
+};
 
 /// Frees a lazy-bounds handle. Passing null is a no-op.
 ///

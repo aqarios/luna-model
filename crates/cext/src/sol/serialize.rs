@@ -1,13 +1,11 @@
-use crate::{
-    buffer::buffer_from_vec,
-    utils::{new_handle_out_from_c, out_from_c, shared_from_c, slice_from_c},
-};
 use luna_model::core::Solution;
 use luna_model::serializer::prelude::*;
 
 use crate::{
     LmBuffer, LmSol, LmStatus,
+    buffer::buffer_from_vec,
     error::{CapiError, guard},
+    utils::{new_handle_out_from_c, out_from_c, shared_from_c, slice_from_c},
 };
 
 /// Serializes a solution to bytes, writing an owned buffer to `out`.

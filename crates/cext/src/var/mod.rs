@@ -2,12 +2,12 @@ mod access;
 
 use std::ffi::c_char;
 
-use crate::utils::{drop_from_c, handle_to_c, out_from_c, ref_from_c, str_from_c, vtype_from_c};
 use luna_model::core::prelude::{LazyBounds, Variable};
 
 use crate::{
     LmLazyBounds, LmStatus, LmVar, LmVtype,
     error::{CapiError, guard},
+    utils::{drop_from_c, handle_to_c, out_from_c, ref_from_c, str_from_c, vtype_from_c},
 };
 
 /// Frees a variable handle. Passing null is a no-op.

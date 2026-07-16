@@ -1,11 +1,12 @@
 use std::ops::Add;
 
-use luna_model::core::{Expression, ops::LmAddAssign, prelude::VarRef};
+use luna_model::core::{ops::LmAddAssign, prelude::VarRef};
 
 use crate::{
     LmExpr, LmStatus, LmVref,
     error::{CapiError, guard},
-    utils::{handle_to_c, mut_from_c, out_from_c, ref_from_c},
+    expr::utils::{expression_from_c, expression_out_from_c},
+    utils::ref_from_c,
 };
 
 // //////////// //
@@ -20,7 +21,7 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_iadd_vref(expr: *mut LmExpr, vref: *const LmVref) -> LmStatus {
     guard(|| {
-        let expr = unsafe { mut_from_c(expr as *mut Expression, "expr") }?;
+        let mut expr = unsafe { expression_from_c(expr, "expr") }?.write();
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
         expr.add_assign(vref).map_err(CapiError::errored)?;
         Ok(())
@@ -34,7 +35,7 @@ pub unsafe extern "C" fn lm_expr_iadd_vref(expr: *mut LmExpr, vref: *const LmVre
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_iadd_bias(expr: *mut LmExpr, bias: f64) -> LmStatus {
     guard(|| {
-        let expr = unsafe { mut_from_c(expr as *mut Expression, "expr") }?;
+        let mut expr = unsafe { expression_from_c(expr, "expr") }?.write();
         expr.add_assign(bias).map_err(CapiError::errored)?;
         Ok(())
     })
@@ -48,9 +49,9 @@ pub unsafe extern "C" fn lm_expr_iadd_bias(expr: *mut LmExpr, bias: f64) -> LmSt
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_iadd_expr(expr: *mut LmExpr, other: *const LmExpr) -> LmStatus {
     guard(|| {
-        let expr = unsafe { mut_from_c(expr as *mut Expression, "expr") }?;
-        let other = unsafe { ref_from_c(other as *const Expression, "other") }?;
-        expr.add_assign(other).map_err(CapiError::errored)?;
+        let other = unsafe { expression_from_c(other, "other") }?.read().clone();
+        let mut expr = unsafe { expression_from_c(expr, "expr") }?.write();
+        expr.add_assign(&other).map_err(CapiError::errored)?;
         Ok(())
     })
 }
@@ -72,12 +73,10 @@ pub unsafe extern "C" fn lm_expr_add_vref(
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
-        let out = unsafe { out_from_c(out) }?;
         let result = expr.clone().add(vref).map_err(CapiError::errored)?;
-        *out = handle_to_c(result);
-        Ok(())
+        unsafe { expression_out_from_c(out, result) }
     })
 }
 
@@ -93,11 +92,9 @@ pub unsafe extern "C" fn lm_expr_add_bias(
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
-        let out = unsafe { out_from_c(out) }?;
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read();
         let result = expr.clone().add(bias).map_err(CapiError::errored)?;
-        *out = handle_to_c(result);
-        Ok(())
+        unsafe { expression_out_from_c(out, result) }
     })
 }
 
@@ -114,11 +111,9 @@ pub unsafe extern "C" fn lm_expr_add_expr(
     out: *mut *mut LmExpr,
 ) -> LmStatus {
     guard(|| {
-        let expr = unsafe { ref_from_c(expr as *const Expression, "expr") }?;
-        let other = unsafe { ref_from_c(other as *const Expression, "other") }?;
-        let out = unsafe { out_from_c(out) }?;
-        let result = expr.clone().add(other).map_err(CapiError::errored)?;
-        *out = handle_to_c(result);
-        Ok(())
+        let expr = unsafe { expression_from_c(expr, "expr") }?.read().clone();
+        let other = unsafe { expression_from_c(other, "other") }?.read().clone();
+        let result = expr.add(&other).map_err(CapiError::errored)?;
+        unsafe { expression_out_from_c(out, result) }
     })
 }

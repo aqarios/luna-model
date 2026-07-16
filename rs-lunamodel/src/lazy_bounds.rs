@@ -81,3 +81,8 @@ impl Concretize for Option<LazyBounds> {
         }
     }
 }
+
+// SAFETY: LazyBounds is immutable through this facade and every C operation
+// only reads the uniquely owned handle.
+unsafe impl Send for LazyBounds {}
+unsafe impl Sync for LazyBounds {}

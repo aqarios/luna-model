@@ -1,4 +1,3 @@
-use crate::utils::{drop_from_c, handle_to_c, opt_from_c, out_from_c};
 use std::time::{Duration, UNIX_EPOCH};
 
 use luna_model::core::prelude::Timing;
@@ -7,6 +6,7 @@ use crate::{
     LmStatus, LmTiming,
     error::{CapiError, guard},
     utils::ref_from_c,
+    utils::{drop_from_c, handle_to_c, opt_from_c, out_from_c},
 };
 
 /// Frees a timing handle. Passing null is a no-op.

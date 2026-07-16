@@ -1,4 +1,3 @@
-use crate::utils::{out_from_c, ref_from_c};
 use luna_model::types::Specs;
 
 use crate::{
@@ -6,6 +5,7 @@ use crate::{
     buffer::{ctype_buffer_from_vec, vtype_buffer_from_vec},
     error::{CapiError, guard},
     utils::{ctype_to_c, sense_to_c, vtype_to_c},
+    utils::{out_from_c, ref_from_c},
 };
 
 /// Returns the specs's sense, if one is set.

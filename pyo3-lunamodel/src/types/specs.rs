@@ -1,12 +1,10 @@
-use luna_model::types::Specs;
+//! C-API-backed PyO3 model-specs conversion.
 
-#[repr(transparent)]
-pub struct PyModelSpecs(pub Specs);
-
-capsule_wrapper! {
+capi_wrapper! {
     wrapper: PyModelSpecs,
     public: ModelSpecs,
-    inner: Specs,
+    inner: ::rs_lunamodel::Specs,
+    raw: ::lunamodel_cext_vtable::LmSpecs,
     attr: "_sp",
     from_py: "_from_pysp",
 }

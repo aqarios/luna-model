@@ -1,7 +1,10 @@
-use crate::utils::{drop_from_c, handle_to_c, out_from_c};
 use luna_model::core::prelude::Linear;
 
-use crate::{LmLinear, LmStatus, error::guard};
+use crate::{
+    LmLinear, LmStatus,
+    error::guard,
+    utils::{drop_from_c, handle_to_c, out_from_c},
+};
 
 /// Frees a linear handle. Passing null is a no-op.
 ///

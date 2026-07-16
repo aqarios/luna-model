@@ -1,10 +1,11 @@
-use crate::utils::{handle_to_c, opt_from_c, out_from_c, ref_from_c, shared_from_c, slice_from_c};
-use luna_model::core::{ConstraintCollection, prelude::ContentEquality};
+use luna_model::core::prelude::ContentEquality;
 
+use super::utils::{collection_from_c, collection_out_from_c};
 use crate::{
     LmBoolMapBuffer, LmCC, LmEnv, LmStatus,
     buffer::bool_map_buffer_from_vec,
     error::{CapiError, guard},
+    utils::{opt_from_c, out_from_c, slice_from_c, storage_from_c},
 };
 
 /// Clones a constraint-collection into a new, independent handle written to `out`.
@@ -15,10 +16,8 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_clone(cc: *const LmCC, out: *mut *mut LmCC) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(cc.clone());
-        Ok(())
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read().clone();
+        unsafe { collection_out_from_c(out, cc) }
     })
 }
 
@@ -34,11 +33,9 @@ pub unsafe extern "C" fn lm_cc_deep_clone(
     out: *mut *mut LmCC,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
-        let env = unsafe { shared_from_c(env, "env")? }.read_arc();
-        let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(cc.deep_clone(env.clone()));
-        Ok(())
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
+        let env = unsafe { storage_from_c(env, "env")? };
+        unsafe { collection_out_from_c(out, cc.deep_clone(env.clone())) }
     })
 }
 
@@ -51,12 +48,12 @@ pub unsafe extern "C" fn lm_cc_deep_clone(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_cc_eq(cc: *const LmCC, other: *const LmCC, out: *mut bool) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
-        let other = unsafe { ref_from_c(other as *const ConstraintCollection, "other") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
+        let other = unsafe { collection_from_c(other, "other") }?.read();
 
         let out = unsafe { out_from_c(out) }?;
 
-        *out = cc.eq(other);
+        *out = cc.eq(&other);
         Ok(())
     })
 }
@@ -74,12 +71,12 @@ pub unsafe extern "C" fn lm_cc_equal_contents(
     out: *mut bool,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
-        let other = unsafe { ref_from_c(other as *const ConstraintCollection, "other") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
+        let other = unsafe { collection_from_c(other, "other") }?.read();
 
         let out = unsafe { out_from_c(out) }?;
 
-        *out = cc.equal_contents(other);
+        *out = cc.equal_contents(&other);
         Ok(())
     })
 }
@@ -98,7 +95,7 @@ pub unsafe extern "C" fn lm_cc_evaluate_sample_quick(
     out: *mut LmBoolMapBuffer,
 ) -> LmStatus {
     guard(|| {
-        let cc = unsafe { ref_from_c(cc as *const ConstraintCollection, "cc") }?;
+        let cc = unsafe { collection_from_c(cc, "cc") }?.read();
         let lookup = unsafe { slice_from_c(lookup, len, "lookup") }?;
         let tol = unsafe { opt_from_c(tol) };
         let out = unsafe { out_from_c(out) }?;

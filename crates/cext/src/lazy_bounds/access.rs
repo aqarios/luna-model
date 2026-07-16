@@ -1,10 +1,10 @@
-use crate::utils::{out_from_c, ref_from_c};
 use luna_model::core::prelude::LazyBounds;
 
 use crate::{
     LmBound, LmLazyBounds, LmStatus,
     error::{CapiError, guard},
     utils::bound_to_c,
+    utils::{out_from_c, ref_from_c},
 };
 
 /// Returns a copy of the lazy-bounds' lower bound.

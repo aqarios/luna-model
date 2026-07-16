@@ -1,10 +1,12 @@
-use crate::utils::{new_handle_out_from_c, out_from_c, shared_from_c, slice_from_c};
 use luna_model::core::Model;
 use luna_model::serializer::prelude::*;
 
-use crate::buffer::buffer_from_vec;
-use crate::error::{CapiError, guard};
-use crate::{LmBuffer, LmModel, LmStatus};
+use crate::{
+    LmBuffer, LmModel, LmStatus,
+    buffer::buffer_from_vec,
+    error::{CapiError, guard},
+    utils::{new_handle_out_from_c, out_from_c, shared_from_c, slice_from_c},
+};
 
 /// Serializes a model to bytes, writing an owned buffer to `out`.
 ///
