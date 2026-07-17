@@ -27,6 +27,7 @@ lunamodel-python-macros = { workspace = true }
 lunamodel-cext-handle = { workspace = true }
 lunamodel-cext-pyffi = { workspace = true }
 lunamodel-cext-vtable = { workspace = true }
+lunamodel-cext-plugin = { workspace = true }
 
 pyo3 = { workspace = true, features = ["multiple-pymethods", "indexmap"] }
 numpy = { workspace = true }

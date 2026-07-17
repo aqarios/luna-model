@@ -15,6 +15,18 @@ extern "C" {
 #endif // __cplusplus
 
 /**
+ * Registers a reversal handler for a plugin pass, keyed by its stable id.
+ *
+ * # Safety
+ * `id` must be a valid NUL-terminated UTF-8 C string. `func`/`user_data` must stay valid for as
+ * long as any record by the pass may be reversed.
+ */
+LmStatus lm_register_plugin_backward(LmPassKind kind,
+                                     const char *id,
+                                     LmBackwardFn func,
+                                     void *user_data);
+
+/**
  * Returns whether the bound is finite (`Bounded`) rather than `Unbounded`.
  *
  * # Safety

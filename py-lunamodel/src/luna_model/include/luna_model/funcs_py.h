@@ -446,6 +446,7 @@ static inline int import_luna_model(void) {
 #define lm_timing_start_ns(...) (lunamodel__vtable->timing_start_ns(__VA_ARGS__))
 #define lm_timing_end_ns(...) (lunamodel__vtable->timing_end_ns(__VA_ARGS__))
 #define lm_timing_qpu(...) (lunamodel__vtable->timing_qpu(__VA_ARGS__))
+#define lm_register_plugin_backward(...) (lunamodel__vtable->register_plugin_backward(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

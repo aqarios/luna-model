@@ -59,6 +59,19 @@ typedef enum {
 } LmStatus;
 
 /**
+ * The kind of transpiler pass a plugin registers.
+ *
+ * C-ABI-stable selector for the five `lunamodel-transpiler` pass traits.
+ */
+typedef enum {
+    LmPassKind_Transformation = 0,
+    LmPassKind_Analysis = 1,
+    LmPassKind_Composite = 2,
+    LmPassKind_ControlFlow = 3,
+    LmPassKind_MetaAnalysis = 4,
+} LmPassKind;
+
+/**
  * Discriminant for `LmBound`.
  */
 typedef enum {
@@ -181,6 +194,32 @@ typedef enum {
      */
     LmValueSource_Obj = 1,
 } LmValueSource;
+
+/**
+ * Opaque handle to a LunaModel solution.
+ *
+ * Solutions are produced elsewhere (a solver or the Python API) and loaded here
+ * from serialized bytes with [`lm_sol_deserialize`]. Release with
+ * [`lm_sol_free`].
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmSol;
+
+/**
+ * Reversal handle for a plugin transformation/composite pass, registered by stable pass id via
+ * `register_plugin_backward`.
+ *
+ * Given the artifact bytes emitted by `forward` plus an owned solution handle, the plugin maps the
+ * solution back through the inverse of its transformation, mutating `solution` in place. Invoked
+ * later, possibly after the pass instance is gone or a `TransformationRecord` was reloaded, so it
+ * must be self-contained given the artifact bytes and `user_data`.
+ */
+typedef LmStatus (*LmBackwardFn)(void *user_data,
+                                 const uint8_t *artifact,
+                                 uintptr_t artifact_len,
+                                 LmSol *solution);
 
 /**
  * Bound used by the C API.
@@ -781,18 +820,6 @@ typedef struct {
 } LmHigherOrder;
 
 /**
- * Opaque handle to a LunaModel solution.
- *
- * Solutions are produced elsewhere (a solver or the Python API) and loaded here
- * from serialized bytes with [`lm_sol_deserialize`]. Release with
- * [`lm_sol_free`].
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmSol;
-
-/**
  * Opaque handle to a LunaModel model.
  *
  * Created by [`lm_model_default`], [`lm_model_new`] or [`lm_model_deserialize`] and released with
@@ -1306,6 +1333,13 @@ typedef struct {
     LmStatus (*timing_start_ns)(const LmTiming*, uint64_t*);
     LmStatus (*timing_end_ns)(const LmTiming*, uint64_t*);
     LmStatus (*timing_qpu)(const LmTiming*, double*);
+    /**
+     * Register a reversal handler for a plugin pass, keyed by its stable id.
+     * Call this (e.g. from `luna_model.register(...)`) before reversing a record that
+     * used the pass. `user_data` is owned by the plugin and must outlive any reversal
+     * (typically module-lifetime).
+     */
+    LmStatus (*register_plugin_backward)(LmPassKind, const char*, LmBackwardFn, void*);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

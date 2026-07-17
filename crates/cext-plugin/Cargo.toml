@@ -1,0 +1,20 @@
+[package]
+name = "lunamodel-cext-plugin"
+version.workspace = true
+license.workspace = true
+publish = false
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+name = "lunamodel_cext_plugin"
+crate-type = ["rlib"]
+
+[dependencies]
+lunamodel-core = { workspace = true }
+lunamodel-transpiler = { workspace = true }
+lunamodel-cext-vtable = { workspace = true }
+lunamodel-cext-handle = { workspace = true }

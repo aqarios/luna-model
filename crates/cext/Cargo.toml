@@ -17,6 +17,7 @@ crate-type = ["rlib"]
 luna-model = { workspace = true, features = ["serializer"] }
 lunamodel-cext-vtable = { workspace = true }
 lunamodel-cext-handle = { workspace = true }
+lunamodel-cext-plugin = { workspace = true }
 
 itertools = { workspace = true }
 indexmap = { workspace = true }
@@ -24,3 +25,6 @@ indexmap = { workspace = true }
 [build-dependencies]
 cbindgen = "0.29.4"
 syn = { workspace = true, features = ["full"] }
+
+[dev-dependencies]
+lunamodel-transpiler = { workspace = true }

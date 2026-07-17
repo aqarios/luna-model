@@ -702,7 +702,9 @@ dependencies = [
  "itertools 0.15.0",
  "luna-model",
  "lunamodel-cext-handle",
+ "lunamodel-cext-plugin",
  "lunamodel-cext-vtable",
+ "lunamodel-transpiler",
  "syn",
 ]
 
@@ -714,6 +716,16 @@ dependencies = [
  "lunamodel-core",
  "lunamodel-types",
  "parking_lot 0.12.5",
+]
+
+[[package]]
+name = "lunamodel-cext-plugin"
+version = "0.6.11"
+dependencies = [
+ "lunamodel-cext-handle",
+ "lunamodel-cext-vtable",
+ "lunamodel-core",
+ "lunamodel-transpiler",
 ]
 
 [[package]]
@@ -796,6 +808,7 @@ dependencies = [
  "indexmap",
  "itertools 0.15.0",
  "lunamodel-cext-handle",
+ "lunamodel-cext-plugin",
  "lunamodel-cext-pyffi",
  "lunamodel-cext-vtable",
  "lunamodel-core",

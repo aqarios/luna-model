@@ -541,18 +541,19 @@ checksum = "0ceec5bc11778974d1bcb055b18002eba7f4b3518b6a0081b3af5f21666da9ad"
 
 [[package]]
 name = "luna-model"
-version = "0.6.9"
+version = "0.6.11"
 dependencies = [
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-serializer",
+ "lunamodel-transpiler",
  "lunamodel-types",
  "lunamodel-utils",
 ]
 
 [[package]]
 name = "lunamodel-cext"
-version = "0.6.9"
+version = "0.6.11"
 dependencies = [
  "cbindgen",
  "indexmap",
@@ -565,7 +566,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-cext-handle"
-version = "0.6.9"
+version = "0.6.11"
 dependencies = [
  "lunamodel-cext-vtable",
  "lunamodel-core",
@@ -575,11 +576,11 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-cext-vtable"
-version = "0.6.9"
+version = "0.6.11"
 
 [[package]]
 name = "lunamodel-core"
-version = "0.6.9"
+version = "0.6.11"
 dependencies = [
  "bitvec",
  "derive_more",
@@ -602,7 +603,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-error"
-version = "0.6.9"
+version = "0.6.11"
 dependencies = [
  "prost",
  "rand",
@@ -611,7 +612,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-serializer"
-version = "0.6.9"
+version = "0.6.11"
 dependencies = [
  "bitvec",
  "indexmap",
@@ -628,7 +629,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler"
-version = "0.6.9"
+version = "0.6.11"
 dependencies = [
  "lunamodel-core",
  "lunamodel-error",
@@ -638,7 +639,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler-macros"
-version = "0.6.9"
+version = "0.6.11"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -647,7 +648,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-types"
-version = "0.6.9"
+version = "0.6.11"
 dependencies = [
  "derive_more",
  "enumset",
@@ -659,7 +660,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.6.9"
+version = "0.6.11"
 dependencies = [
  "lunamodel-error",
  "num",

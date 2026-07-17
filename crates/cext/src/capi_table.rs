@@ -535,4 +535,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     timing_start_ns: crate::timing::lm_timing_start_ns,
     timing_end_ns: crate::timing::lm_timing_end_ns,
     timing_qpu: crate::timing::lm_timing_qpu,
+    // ///////////// //
+    // Plugin passes //
+    // ///////////// //
+    register_plugin_backward: crate::plugin::lm_register_plugin_backward,
 };

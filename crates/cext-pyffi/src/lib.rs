@@ -4,15 +4,15 @@
 //! consume the handle, the capsule releases it through the supplied C-API
 //! destructor when Python destroys the capsule.
 
+pub mod core;
+pub mod plugin;
+
 use std::{
     ffi::{CStr, c_void},
     marker::PhantomData,
     mem, ptr,
 };
 
-use lunamodel_cext_vtable::{
-    LmCC, LmConstraint, LmEnv, LmExpr, LmLazyBounds, LmModel, LmSol, LmSpecs, LmVref,
-};
 use pyo3::{
     Bound, PyResult, Python,
     exceptions::PyValueError,
@@ -25,42 +25,6 @@ pub const C_API_CAPSULE_NAME: &CStr = c"luna_model._lm._C_API";
 /// Associates an opaque C handle with its versioned PyCapsule name.
 pub trait CapsuleKind: Sized + 'static {
     const CAPSULE_NAME: &'static CStr;
-}
-
-impl CapsuleKind for LmModel {
-    const CAPSULE_NAME: &'static CStr = c"luna_model.capi.Model.v1";
-}
-
-impl CapsuleKind for LmSol {
-    const CAPSULE_NAME: &'static CStr = c"luna_model.capi.Solution.v1";
-}
-
-impl CapsuleKind for LmEnv {
-    const CAPSULE_NAME: &'static CStr = c"luna_model.capi.Environment.v1";
-}
-
-impl CapsuleKind for LmExpr {
-    const CAPSULE_NAME: &'static CStr = c"luna_model.capi.Expression.v1";
-}
-
-impl CapsuleKind for LmCC {
-    const CAPSULE_NAME: &'static CStr = c"luna_model.capi.ConstraintCollection.v1";
-}
-
-impl CapsuleKind for LmConstraint {
-    const CAPSULE_NAME: &'static CStr = c"luna_model.capi.Constraint.v1";
-}
-
-impl CapsuleKind for LmVref {
-    const CAPSULE_NAME: &'static CStr = c"luna_model.capi.Variable.v1";
-}
-
-impl CapsuleKind for LmLazyBounds {
-    const CAPSULE_NAME: &'static CStr = c"luna_model.capi.Bounds.v1";
-}
-
-impl CapsuleKind for LmSpecs {
-    const CAPSULE_NAME: &'static CStr = c"luna_model.capi.ModelSpecs.v1";
 }
 
 #[repr(C)]

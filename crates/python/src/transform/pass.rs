@@ -15,10 +15,12 @@ use lunamodel_transform::{
     },
 };
 use lunamodel_transpiler::{Pipeline, PipelineStep};
+use lunamodel_cext_plugin::CPluginTransformPass;
+use lunamodel_cext_pyffi::plugin::{PLUGIN_TRANSFORM_METHOD, read_plugin_transform};
 use pyo3::{
     FromPyObject, IntoPyObjectExt, Py, PyAny, PyErr, PyResult, Python,
     exceptions::PyTypeError,
-    types::{PyAnyMethods, PyTypeMethods},
+    types::{PyAnyMethods, PyCapsule, PyTypeMethods},
 };
 
 use crate::transform::{
@@ -129,7 +131,7 @@ macro_rules! define_py_pass {
                         PyCompositePassAdapter::new(py, p.clone_ref(py))?,
                     ))),
                     // default for non-leaking error
-                    Self::Default(d) => Err(invalid_pass_error(d, py)),
+                    Self::Default(d) => plugin_transform_step(d, py),
                 }
             }
 
@@ -246,6 +248,26 @@ define_py_pass!(
     ],
     control_flow: [(PyIfElsePass, IfElsePass)],
 );
+
+/// Wraps a foreign C-boundary plugin transformation pass, if the object provides one.
+///
+/// Native built-in and pure-Python passes match earlier `PyPass` variants; only objects that
+/// don't reach the host as a known pass fall here. If the object exposes
+/// [`PLUGIN_TRANSFORM_METHOD`], its descriptor capsule is read and adapted into a step exactly
+/// like a built-in transform; otherwise it is an invalid pass.
+fn plugin_transform_step(obj: &Py<PyAny>, py: Python<'_>) -> PyResult<PipelineStep> {
+    let bound = obj.bind(py);
+    if bound.hasattr(PLUGIN_TRANSFORM_METHOD)? {
+        let capsule = bound
+            .call_method0(PLUGIN_TRANSFORM_METHOD)?
+            .cast_into::<PyCapsule>()?;
+        let descriptor = read_plugin_transform(&capsule)?;
+        return Ok(PipelineStep::Transform(Arc::new(
+            CPluginTransformPass::from_descriptor(&descriptor),
+        )));
+    }
+    Err(invalid_pass_error(obj, py))
+}
 
 fn invalid_pass_error(obj: &Py<PyAny>, py: Python<'_>) -> PyErr {
     let bound = obj.bind(py);
