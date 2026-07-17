@@ -11,7 +11,7 @@ use crate::{
     erased::{
         ErasedAnalysisPass, ErasedCompositePass, ErasedMetaAnalysisPass, ErasedTransformPass,
     },
-    error::{TranspilerResult, record},
+    error::{TranspilerResult, attach_nested, record},
     output::TransformationOutput,
     record::{PassEntry, TransformationRecord},
     step::PipelineStep,
@@ -140,16 +140,6 @@ fn execute_steps(
                         pass_name: pass.name().to_string(),
                     });
                 }
-                PipelineStep::ControlFlow(pass) => {
-                    let ctx = PassContext::new(analysis_manager);
-                    let plan = pass.run_erased(model, &ctx)?;
-                    let sub_record = execute_steps(model, &plan.pipeline.steps, analysis_manager)?;
-                    entries.push(PassEntry::ControlFlow {
-                        name: plan.pipeline.name,
-                        pass_name: pass.name().to_string(),
-                        record: sub_record,
-                    });
-                }
                 PipelineStep::Composite(pass) => {
                     let analysis_snapshot = analysis_manager.clone();
                     let ctx = PassContext::new(&analysis_snapshot);
@@ -161,12 +151,22 @@ fn execute_steps(
                     });
                     analysis_manager.invalidate_many(pass.invalidates());
                 }
+                PipelineStep::ControlFlow(pass) => {
+                    let ctx = PassContext::new(analysis_manager);
+                    let plan = pass.run_erased(model, &ctx)?;
+                    let res = execute_steps(model, &plan.pipeline.steps, analysis_manager);
+                    attach_nested(entries, res, |record| PassEntry::ControlFlow {
+                        name: plan.pipeline.name,
+                        pass_name: pass.name().to_string(),
+                        record,
+                    })?;
+                }
                 PipelineStep::Pipeline(p) => {
-                    let sub_record = execute_steps(model, &p.steps, analysis_manager)?;
-                    entries.push(PassEntry::Pipeline {
+                    let res = execute_steps(model, &p.steps, analysis_manager);
+                    attach_nested(entries, res, |record| PassEntry::Pipeline {
                         name: p.name.clone(),
-                        record: sub_record,
-                    });
+                        record,
+                    })?;
                 }
             }
         }

@@ -4,8 +4,8 @@
 
   #define LUNA_MODEL_VERSION_MAJOR 0
   #define LUNA_MODEL_VERSION_MINOR 6
-  #define LUNA_MODEL_VERSION_PATCH 9
-  #define LUNA_MODEL_VERSION "0.6.9"
+  #define LUNA_MODEL_VERSION_PATCH 11
+  #define LUNA_MODEL_VERSION "0.6.11"
 
   /* Packed 0xMMmmpp. */
   #define LUNA_MODEL_VERSION_HEX                          \
