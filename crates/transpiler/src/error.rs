@@ -137,10 +137,7 @@ impl From<TranspilerError> for LunaModelError {
     fn from(value: TranspilerError) -> Self {
         let msg: ErrString = value.to_string().into();
         let TranspilerError { kind, record } = value;
-        let record = match record {
-            None => None,
-            Some(r) => Some(ErasedRecord::new(r)),
-        };
+        let record = record.map(ErasedRecord::new);
         match kind {
             TranspileErrorKind::Infeasible { location, reason } => LunaModelError::Infeasible {
                 location,
