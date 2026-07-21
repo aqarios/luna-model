@@ -16,6 +16,7 @@ from typing import Protocol, Self, runtime_checkable
 
 from luna_model._lm import PyMinValueForConstraintAnalysis
 from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
+from luna_model.variable.bounds import Unbounded
 
 
 @runtime_checkable
@@ -27,12 +28,12 @@ class MinConstraintValues(Protocol):
     """
 
     @property
-    def vals(self) -> dict[str, float]:
+    def vals(self) -> dict[str, float | type[Unbounded]]:
         """Get the minimum values possible for the constraints.
 
         Returns
         -------
-        dict[str, float]
+        dict[str, float | type[Unbounded]]
             The minimum possible value for all constraints.
         """
         ...

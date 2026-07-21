@@ -78,19 +78,19 @@ impl Reversible for IntegerToBinaryPass {
         for (intvar, binaries) in artifact.varmap.iter() {
             let mut intcol = vec![artifact.offsetmap[intvar] as f64; solution.len()];
             for (binary_name, coef) in binaries {
-                let bincol = solution
-                    .remove_col(binary_name)
-                    .expect("No entry for variable '{binary_name}' in solution.");
+                let bincol =
+                    solution
+                        .remove_col(binary_name)
+                        .ok_or_else(|| TransformError::Backward {
+                            id: Self::ID.to_owned(),
+                            msg: format!("No entry for variable '{binary_name}' in solution."),
+                        })?;
                 for idx in 0..bincol.len() {
                     let newval = *coef as f64 * bincol[idx];
                     *intcol.get_mut(idx).unwrap() += newval;
                 }
             }
-            solution
-                .add_col(Vtype::Integer, intvar.to_string(), intcol, None)
-                .expect(
-                    "adding this column in the backward of integer-to-binary pass must be possible.",
-                );
+            solution.add_col(Vtype::Integer, intvar.to_string(), intcol, None)?;
         }
         solution.aggregate().unwrap();
         Ok(solution)

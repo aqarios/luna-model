@@ -6,7 +6,8 @@ use lunamodel_types::{EnumSetFromVec, Sense, Specs, Vtype};
 
 use crate::{
     analysis::{
-        CheckModelSpecsAnalysis, MaxBiasAnalysis, MinValueForConstraintAnalysis, SpecsAnalysis,
+        CheckInfeasibleConstraintsAnalysis, CheckModelSpecsAnalysis, MaxBiasAnalysis,
+        MinValueForConstraintAnalysis, SpecsAnalysis,
     },
     transformation::{
         BinarySpinPass, ChangeSensePass, EqualityConstraintsToQuadraticPenaltyPass,
@@ -37,6 +38,7 @@ impl ToUnconstrainedBinaryPipeline {
             vec![
                 // Check that the requirements are fulfilled else return Error.
                 CheckModelSpecsAnalysis::new(requirements).into(),
+                CheckInfeasibleConstraintsAnalysis.into(),
                 BinarySpinPass::new(Vtype::Binary, Some("b".to_string())).into(),
                 // IntegerToBinaryPass::new().into(),
                 ChangeSensePass::new(Sense::Min).into(),

@@ -129,6 +129,12 @@ pub enum LunaModelError {
     RandomSampling(ErrString),
     /// Invalid tolerance specified.
     InvalidTolerance(ErrString),
+    /// Model is infeasible.
+    Infeasible {
+        location: String,
+        reason: String,
+        record: Option<ErasedRecord>,
+    },
     #[cfg(feature = "py")]
     /// Wraps a domain error together with a Python-side cause.
     WithCause(Box<LunaModelError>, py::PyErrW),
@@ -189,6 +195,12 @@ impl Display for LunaModelError {
             InvalidTolerance(msg) => write!(f, "invalid tolerance: {}", msg),
             #[cfg(feature = "py")]
             WithCause(err, _) => write!(f, "{}", err),
+
+            Infeasible {
+                location, reason, ..
+            } => {
+                write!(f, "model is infeasible at {location}: {reason}")
+            }
         }
     }
 }
@@ -199,6 +211,9 @@ impl LunaModelError {
     pub fn recover<T: Any>(&self) -> Option<&T> {
         match self {
             Self::Transformation {
+                record: Some(r), ..
+            } => r.downcast_ref::<T>(),
+            Self::Infeasible {
                 record: Some(r), ..
             } => r.downcast_ref::<T>(),
             _ => None,

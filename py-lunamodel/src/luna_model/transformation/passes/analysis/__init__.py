@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .check_infeasible_constraints import CheckInfeasibleConstraintsAnalysis
 from .check_model_specs import CheckModelSpecsAnalysis
 from .max_bias import MaxBias, MaxBiasAnalysis
 from .min_value_for_constraints import MinConstraintValues, MinValueForConstraintAnalysis
 from .specs_analysis import SpecsAnalysis
 
 __all__ = [
+    "CheckInfeasibleConstraintsAnalysis",
     "CheckModelSpecsAnalysis",
     "MaxBias",
     "MaxBiasAnalysis",

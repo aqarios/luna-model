@@ -329,6 +329,13 @@ create_exception!(
 
 create_exception!(
     builtins.errors,
+    PyModelInfeasibleError,
+    PyTransformError,
+    "Raised when the model is found to be infeasible."
+);
+
+create_exception!(
+    builtins.errors,
     PyInvalidToleranceError,
     PyLunaModelError,
     "Raised when an invalid tolerance is specified."
@@ -367,9 +374,12 @@ impl From<Lme> for PyErr {
             Lme::AnalysisPass(_, _) => PyAnalysisPassError::new_err,
             Lme::IfElsePass(_) => PyIfElsePassError::new_err,
             Lme::MetaAnalysisPass(_, _) => PyMetaAnalysisPassError::new_err,
-            Lme::Transformation { .. } => PyTransformError::new_err,
             Lme::RandomSampling(_) => PyRandomSamplingError::new_err,
             Lme::InvalidTolerance(_) => PyInvalidToleranceError::new_err,
+
+            Lme::Transformation { .. } => PyTransformError::new_err,
+            Lme::Infeasible { .. } => PyModelInfeasibleError::new_err,
+
             Lme::WithCause(e, cause) => {
                 let pyerr: PyErr = (*e).into();
                 Python::attach(|py| pyerr.set_cause(py, Some(cause.err)));
