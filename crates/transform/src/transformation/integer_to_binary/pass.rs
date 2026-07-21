@@ -56,6 +56,7 @@ impl TransformationPass for IntegerToBinaryPass {
                 binvarmap.insert(binref.name()?, coef);
                 replacement.add_assign((&binref * coef)?)?;
             }
+            replacement.add_assign(offset as f64)?;
             model.substitute(&model.environment.get(vid), &replacement)?;
             artifact.varmap.insert(vname.clone(), binvarmap);
             artifact.offsetmap.insert(vname, offset);
