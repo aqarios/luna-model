@@ -81,7 +81,7 @@ package = true
 cache-keys = [
     { file = "pylm/Cargo.toml" },
     { file = "pylm/Cargo.lock" },
-    { file = "src/**/*.rs" },
+    { file = "pylm/src/lib.rs" },
     { file = "../crates/**/*.rs" },
 ]
 

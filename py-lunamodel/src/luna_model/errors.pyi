@@ -130,6 +130,8 @@ class TransformError(TransformationError):
     record: TransformationRecord | None
     """Transformation record recovered up to the point of failure, if available."""
 
+class ModelInfeasibleError(TransformError): ...
+
 @deprecated("CompilationError is deprecated. Use TransformError instead.")  # noqa: PYI053
 class CompilationError(TransformError): ...
 
@@ -148,6 +150,7 @@ __all__ = [
     "InvalidToleranceError",
     "LunaModelError",
     "MetaAnalysisPassError",
+    "ModelInfeasibleError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
     "ModelSenseNotMinimizeError",

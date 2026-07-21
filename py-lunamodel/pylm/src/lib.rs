@@ -69,6 +69,7 @@ fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transform::builtin::analysis::PyMinValueForConstraintAnalysis>()?;
     m.add_class::<transform::builtin::analysis::PyMinConstraintValues>()?;
     m.add_class::<transform::builtin::analysis::PySpecsAnalysis>()?;
+    m.add_class::<transform::builtin::analysis::PyCheckInfeasibleConstraintsAnalysis>()?;
     // builtin transformation
     m.add_class::<transform::builtin::transformation::PyIntegerToBinaryPass>()?;
     m.add_class::<transform::builtin::transformation::PyBinarySpinPass>()?;
@@ -240,6 +241,10 @@ fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add(
         PyInvalidToleranceError::type_object(py).name()?,
         m.py().get_type::<PyInvalidToleranceError>(),
+    )?;
+    m.add(
+        PyModelInfeasibleError::type_object(py).name()?,
+        m.py().get_type::<PyModelInfeasibleError>(),
     )?;
     Ok(())
 }

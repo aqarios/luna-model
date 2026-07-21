@@ -2,17 +2,16 @@
 
 use std::collections::HashMap;
 
-use lunamodel_core::{Model, prelude::Bounds};
+use crate::{analysis::utils::compute_minvalue, error::TransformError};
+use lunamodel_core::Model;
 use lunamodel_transpiler::{
     AnalysisKey, AnalysisPass, PassContext, PipelineStep, TranspileKindResult, analysis,
 };
 use lunamodel_types::Bound;
 
-use crate::error::TransformError;
-
 #[derive(Clone, Debug)]
 pub struct MinConstraintValues {
-    pub vals: HashMap<String, f64>,
+    pub vals: HashMap<String, Bound>,
 }
 
 #[analysis]
@@ -35,27 +34,25 @@ impl AnalysisPass for MinValueForConstraintAnalysis {
     fn run(&self, model: &Model, _ctx: &PassContext) -> TranspileKindResult<Self::Result> {
         let mut minvalues = HashMap::new();
         for (name, constr) in model.constraints.iter() {
-            // Constraint is for sure linear. Let's only look at the linear
-            // stuff. Since we are in a constraint the constant (offset) is zero.
-            let minvalue: f64 = constr
-                .lhs
-                .linear_items()
-                .map(|(v, bias)| {
-                    let Bounds { lower, upper } = v.bounds()?;
-                    // positive coef minimized at lower bound, negative at upper bound
-                    match if bias >= 0.0 { lower } else { upper } {
-                        Bound::Bounded(value) => Ok(bias * value),
-                        Bound::Unbounded => Err(TransformError::Analysis {
-                            name: self.name().to_owned(),
-                            msg: format!(
-                                "constraint '{name}' contains variable '{}' that is unbounded \
-                       in the minimizing direction; its minimum value cannot be determined.",
-                                v.name()?
-                            ),
-                        })?,
-                    }
-                })
-                .sum::<TranspileKindResult<f64>>()?;
+            if constr.lhs.has_quadratic() {
+                return Err(TransformError::Analysis {
+                    name: self.name().to_owned(),
+                    msg: format!(
+                        "constraint '{name}' contains quadratic terms. This is not supported, constraints must be linear."
+                    ),
+                })?;
+            }
+
+            if constr.lhs.has_higher_order() {
+                return Err(TransformError::Analysis {
+                    name: self.name().to_owned(),
+                    msg: format!(
+                        "constraint '{name}' contains higher-order terms. This is not supported, constraints must be linear."
+                    ),
+                })?;
+            }
+
+            let minvalue = compute_minvalue(constr.lhs.linear_items())?;
             minvalues.insert(name.clone(), minvalue);
         }
 

@@ -71,6 +71,9 @@ from luna_model._lm import (
     PyMetaAnalysisPassError as MetaAnalysisPassError,
 )
 from luna_model._lm import (
+    PyModelInfeasibleError as ModelInfeasibleError,
+)
+from luna_model._lm import (
     PyModelNotQuadraticError as ModelNotQuadraticError,
 )
 from luna_model._lm import (
@@ -174,6 +177,7 @@ __all__ = [
     "InvalidToleranceError",
     "LunaModelError",
     "MetaAnalysisPassError",
+    "ModelInfeasibleError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
     "ModelSenseNotMinimizeError",
