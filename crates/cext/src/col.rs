@@ -292,3 +292,22 @@ pub unsafe extern "C" fn lm_col_remove(column: *mut LmColumn, index: usize) -> L
         Ok(())
     })
 }
+
+/// Returns the element at the index.
+///
+/// The pointer remains valid until the column is mutated or freed.
+///
+/// # Safety
+/// `column` and `value` must be valid pointers.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_col_index(
+    column: *const LmColumn,
+    index: usize,
+    value: *mut f64,
+) -> LmStatus {
+    guard(|| {
+        let column = unsafe { ref_from_c(column as *const Column, "column") }?;
+        *unsafe { out_from_c(value) }? = column[index];
+        Ok(())
+    })
+}

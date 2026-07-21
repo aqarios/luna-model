@@ -28,3 +28,5 @@ syn = { workspace = true, features = ["full"] }
 
 [dev-dependencies]
 lunamodel-transpiler = { workspace = true }
+lunamodel-transform = { workspace = true }
+rs-lunamodel = { path = "../../rs-lunamodel" }

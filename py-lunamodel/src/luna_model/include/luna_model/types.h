@@ -208,18 +208,21 @@ typedef struct {
 } LmSol;
 
 /**
- * Reversal handle for a plugin transformation/composite pass, registered by stable pass id via
+ * Reversal handler for a plugin transformation/composite pass, registered by stable pass id via
  * `register_plugin_backward`.
  *
- * Given the artifact bytes emitted by `forward` plus an owned solution handle, the plugin maps the
- * solution back through the inverse of its transformation, mutating `solution` in place. Invoked
- * later, possibly after the pass instance is gone or a `TransformationRecord` was reloaded, so it
- * must be self-contained given the artifact bytes and `user_data`.
+ * Mirrors the native by-value `backward`: ownership of `solution` is transferred IN to the plugin,
+ * and the plugin writes the produced (mapped-back) owned solution OUT through `out_solution`. This
+ * consume/produce shape lets reversal replace the solution entirely, not just mutate it. Invoked
+ * later — possibly after the pass instance is gone or a `TransformationRecord` was reloaded — so it
+ * must be self-contained given the artifact bytes plus `user_data`. On any non-`Ok` return,
+ * `out_solution` is not read and the plugin owns (and must release) the incoming `solution`.
  */
 typedef LmStatus (*LmBackwardFn)(void *user_data,
                                  const uint8_t *artifact,
                                  uintptr_t artifact_len,
-                                 LmSol *solution);
+                                 LmSol *solution,
+                                 LmSol **out_solution);
 
 /**
  * Bound used by the C API.
@@ -978,6 +981,7 @@ typedef struct {
     LmStatus (*col_vtype)(const LmColumn*, LmVtype*);
     LmStatus (*col_assignment)(const LmColumn*, uintptr_t, LmAssignment*);
     LmStatus (*col_values)(const LmColumn*, const double**, uintptr_t*);
+    LmStatus (*col_index)(const LmColumn*, uintptr_t, double*);
     LmStatus (*col_push)(LmColumn*, LmAssignment);
     LmStatus (*col_try_push)(LmColumn*, double, const double*);
     LmStatus (*col_remove)(LmColumn*, uintptr_t);
@@ -1111,6 +1115,9 @@ typedef struct {
     LmStatus (*expr_has_quadratic)(const LmExpr*, bool*);
     LmStatus (*expr_has_higher_order)(const LmExpr*, bool*);
     LmStatus (*expr_set_offset)(LmExpr*, double);
+    LmStatus (*expr_set_linear)(LmExpr*, const LmLinear*);
+    LmStatus (*expr_set_quadratic)(LmExpr*, const LmQuadratic*);
+    LmStatus (*expr_set_higher_order)(LmExpr*, const LmHigherOrder*);
     LmStatus (*expr_add_linear_term)(LmExpr*, uint32_t, double);
     LmStatus (*expr_add_quadratic_term)(LmExpr*, uint32_t, uint32_t, double);
     LmStatus (*expr_add_higher_order_term)(LmExpr*, const uint32_t*, uintptr_t, double);

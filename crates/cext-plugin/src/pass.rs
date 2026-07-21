@@ -111,22 +111,24 @@ impl Reversible for CPluginTransformPass {
                 name: artifact.plugin_pass_id.clone(),
             },
         )?;
-        let handle = new_handle::<LmSol>(solution);
+        // Transfer ownership of the solution to the plugin, and reclaim the one it produces.
+        let in_handle = new_handle::<LmSol>(solution);
+        let mut out_handle: *mut LmSol = std::ptr::null_mut();
         let status = unsafe {
             func(
                 user_data,
                 artifact.payload.as_ptr(),
                 artifact.payload.len(),
-                handle,
+                in_handle,
+                &mut out_handle,
             )
         };
-        let solution = reclaim::<LmSol, Solution>(handle, "solution", "backward")?;
         if status != LmStatus::Ok {
             return Err(plugin_error(&format!(
                 "plugin pass '{}' backward returned {status:?}",
                 artifact.plugin_pass_id
             )));
         }
-        Ok(solution)
+        reclaim::<LmSol, Solution>(out_handle, "solution", "backward")
     }
 }

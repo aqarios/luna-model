@@ -59,7 +59,8 @@ unsafe extern "C" fn backward(
     _ud: *mut c_void,
     artifact: *const u8,
     len: usize,
-    _sol: *mut LmSol,
+    solution: *mut LmSol,
+    out_solution: *mut *mut LmSol,
 ) -> LmStatus {
     let bytes = if len == 0 {
         &[][..]
@@ -68,6 +69,8 @@ unsafe extern "C" fn backward(
     };
     BACKWARD_CALLS.fetch_add(1, Ordering::SeqCst);
     BACKWARD_PAYLOAD_OK.store(bytes == PAYLOAD, Ordering::SeqCst);
+    // Pass ownership of the incoming solution straight through (no-op reversal).
+    unsafe { *out_solution = solution };
     LmStatus::Ok
 }
 

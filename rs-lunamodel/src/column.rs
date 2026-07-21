@@ -4,7 +4,7 @@ use lunamodel_cext_vtable::{LmColumn, LmVtype};
 use num::ToPrimitive;
 use rs_lunamodel_derive::RawHandle;
 
-use crate::{Assignment, Error, Result, Status, TryClone, Vtype, traits::LmTryInto};
+use crate::{Assignment, Error, Result, Status, TryClone, TryIndex, Vtype, traits::LmTryInto};
 
 /// One variable column within a solution.
 ///
@@ -143,6 +143,14 @@ impl Drop for Column {
         if !self.handle.is_null() {
             free!(self, col_free)
         }
+    }
+}
+
+impl TryIndex<usize> for Column {
+    type Output = f64;
+
+    fn try_index(&self, index: usize) -> Result<Self::Output> {
+        out!(col_index(@self, index))
     }
 }
 

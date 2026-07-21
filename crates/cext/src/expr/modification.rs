@@ -1,4 +1,11 @@
-use crate::{LmExpr, LmStatus, error::guard, expr::utils::expression_from_c, utils::slice_from_c};
+use luna_model::core::prelude::{HigherOrder, Linear, Quadratic};
+
+use crate::{
+    LmExpr, LmHigherOrder, LmLinear, LmQuadratic, LmStatus,
+    error::guard,
+    expr::utils::expression_from_c,
+    utils::{ref_from_c, slice_from_c},
+};
 
 /// Replaces an expression's constant offset.
 ///
@@ -65,6 +72,72 @@ pub unsafe extern "C" fn lm_expr_add_higher_order_term(
         let expression = unsafe { expression_from_c(expr, "expr") }?;
         let mut expression = expression.write();
         *expression.higher_order.get_or_insert_default() += (variables, bias);
+        Ok(())
+    })
+}
+
+// pub expr_set_linear: unsafe extern "C" fn(*mut LmExpr, *const LmLinear) -> LmStatus,
+/// Sets the linear term of an expression to the given linear term.
+///
+/// # Safety
+/// `expr` must be a valid mutable expression handle created by this library.
+/// `linear` must be a valid linear handle created by this library.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_expr_set_linear_term(
+    expr: *mut LmExpr,
+    linear: *const LmLinear,
+) -> LmStatus {
+    guard(|| {
+        let mut expression = unsafe { expression_from_c(expr, "expr") }?.write();
+        let linear = unsafe { ref_from_c(linear as *const Linear, "linear") }?;
+        expression.linear = linear.clone();
+        Ok(())
+    })
+}
+// pub expr_set_quadratic: unsafe extern "C" fn(*mut LmExpr, *const LmQuadratic) -> LmStatus,
+/// Sets the quadratic term of an expression to the given quadratic term.
+///
+/// # Safety
+/// `expr` must be a valid mutable expression handle created by this library.
+/// `quadratic` must be a valid quadratic handle created by this library.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_expr_set_quadratic_term(
+    expr: *mut LmExpr,
+    quadratic: *const LmQuadratic,
+) -> LmStatus {
+    guard(|| {
+        let mut expression = unsafe { expression_from_c(expr, "expr") }?.write();
+
+        let quadratic = if quadratic.is_null() {
+            None
+        } else {
+            Some(unsafe { ref_from_c(quadratic as *const Quadratic, "quadratic") }?.clone())
+        };
+
+        expression.quadratic = quadratic;
+        Ok(())
+    })
+}
+// pub expr_set_higher_order: unsafe extern "C" fn(*mut LmExpr, *const LmHigherOrder) -> LmStatus,
+/// Sets the higher-order term of an expression to the given higher-order term.
+///
+/// # Safety
+/// `expr` must be a valid mutable expression handle created by this library.
+/// `higher_order` must be a valid higher-order handle created by this library.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_expr_set_higher_order_term(
+    expr: *mut LmExpr,
+    higher_order: *const LmHigherOrder,
+) -> LmStatus {
+    guard(|| {
+        let mut expression = unsafe { expression_from_c(expr, "expr") }?.write();
+
+        let ho = if higher_order.is_null() {
+            None
+        } else {
+            Some(unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?.clone())
+        };
+        expression.higher_order = ho;
         Ok(())
     })
 }

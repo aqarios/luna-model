@@ -121,6 +121,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     col_vtype: crate::col::lm_col_vtype,
     col_assignment: crate::col::lm_col_assignment,
     col_values: crate::col::lm_col_values,
+    col_index: crate::col::lm_col_index,
     // Column -- modification
     col_push: crate::col::lm_col_push,
     col_try_push: crate::col::lm_col_try_push,
@@ -171,7 +172,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     sol_variable_bounds: crate::sol::lm_sol_variable_bounds,
     sol_timing: crate::sol::lm_sol_timing,
     sol_sense: crate::sol::lm_sol_sense,
-    // Sol -- access
+    // Sol -- acceLmHigherOrder
     sol_n_samples: crate::sol::lm_sol_n_samples,
     sol_len: crate::sol::lm_sol_len,
     sol_variable_names: crate::sol::lm_sol_variable_names,
@@ -255,6 +256,9 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_has_higher_order: crate::expr::lm_expr_has_higher_order,
     // Expr -- modification
     expr_set_offset: crate::expr::lm_expr_set_offset,
+    expr_set_linear: crate::expr::lm_expr_set_linear_term,
+    expr_set_quadratic: crate::expr::lm_expr_set_quadratic_term,
+    expr_set_higher_order: crate::expr::lm_expr_set_higher_order_term,
     expr_add_linear_term: crate::expr::lm_expr_add_linear_term,
     expr_add_quadratic_term: crate::expr::lm_expr_add_quadratic_term,
     expr_add_higher_order_term: crate::expr::lm_expr_add_higher_order_term,

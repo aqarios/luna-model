@@ -120,6 +120,21 @@ wheels = [
 ]
 
 [[package]]
+name = "luna-plugin-ext"
+version = "0.0.1"
+source = { editable = "plugin_ext" }
+dependencies = [
+    { name = "luna-model", source = { editable = "../../py-lunamodel" }, marker = "extra == 'group-20-pyo3-lunamodel-tests-local'" },
+    { name = "luna-model", version = "0.6.11", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-20-pyo3-lunamodel-tests-pypi' or extra != 'group-20-pyo3-lunamodel-tests-local'" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "luna-model" }]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.1.0" }]
+
+[[package]]
 name = "numpy"
 version = "2.4.4"
 source = { registry = "https://pypi.org/simple" }
@@ -245,6 +260,7 @@ name = "pyo3-lunamodel-tests"
 version = "0"
 source = { virtual = "." }
 dependencies = [
+    { name = "luna-plugin-ext" },
     { name = "pyo3-lunamodel-integration-ext" },
     { name = "pytest" },
 ]
@@ -259,6 +275,7 @@ pypi = [
 
 [package.metadata]
 requires-dist = [
+    { name = "luna-plugin-ext", editable = "plugin_ext" },
     { name = "pyo3-lunamodel-integration-ext", editable = "integration_ext" },
     { name = "pytest" },
 ]

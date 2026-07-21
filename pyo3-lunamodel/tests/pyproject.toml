@@ -6,6 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
     "pytest",
     "pyo3-lunamodel-integration-ext",
+    "luna-plugin-ext",
 ]
 
 [dependency-groups]
@@ -18,6 +19,7 @@ conflicts = [[{ group = "local" }, { group = "pypi" }]]
 
 [tool.uv.sources]
 pyo3-lunamodel-integration-ext = { path = "integration_ext", editable = true }
+luna-plugin-ext = { path = "plugin_ext", editable = true }
 luna-model = [
     { path = "../../py-lunamodel", editable = true, group = "local" },
 ]

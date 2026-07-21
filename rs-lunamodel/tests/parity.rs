@@ -38,8 +38,8 @@ fn environment_expression_and_constraint_facade() -> Result<()> {
     expr.set_offset(4.0)?;
     assert_eq!(expr.linear(x.id()?)?, 4.0);
     assert_eq!(expr.offset()?, 4.0);
-    assert_eq!(expr.quadratic_terms()?, None);
-    assert_eq!(expr.higher_order_terms()?, None);
+    assert_eq!(expr.quadratic_term()?, None);
+    assert_eq!(expr.higher_order_term()?, None);
 
     let constraint = Constraint::new(expr, 3.0, Comparator::Le, Some("limit".into()))?;
     let mut constraints = ConstraintCollection::new();

@@ -36,18 +36,21 @@ pub type LmStrSink = unsafe extern "C" fn(ctx: *mut c_void, s: *const c_char);
 /// luna-model copies the bytes immediately.
 pub type LmByteSink = unsafe extern "C" fn(ctx: *mut c_void, data: *const u8, len: usize);
 
-/// Reversal handle for a plugin transformation/composite pass, registered by stable pass id via
+/// Reversal handler for a plugin transformation/composite pass, registered by stable pass id via
 /// `register_plugin_backward`.
 ///
-/// Given the artifact bytes emitted by `forward` plus an owned solution handle, the plugin maps the
-/// solution back through the inverse of its transformation, mutating `solution` in place. Invoked
-/// later, possibly after the pass instance is gone or a `TransformationRecord` was reloaded, so it
-/// must be self-contained given the artifact bytes and `user_data`.
+/// Mirrors the native by-value `backward`: ownership of `solution` is transferred IN to the plugin,
+/// and the plugin writes the produced (mapped-back) owned solution OUT through `out_solution`. This
+/// consume/produce shape lets reversal replace the solution entirely, not just mutate it. Invoked
+/// later — possibly after the pass instance is gone or a `TransformationRecord` was reloaded — so it
+/// must be self-contained given the artifact bytes plus `user_data`. On any non-`Ok` return,
+/// `out_solution` is not read and the plugin owns (and must release) the incoming `solution`.
 pub type LmBackwardFn = unsafe extern "C" fn(
     user_data: *mut c_void,
     artifact: *const u8,
     artifact_len: usize,
     solution: *mut LmSol,
+    out_solution: *mut *mut LmSol,
 ) -> LmStatus;
 
 /// Descriptor for a plugin **transformation** pass.

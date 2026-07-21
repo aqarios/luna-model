@@ -1,5 +1,5 @@
 use crate::traits::{LmTryInto, ToPtrList};
-use crate::{Expression, Result, Solution, TryIndex, VarRef};
+use crate::{Expression, HigherOrder, Linear, Quadratic, Result, Solution, TryIndex, VarRef};
 
 impl Expression {
     pub fn deep_clone_many(exprs: &[&Expression]) -> Result<Vec<Expression>> {
@@ -74,5 +74,17 @@ impl Expression {
         let a = a.lm_try_into()?;
         let b = b.lm_try_into()?;
         Ok((a, b))
+    }
+
+    pub fn set_linear(&mut self, linear: Linear) -> Result<()> {
+        check!(expr_set_linear(@mut self, @linear))
+    }
+
+    pub fn set_quadratic(&mut self, quadratic: Option<Quadratic>) -> Result<()> {
+        check!(expr_set_quadratic(@mut self, ?@quadratic))
+    }
+
+    pub fn set_higher_order(&mut self, higher_order: Option<HigherOrder>) -> Result<()> {
+        check!(expr_set_higher_order(@mut self, ?@higher_order))
     }
 }

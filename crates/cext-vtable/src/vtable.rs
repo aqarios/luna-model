@@ -194,6 +194,7 @@ pub struct LunaModelCApi {
     pub col_vtype: unsafe extern "C" fn(*const LmColumn, *mut LmVtype) -> LmStatus,
     pub col_assignment: unsafe extern "C" fn(*const LmColumn, usize, *mut LmAssignment) -> LmStatus,
     pub col_values: unsafe extern "C" fn(*const LmColumn, *mut *const f64, *mut usize) -> LmStatus,
+    pub col_index: unsafe extern "C" fn(*const LmColumn, usize, *mut f64) -> LmStatus,
     // Column -- modification
     pub col_push: unsafe extern "C" fn(*mut LmColumn, LmAssignment) -> LmStatus,
     pub col_try_push: unsafe extern "C" fn(*mut LmColumn, f64, *const f64) -> LmStatus,
@@ -396,6 +397,9 @@ pub struct LunaModelCApi {
     pub expr_has_quadratic: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
     pub expr_has_higher_order: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
     pub expr_set_offset: unsafe extern "C" fn(*mut LmExpr, f64) -> LmStatus,
+    pub expr_set_linear: unsafe extern "C" fn(*mut LmExpr, *const LmLinear) -> LmStatus,
+    pub expr_set_quadratic: unsafe extern "C" fn(*mut LmExpr, *const LmQuadratic) -> LmStatus,
+    pub expr_set_higher_order: unsafe extern "C" fn(*mut LmExpr, *const LmHigherOrder) -> LmStatus,
     pub expr_add_linear_term: unsafe extern "C" fn(*mut LmExpr, u32, f64) -> LmStatus,
     pub expr_add_quadratic_term: unsafe extern "C" fn(*mut LmExpr, u32, u32, f64) -> LmStatus,
     pub expr_add_higher_order_term:

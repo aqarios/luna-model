@@ -710,6 +710,16 @@ LmStatus lm_col_try_push(LmColumn *column, double value, const double *tol);
 LmStatus lm_col_remove(LmColumn *column, uintptr_t index);
 
 /**
+ * Returns the element at the index.
+ *
+ * The pointer remains valid until the column is mutated or freed.
+ *
+ * # Safety
+ * `column` and `value` must be valid pointers.
+ */
+LmStatus lm_col_index(const LmColumn *column, uintptr_t index, double *value);
+
+/**
  * Returns a copy of the constraint's name as an owned UTF-8 byte buffer.
  *
  * The returned buffer is written to `out` and must be released with
@@ -1500,6 +1510,33 @@ LmStatus lm_expr_add_higher_order_term(LmExpr *expr,
                                        const uint32_t *variables,
                                        uintptr_t len,
                                        double bias);
+
+/**
+ * Sets the linear term of an expression to the given linear term.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `linear` must be a valid linear handle created by this library.
+ */
+LmStatus lm_expr_set_linear_term(LmExpr *expr, const LmLinear *linear);
+
+/**
+ * Sets the quadratic term of an expression to the given quadratic term.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `quadratic` must be a valid quadratic handle created by this library.
+ */
+LmStatus lm_expr_set_quadratic_term(LmExpr *expr, const LmQuadratic *quadratic);
+
+/**
+ * Sets the higher-order term of an expression to the given higher-order term.
+ *
+ * # Safety
+ * `expr` must be a valid mutable expression handle created by this library.
+ * `higher_order` must be a valid higher-order handle created by this library.
+ */
+LmStatus lm_expr_set_higher_order_term(LmExpr *expr, const LmHigherOrder *higher_order);
 
 /**
  * Adds a variable reference to the expression in place.

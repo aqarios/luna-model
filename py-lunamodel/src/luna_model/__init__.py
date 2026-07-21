@@ -51,6 +51,7 @@ from luna_model.model import (
     ModelSpecs,
     Sense,
 )
+from luna_model.plugins import register
 from luna_model.solution import (
     Result,
     ResultIter,
@@ -114,6 +115,7 @@ __all__ = [
     "__version__",
     "errors",
     "quicksum",
+    "register",
     "transformation",
     "translator",
     "utils",

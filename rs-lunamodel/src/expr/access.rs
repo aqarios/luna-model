@@ -52,12 +52,12 @@ impl Expression {
     }
 
     /// Returns a copy of the expression's complete linear term storage.
-    pub fn linear_terms(&self) -> Result<Linear> {
+    pub fn linear_term(&self) -> Result<Linear> {
         out!(expr_linear(@self))
     }
 
     /// Returns the quadratic terms of the expression.
-    pub fn quadratic_terms(&self) -> Result<Option<Quadratic>> {
+    pub fn quadratic_term(&self) -> Result<Option<Quadratic>> {
         out!(expr_quadratic(@self), |handle: *mut LmQuadratic| {
             if handle.is_null() {
                 Ok(None)
@@ -68,7 +68,7 @@ impl Expression {
     }
 
     /// Returns the higher-order terms of the expression.
-    pub fn higher_order_terms(&self) -> Result<Option<HigherOrder>> {
+    pub fn higher_order_term(&self) -> Result<Option<HigherOrder>> {
         out!(expr_higher_order(@self), |handle: *mut LmHigherOrder| {
             if handle.is_null() {
                 Ok(None)
@@ -91,18 +91,18 @@ impl Expression {
     }
 
     pub fn raw_linear_items(&self) -> Result<Vec<(u32, f64)>> {
-        self.linear_terms()?.items()
+        self.linear_term()?.items()
     }
 
     pub fn raw_quadratic_items(&self) -> Result<Vec<(u32, u32, f64)>> {
-        match self.quadratic_terms()? {
+        match self.quadratic_term()? {
             Some(terms) => terms.items(),
             None => Ok(Vec::new()),
         }
     }
 
     pub fn raw_higher_order_items(&self) -> Result<Vec<(Vec<u32>, f64)>> {
-        match self.higher_order_terms()? {
+        match self.higher_order_term()? {
             Some(terms) => terms.items(),
             None => Ok(Vec::new()),
         }
@@ -164,18 +164,18 @@ impl Expression {
     }
 
     pub fn linear(&self, idx: u32) -> Result<f64> {
-        self.linear_terms()?.index(idx)
+        self.linear_term()?.index(idx)
     }
 
     pub fn quadratic(&self, u: u32, v: u32) -> Result<f64> {
-        match self.quadratic_terms()? {
+        match self.quadratic_term()? {
             Some(terms) => terms.index(u, v),
             None => Ok(0.0),
         }
     }
 
     pub fn higher_order(&self, vars: &[u32]) -> Result<f64> {
-        match self.higher_order_terms()? {
+        match self.higher_order_term()? {
             Some(terms) => terms.index(vars),
             None => Ok(0.0),
         }
