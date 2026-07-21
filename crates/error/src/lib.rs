@@ -129,13 +129,13 @@ pub enum LunaModelError {
     RandomSampling(ErrString),
     /// Invalid tolerance specified.
     InvalidTolerance(ErrString),
-    #[cfg(feature = "py")]
     /// Model is infeasible.
     Infeasible {
         location: String,
         reason: String,
         record: Option<ErasedRecord>,
     },
+    #[cfg(feature = "py")]
     /// Wraps a domain error together with a Python-side cause.
     WithCause(Box<LunaModelError>, py::PyErrW),
 }
