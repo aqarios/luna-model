@@ -28,11 +28,11 @@ jobs:
       js: ${{ steps.filter.outputs.js }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
 
       - name: Filter paths
         id: filter
-        uses: dorny/paths-filter@v4.0.1
+        uses: dorny/paths-filter@v4.0.2
         with:
           filters: |
             shared: &shared
@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
 
       - name: Verify all versions match the workspace version
         run: sh ci/tools/check-versions.sh
