@@ -34,7 +34,7 @@ def test_very_simple_model():
 
     obj = x + y + z
     c0_penalty = (x + y + z - slack_c0_b0 - 2 * slack_c0_b1)**2
-    c1_penalty = (-1 * (x - y - z) - slack_c1_b0)**2
+    c1_penalty = (-1 * (x - y - z) - slack_c1_b0 + 1)**2
     c2_penalty = (x + y - 2)**2
     expected_objective = obj + penalty_scaling * (c0_penalty + c1_penalty + c2_penalty)
     assert expected_objective.equal_contents(ir.model.objective)
@@ -69,7 +69,7 @@ def test_very_simple_model_max_sense():
 
     obj = x + y + z
     c0_penalty = (x + y + z - slack_c0_b0 - 2 * slack_c0_b1)**2
-    c1_penalty = (-1 * (x - y - z) - slack_c1_b0)**2
+    c1_penalty = (-1 * (x - y - z) - slack_c1_b0 + 1)**2
     c2_penalty = (x + y - 2)**2
     expected_objective = -obj + penalty_scaling * (c0_penalty + c1_penalty + c2_penalty)
     assert expected_objective.equal_contents(ir.model.objective)
@@ -112,7 +112,7 @@ def test_very_simple_model_intvars():
     max_bias = 5
 
     c0_penalty = (x + y + z - slack_c0_b0 - 2 * slack_c0_b1)**2
-    c1_penalty = (-1 * (x - y - z) - slack_c1_b0)**2
+    c1_penalty = (-1 * (x - y - z) - slack_c1_b0 + 1)**2
     c2_penalty = (x + y - 2)**2
 
     expected_objective = obj + penalty_scaling * max_bias * (c0_penalty + c1_penalty + c2_penalty)
@@ -156,8 +156,8 @@ def test_very_simple_model_mixed():
     obj = x + y + z
     max_bias = max([b for _, b in obj.items()])
 
-    c0_penalty = (x + y + z - slack_c0_b0 - 2 * slack_c0_b1 - 2 * slack_c0_b2)**2
-    c1_penalty = (-1 * (x - y - z) - slack_c1_b0 - 2 * slack_c1_b1)**2
+    c0_penalty = (x + y + z - slack_c0_b0 - 2 * slack_c0_b1 - 2 * slack_c0_b2 + 2)**2
+    c1_penalty = (-1 * (x - y - z) - slack_c1_b0 - 2 * slack_c1_b1 + 3)**2
     c2_penalty = (x + y - 2)**2
     penalties = c0_penalty + c1_penalty + c2_penalty
 
