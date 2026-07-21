@@ -93,6 +93,12 @@ jobs:
     if: needs.changes.outputs.js == 'true'
     uses: ./.github/workflows/_test-js.yml
 
+  build-js-wasm:
+    name: Build JS WASM
+    needs: changes
+    if: needs.changes.outputs.js == 'true'
+    uses: ./.github/workflows/_build-js-wasm.yml
+
   summary:
     name: PR Checks
     runs-on: ubuntu-latest
@@ -104,6 +110,7 @@ jobs:
       - lint-python
       - test-python
       - test-js
+      - build-js-wasm
     if: always()
     steps:
       - name: Verify all checks succeeded or were skipped
