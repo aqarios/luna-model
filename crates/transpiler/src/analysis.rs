@@ -22,6 +22,21 @@ impl<T: 'static> AnalysisKey<T> {
     }
 }
 
+/// A serialized analysis result deposited by a **plugin** analysis, retrievable by name across the
+/// C-ABI.
+///
+/// Native analyses store their result as a typed value (see [`AnalysisManager::insert`]) and native
+/// passes read it back typed with zero copies. A plugin analysis produces a result whose Rust type
+/// the host does not know, so it deposits `(type_tag, bytes)` here instead; a plugin pass reads the
+/// bytes back by name and deserializes into its own copy of the type.
+#[derive(Clone, Debug)]
+pub struct SerializedAnalysis {
+    /// Stable type tag of the producing result type (verified by the consumer before decoding).
+    pub type_tag: String,
+    /// The result's serialized bytes.
+    pub bytes: Vec<u8>,
+}
+
 /// Type-safe storage for analysis results keyed by [`AnalysisKey`].
 #[derive(Clone, Default, Debug)]
 pub struct AnalysisManager {
@@ -50,6 +65,28 @@ impl AnalysisManager {
     /// Stores an analysis result under its typed key.
     pub fn insert<T: Send + Sync + 'static>(&mut self, key: &AnalysisKey<T>, value: T) {
         self.results.insert(key.name.clone(), Arc::new(value));
+    }
+
+    /// Deposits a plugin analysis result as serialized bytes under `name`.
+    ///
+    /// The bytes are opaque to the host; a plugin pass retrieves them with [`get_serialized`] and
+    /// decodes into its own result type after checking `type_tag`.
+    ///
+    /// [`get_serialized`]: Self::get_serialized
+    pub fn insert_serialized(&mut self, name: &str, type_tag: String, bytes: Vec<u8>) {
+        self.results.insert(
+            name.to_string(),
+            Arc::new(SerializedAnalysis { type_tag, bytes }),
+        );
+    }
+
+    /// Retrieves a plugin analysis result deposited by [`insert_serialized`], if present.
+    ///
+    /// [`insert_serialized`]: Self::insert_serialized
+    pub fn get_serialized(&self, name: &str) -> Option<&SerializedAnalysis> {
+        self.results
+            .get(name)
+            .and_then(|boxed| boxed.downcast_ref::<SerializedAnalysis>())
     }
 
     /// Invalidates analysis entries by name.

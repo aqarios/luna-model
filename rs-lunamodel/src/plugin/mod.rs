@@ -11,18 +11,21 @@ use std::ffi::{CString, c_char, c_void};
 use std::ptr;
 
 use lunamodel_cext_vtable::transpiler::{
-    LmBackwardFn, LmByteSink, LmPassContext, LmPassKind, LmPluginTransform, LmStrSink,
+    LmBackwardFn, LmByteSink, LmPassContext, LmPassKind, LmPluginAnalysis, LmPluginTransform,
+    LmStrSink,
 };
 use lunamodel_cext_vtable::{LmModel, LmSol, LmStatus};
 
 use crate::ffi::{OwnedHandle, adopt};
 use crate::{Error, Model, Solution, Status};
 
+mod analysis;
 mod artifact;
 mod context;
 mod pass;
 mod reversible;
 
+pub use analysis::{AnalysisPass, AnalysisResult};
 pub use artifact::Artifact;
 pub use context::PassContext;
 pub use pass::TransformationPass;
@@ -45,6 +48,30 @@ pub fn descriptor<P: TransformationPass>(pass: P) -> crate::Result<LmPluginTrans
         invalidates: trampoline_invalidates::<P>,
         forward: trampoline_forward::<P>,
         free: trampoline_free::<P>,
+    })
+}
+
+/// Builds the C-ABI descriptor for a plugin **analysis** pass. luna-model takes ownership of the
+/// returned descriptor's `user_data` and releases it when the pass is dropped. Authors rarely call
+/// this directly — a driver passes its result to the host to run the analysis in a pipeline.
+pub fn descriptor_analysis<A: AnalysisPass>(pass: A) -> crate::Result<LmPluginAnalysis> {
+    let state = Box::new(AnalysisState {
+        id: CString::new(A::ID).map_err(|_| interior_nul("id"))?,
+        name: CString::new(pass.name()).map_err(|_| interior_nul("name"))?,
+        provides: CString::new(A::PROVIDES).map_err(|_| interior_nul("provides"))?,
+        result_type_tag: CString::new(<A::Output as AnalysisResult>::static_type_tag())
+            .map_err(|_| interior_nul("result type tag"))?,
+        pass,
+    });
+    Ok(LmPluginAnalysis {
+        user_data: Box::into_raw(state) as *mut c_void,
+        id: analysis_trampoline_id::<A>,
+        name: analysis_trampoline_name::<A>,
+        provides: analysis_trampoline_provides::<A>,
+        result_type_tag: analysis_trampoline_result_tag::<A>,
+        requires: analysis_trampoline_requires::<A>,
+        run: analysis_trampoline_run::<A>,
+        free: analysis_trampoline_free::<A>,
     })
 }
 
@@ -188,4 +215,79 @@ unsafe extern "C" fn trampoline_backward<P: TransformationPass>(
 
 unsafe extern "C" fn trampoline_free<P: TransformationPass>(user_data: *mut c_void) {
     drop(unsafe { Box::from_raw(user_data as *mut State<P>) });
+}
+
+/// Boxed plugin state behind an analysis descriptor's `user_data`, caching the id/name/provides/
+/// result-tag C strings so their trampolines can hand out stable borrowed pointers.
+struct AnalysisState<A: AnalysisPass> {
+    pass: A,
+    id: CString,
+    name: CString,
+    provides: CString,
+    result_type_tag: CString,
+}
+
+unsafe extern "C" fn analysis_trampoline_id<A: AnalysisPass>(
+    user_data: *mut c_void,
+) -> *const c_char {
+    unsafe { (*(user_data as *const AnalysisState<A>)).id.as_ptr() }
+}
+
+unsafe extern "C" fn analysis_trampoline_name<A: AnalysisPass>(
+    user_data: *mut c_void,
+) -> *const c_char {
+    unsafe { (*(user_data as *const AnalysisState<A>)).name.as_ptr() }
+}
+
+unsafe extern "C" fn analysis_trampoline_provides<A: AnalysisPass>(
+    user_data: *mut c_void,
+) -> *const c_char {
+    unsafe { (*(user_data as *const AnalysisState<A>)).provides.as_ptr() }
+}
+
+unsafe extern "C" fn analysis_trampoline_result_tag<A: AnalysisPass>(
+    user_data: *mut c_void,
+) -> *const c_char {
+    unsafe { (*(user_data as *const AnalysisState<A>)).result_type_tag.as_ptr() }
+}
+
+unsafe extern "C" fn analysis_trampoline_requires<A: AnalysisPass>(
+    user_data: *mut c_void,
+    sink: LmStrSink,
+    ctx: *mut c_void,
+) {
+    let state = unsafe { &*(user_data as *const AnalysisState<A>) };
+    unsafe { emit_strings(state.pass.requires(), sink, ctx) };
+}
+
+unsafe extern "C" fn analysis_trampoline_run<A: AnalysisPass>(
+    user_data: *mut c_void,
+    model: *const LmModel,
+    ctx: *const LmPassContext,
+    sink: LmByteSink,
+    sink_ctx: *mut c_void,
+) -> LmStatus {
+    let state = unsafe { &*(user_data as *const AnalysisState<A>) };
+    // Borrow the lent read-only handle, run the safe `run`, then relinquish it without freeing.
+    let model = match unsafe { adopt::<Model>(model as *mut LmModel) } {
+        Ok(model) => model,
+        Err(_) => return LmStatus::NullPointer,
+    };
+    let context = PassContext::from_raw(ctx);
+    let result = state.pass.run(&model, &context);
+    let _ = model.into_raw_owned();
+    match result {
+        Ok(output) => match output.serialize() {
+            Ok(bytes) => {
+                unsafe { sink(sink_ctx, bytes.as_ptr(), bytes.len()) };
+                LmStatus::Ok
+            }
+            Err(_) => LmStatus::Serialization,
+        },
+        Err(_) => LmStatus::Errored,
+    }
+}
+
+unsafe extern "C" fn analysis_trampoline_free<A: AnalysisPass>(user_data: *mut c_void) {
+    drop(unsafe { Box::from_raw(user_data as *mut AnalysisState<A>) });
 }

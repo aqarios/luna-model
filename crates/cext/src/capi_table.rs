@@ -543,4 +543,5 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Plugin passes //
     // ///////////// //
     register_plugin_backward: crate::plugin::lm_register_plugin_backward,
+    pass_context_get_analysis: crate::plugin::lm_pass_context_get_analysis,
 };

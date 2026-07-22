@@ -23,7 +23,7 @@ mod reversible;
 mod step;
 mod validation;
 
-pub use analysis::{AnalysisKey, AnalysisManager};
+pub use analysis::{AnalysisKey, AnalysisManager, SerializedAnalysis};
 pub use artifact::{Artifact, ErasedArtifact};
 pub use composite::CompositePass;
 pub use context::PassContext;

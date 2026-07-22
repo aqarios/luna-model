@@ -27,6 +27,25 @@ LmStatus lm_register_plugin_backward(LmPassKind kind,
                                      void *user_data);
 
 /**
+ * Reads a plugin analysis result deposited under `name` earlier in the same run, verifies its
+ * recorded type tag matches `expected_type_tag`, and hands the serialized bytes to `sink`.
+ *
+ * Returns `Absent` when nothing is stored under `name`, and `InvalidArgument` when a result is
+ * present but was produced by a different type than `expected_type_tag`; `sink` is invoked exactly
+ * once (with the result bytes) only on `Ok`.
+ *
+ * # Safety
+ * `ctx` must be a live `*const LmPassContext` lent to a plugin during `forward`/`run` (not
+ * retained past the call). `name` and `expected_type_tag` must be valid NUL-terminated UTF-8 C
+ * strings. `sink` must be a valid callback that copies the bytes before returning.
+ */
+LmStatus lm_pass_context_get_analysis(const LmPassContext *ctx,
+                                      const char *name,
+                                      const char *expected_type_tag,
+                                      LmByteSink sink,
+                                      void *sink_ctx);
+
+/**
  * Returns whether the bound is finite (`Bounded`) rather than `Unbounded`.
  *
  * # Safety

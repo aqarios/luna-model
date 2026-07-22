@@ -1,10 +1,12 @@
 use std::sync::Once;
 
+mod analysis;
 mod artifact;
 mod marshal;
 mod pass;
 mod registry;
 
+pub use analysis::CPluginAnalysisPass;
 pub use artifact::CPluginArtifact;
 pub use pass::CPluginTransformPass;
 pub use registry::register_transform;

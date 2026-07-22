@@ -12,7 +12,8 @@ use lunamodel_cext_vtable::transpiler::{LmPassContext, LmPluginTransform};
 use lunamodel_cext_vtable::{LmModel, LmSol, LmStatus};
 use lunamodel_core::{Model, Solution};
 use lunamodel_transpiler::{
-    PassContext, Reversible, TransformationPass, TranspileErrorKind, TranspileKindResult,
+    AnalysisManager, PassContext, Reversible, TransformationPass, TranspileErrorKind,
+    TranspileKindResult,
 };
 
 use crate::artifact::CPluginArtifact;
@@ -75,7 +76,9 @@ impl TransformationPass for CPluginTransformPass {
     fn forward(&self, model: &mut Model, ctx: &PassContext) -> TranspileKindResult<Self::Artifact> {
         // Move the model into an owned handle the plugin mutates via `lm_*`, then reclaim it.
         let handle = new_handle::<LmModel>(std::mem::take(model));
-        let ctx_ptr = (ctx as *const PassContext).cast::<LmPassContext>();
+        // `LmPassContext` is represented as the analysis store; lend the manager this context
+        // borrows so the plugin can read analyses through `pass_context_get_analysis`.
+        let ctx_ptr = (ctx.manager() as *const AnalysisManager).cast::<LmPassContext>();
         let mut payload: Vec<u8> = Vec::new();
         let status = unsafe {
             (self.desc.forward)(

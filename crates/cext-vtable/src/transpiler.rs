@@ -90,3 +90,44 @@ pub struct LmPluginTransform {
     /// Releases `user_data`. Called once when luna-model drops the pass.
     pub free: unsafe extern "C" fn(user_data: *mut c_void),
 }
+
+/// Descriptor for a plugin **analysis** pass.
+///
+/// Filled by an extension and handed to luna-model, which copies it, takes ownership of `user_data`,
+/// and wraps it in a host-side pass the transpiler runs like a built-in analysis. The analysis
+/// reads the lent model and produces a serialized result deposited under `provides` in the run's
+/// analysis store, where later passes — including *other* plugins — read it back by that name (via
+/// `pass_context_get_analysis`). All function pointers must be non-null.
+///
+/// The model crosses as a live borrowed handle for reading only; unlike a transformation it is not
+/// moved out and back.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct LmPluginAnalysis {
+    /// Opaque plugin state. luna-model owns it once the pass is added and releases it via `free`.
+    pub user_data: *mut c_void,
+    /// Stable pass id (e.g. `"myplugin::coeff-widths-analysis"`). Borrowed, copied immediately.
+    pub id: unsafe extern "C" fn(user_data: *mut c_void) -> *const c_char,
+    /// Human-readable pass name. Borrowed, copied immediately.
+    pub name: unsafe extern "C" fn(user_data: *mut c_void) -> *const c_char,
+    /// Name the result is stored under in the analysis store (e.g. `"myplugin::coeff-widths"`);
+    /// consumers read it back with this name. Borrowed, copied immediately.
+    pub provides: unsafe extern "C" fn(user_data: *mut c_void) -> *const c_char,
+    /// Stable type tag of the produced result type, verified when a consumer decodes it. Borrowed,
+    /// copied immediately.
+    pub result_type_tag: unsafe extern "C" fn(user_data: *mut c_void) -> *const c_char,
+    /// Emits the analysis names this pass requires, one per `sink` call.
+    pub requires:
+        unsafe extern "C" fn(user_data: *mut c_void, sink: LmStrSink, sink_ctx: *mut c_void),
+    /// Computes the result from the lent read-only model and emits its serialized bytes via `sink`.
+    /// Return non-`Ok` to abort the run.
+    pub run: unsafe extern "C" fn(
+        user_data: *mut c_void,
+        model: *const LmModel,
+        ctx: *const LmPassContext,
+        sink: LmByteSink,
+        sink_ctx: *mut c_void,
+    ) -> LmStatus,
+    /// Releases `user_data`. Called once when luna-model drops the pass.
+    pub free: unsafe extern "C" fn(user_data: *mut c_void),
+}

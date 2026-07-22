@@ -1,6 +1,6 @@
 use std::ffi::{c_char, c_void};
 
-use crate::transpiler::{LmBackwardFn, LmPassKind};
+use crate::transpiler::{LmBackwardFn, LmByteSink, LmPassContext, LmPassKind};
 
 pub use super::{
     LmAssignment, LmBoolMapBuffer, LmBound, LmBounds, LmBuffer, LmCC, LmCmpBuffer, LmColumn,
@@ -744,4 +744,21 @@ pub struct LunaModelCApi {
     /// (typically module-lifetime).
     pub register_plugin_backward:
         unsafe extern "C" fn(LmPassKind, *const c_char, LmBackwardFn, *mut c_void) -> LmStatus,
+    /// Reads a plugin analysis result deposited under `name` by an analysis pass earlier in the
+    /// same run, handing back its serialized bytes via `sink` so a plugin pass can consume another
+    /// pass's analysis across the C-ABI (including one plugin consuming another plugin's analysis).
+    ///
+    /// `expected_type_tag` is the stable type tag the caller intends to decode into; the host
+    /// verifies it against the tag recorded when the result was deposited, so a mismatched decode
+    /// is rejected up front rather than producing garbage. Returns `Ok` and invokes `sink` exactly
+    /// once with the result bytes when a result is present and the tags match; `Absent` when no
+    /// result is stored under `name`; `InvalidArgument` when a result is stored but was produced by
+    /// a different type than `expected_type_tag`. `sink` is not called on any non-`Ok` return.
+    pub pass_context_get_analysis: unsafe extern "C" fn(
+        ctx: *const LmPassContext,
+        name: *const c_char,
+        expected_type_tag: *const c_char,
+        sink: LmByteSink,
+        sink_ctx: *mut c_void,
+    ) -> LmStatus,
 }

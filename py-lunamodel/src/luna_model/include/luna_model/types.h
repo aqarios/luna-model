@@ -225,6 +225,23 @@ typedef LmStatus (*LmBackwardFn)(void *user_data,
                                  LmSol **out_solution);
 
 /**
+ * Opaque handle to the per-pass context (`PassContext`) lent to a plugin during
+ * `forward`/`run`. Borrowed for the duration of the call only.
+ * The plugin must not retain or free it.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmPassContext;
+
+/**
+ * Callback luna-model uses to collect a byte payload form a plugin (e.g., a serialized artifact)
+ * without transferring ownership across the ABI. The plugin calls `sink(ctx, data, len)`.
+ * luna-model copies the bytes immediately.
+ */
+typedef void (*LmByteSink)(void *ctx, const uint8_t *data, uintptr_t len);
+
+/**
  * Bound used by the C API.
  *
  * One side of a variable bound interval.
@@ -1347,6 +1364,23 @@ typedef struct {
      * (typically module-lifetime).
      */
     LmStatus (*register_plugin_backward)(LmPassKind, const char*, LmBackwardFn, void*);
+    /**
+     * Reads a plugin analysis result deposited under `name` by an analysis pass earlier in the
+     * same run, handing back its serialized bytes via `sink` so a plugin pass can consume another
+     * pass's analysis across the C-ABI (including one plugin consuming another plugin's analysis).
+     *
+     * `expected_type_tag` is the stable type tag the caller intends to decode into; the host
+     * verifies it against the tag recorded when the result was deposited, so a mismatched decode
+     * is rejected up front rather than producing garbage. Returns `Ok` and invokes `sink` exactly
+     * once with the result bytes when a result is present and the tags match; `Absent` when no
+     * result is stored under `name`; `InvalidArgument` when a result is stored but was produced by
+     * a different type than `expected_type_tag`. `sink` is not called on any non-`Ok` return.
+     */
+    LmStatus (*pass_context_get_analysis)(const LmPassContext *ctx,
+                                          const char *name,
+                                          const char *expected_type_tag,
+                                          LmByteSink sink,
+                                          void *sink_ctx);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

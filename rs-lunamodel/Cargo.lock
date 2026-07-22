@@ -546,6 +546,7 @@ dependencies = [
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-serializer",
+ "lunamodel-transpiler",
  "lunamodel-types",
  "lunamodel-utils",
 ]

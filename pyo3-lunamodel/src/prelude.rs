@@ -5,6 +5,7 @@ pub use crate::environment::PyEnvironment;
 pub use crate::error::{from_pyerr, into_pyerr};
 pub use crate::expression::PyExpression;
 pub use crate::model::PyModel;
+pub use crate::pass_context::PyPassContext;
 pub use crate::sol::PySolution;
 pub use crate::variable::PyVariable;
 
