@@ -7,7 +7,7 @@
 use std::ffi::{CStr, c_char, c_void};
 use std::sync::Arc;
 
-use lunamodel_cext_handle::{Shared, SharedHandleKind, handle_into_shared};
+use lunamodel_capi_handle::{Shared, SharedHandleKind, handle_into_shared};
 use lunamodel_capi::transpiler::LmStrSink;
 use lunamodel_transpiler::{TranspileErrorKind, TranspileKindResult};
 

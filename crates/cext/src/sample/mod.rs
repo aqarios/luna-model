@@ -5,7 +5,7 @@ pub use access::{
     lm_sample_view_variable_names,
 };
 
-use lunamodel_cext_handle::Shared;
+use lunamodel_capi_handle::Shared;
 
 use crate::{LmSampleView, LmSol, utils::drop_from_c};
 

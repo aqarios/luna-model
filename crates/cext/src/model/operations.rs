@@ -1,5 +1,5 @@
 use lunamodel_core::prelude::VarRef;
-use lunamodel_cext_handle::{ConstraintCollectionHandle, new_shared};
+use lunamodel_capi_handle::{ConstraintCollectionHandle, new_shared};
 
 use crate::{
     LmCC, LmExpr, LmModel, LmResultView, LmSampleView, LmSol, LmStatus, LmVref,

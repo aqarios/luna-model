@@ -1,5 +1,5 @@
 [package]
-name = "lunamodel-cext-handle"
+name = "lunamodel-capi-handle"
 version.workspace = true
 license.workspace = true
 publish = false

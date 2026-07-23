@@ -1,6 +1,6 @@
 use std::ffi::c_char;
 
-use lunamodel_cext_handle::{ConstraintCollectionHandle, ExpressionHandle};
+use lunamodel_capi_handle::{ConstraintCollectionHandle, ExpressionHandle};
 
 use crate::{
     LmBuffer, LmCC, LmEnv, LmExpr, LmModel, LmSense, LmSpecs, LmStatus, LmVref, LmVrefBuffer,

@@ -21,7 +21,7 @@ lunamodel-core = { workspace = true }
 lunamodel-error = { workspace = true }
 
 lunamodel-capi = { workspace = true }
-lunamodel-cext-handle = { workspace = true }
+lunamodel-capi-handle = { workspace = true }
 lunamodel-cext-plugin = { workspace = true }
 
 itertools = { workspace = true }

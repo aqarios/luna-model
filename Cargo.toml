@@ -97,7 +97,7 @@ lunamodel-unwinder = { path = "crates/unwind/unwinder", version = "0.6.11", defa
 
 lunamodel-cext = { path = "crates/cext", version = "0.6.11", default-features = false }
 lunamodel-capi = { path = "crates/capi", version = "0.6.11", default-features = false }
-lunamodel-cext-handle = { path = "crates/cext-handle", version = "0.6.11", default-features = false }
+lunamodel-capi-handle = { path = "crates/capi-handle", version = "0.6.11", default-features = false }
 lunamodel-cext-pyffi = { path = "crates/cext-pyffi", version = "0.6.11", default-features = false }
 lunamodel-cext-plugin = { path = "crates/cext-plugin", version = "0.6.11", default-features = false }
 

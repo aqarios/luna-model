@@ -1,6 +1,6 @@
 //! C-handle capsule transport for Python model wrappers.
 
-use lunamodel_cext_handle::{drop_handle, handle_from_shared, handle_into_shared};
+use lunamodel_capi_handle::{drop_handle, handle_from_shared, handle_into_shared};
 use lunamodel_cext_pyffi::{new_capsule, take_handle};
 use lunamodel_capi::LmModel;
 use lunamodel_unwind::*;

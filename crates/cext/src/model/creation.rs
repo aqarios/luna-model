@@ -1,7 +1,7 @@
 use std::ffi::c_char;
 
 use lunamodel_core::Model;
-use lunamodel_cext_handle::{drop_handle, new_handle};
+use lunamodel_capi_handle::{drop_handle, new_handle};
 use lunamodel_capi::LmEnv;
 
 use crate::{

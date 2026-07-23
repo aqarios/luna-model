@@ -1,6 +1,6 @@
 //! C-handle capsule transport for Python environment wrappers.
 
-use lunamodel_cext_handle::{drop_handle, handle_from_storage, handle_into_storage};
+use lunamodel_capi_handle::{drop_handle, handle_from_storage, handle_into_storage};
 use lunamodel_cext_pyffi::{new_capsule, take_handle};
 use lunamodel_capi::LmEnv;
 use lunamodel_unwind::*;

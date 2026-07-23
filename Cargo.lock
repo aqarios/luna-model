@@ -698,6 +698,16 @@ name = "lunamodel-capi"
 version = "0.6.11"
 
 [[package]]
+name = "lunamodel-capi-handle"
+version = "0.6.11"
+dependencies = [
+ "lunamodel-capi",
+ "lunamodel-core",
+ "lunamodel-types",
+ "parking_lot 0.12.5",
+]
+
+[[package]]
 name = "lunamodel-cext"
 version = "0.6.11"
 dependencies = [
@@ -705,7 +715,7 @@ dependencies = [
  "indexmap",
  "itertools 0.15.0",
  "lunamodel-capi",
- "lunamodel-cext-handle",
+ "lunamodel-capi-handle",
  "lunamodel-cext-plugin",
  "lunamodel-core",
  "lunamodel-error",
@@ -718,21 +728,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "lunamodel-cext-handle"
-version = "0.6.11"
-dependencies = [
- "lunamodel-capi",
- "lunamodel-core",
- "lunamodel-types",
- "parking_lot 0.12.5",
-]
-
-[[package]]
 name = "lunamodel-cext-plugin"
 version = "0.6.11"
 dependencies = [
  "lunamodel-capi",
- "lunamodel-cext-handle",
+ "lunamodel-capi-handle",
  "lunamodel-core",
  "lunamodel-transpiler",
 ]
@@ -813,7 +813,7 @@ dependencies = [
  "indexmap",
  "itertools 0.15.0",
  "lunamodel-capi",
- "lunamodel-cext-handle",
+ "lunamodel-capi-handle",
  "lunamodel-cext-plugin",
  "lunamodel-cext-pyffi",
  "lunamodel-core",

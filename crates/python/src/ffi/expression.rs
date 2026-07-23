@@ -1,6 +1,6 @@
 //! C-handle capsule transport for Python expression wrappers.
 
-use lunamodel_cext_handle::{
+use lunamodel_capi_handle::{
     ExpressionHandle, drop_handle, handle_from_storage, handle_into_storage,
 };
 use lunamodel_cext_pyffi::{new_capsule, take_handle};

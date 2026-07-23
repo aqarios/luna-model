@@ -1,6 +1,6 @@
 use std::ffi::{CStr, c_char};
 
-use lunamodel_cext_handle::{
+use lunamodel_capi_handle::{
     HandleKind, Shared, SharedHandleKind, handle_from_shared, handle_ref, new_handle,
 };
 use lunamodel_core::solution::Assignment;
@@ -15,7 +15,7 @@ use crate::{
 ///
 /// # Safety
 /// `ptr` must be null or a live handle of type `H` created by
-/// `lunamodel-cext-handle` and remain live for the returned lifetime.
+/// `lunamodel-api-handle` and remain live for the returned lifetime.
 pub(crate) unsafe fn storage_from_c<'a, H: HandleKind>(
     ptr: *const H,
     what: &str,
@@ -82,7 +82,7 @@ pub(crate) unsafe fn storage_out_from_c<H: HandleKind>(
     storage: H::Storage,
 ) -> Result<(), CapiError> {
     let out = unsafe { out_from_c(out) }?;
-    *out = lunamodel_cext_handle::handle_from_storage::<H>(storage);
+    *out = lunamodel_capi_handle::handle_from_storage::<H>(storage);
     Ok(())
 }
 

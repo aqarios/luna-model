@@ -7,7 +7,7 @@
 
 use std::os::raw::c_void;
 
-use lunamodel_cext_handle::new_handle;
+use lunamodel_capi_handle::new_handle;
 use lunamodel_capi::transpiler::{LmPassContext, LmPluginTransform};
 use lunamodel_capi::{LmModel, LmSol, LmStatus};
 use lunamodel_core::{Model, Solution};

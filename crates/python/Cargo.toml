@@ -24,7 +24,7 @@ lunamodel-transform = { workspace = true }
 lunamodel-transpiler = { workspace = true }
 lunamodel-python-macros = { workspace = true }
 
-lunamodel-cext-handle = { workspace = true }
+lunamodel-capi-handle = { workspace = true }
 lunamodel-cext-pyffi = { workspace = true }
 lunamodel-capi = { workspace = true }
 lunamodel-cext-plugin = { workspace = true }

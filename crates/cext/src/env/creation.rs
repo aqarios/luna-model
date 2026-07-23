@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use indexmap::IndexMap;
 use lunamodel_core::{ArcEnv, Environment, prelude::Variable};
-use lunamodel_cext_handle::{drop_handle, handle_from_storage};
+use lunamodel_capi_handle::{drop_handle, handle_from_storage};
 
 use crate::{
     LmEnv, LmStatus, LmVar,
