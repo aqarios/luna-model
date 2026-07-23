@@ -108,26 +108,26 @@ impl AnalysisManager {
 /// Receives the type-erased result stored in an [`AnalysisManager`]. Downcasts to its concrete type
 /// and encodes it (as protobuf, by the registering crate), or returns `None` on a type mismatch.
 pub type AnalysisResultSerializer = fn(&(dyn Any + Send + Sync)) -> Option<Vec<u8>>;
-fn analysis_serializers()
--> &'static RwLock<HashMap<String, (&'static str, AnalysisResultSerializer)>> {
-    static REGISTRY: OnceLock<RwLock<HashMap<String, (&'static str, AnalysisResultSerializer)>>> =
+fn analysis_serializers() -> &'static RwLock<HashMap<String, (String, AnalysisResultSerializer)>> {
+    static REGISTRY: OnceLock<RwLock<HashMap<String, (String, AnalysisResultSerializer)>>> =
         OnceLock::new();
     REGISTRY.get_or_init(|| RwLock::new(HashMap::new()))
 }
 
-/// Registers how to serialize the **native** analysis result stored under `name`, so a plugin can
-/// consume a built-in analysis across the C-ABI. Built-ins keep storing typed results for native consumers.
-/// This only adds an on-demand byte encoding. `type_tag` identifies the result type so a consumer
-/// decoding into the wrong type is rejected. Idempotent per `name`.
+/// Registers how to serialize the analysis result stored under `name`, so a plugin can consume it
+/// across the C-ABI. The producer keeps storing its typed result for native consumers; this only
+/// adds an on-demand byte encoding. `type_tag` identifies the result type so a consumer decoding
+/// into the wrong type is rejected. Idempotent per `name`. Serves both built-in analyses (static
+/// tag) and pure-Python analyses (runtime tag).
 pub fn register_analysis_serializer(
     name: impl Into<String>,
-    type_tag: &'static str,
+    type_tag: impl Into<String>,
     serializer: AnalysisResultSerializer,
 ) {
     analysis_serializers()
         .write()
         .expect("analysis serializer registry poisoned")
-        .insert(name.into(), (type_tag, serializer));
+        .insert(name.into(), (type_tag.into(), serializer));
 }
 
 /// Serializes the analysis result stored under `name` using a serializer registered with
@@ -136,11 +136,11 @@ pub fn register_analysis_serializer(
 pub fn serialize_named_analysis(
     manager: &AnalysisManager,
     name: &str,
-) -> Option<(&'static str, Vec<u8>)> {
-    let (type_tag, serializer) = *analysis_serializers()
+) -> Option<(String, Vec<u8>)> {
+    let guard = analysis_serializers()
         .read()
-        .expect("analysis serializer registry poisoned")
-        .get(name)?;
-    let value = manager.results.get(name)?;
-    Some((type_tag, serializer(value.as_ref())?))
+        .expect("analysis serializer registry poisoned");
+    let (type_tag, serializer) = guard.get(name)?;
+    let bytes = serializer(manager.results.get(name)?.as_ref())?;
+    Some((type_tag.clone(), bytes))
 }

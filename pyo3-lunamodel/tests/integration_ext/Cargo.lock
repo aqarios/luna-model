@@ -481,6 +481,7 @@ dependencies = [
  "lunamodel-capi",
  "lunamodel-types",
  "num",
+ "prost",
  "rs-lunamodel-derive",
 ]
 

@@ -10,8 +10,12 @@ import pytest
 
 import luna_model
 from luna_model import Model, Sense, Solution
-from luna_model.transformation import PassManager
+from luna_model.transformation import AnalysisPass, PassManager
 from luna_model.transformation.passes import ChangeSensePass
+
+# Typed protobuf class generated from `protos/variable_count.proto` by conftest (via `protoc`),
+# exactly as a real plugin author would generate + import theirs.
+from variable_count_pb2 import VariableCount
 
 
 @pytest.fixture(scope="session")
@@ -20,6 +24,23 @@ def plugin():
     # The one registration call the user makes; installs the plugin's reversal handlers.
     luna_model.register(module)
     return module
+
+
+class PyVariableCount(AnalysisPass[VariableCount]):
+    """A pure-Python analysis whose result is a shareable protobuf payload, so a plugin can consume
+    it. Provides the same name/type-tag the Rust plugin transform decodes into."""
+
+    PROVIDES = "luna_plugin_ext::variable-count"
+
+    def name(self) -> str:
+        return "py-variable-count"
+
+    @classmethod
+    def result_type_tag(cls) -> str:
+        return "luna_plugin_ext::variable-count"
+
+    def run(self, model, ctx) -> VariableCount:
+        return VariableCount(count=model.num_variables)
 
 
 def test_plugin_forward_and_reverse_from_python(plugin):
@@ -65,3 +86,19 @@ def test_plugin_analysis_dependency_is_enforced(plugin):
     pm = PassManager([plugin.TagWithVariableCount()])
     with pytest.raises(Exception):
         pm.run(model)
+
+
+def test_pure_python_analysis_consumed_by_plugin(plugin):
+    """A *pure-Python* analysis produces a protobuf result that a Rust plugin transform consumes.
+
+    Proves the producer side is language-agnostic: the pure-Python result is serialized via
+    ``SerializeToString`` and read back across the C-ABI by the plugin's ``require_analysis``.
+    """
+    model = Model("m")
+    vs = model.add_variables("x", 3)
+    model.objective = vs.sum()
+
+    pm = PassManager([PyVariableCount(), plugin.TagWithVariableCount()])
+    out = pm.run(model)
+
+    assert out.model.name == "vars=3"

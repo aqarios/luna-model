@@ -61,7 +61,7 @@ pub unsafe extern "C" fn lm_pass_context_get_analysis(
         // Otherwise, a native (built-in) typed result with an on-demand serializer registered via
         // `register_analysis_serializer` — serialized to the shared wire format on request.
         match lunamodel_transpiler::serialize_named_analysis(manager, name) {
-            Some((type_tag, _)) if type_tag != expected => Err(CapiError::new(
+            Some((type_tag, _)) if type_tag.as_str() != expected => Err(CapiError::new(
                 LmStatus::InvalidArgument,
                 format!("analysis '{name}' has type tag '{type_tag}', but '{expected}' was expected"),
             )),

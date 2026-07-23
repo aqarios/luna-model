@@ -72,6 +72,7 @@ include = [
     "src/luna_model/py.typed",
     "src/luna_model/include/**/*.h",
     "src/luna_model/include/**/*.hpp",
+    "src/luna_model/proto/**/*.proto",
 ]
 exclude = [
     "**/__pycache__",

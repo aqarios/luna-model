@@ -1,7 +1,0 @@
-syntax = "proto3";
-package lunamodel.plugin;
-
-// Wire form of the built-in `min-value-for-constraint` analysis result.
-message MinConstraintValues {
-  map<string, double> vals = 1;
-}

@@ -50,6 +50,20 @@ cdrift:
 	cargo build -p lunamodel-capi-host
 	git diff --exit-code -- $(C_DIR_CAPI_INCLUDE)
 
+# Canonical protobuf schemas -> the copy bundled + shipped in the luna_model wheel (discoverable via
+# luna_model.capi.get_proto()). Mirrors how the C headers are shipped.
+PROTO_DIR_SRC = proto
+PROTO_DIR_PKG = py-lunamodel/src/luna_model/proto
+
+.PHONY: proto protodrift
+proto:
+	rm -rf $(PROTO_DIR_PKG)
+	mkdir -p $(PROTO_DIR_PKG)
+	cp -R $(PROTO_DIR_SRC)/. $(PROTO_DIR_PKG)/
+
+protodrift: proto
+	git diff --exit-code -- $(PROTO_DIR_PKG)
+
 cclean:
 	rm -rf $(C_DIR_OUT) $(C_DIR_TEST_BUILD)
 	cargo clean -p lunamodel-capi-host

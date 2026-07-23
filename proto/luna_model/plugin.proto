@@ -1,0 +1,12 @@
+// Wire schemas for built-in analysis results — the cross-language contract a plugin (in any
+// language) generates a binding from to consume built-ins across the C-ABI. Compiled to Rust by
+// `lunamodel-capi-plugin-proto` (build.rs/protox) and shipped verbatim in the `luna_model` wheel
+// (discoverable via `luna_model.capi.get_proto()`; kept in sync by `make proto`).
+syntax = "proto3";
+
+package lunamodel.plugin;
+
+// Wire form of the built-in `min-value-for-constraint` analysis result.
+message MinConstraintValues {
+  map<string, double> vals = 1;
+}

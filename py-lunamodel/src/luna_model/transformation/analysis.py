@@ -103,5 +103,24 @@ class AnalysisPass(PyAnalysisPass, Generic[Result], metaclass=_AnalysisPassMeta)
         """Get the analysis key used to access the analysis result from the PassContext."""
         return AnalysisKey(cls.PROVIDES)
 
+    @classmethod
+    def result_type_tag(cls) -> str | None:
+        """Stable type tag identifying this analysis's result *type*.
+
+        Stable type tag identifying this analysis's result *type* for cross-language plugin consumers,
+        or ``None`` (default) if the result is native-Python-only.
+
+        When set, :meth:`run` must return a protobuf message generated from the shared ``.proto`` schema.
+        The result is then serialized via ``SerializeToString()`` and made available to C-ABI plugin passes
+        (Rust/C++/...) that ``require_analysis`` this pass's ``PROVIDES`` name and decode into the matching type.
+        The tag must equal the tag the consumer decodes with.
+
+        Returns
+        -------
+        str | None
+            The result's stable type tag, or ``None`` for native-Python-only results.
+        """
+        return None
+
     def _run(self, model: PyModel, ctx: PyPassContext) -> Result:
         return self.run(Model._from_pym(model), PassContext._from_pyctx(ctx))
