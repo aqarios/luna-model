@@ -20,7 +20,7 @@ lunamodel-types = { workspace = true }
 lunamodel-core = { workspace = true }
 lunamodel-error = { workspace = true }
 
-lunamodel-cext-vtable = { workspace = true }
+lunamodel-capi = { workspace = true }
 lunamodel-cext-handle = { workspace = true }
 lunamodel-cext-plugin = { workspace = true }
 

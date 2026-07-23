@@ -4,7 +4,7 @@ use lunamodel_cext_handle::{
     ExpressionHandle, drop_handle, handle_from_storage, handle_into_storage,
 };
 use lunamodel_cext_pyffi::{new_capsule, take_handle};
-use lunamodel_cext_vtable::LmExpr;
+use lunamodel_capi::LmExpr;
 use lunamodel_unwind::*;
 use pyo3::{Bound, PyResult, Python, pymethods, types::PyCapsule};
 

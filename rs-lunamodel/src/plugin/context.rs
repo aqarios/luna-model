@@ -2,7 +2,7 @@
 
 use std::ffi::{CString, c_void};
 
-use lunamodel_cext_vtable::transpiler::LmPassContext;
+use lunamodel_capi::transpiler::LmPassContext;
 
 use crate::error::{Error, Status};
 

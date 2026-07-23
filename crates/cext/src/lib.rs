@@ -1,13 +1,13 @@
 //! Stable C ABI for LunaModel.
 //!
 //! The ABI types (`LunaModelCApi`, `LmStatus`, `LmBuffer`, the opaque handles, and
-//! `CAPI_ABI_VERSION`) live in the dependency-free `lunamodel-cext-vtable` crate and
+//! `CAPI_ABI_VERSION`) live in the dependency-free `lunamodel-capi` crate and
 //! are re-exported here. Downstream Rust extensions that call the API through the
 //! `luna_model._lm._C_API` capsule depend on that crate directly, so they never link
 //! a second copy of the core.
 
-pub use lunamodel_cext_vtable::LunaModelCApi;
-pub use lunamodel_cext_vtable::{
+pub use lunamodel_capi::LunaModelCApi;
+pub use lunamodel_capi::{
     LmAssignment, LmBoolMapBuffer, LmBoolMapEntry, LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC,
     LmCmpBuffer, LmColumn, LmColumnBuffer, LmComparator, LmConstraint, LmCtype, LmCtypeBuffer,
     LmEnv, LmEnvId, LmExpr, LmF64Buffer, LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer,
@@ -27,7 +27,7 @@ pub use lunamodel_cext_vtable::{
 // (used by downstream Rust consumers) carries `cbindgen:ignore`; the assert keeps
 // the two in lock-step.
 pub const CAPI_ABI_VERSION: u32 = 1;
-const _: () = assert!(CAPI_ABI_VERSION == lunamodel_cext_vtable::CAPI_ABI_VERSION);
+const _: () = assert!(CAPI_ABI_VERSION == lunamodel_capi::CAPI_ABI_VERSION);
 
 pub mod plugin;
 

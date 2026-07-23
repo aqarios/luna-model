@@ -1,4 +1,4 @@
-use lunamodel_cext_vtable::LmResultViewBuffer;
+use lunamodel_capi::LmResultViewBuffer;
 
 use crate::{
     Result, ResultView,

@@ -31,7 +31,7 @@ num = "0.4.3"
 
 # ABI table plus LunaModel's lightweight shared value-type crate. No
 # `luna-model` core is linked: model operations dispatch into the host table.
-lunamodel-cext-vtable = { path = "../crates/cext-vtable" }
+lunamodel-capi = { path = "../crates/capi" }
 lunamodel-types = { path = "../crates/types" }
 rs-lunamodel-derive = { path = "./derive" }
 

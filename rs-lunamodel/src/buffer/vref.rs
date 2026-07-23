@@ -1,4 +1,4 @@
-use lunamodel_cext_vtable::LmVrefBuffer;
+use lunamodel_capi::LmVrefBuffer;
 
 use crate::{
     Result, VarRef,

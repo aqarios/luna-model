@@ -10,7 +10,7 @@ use std::ffi::CStr;
 use std::fmt;
 use std::sync::OnceLock;
 
-use lunamodel_cext_vtable::{CAPI_ABI_VERSION, LunaModelCApi};
+use lunamodel_capi::{CAPI_ABI_VERSION, LunaModelCApi};
 
 /// Wraps the raw table pointer so it can live in a `static`.
 ///

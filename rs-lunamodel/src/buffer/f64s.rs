@@ -1,4 +1,4 @@
-use lunamodel_cext_vtable::LmF64Buffer;
+use lunamodel_capi::LmF64Buffer;
 
 use crate::{
     Result,

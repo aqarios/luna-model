@@ -4,7 +4,7 @@ capi_wrapper! {
     wrapper: PyModelSpecs,
     public: ModelSpecs,
     inner: ::rs_lunamodel::Specs,
-    raw: ::lunamodel_cext_vtable::LmSpecs,
+    raw: ::lunamodel_capi::LmSpecs,
     attr: "_sp",
     from_py: "_from_pysp",
 }

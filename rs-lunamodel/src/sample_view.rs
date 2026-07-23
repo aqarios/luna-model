@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use lunamodel_cext_vtable::LmSampleView;
+use lunamodel_capi::LmSampleView;
 use rs_lunamodel_derive::RawHandle;
 
 use crate::{Assignment, Error, Result, Solution, Status, TryIndex, VarRef};

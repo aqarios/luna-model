@@ -1,13 +1,13 @@
 //! Owning wrapper over a LunaModel timing handle.
 //!
 //! Mirrors the Rust `Timing`, dispatching every call through the installed
-//! [`LunaModelCApi`](lunamodel_cext_vtable::LunaModelCApi) table. Fallible ABI
+//! [`LunaModelCApi`](lunamodel_capi::LunaModelCApi) table. Fallible ABI
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `Timing` still return `Result` here.
 
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use lunamodel_cext_vtable::LmTiming;
+use lunamodel_capi::LmTiming;
 use rs_lunamodel_derive::RawHandle;
 
 use crate::{Error, Result, Status, TryClone};

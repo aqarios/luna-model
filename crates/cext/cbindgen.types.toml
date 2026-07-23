@@ -7,7 +7,7 @@ tab_width = 4
 
 [parse]
 parse_deps = true
-include = ["lunamodel-cext-vtable"]
+include = ["lunamodel-capi"]
 
 [export]
 item_types = ["constants", "enums", "structs", "unions", "typedefs", "opaque"]

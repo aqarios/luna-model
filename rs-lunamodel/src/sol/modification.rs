@@ -2,7 +2,7 @@
 // pub sol_aggregate: unsafe extern "C" fn(*mut LmSol) -> LmStatus,
 
 use indexmap::IndexMap;
-use lunamodel_cext_vtable::{LmAssignment, LmColumn};
+use lunamodel_capi::{LmAssignment, LmColumn};
 use lunamodel_types::{Sense, Vtype};
 
 use crate::{

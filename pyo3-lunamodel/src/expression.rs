@@ -4,7 +4,7 @@ capi_wrapper! {
     wrapper: PyExpression,
     public: Expression,
     inner: ::rs_lunamodel::Expression,
-    raw: ::lunamodel_cext_vtable::LmExpr,
+    raw: ::lunamodel_capi::LmExpr,
     attr: "_expr",
     from_py: "_from_pyexpr",
 }

@@ -92,7 +92,7 @@ pub use vref::VarRef;
 
 /// Re-export of the ABI dispatch-table type, for obtaining and passing it to
 /// [`init`].
-pub use lunamodel_cext_vtable::LunaModelCApi;
+pub use lunamodel_capi::LunaModelCApi;
 
 pub use lunamodel_types::{
     Bias, BinaryAssignment, Comparator, Ctype, DEFAULT_BIAS, EnumSet, EnumSetFromVec, EnvIdx,

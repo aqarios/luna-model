@@ -10,7 +10,7 @@ mod creation;
 mod general;
 mod modification;
 
-use lunamodel_cext_vtable::LmModel;
+use lunamodel_capi::LmModel;
 use rs_lunamodel_derive::RawHandle;
 
 use crate::{ContentEquality, Serialization, TryClone, TryDeepClone, api::api};

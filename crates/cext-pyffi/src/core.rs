@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 
-use lunamodel_cext_vtable::{
+use lunamodel_capi::{
     LmCC, LmConstraint, LmEnv, LmExpr, LmLazyBounds, LmModel, LmSol, LmSpecs, LmVref,
 };
 

@@ -1,13 +1,13 @@
 //! Owning wrapper over a LunaModel quadratic handle.
 //!
 //! Mirrors the Rust `Quadratic`, dispatching every call through the installed
-//! [`LunaModelCApi`](lunamodel_cext_vtable::LunaModelCApi) table. Fallible ABI
+//! [`LunaModelCApi`](lunamodel_capi::LunaModelCApi) table. Fallible ABI
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `Quadratic` still return `Result` here.
 
 use std::ops::{Deref, Mul, Neg};
 
-use lunamodel_cext_vtable::LmQuadratic;
+use lunamodel_capi::LmQuadratic;
 use rs_lunamodel_derive::RawHandle;
 
 use crate::{

@@ -1,5 +1,5 @@
 use enumset::EnumSet;
-use lunamodel_cext_vtable::LmVtypeBuffer;
+use lunamodel_capi::LmVtypeBuffer;
 use lunamodel_types::{EnumSetFromVec, Vtype};
 
 use crate::{

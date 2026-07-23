@@ -1,4 +1,4 @@
-use lunamodel_cext_vtable::LmU32Buffer;
+use lunamodel_capi::LmU32Buffer;
 
 use crate::{
     Result,

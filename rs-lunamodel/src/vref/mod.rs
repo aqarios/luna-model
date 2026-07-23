@@ -10,7 +10,7 @@ mod arithmetic;
 mod creation;
 mod general;
 
-use lunamodel_cext_vtable::LmVref;
+use lunamodel_capi::LmVref;
 use rs_lunamodel_derive::RawHandle;
 
 use crate::{Result, TryClone, traits::LmTryFrom};

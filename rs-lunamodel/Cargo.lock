@@ -540,16 +540,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ceec5bc11778974d1bcb055b18002eba7f4b3518b6a0081b3af5f21666da9ad"
 
 [[package]]
-name = "luna-model"
+name = "lunamodel-capi"
 version = "0.6.11"
-dependencies = [
- "lunamodel-core",
- "lunamodel-error",
- "lunamodel-serializer",
- "lunamodel-transpiler",
- "lunamodel-types",
- "lunamodel-utils",
-]
 
 [[package]]
 name = "lunamodel-cext"
@@ -558,10 +550,14 @@ dependencies = [
  "cbindgen",
  "indexmap",
  "itertools 0.15.0",
- "luna-model",
+ "lunamodel-capi",
  "lunamodel-cext-handle",
  "lunamodel-cext-plugin",
- "lunamodel-cext-vtable",
+ "lunamodel-core",
+ "lunamodel-error",
+ "lunamodel-serializer",
+ "lunamodel-transpiler",
+ "lunamodel-types",
  "syn",
 ]
 
@@ -569,7 +565,7 @@ dependencies = [
 name = "lunamodel-cext-handle"
 version = "0.6.11"
 dependencies = [
- "lunamodel-cext-vtable",
+ "lunamodel-capi",
  "lunamodel-core",
  "lunamodel-types",
  "parking_lot 0.12.5",
@@ -579,15 +575,11 @@ dependencies = [
 name = "lunamodel-cext-plugin"
 version = "0.6.11"
 dependencies = [
+ "lunamodel-capi",
  "lunamodel-cext-handle",
- "lunamodel-cext-vtable",
  "lunamodel-core",
  "lunamodel-transpiler",
 ]
-
-[[package]]
-name = "lunamodel-cext-vtable"
-version = "0.6.11"
 
 [[package]]
 name = "lunamodel-core"
@@ -922,8 +914,8 @@ dependencies = [
  "enumset",
  "indexmap",
  "itertools 0.15.0",
+ "lunamodel-capi",
  "lunamodel-cext",
- "lunamodel-cext-vtable",
  "lunamodel-types",
  "num",
  "rs-lunamodel-derive",

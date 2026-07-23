@@ -4,7 +4,7 @@ capi_wrapper! {
     wrapper: PyEnvironment,
     public: Environment,
     inner: ::rs_lunamodel::Env,
-    raw: ::lunamodel_cext_vtable::LmEnv,
+    raw: ::lunamodel_capi::LmEnv,
     attr: "_env",
     from_py: "_from_pyenv",
 }

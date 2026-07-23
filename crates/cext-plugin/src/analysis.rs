@@ -9,8 +9,8 @@
 use std::os::raw::c_void;
 
 use lunamodel_cext_handle::new_handle;
-use lunamodel_cext_vtable::transpiler::{LmPassContext, LmPluginAnalysis};
-use lunamodel_cext_vtable::{LmModel, LmStatus};
+use lunamodel_capi::transpiler::{LmPassContext, LmPluginAnalysis};
+use lunamodel_capi::{LmModel, LmStatus};
 use lunamodel_core::Model;
 use lunamodel_transpiler::{
     AnalysisKey, AnalysisManager, AnalysisPass, PassContext, SerializedAnalysis,

@@ -1,6 +1,6 @@
 //! C-ABI conversion for LunaModel's shared numeric bound endpoint type.
 
-use lunamodel_cext_vtable::{LmBound, LmBoundTag};
+use lunamodel_capi::{LmBound, LmBoundTag};
 pub use lunamodel_types::Bound;
 
 use crate::{

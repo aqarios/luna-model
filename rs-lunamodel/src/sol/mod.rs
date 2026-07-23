@@ -10,7 +10,7 @@ mod convenience;
 mod creation;
 mod modification;
 
-use lunamodel_cext_vtable::LmSol;
+use lunamodel_capi::LmSol;
 use rs_lunamodel_derive::RawHandle;
 
 use crate::{ContentEquality, Result, Serialization, TryClone, TryIndex, api::api};

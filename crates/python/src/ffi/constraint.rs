@@ -2,7 +2,7 @@
 
 use lunamodel_cext_handle::{drop_handle, handle_from_shared, handle_into_shared};
 use lunamodel_cext_pyffi::{new_capsule, take_handle};
-use lunamodel_cext_vtable::LmConstraint;
+use lunamodel_capi::LmConstraint;
 use lunamodel_unwind::*;
 use pyo3::{Bound, PyResult, Python, pymethods, types::PyCapsule};
 

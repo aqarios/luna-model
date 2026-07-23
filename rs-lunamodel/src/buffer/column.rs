@@ -1,4 +1,4 @@
-use lunamodel_cext_vtable::LmColumnBuffer;
+use lunamodel_capi::LmColumnBuffer;
 
 use crate::{Column, Result, api::api, traits::LmTryFrom};
 

@@ -5,7 +5,7 @@
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `Assignment` still return `Result` here.
 
-use lunamodel_cext_vtable::{LmAssignment, LmVtype};
+use lunamodel_capi::{LmAssignment, LmVtype};
 pub use lunamodel_types::Assignment;
 use lunamodel_types::Vtype;
 

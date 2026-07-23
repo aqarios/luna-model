@@ -8,8 +8,8 @@
 use std::os::raw::c_void;
 
 use lunamodel_cext_handle::new_handle;
-use lunamodel_cext_vtable::transpiler::{LmPassContext, LmPluginTransform};
-use lunamodel_cext_vtable::{LmModel, LmSol, LmStatus};
+use lunamodel_capi::transpiler::{LmPassContext, LmPluginTransform};
+use lunamodel_capi::{LmModel, LmSol, LmStatus};
 use lunamodel_core::{Model, Solution};
 use lunamodel_transpiler::{
     AnalysisManager, PassContext, Reversible, TransformationPass, TranspileErrorKind,

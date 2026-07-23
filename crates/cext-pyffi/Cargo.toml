@@ -7,5 +7,5 @@ authors.workspace = true
 edition.workspace = true
 
 [dependencies]
-lunamodel-cext-vtable = { workspace = true }
+lunamodel-capi = { workspace = true }
 pyo3 = { workspace = true }

@@ -8,7 +8,7 @@ use std::ffi::{CStr, c_char, c_void};
 use std::sync::Arc;
 
 use lunamodel_cext_handle::{Shared, SharedHandleKind, handle_into_shared};
-use lunamodel_cext_vtable::transpiler::LmStrSink;
+use lunamodel_capi::transpiler::LmStrSink;
 use lunamodel_transpiler::{TranspileErrorKind, TranspileKindResult};
 
 /// Copies a plugin-owned, borrowed C string into an owned `String`.

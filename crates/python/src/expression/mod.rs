@@ -6,7 +6,7 @@ mod content_access;
 mod creation;
 mod deepclone;
 mod fns;
-mod io;
+mod fmt;
 mod iteration;
 mod ops;
 mod ser;

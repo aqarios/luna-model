@@ -1,7 +1,7 @@
 //! The C API function-pointer table.
 //!
 //! [`LUNA_MODEL_C_API`] fills the `LunaModelCApi` table (defined in
-//! `lunamodel-cext-vtable`) with this crate's `extern "C"` entry points. The
+//! `lunamodel-capi`) with this crate's `extern "C"` entry points. The
 //! standalone library calls the `lm_*` symbols directly; the Python wheel publishes
 //! a pointer to this table through a `PyCapsule` (`luna_model._lm._C_API`).
 

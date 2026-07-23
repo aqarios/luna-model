@@ -3,7 +3,7 @@ use crate::{Expression, HigherOrder, Linear, Quadratic, Result, Solution, TryInd
 
 impl Expression {
     pub fn deep_clone_many(exprs: &[&Expression]) -> Result<Vec<Expression>> {
-        let inputs: Vec<*const lunamodel_cext_vtable::LmExpr> =
+        let inputs: Vec<*const lunamodel_capi::LmExpr> =
             exprs.iter().map(|expr| expr.as_ptr()).collect();
         let mut outputs = vec![std::ptr::null_mut(); exprs.len()];
         check!(expr_deep_clone_many(

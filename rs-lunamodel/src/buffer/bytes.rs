@@ -1,4 +1,4 @@
-use lunamodel_cext_vtable::LmBuffer;
+use lunamodel_capi::LmBuffer;
 
 use crate::{
     Result,

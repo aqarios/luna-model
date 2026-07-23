@@ -10,11 +10,11 @@
 use std::ffi::{CString, c_char, c_void};
 use std::ptr;
 
-use lunamodel_cext_vtable::transpiler::{
+use lunamodel_capi::transpiler::{
     LmBackwardFn, LmByteSink, LmPassContext, LmPassKind, LmPluginAnalysis, LmPluginTransform,
     LmStrSink,
 };
-use lunamodel_cext_vtable::{LmModel, LmSol, LmStatus};
+use lunamodel_capi::{LmModel, LmSol, LmStatus};
 
 use crate::ffi::{OwnedHandle, adopt};
 use crate::{Error, Model, Solution, Status};

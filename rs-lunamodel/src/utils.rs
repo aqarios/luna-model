@@ -1,6 +1,6 @@
 use std::ffi::{CString, c_char};
 
-use lunamodel_cext_vtable::{LmEnvId, LmSol, LmVref};
+use lunamodel_capi::{LmEnvId, LmSol, LmVref};
 
 use crate::{
     Error, Result, Solution, Status, VarRef,

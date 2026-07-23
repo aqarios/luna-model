@@ -7,7 +7,7 @@
 
 use std::ops::{Mul, Neg};
 
-use lunamodel_cext_vtable::LmHigherOrder;
+use lunamodel_capi::LmHigherOrder;
 use rs_lunamodel_derive::RawHandle;
 
 use crate::{

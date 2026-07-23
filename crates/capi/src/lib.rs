@@ -6,7 +6,7 @@
 //! `lunamodel-cext` (the implementation + filled table) and downstream Rust
 //! extensions that call the API through the `luna_model._lm._C_API` capsule depend
 //! on this crate for the shared types, so a consumer never links a second copy of
-//! the core. Mirrors Qiskit's `qiskit-cext-vtable` (without the slot machinery).
+//! the core.
 #![allow(rustdoc::broken_intra_doc_links)]
 
 mod core;

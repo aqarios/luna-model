@@ -1,7 +1,7 @@
 use std::ffi::CStr;
 
 use indexmap::IndexMap;
-use lunamodel_cext_vtable::LmIndexMapItemBuffer;
+use lunamodel_capi::LmIndexMapItemBuffer;
 
 use crate::{Column, Result, api::api, traits::LmTryInto};
 

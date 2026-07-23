@@ -1,6 +1,6 @@
 use std::{collections::HashMap, ffi::CStr};
 
-use lunamodel_cext_vtable::LmBoolMapBuffer;
+use lunamodel_capi::LmBoolMapBuffer;
 
 use crate::{Result, api::api, traits::LmTryInto};
 

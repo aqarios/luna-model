@@ -694,15 +694,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "lunamodel-capi"
+version = "0.6.11"
+
+[[package]]
 name = "lunamodel-cext"
 version = "0.6.11"
 dependencies = [
  "cbindgen",
  "indexmap",
  "itertools 0.15.0",
+ "lunamodel-capi",
  "lunamodel-cext-handle",
  "lunamodel-cext-plugin",
- "lunamodel-cext-vtable",
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-serializer",
@@ -717,7 +721,7 @@ dependencies = [
 name = "lunamodel-cext-handle"
 version = "0.6.11"
 dependencies = [
- "lunamodel-cext-vtable",
+ "lunamodel-capi",
  "lunamodel-core",
  "lunamodel-types",
  "parking_lot 0.12.5",
@@ -727,8 +731,8 @@ dependencies = [
 name = "lunamodel-cext-plugin"
 version = "0.6.11"
 dependencies = [
+ "lunamodel-capi",
  "lunamodel-cext-handle",
- "lunamodel-cext-vtable",
  "lunamodel-core",
  "lunamodel-transpiler",
 ]
@@ -737,13 +741,9 @@ dependencies = [
 name = "lunamodel-cext-pyffi"
 version = "0.6.11"
 dependencies = [
- "lunamodel-cext-vtable",
+ "lunamodel-capi",
  "pyo3",
 ]
-
-[[package]]
-name = "lunamodel-cext-vtable"
-version = "0.6.11"
 
 [[package]]
 name = "lunamodel-core"
@@ -812,10 +812,10 @@ dependencies = [
  "derive_more",
  "indexmap",
  "itertools 0.15.0",
+ "lunamodel-capi",
  "lunamodel-cext-handle",
  "lunamodel-cext-plugin",
  "lunamodel-cext-pyffi",
- "lunamodel-cext-vtable",
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-fmt",
@@ -1330,8 +1330,8 @@ name = "pyo3-lunamodel"
 version = "0.6.11"
 dependencies = [
  "derive_more",
+ "lunamodel-capi",
  "lunamodel-cext-pyffi",
- "lunamodel-cext-vtable",
  "pyo3",
  "rs-lunamodel",
 ]
@@ -1464,7 +1464,7 @@ dependencies = [
  "enumset",
  "indexmap",
  "itertools 0.15.0",
- "lunamodel-cext-vtable",
+ "lunamodel-capi",
  "lunamodel-types",
  "num",
  "rs-lunamodel-derive",

@@ -1,6 +1,6 @@
 //! Conversion of owned C-ABI higher-order-item buffers into Rust vectors.
 
-use lunamodel_cext_vtable::LmHigherOrderItemBuffer;
+use lunamodel_capi::LmHigherOrderItemBuffer;
 
 use crate::{
     Result,

@@ -17,7 +17,7 @@ use lunamodel_cext::plugin::CPluginTransformPass;
 use lunamodel_cext::{
     LmModel, LmSol, LmStatus, model::lm_model_set_name, plugin::lm_register_plugin_backward,
 };
-use lunamodel_cext_vtable::transpiler::{
+use lunamodel_capi::transpiler::{
     LmByteSink, LmPassContext, LmPassKind, LmPluginTransform, LmStrSink,
 };
 

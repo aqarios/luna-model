@@ -1,4 +1,4 @@
-use lunamodel_cext_vtable::LmSampleViewBuffer;
+use lunamodel_capi::LmSampleViewBuffer;
 
 use crate::{
     Result, SampleView,

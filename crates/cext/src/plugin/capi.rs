@@ -2,7 +2,7 @@
 
 use std::ffi::{c_char, c_void};
 
-use lunamodel_cext_vtable::{
+use lunamodel_capi::{
     LmStatus,
     transpiler::{LmBackwardFn, LmPassKind},
 };

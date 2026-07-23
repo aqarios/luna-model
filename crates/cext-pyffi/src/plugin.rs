@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 
-use lunamodel_cext_vtable::transpiler::{LmPluginAnalysis, LmPluginTransform};
+use lunamodel_capi::transpiler::{LmPluginAnalysis, LmPluginTransform};
 use pyo3::{
     Bound, PyResult, Python,
     types::{PyCapsule, PyCapsuleMethods},

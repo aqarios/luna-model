@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 
-use lunamodel_cext_vtable::LmStrBuffer;
+use lunamodel_capi::LmStrBuffer;
 
 use crate::{
     Result,

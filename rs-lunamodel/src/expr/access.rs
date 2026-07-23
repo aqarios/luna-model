@@ -1,4 +1,4 @@
-use lunamodel_cext_vtable::{LmHigherOrder, LmQuadratic};
+use lunamodel_capi::{LmHigherOrder, LmQuadratic};
 use lunamodel_types::Vtype;
 
 use crate::{Env, HigherOrder, Linear, Quadratic, VarRef, error::Result};

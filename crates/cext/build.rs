@@ -16,7 +16,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src");
     println!("cargo:rerun-if-changed=cbindgen.types.toml");
     println!("cargo:rerun-if-changed=cbindgen.funcs.toml");
-    println!("cargo:rerun-if-changed=../cext-vtable/src/*.rs");
+    println!("cargo:rerun-if-changed=../capi/src/*.rs");
 
     std::fs::create_dir_all(&out_dir).expect("create include/luna_model");
 
@@ -44,7 +44,7 @@ fn cbindgen_header(crate_dir: &Path, config_file: &str, out: &Path) {
 
 /// Parses the `LunaModelCApi` struct and emits the extension-mode dispatch header.
 fn generate_funcs_py(crate_dir: &Path, out: &Path) {
-    let path = crate_dir.join("../cext-vtable/src/vtable.rs");
+    let path = crate_dir.join("../capi/src/vtable.rs");
     let source =
         std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     let ast = syn::parse_file(&source).expect("parse capi_table.rs");

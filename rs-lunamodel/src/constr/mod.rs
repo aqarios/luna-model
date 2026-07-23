@@ -8,7 +8,7 @@
 mod access;
 mod modification;
 
-use lunamodel_cext_vtable::LmConstraint;
+use lunamodel_capi::LmConstraint;
 use lunamodel_types::{Bias, Comparator};
 use rs_lunamodel_derive::RawHandle;
 

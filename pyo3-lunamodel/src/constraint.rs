@@ -4,7 +4,7 @@ capi_wrapper! {
     wrapper: PyConstraint,
     public: Constraint,
     inner: ::rs_lunamodel::Constraint,
-    raw: ::lunamodel_cext_vtable::LmConstraint,
+    raw: ::lunamodel_capi::LmConstraint,
     attr: "_c",
     from_py: "_from_pyc",
 }

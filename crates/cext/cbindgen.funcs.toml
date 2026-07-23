@@ -8,7 +8,7 @@ after_includes = "\n#include \"luna_model/types.h\""
 
 [parse]
 parse_deps = true
-include = ["lunamodel-cext-vtable"]
+include = ["lunamodel-capi"]
 
 [export]
 item_types = ["functions"]

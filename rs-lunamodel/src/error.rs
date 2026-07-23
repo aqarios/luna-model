@@ -3,7 +3,7 @@
 use std::ffi::CStr;
 use std::fmt;
 
-use lunamodel_cext_vtable::LmStatus;
+use lunamodel_capi::LmStatus;
 
 use crate::api::api;
 

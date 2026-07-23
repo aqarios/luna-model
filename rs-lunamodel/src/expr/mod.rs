@@ -1,7 +1,7 @@
 //! Owning wrapper over a LunaModel expression handle.
 //!
 //! Mirrors the Rust `Expression`, dispatching every call through the installed
-//! [`LunaModelCApi`](lunamodel_cext_vtable::LunaModelCApi) table. Fallible ABI
+//! [`LunaModelCApi`](lunamodel_capi::LunaModelCApi) table. Fallible ABI
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `Expression` still return `Result` here.
 
@@ -16,7 +16,7 @@ use crate::{
     traits::{ContentEquality, Serialization, TryClone, TryDeepClone},
 };
 
-use lunamodel_cext_vtable::LmExpr;
+use lunamodel_capi::LmExpr;
 use rs_lunamodel_derive::RawHandle;
 
 /// Owning handle to a LunaModel expression (frees on drop).

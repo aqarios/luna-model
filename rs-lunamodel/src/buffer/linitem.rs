@@ -1,6 +1,6 @@
 //! Conversion of owned C-ABI linear-item buffers into Rust vectors.
 
-use lunamodel_cext_vtable::LmLinearItemBuffer;
+use lunamodel_capi::LmLinearItemBuffer;
 
 use crate::{
     Result,

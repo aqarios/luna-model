@@ -4,7 +4,7 @@ mod convenience;
 mod creation;
 mod filter;
 mod general;
-mod io;
+mod fmt;
 mod modification;
 pub mod result;
 pub mod sample;

@@ -2,7 +2,7 @@
 mod access;
 mod construction;
 mod general;
-mod io;
+mod fmt;
 mod metadata;
 mod modification;
 mod ser;

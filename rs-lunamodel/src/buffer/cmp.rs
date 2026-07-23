@@ -1,4 +1,4 @@
-use lunamodel_cext_vtable::LmCmpBuffer;
+use lunamodel_capi::LmCmpBuffer;
 use lunamodel_types::Comparator;
 
 use crate::{

@@ -1,6 +1,6 @@
 //! Owning wrapper over a host-owned solution column.
 
-use lunamodel_cext_vtable::{LmColumn, LmVtype};
+use lunamodel_capi::{LmColumn, LmVtype};
 use num::ToPrimitive;
 use rs_lunamodel_derive::RawHandle;
 

@@ -9,7 +9,7 @@ mod access;
 mod editor;
 mod modification;
 
-use lunamodel_cext_vtable::LmCC;
+use lunamodel_capi::LmCC;
 use rs_lunamodel_derive::RawHandle;
 
 use crate::{

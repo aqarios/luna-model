@@ -6,7 +6,7 @@
 
 use std::{ops::Deref, sync::Arc};
 
-use lunamodel_cext_vtable::{
+use lunamodel_capi::{
     LmCC, LmConstraint, LmEnv, LmExpr, LmLazyBounds, LmModel, LmSol, LmSpecs, LmVref,
 };
 use lunamodel_core::prelude::{LazyBounds, VarRef};
