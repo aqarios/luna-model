@@ -9,7 +9,7 @@ use std::ffi::{c_char, c_void};
 
 use lunamodel_transpiler::AnalysisManager;
 use lunamodel_capi::LmStatus;
-use lunamodel_capi::transpiler::{LmByteSink, LmPassContext};
+use lunamodel_capi::plugin::{LmByteSink, LmPassContext};
 
 use crate::error::{CapiError, guard};
 use crate::utils::str_from_c;

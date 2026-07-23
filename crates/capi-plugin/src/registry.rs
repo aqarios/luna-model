@@ -13,7 +13,7 @@ use std::{
     sync::{Mutex, OnceLock},
 };
 
-use lunamodel_capi::transpiler::LmBackwardFn;
+use lunamodel_capi::plugin::LmBackwardFn;
 
 struct PluginBackward {
     func: LmBackwardFn,

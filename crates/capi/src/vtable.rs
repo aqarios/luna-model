@@ -1,6 +1,6 @@
 use std::ffi::{c_char, c_void};
 
-use crate::transpiler::{LmBackwardFn, LmByteSink, LmPassContext, LmPassKind};
+use crate::plugin::{LmBackwardFn, LmByteSink, LmPassContext, LmPassKind};
 
 pub use super::{
     LmAssignment, LmBoolMapBuffer, LmBound, LmBounds, LmBuffer, LmCC, LmCmpBuffer, LmColumn,

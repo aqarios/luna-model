@@ -4,7 +4,7 @@ use std::ffi::{c_char, c_void};
 
 use lunamodel_capi::{
     LmStatus,
-    transpiler::{LmBackwardFn, LmPassKind},
+    plugin::{LmBackwardFn, LmPassKind},
 };
 
 use crate::{

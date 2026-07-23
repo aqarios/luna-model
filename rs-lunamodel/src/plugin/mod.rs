@@ -10,7 +10,7 @@
 use std::ffi::{CString, c_char, c_void};
 use std::ptr;
 
-use lunamodel_capi::transpiler::{
+use lunamodel_capi::plugin::{
     LmBackwardFn, LmByteSink, LmPassContext, LmPassKind, LmPluginAnalysis, LmPluginTransform,
     LmStrSink,
 };

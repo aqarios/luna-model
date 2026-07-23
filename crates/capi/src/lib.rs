@@ -12,7 +12,7 @@
 mod core;
 mod vtable;
 
-pub mod transpiler;
+pub mod plugin;
 
 /// ABI version of the C API table.
 ///

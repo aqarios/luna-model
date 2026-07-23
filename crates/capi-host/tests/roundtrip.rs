@@ -3,7 +3,7 @@
 use std::ffi::CStr;
 use std::ptr;
 
-use lunamodel_capi::{
+use lunamodel_capi_host::{
     CAPI_ABI_VERSION, LmBuffer, LmModel, LmSol, LmStatus,
     buffer::lm_buffer_free,
     error::lm_last_error_message,

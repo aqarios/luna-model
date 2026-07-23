@@ -11,10 +11,11 @@ use std::{
     sync::atomic::{AtomicBool, AtomicUsize, Ordering},
 };
 
-use lunamodel_capi::{
-    transpiler::{LmByteSink, LmPassContext, LmPassKind, LmPluginTransform, LmStrSink},
-    LmModel, LmSol, LmStatus, model::lm_model_set_name, plugin::CPluginTransformPass,
-    plugin::lm_register_plugin_backward,
+use lunamodel_capi::plugin::{LmByteSink, LmPassContext, LmPassKind, LmPluginTransform, LmStrSink};
+use lunamodel_capi_host::{
+    LmModel, LmSol, LmStatus,
+    model::lm_model_set_name,
+    plugin::{CPluginTransformPass, lm_register_plugin_backward},
 };
 use lunamodel_core::{Model, Solution};
 use lunamodel_transpiler::PassManager;
