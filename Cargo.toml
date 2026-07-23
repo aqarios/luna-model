@@ -95,11 +95,11 @@ lunamodel-unwind = { path = "crates/unwind", version = "0.6.11", default-feature
 lunamodel-unwindable = { path = "crates/unwind/unwindable", version = "0.6.11", default-features = false }
 lunamodel-unwinder = { path = "crates/unwind/unwinder", version = "0.6.11", default-features = false }
 
-lunamodel-cext = { path = "crates/cext", version = "0.6.11", default-features = false }
+lunamodel-capi-host = { path = "crates/capi-host", version = "0.6.11", default-features = false }
 lunamodel-capi = { path = "crates/capi", version = "0.6.11", default-features = false }
 lunamodel-capi-handle = { path = "crates/capi-handle", version = "0.6.11", default-features = false }
 lunamodel-capi-pyffi = { path = "crates/capi-pyffi", version = "0.6.11", default-features = false }
-lunamodel-cext-plugin = { path = "crates/cext-plugin", version = "0.6.11", default-features = false }
+lunamodel-capi-plugin = { path = "crates/capi-plugin", version = "0.6.11", default-features = false }
 
 lunamodel-transpiler-macros = { path = "crates/transpiler/transpiler_macros", version = "0.6.11", default-features = false }
 lunamodel-python-macros = { path = "crates/python/python_macros", version = "0.6.11", default-features = false }

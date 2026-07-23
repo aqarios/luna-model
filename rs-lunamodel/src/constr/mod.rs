@@ -1,7 +1,7 @@
 //! Owning wrapper over a LunaModel constr handle.
 //!
 //! Mirrors the Rust `Constraint`, dispatching every call through the installed
-//! [`LunaModelCApi`](lunamodel_cext_vtable::LunaModelCApi) table. Fallible ABI
+//! [`LunaModelCApi`](lunamodel_capi::LunaModelCApi) table. Fallible ABI
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `Constraint` still return `Result` here.
 

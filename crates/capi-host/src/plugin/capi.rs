@@ -25,11 +25,11 @@ pub unsafe extern "C" fn lm_register_plugin_backward(
     user_data: *mut c_void,
 ) -> LmStatus {
     guard(|| {
-        lunamodel_cext_plugin::ensure_registered();
+        lunamodel_capi_plugin::ensure_registered();
         let id = unsafe { str_from_c(id, "id") }?.to_owned();
         match kind {
             LmPassKind::Transformation => {
-                lunamodel_cext_plugin::register_transform(id, func, user_data);
+                lunamodel_capi_plugin::register_transform(id, func, user_data);
                 Ok(())
             }
             _ => Err(CapiError::new(

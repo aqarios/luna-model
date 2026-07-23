@@ -15,7 +15,7 @@ static INIT: Once = Once::new();
 
 fn init() {
     INIT.call_once(|| unsafe {
-        rs_lunamodel::init(&lunamodel_cext::capi_table::LUNA_MODEL_C_API).unwrap();
+        rs_lunamodel::init(&lunamodel_capi::capi_table::LUNA_MODEL_C_API).unwrap();
     });
 }
 

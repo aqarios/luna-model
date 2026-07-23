@@ -27,7 +27,7 @@ lunamodel-python-macros = { workspace = true }
 lunamodel-capi-handle = { workspace = true }
 lunamodel-capi-pyffi = { workspace = true }
 lunamodel-capi = { workspace = true }
-lunamodel-cext-plugin = { workspace = true }
+lunamodel-capi-plugin = { workspace = true }
 
 pyo3 = { workspace = true, features = ["multiple-pymethods", "indexmap"] }
 numpy = { workspace = true }

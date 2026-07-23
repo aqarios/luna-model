@@ -9,11 +9,11 @@ fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
 
     let c_api_capsule = PyCapsule::new_with_value(
         py,
-        lunamodel_cext::capi_table::LUNA_MODEL_C_API,
+        lunamodel_capi_host::capi_table::LUNA_MODEL_C_API,
         C_API_CAPSULE_NAME,
     )?;
     m.add("_C_API", c_api_capsule)?;
-    m.add("_C_API_ABI_VERSION", lunamodel_cext::CAPI_ABI_VERSION)?;
+    m.add("_C_API_ABI_VERSION", lunamodel_capi_host::CAPI_ABI_VERSION)?;
 
     m.add_function(wrap_pyfunction!(quicksum, m)?)?;
     // Enums from lunamodel-core

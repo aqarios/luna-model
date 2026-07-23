@@ -1,6 +1,6 @@
 #!/bin/bash
 # Check (default) or apply clang-format to hand-written C/C++ sources.
-# Generated cext headers are excluded so formatting never diverges from the generator.
+# Generated capi-host headers are excluded so formatting never diverges from the generator.
 set -e
 
 if [ -z "$1" ]; then
@@ -18,7 +18,7 @@ style="${repo_root}/.clang-format"
 
 files=$(git -C "$repo_root" ls-files \
     | grep -E '\.(c|h|cpp|hpp)$' \
-    | grep -vE '^(crates/cext/include|py-lunamodel/src/luna_model/include)/luna_model/(types|funcs|funcs_py|version)\.h$')
+    | grep -vE '^(crates/capi-host/include|py-lunamodel/src/luna_model/include)/luna_model/(types|funcs|funcs_py|version)\.h$')
 
 status=0
 for file in $files; do

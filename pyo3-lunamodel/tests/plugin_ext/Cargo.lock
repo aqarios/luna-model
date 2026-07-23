@@ -226,12 +226,12 @@ dependencies = [
 name = "lunamodel-capi-pyffi"
 version = "0.6.11"
 dependencies = [
- "lunamodel-cext-vtable",
+ "lunamodel-capi",
  "pyo3",
 ]
 
 [[package]]
-name = "lunamodel-cext-vtable"
+name = "lunamodel-capi"
 version = "0.6.11"
 
 [[package]]
@@ -418,8 +418,8 @@ name = "pyo3-lunamodel"
 version = "0.6.11"
 dependencies = [
  "derive_more",
- "lunamodel-cext-pyffi",
- "lunamodel-cext-vtable",
+ "lunamodel-capi-pyffi",
+ "lunamodel-capi",
  "pyo3",
  "rs-lunamodel",
 ]
@@ -487,7 +487,7 @@ dependencies = [
  "enumset",
  "indexmap",
  "itertools 0.15.0",
- "lunamodel-cext-vtable",
+ "lunamodel-capi",
  "lunamodel-types",
  "num",
  "rs-lunamodel-derive",

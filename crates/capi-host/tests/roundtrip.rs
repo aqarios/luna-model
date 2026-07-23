@@ -3,14 +3,14 @@
 use std::ffi::CStr;
 use std::ptr;
 
-use lunamodel_cext::buffer::lm_buffer_free;
-use lunamodel_cext::error::lm_last_error_message;
-use lunamodel_cext::model::{
-    lm_model_default, lm_model_deserialize, lm_model_free, lm_model_serialize,
+use lunamodel_capi::{
+    CAPI_ABI_VERSION, LmBuffer, LmModel, LmSol, LmStatus,
+    buffer::lm_buffer_free,
+    error::lm_last_error_message,
+    model::{lm_model_default, lm_model_deserialize, lm_model_free, lm_model_serialize},
+    sol::{lm_sol_deserialize, lm_sol_free},
+    version::{lm_abi_version, lm_version},
 };
-use lunamodel_cext::sol::{lm_sol_deserialize, lm_sol_free};
-use lunamodel_cext::version::{lm_abi_version, lm_version};
-use lunamodel_cext::{CAPI_ABI_VERSION, LmBuffer, LmModel, LmSol, LmStatus};
 
 use lunamodel_core::{Model, Solution};
 use lunamodel_serializer::prelude::*;

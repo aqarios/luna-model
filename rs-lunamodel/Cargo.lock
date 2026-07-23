@@ -554,7 +554,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lunamodel-cext"
+name = "lunamodel-capi-host"
 version = "0.6.11"
 dependencies = [
  "cbindgen",
@@ -562,7 +562,7 @@ dependencies = [
  "itertools 0.15.0",
  "lunamodel-capi",
  "lunamodel-capi-handle",
- "lunamodel-cext-plugin",
+ "lunamodel-capi-plugin",
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-serializer",
@@ -572,7 +572,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lunamodel-cext-plugin"
+name = "lunamodel-capi-plugin"
 version = "0.6.11"
 dependencies = [
  "lunamodel-capi",
@@ -915,7 +915,7 @@ dependencies = [
  "indexmap",
  "itertools 0.15.0",
  "lunamodel-capi",
- "lunamodel-cext",
+ "lunamodel-capi-host",
  "lunamodel-types",
  "num",
  "rs-lunamodel-derive",

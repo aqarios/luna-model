@@ -3,7 +3,7 @@
 //! This crate has no dependency on the LunaModel core — it holds only the
 //! `#[repr(C)]` types that make up the stable C ABI (the [`LunaModelCApi`] table,
 //! [`LmStatus`], [`LmBuffer`], the opaque handles, and the ABI version). Both
-//! `lunamodel-cext` (the implementation + filled table) and downstream Rust
+//! `lunamodel-capi-host` (the implementation + filled table) and downstream Rust
 //! extensions that call the API through the `luna_model._lm._C_API` capsule depend
 //! on this crate for the shared types, so a consumer never links a second copy of
 //! the core.

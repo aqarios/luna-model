@@ -122,7 +122,7 @@ macro_rules! py_analysis_plugin {
                 $crate::ensure_c_api(py)?;
                 let descriptor = $crate::rs_lunamodel::plugin::descriptor_analysis(self.0.clone())
                     .map_err(|e| ::pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
-                $crate::lunamodel_cext_pyffi::plugin::new_plugin_analysis_capsule(py, descriptor)
+                $crate::lunamodel_capi_pyffi::plugin::new_plugin_analysis_capsule(py, descriptor)
             }
         }
     };

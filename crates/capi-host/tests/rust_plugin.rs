@@ -5,8 +5,8 @@
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
-use lunamodel_cext::capi_table::LUNA_MODEL_C_API;
-use lunamodel_cext::plugin::CPluginTransformPass;
+use lunamodel_capi::capi_table::LUNA_MODEL_C_API;
+use lunamodel_capi::plugin::CPluginTransformPass;
 
 use lunamodel_transpiler::PassManager;
 use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};

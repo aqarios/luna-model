@@ -1,7 +1,7 @@
 //! `#[no_mangle]` C entry point backing a plugin pass's read access to analysis results.
 //!
 //! `LmPassContext` is represented as an [`AnalysisManager`]: the plugin adapter lends the manager
-//! the transpiler holds during a run (borrowed, see `lunamodel-cext-plugin`), reaching the reader
+//! the transpiler holds during a run (borrowed, see `lunamodel-capi-plugin`), reaching the reader
 //! below as `*const AnalysisManager`. The context is read-only, exactly like the native
 //! `PassContext`; the manager is populated by the host as analyses run, never by a plugin.
 

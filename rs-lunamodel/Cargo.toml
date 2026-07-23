@@ -36,4 +36,4 @@ lunamodel-types = { path = "../crates/types" }
 rs-lunamodel-derive = { path = "./derive" }
 
 [dev-dependencies]
-lunamodel-cext = { path = "../crates/cext" }
+lunamodel-capi-host = { path = "../crates/capi-host" }

@@ -1,8 +1,8 @@
 //! Rust wrapper over the LunaModel C API for native Rust extensions.
 //!
 //! This crate mirrors the native `luna-model` API but routes every call through
-//! the stable C ABI. It depends only on [`lunamodel_cext_vtable`] for the
-//! [`LunaModelCApi`](lunamodel_cext_vtable::LunaModelCApi) dispatch table and the
+//! the stable C ABI. It depends only on [`lunamodel_capi`] for the
+//! [`LunaModelCApi`](lunamodel_capi::LunaModelCApi) dispatch table and the
 //! `Lm*` ABI structs — never on `luna-model` itself — so a consumer never links a
 //! second copy of the core.
 //!

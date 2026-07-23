@@ -1,6 +1,6 @@
 //! Copies the generated C API headers into the Python package so the wheel ships
 //! them (discoverable via `luna_model.capi.get_include()`). The headers themselves
-//! are produced by lunamodel-cext's build.rs, which runs first as a dependency.
+//! are produced by lunamodel-capi-host's build.rs, which runs first as a dependency.
 
 use std::path::Path;
 
@@ -9,7 +9,7 @@ fn main() {
     let manifest = Path::new(&manifest); // py-lunamodel/pylm
     let dst = manifest.join("../src/luna_model/include"); // bundled into the wheel
 
-    let h = manifest.join("../../crates/cext/include"); // C headers (.h)
+    let h = manifest.join("../../crates/capi-host/include"); // C headers (.h)
     let hpp = manifest.join("../../cxx-lunamodel/src"); // C++ headers (.hpp)
 
     println!("cargo:rerun-if-changed={}", h.display());

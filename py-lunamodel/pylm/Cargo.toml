@@ -12,7 +12,7 @@ repository.workspace = true
 [dependencies]
 pyo3 = { workspace = true }
 lunamodel-python = { workspace = true }
-lunamodel-cext = { workspace = true }
+lunamodel-capi-host = { workspace = true }
 lunamodel-capi-pyffi = { workspace = true }
 
 [features]
