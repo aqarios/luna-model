@@ -19,10 +19,10 @@ pub mod prelude;
 
 // Re-exported so the plugin-authoring macros below can reference these crates through `$crate`,
 // keeping extension authors' dependency list to just `pyo3` + `pyo3-lunamodel` + `rs-lunamodel`.
-pub use lunamodel_cext_pyffi;
+pub use lunamodel_capi_pyffi;
 pub use rs_lunamodel;
 
-use lunamodel_cext_pyffi::C_API_CAPSULE_NAME;
+use lunamodel_capi_pyffi::C_API_CAPSULE_NAME;
 use pyo3::exceptions::PyImportError;
 use pyo3::prelude::{Bound, Py, PyAnyMethods, PyModule, PyResult, Python};
 use pyo3::types::{PyCapsule, PyCapsuleMethods};

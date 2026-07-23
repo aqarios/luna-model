@@ -14,5 +14,5 @@ pyo3 = { workspace = true }
 derive_more = { workspace = true }
 
 rs-lunamodel = { path = "../rs-lunamodel" }
-lunamodel-cext-pyffi = { workspace = true }
+lunamodel-capi-pyffi = { workspace = true }
 lunamodel-capi = { workspace = true }

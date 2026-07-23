@@ -708,6 +708,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "lunamodel-capi-pyffi"
+version = "0.6.11"
+dependencies = [
+ "lunamodel-capi",
+ "pyo3",
+]
+
+[[package]]
 name = "lunamodel-cext"
 version = "0.6.11"
 dependencies = [
@@ -735,14 +743,6 @@ dependencies = [
  "lunamodel-capi-handle",
  "lunamodel-core",
  "lunamodel-transpiler",
-]
-
-[[package]]
-name = "lunamodel-cext-pyffi"
-version = "0.6.11"
-dependencies = [
- "lunamodel-capi",
- "pyo3",
 ]
 
 [[package]]
@@ -814,8 +814,8 @@ dependencies = [
  "itertools 0.15.0",
  "lunamodel-capi",
  "lunamodel-capi-handle",
+ "lunamodel-capi-pyffi",
  "lunamodel-cext-plugin",
- "lunamodel-cext-pyffi",
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-fmt",
@@ -1284,8 +1284,8 @@ dependencies = [
 name = "pylm"
 version = "0.6.11"
 dependencies = [
+ "lunamodel-capi-pyffi",
  "lunamodel-cext",
- "lunamodel-cext-pyffi",
  "lunamodel-python",
  "pyo3",
 ]
@@ -1331,7 +1331,7 @@ version = "0.6.11"
 dependencies = [
  "derive_more",
  "lunamodel-capi",
- "lunamodel-cext-pyffi",
+ "lunamodel-capi-pyffi",
  "pyo3",
  "rs-lunamodel",
 ]

@@ -223,7 +223,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lunamodel-cext-pyffi"
+name = "lunamodel-capi-pyffi"
 version = "0.6.11"
 dependencies = [
  "lunamodel-cext-vtable",

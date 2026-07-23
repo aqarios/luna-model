@@ -86,7 +86,7 @@ macro_rules! capi_wrapper {
                 let capsule = inner
                     .call_method0("_to_c_capsule")?
                     .cast_into::<::pyo3::types::PyCapsule>()?;
-                let handle = ::lunamodel_cext_pyffi::take_handle::<$raw>(&capsule)?;
+                let handle = ::lunamodel_capi_pyffi::take_handle::<$raw>(&capsule)?;
                 let inner =
                     unsafe { ::rs_lunamodel::ffi::adopt::<$inner>(handle) }.map_err(|error| {
                         ::pyo3::exceptions::PyValueError::new_err(error.to_string())
@@ -119,7 +119,7 @@ macro_rules! capi_wrapper {
 
                 $crate::ensure_c_api(py)?;
                 let handle = <$inner as ::rs_lunamodel::ffi::OwnedHandle>::into_raw_owned(inner);
-                let capsule = ::lunamodel_cext_pyffi::new_capsule::<$raw>(
+                let capsule = ::lunamodel_capi_pyffi::new_capsule::<$raw>(
                     py,
                     handle,
                     ::rs_lunamodel::ffi::release::<$inner>,

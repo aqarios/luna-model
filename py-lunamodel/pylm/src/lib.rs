@@ -1,4 +1,4 @@
-use lunamodel_cext_pyffi::C_API_CAPSULE_NAME;
+use lunamodel_capi_pyffi::C_API_CAPSULE_NAME;
 use lunamodel_python::translate::model::*;
 pub use lunamodel_python::*;
 use pyo3::{PyTypeInfo, prelude::*, types::PyCapsule};

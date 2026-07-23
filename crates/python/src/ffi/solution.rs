@@ -1,7 +1,7 @@
 //! C-handle capsule transport for Python solution wrappers.
 
 use lunamodel_capi_handle::{drop_handle, handle_from_shared, handle_into_shared};
-use lunamodel_cext_pyffi::{new_capsule, take_handle};
+use lunamodel_capi_pyffi::{new_capsule, take_handle};
 use lunamodel_capi::LmSol;
 use lunamodel_unwind::*;
 use pyo3::{Bound, PyResult, Python, pymethods, types::PyCapsule};
