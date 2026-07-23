@@ -1,4 +1,4 @@
-use luna_model::core::prelude::ContentEquality;
+use lunamodel_core::prelude::ContentEquality;
 
 use super::utils::expression_from_c;
 use crate::{LmExpr, LmStatus, error::guard, utils::out_from_c};

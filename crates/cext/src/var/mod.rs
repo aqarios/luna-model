@@ -2,7 +2,7 @@ mod access;
 
 use std::ffi::c_char;
 
-use luna_model::core::prelude::{LazyBounds, Variable};
+use lunamodel_core::prelude::{LazyBounds, Variable};
 
 use crate::{
     LmLazyBounds, LmStatus, LmVar, LmVtype,

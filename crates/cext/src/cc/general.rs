@@ -1,6 +1,6 @@
 use std::ffi::c_char;
 
-use luna_model::core::prelude::ContentEquality;
+use lunamodel_core::prelude::ContentEquality;
 
 use super::utils::{collection_from_c, collection_out_from_c};
 use crate::{

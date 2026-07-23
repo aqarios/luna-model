@@ -89,14 +89,14 @@ fn rust_plugin_forward_and_backward() {
     let pm =
         PassManager::default().add_transform(CPluginTransformPass::from_descriptor(&descriptor));
     let out = pm
-        .run(luna_model::core::Model::default())
+        .run(lunamodel_core::Model::default())
         .expect("pass manager run");
 
     assert_eq!(out.model.name, NEW_NAME);
 
     let _solution = out
         .record
-        .backward(luna_model::core::Solution::default())
+        .backward(lunamodel_core::Solution::default())
         .expect("backward");
     assert_eq!(BACKWARD_CALLS.load(Ordering::SeqCst), 1);
     assert!(
@@ -122,16 +122,16 @@ fn rust_plugin_mixed_with_builtin() {
     let descriptor = rs_lunamodel::plugin::descriptor(RenamePass).expect("build descriptor");
     let pm = PassManager::default()
         .add_transform(CPluginTransformPass::from_descriptor(&descriptor))
-        .add_transform(ChangeSensePass::new(luna_model::types::Sense::Max));
+        .add_transform(ChangeSensePass::new(lunamodel_types::Sense::Max));
     let out = pm
-        .run(luna_model::core::Model::default())
+        .run(lunamodel_core::Model::default())
         .expect("pass manager run");
 
     assert_eq!(out.model.name, NEW_NAME);
-    assert_eq!(out.model.sense, luna_model::types::Sense::Max);
+    assert_eq!(out.model.sense, lunamodel_types::Sense::Max);
 
     // Reverse through ChangeSensePass (native) then the plugin — this is where the Python test failed.
     out.record
-        .backward(luna_model::core::Solution::default())
+        .backward(lunamodel_core::Solution::default())
         .expect("mixed backward");
 }

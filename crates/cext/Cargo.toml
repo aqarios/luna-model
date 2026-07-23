@@ -14,7 +14,12 @@ name = "lunamodel_cext"
 crate-type = ["rlib"]
 
 [dependencies]
-luna-model = { workspace = true, features = ["serializer", "transpiler"] }
+lunamodel-serializer = { workspace = true }
+lunamodel-transpiler = { workspace = true }
+lunamodel-types = { workspace = true }
+lunamodel-core = { workspace = true }
+lunamodel-error = { workspace = true }
+
 lunamodel-cext-vtable = { workspace = true }
 lunamodel-cext-handle = { workspace = true }
 lunamodel-cext-plugin = { workspace = true }

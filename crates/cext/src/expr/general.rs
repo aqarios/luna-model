@@ -1,4 +1,4 @@
-use luna_model::core::Expression;
+use lunamodel_core::Expression;
 
 use super::utils::{expression_from_c, expression_out_from_c, expression_to_c};
 use crate::{

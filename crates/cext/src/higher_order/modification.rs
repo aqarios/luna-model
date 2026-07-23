@@ -3,7 +3,7 @@ use std::{
     ops::{AddAssign, MulAssign, Neg},
 };
 
-use luna_model::core::prelude::HigherOrder;
+use lunamodel_core::prelude::HigherOrder;
 
 use crate::{
     LmHigherOrder, LmStatus,

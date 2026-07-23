@@ -1,5 +1,5 @@
-use luna_model::core::ConstraintCollection;
-use luna_model::serializer::prelude::*;
+use lunamodel_core::ConstraintCollection;
+use lunamodel_serializer::prelude::*;
 
 use super::utils::{collection_from_c, collection_out_from_c};
 use crate::{

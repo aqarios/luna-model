@@ -1,4 +1,4 @@
-use luna_model::core::{Solution, prelude::ContentEquality};
+use lunamodel_core::{Solution, prelude::ContentEquality};
 
 use crate::{
     LmModel, LmSol, LmStatus,

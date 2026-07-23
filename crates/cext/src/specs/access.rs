@@ -1,4 +1,4 @@
-use luna_model::types::Specs;
+use lunamodel_types::Specs;
 
 use crate::{
     LmCtype, LmCtypeBuffer, LmSense, LmSpecs, LmStatus, LmVtype, LmVtypeBuffer,

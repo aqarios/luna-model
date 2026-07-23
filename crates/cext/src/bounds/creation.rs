@@ -1,5 +1,5 @@
 use crate::utils::{drop_from_c, handle_to_c, out_from_c};
-use luna_model::core::prelude::Bounds;
+use lunamodel_core::Bounds;
 
 use crate::{
     LmBound, LmBounds, LmStatus, LmVtype,

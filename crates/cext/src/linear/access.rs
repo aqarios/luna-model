@@ -1,4 +1,4 @@
-use luna_model::core::prelude::Linear;
+use lunamodel_core::prelude::Linear;
 
 use crate::{
     LmLinear, LmLinearItem, LmLinearItemBuffer, LmStatus,

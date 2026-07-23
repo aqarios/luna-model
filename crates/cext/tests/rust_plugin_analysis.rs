@@ -7,7 +7,7 @@
 //! deposits the analysis result, and lends it back to the consuming pass — exactly as it does for
 //! built-in passes.
 
-use luna_model::types::Vtype;
+use lunamodel_types::Vtype;
 use lunamodel_cext::capi_table::LUNA_MODEL_C_API;
 use lunamodel_cext::plugin::{CPluginAnalysisPass, CPluginTransformPass};
 use lunamodel_transpiler::PassManager;
@@ -23,9 +23,9 @@ fn init() {
 
 /// A model with `n` binary variables in its objective, so the analysis has real, participating
 /// variables to count.
-fn model_with_vars(n: usize) -> luna_model::core::Model {
-    use luna_model::core::prelude::LmAddAssign;
-    let mut model = luna_model::core::Model::default();
+fn model_with_vars(n: usize) -> lunamodel_core::Model {
+    use lunamodel_core::prelude::LmAddAssign;
+    let mut model = lunamodel_core::Model::default();
     for i in 0..n {
         let var = model
             .add_var(&format!("x{i}"), Vtype::Binary, None)
@@ -197,7 +197,7 @@ fn plugin_transform_reads_plugin_analysis() {
     assert_eq!(out.model.name, "vars=3", "transform read the analysis result");
 
     out.record
-        .backward(luna_model::core::Solution::default())
+        .backward(lunamodel_core::Solution::default())
         .expect("backward");
 }
 

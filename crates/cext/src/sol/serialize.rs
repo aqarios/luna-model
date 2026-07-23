@@ -1,5 +1,5 @@
-use luna_model::core::Solution;
-use luna_model::serializer::prelude::*;
+use lunamodel_core::Solution;
+use lunamodel_serializer::prelude::*;
 
 use crate::{
     LmBuffer, LmSol, LmStatus,

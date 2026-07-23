@@ -1,10 +1,8 @@
-use luna_model::{
-    core::{
-        Expression,
-        prelude::{DefaultEditable, HigherOrder, Linear, Quadratic},
-    },
-    types::Bias,
+use lunamodel_core::{
+    Expression,
+    prelude::{DefaultEditable, HigherOrder, Linear, Quadratic},
 };
+use lunamodel_types::Bias;
 
 use super::utils::{expression_drop_from_c, expression_out_from_c, expression_to_c};
 use crate::{

@@ -1,4 +1,4 @@
-use luna_model::core::prelude::ContentEquality;
+use lunamodel_core::prelude::ContentEquality;
 
 use crate::{
     LmEnv, LmStatus,

@@ -1,4 +1,4 @@
-use luna_model::core::Bounds;
+use lunamodel_core::Bounds;
 
 use crate::{
     error::CapiError,

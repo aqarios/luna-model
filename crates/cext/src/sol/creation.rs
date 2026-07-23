@@ -1,5 +1,5 @@
 use itertools::Either;
-use luna_model::core::{ArcEnv, Model, Solution};
+use lunamodel_core::{ArcEnv, Model, Solution};
 use lunamodel_cext_handle::{drop_handle, new_handle};
 
 use crate::{

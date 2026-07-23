@@ -1,6 +1,6 @@
 use std::ffi::c_char;
 
-use luna_model::core::prelude::VarRef;
+use lunamodel_core::prelude::VarRef;
 
 use super::utils::collection_from_c;
 use crate::{

@@ -1,6 +1,6 @@
 use std::ops::{AddAssign, MulAssign, Neg};
 
-use luna_model::core::prelude::Linear;
+use lunamodel_core::prelude::Linear;
 
 use crate::{
     LmLinear, LmStatus,

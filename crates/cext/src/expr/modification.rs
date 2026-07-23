@@ -1,4 +1,4 @@
-use luna_model::core::prelude::{HigherOrder, Linear, Quadratic};
+use lunamodel_core::prelude::{HigherOrder, Linear, Quadratic};
 
 use crate::{
     LmExpr, LmHigherOrder, LmLinear, LmQuadratic, LmStatus,

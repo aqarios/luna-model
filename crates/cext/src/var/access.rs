@@ -1,4 +1,4 @@
-use luna_model::core::prelude::Variable;
+use lunamodel_core::prelude::Variable;
 
 use crate::{
     LmBounds, LmBuffer, LmStatus, LmVar, LmVtype,

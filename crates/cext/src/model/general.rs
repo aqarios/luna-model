@@ -1,7 +1,7 @@
 use std::ffi::c_char;
 
-use luna_model::core::Bounds;
-use luna_model::types::Specs;
+use lunamodel_core::Bounds;
+use lunamodel_types::Specs;
 use lunamodel_cext_vtable::LmLazyBounds;
 
 use crate::{

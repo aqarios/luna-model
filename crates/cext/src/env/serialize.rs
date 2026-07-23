@@ -1,5 +1,5 @@
-use luna_model::core::{ArcEnv, Environment};
-use luna_model::serializer::prelude::*;
+use lunamodel_core::{ArcEnv, Environment};
+use lunamodel_serializer::prelude::*;
 
 use crate::{
     LmBuffer, LmEnv, LmStatus,

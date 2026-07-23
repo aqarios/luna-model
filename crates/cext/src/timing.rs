@@ -1,6 +1,6 @@
 use std::time::{Duration, UNIX_EPOCH};
 
-use luna_model::core::prelude::Timing;
+use lunamodel_core::prelude::Timing;
 
 use crate::{
     LmStatus, LmTiming,

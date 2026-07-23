@@ -3,7 +3,7 @@
 
 use std::ffi::CString;
 
-use luna_model::core::solution::Column;
+use lunamodel_core::solution::Column;
 
 use crate::{LmIndexMapItem, LmIndexMapItemBuffer, utils::handle_to_c};
 

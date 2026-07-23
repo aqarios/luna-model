@@ -1,4 +1,4 @@
-use luna_model::core::prelude::{ContentEquality, VarRef};
+use lunamodel_core::prelude::{ContentEquality, VarRef};
 
 use std::ffi::c_char;
 

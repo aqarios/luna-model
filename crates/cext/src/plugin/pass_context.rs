@@ -7,7 +7,7 @@
 
 use std::ffi::{c_char, c_void};
 
-use luna_model::transpiler::AnalysisManager;
+use lunamodel_transpiler::AnalysisManager;
 use lunamodel_cext_vtable::LmStatus;
 use lunamodel_cext_vtable::transpiler::{LmByteSink, LmPassContext};
 

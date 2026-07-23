@@ -1,4 +1,4 @@
-use luna_model::core::ConstraintCollection;
+use lunamodel_core::ConstraintCollection;
 
 use super::utils::{collection_drop_from_c, collection_to_c};
 use crate::LmCC;

@@ -1,4 +1,4 @@
-use luna_model::core::prelude::VarRef;
+use lunamodel_core::prelude::VarRef;
 use lunamodel_cext_handle::{ConstraintCollectionHandle, new_shared};
 
 use crate::{

@@ -1,4 +1,4 @@
-use luna_model::core::ConstraintCollection;
+use lunamodel_core::ConstraintCollection;
 use lunamodel_cext_handle::{ConstraintCollectionHandle, drop_handle, handle_from_storage};
 
 use crate::{LmCC, error::CapiError, utils::storage_from_c};

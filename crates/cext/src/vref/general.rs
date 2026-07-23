@@ -1,7 +1,5 @@
-use luna_model::{
-    core::prelude::{VarRef, Variable},
-    error::LunaModelResult,
-};
+use lunamodel_core::prelude::{VarRef, Variable};
+use lunamodel_error::LunaModelResult;
 
 use crate::{
     LmStatus, LmVar, LmVref,

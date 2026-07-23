@@ -1,7 +1,7 @@
 //! Owned vref-buffer helpers for the C ABI.
 #![allow(dead_code)]
 
-use luna_model::core::prelude::VarRef;
+use lunamodel_core::prelude::VarRef;
 
 use crate::{LmVref, LmVrefBuffer};
 

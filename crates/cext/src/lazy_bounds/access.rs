@@ -1,4 +1,4 @@
-use luna_model::core::prelude::LazyBounds;
+use lunamodel_core::prelude::LazyBounds;
 
 use crate::{
     LmBound, LmLazyBounds, LmStatus,

@@ -1,4 +1,4 @@
-use luna_model::core::solution::Column;
+use lunamodel_core::solution::Column;
 
 use crate::{
     LmAssignment, LmColumn, LmStatus, LmVtype,
@@ -150,10 +150,10 @@ pub unsafe extern "C" fn lm_col_vtype(column: *const LmColumn, out: *mut LmVtype
         let column = unsafe { ref_from_c(column as *const Column, "column") }?;
         let out = unsafe { out_from_c(out) }?;
         *out = vtype_to_c(match column {
-            Column::Binary(_) => luna_model::types::Vtype::Binary,
-            Column::Spin(_) => luna_model::types::Vtype::Spin,
-            Column::Integer(_) => luna_model::types::Vtype::Integer,
-            Column::Real(_) => luna_model::types::Vtype::Real,
+            Column::Binary(_) => lunamodel_types::Vtype::Binary,
+            Column::Spin(_) => lunamodel_types::Vtype::Spin,
+            Column::Integer(_) => lunamodel_types::Vtype::Integer,
+            Column::Real(_) => lunamodel_types::Vtype::Real,
         });
         Ok(())
     })

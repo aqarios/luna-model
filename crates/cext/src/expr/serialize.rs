@@ -1,5 +1,5 @@
-use luna_model::core::Expression;
-use luna_model::serializer::prelude::*;
+use lunamodel_core::Expression;
+use lunamodel_serializer::prelude::*;
 
 use super::utils::{expression_from_c, expression_out_from_c};
 use crate::{

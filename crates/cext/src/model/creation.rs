@@ -1,6 +1,6 @@
 use std::ffi::c_char;
 
-use luna_model::core::Model;
+use lunamodel_core::Model;
 use lunamodel_cext_handle::{drop_handle, new_handle};
 use lunamodel_cext_vtable::LmEnv;
 

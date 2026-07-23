@@ -1,4 +1,4 @@
-use luna_model::core::prelude::Timer;
+use lunamodel_core::prelude::Timer;
 
 use crate::{
     LmStatus, LmTimer, LmTiming,

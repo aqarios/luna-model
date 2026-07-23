@@ -1,6 +1,6 @@
 mod access;
 
-use luna_model::core::solution::result::ResultView;
+use lunamodel_core::solution::result::ResultView;
 use lunamodel_cext_handle::Shared;
 
 use crate::{LmResultView, LmSol, utils::drop_from_c};

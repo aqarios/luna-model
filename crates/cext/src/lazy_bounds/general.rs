@@ -1,4 +1,4 @@
-use luna_model::{core::bounds::Concretize, core::prelude::LazyBounds};
+use lunamodel_core::{bounds::Concretize, prelude::LazyBounds};
 
 use crate::{
     LmBounds, LmLazyBounds, LmStatus, LmVtype,

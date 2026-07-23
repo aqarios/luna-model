@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use indexmap::IndexMap;
-use luna_model::core::{ArcEnv, Environment, prelude::Variable};
+use lunamodel_core::{ArcEnv, Environment, prelude::Variable};
 use lunamodel_cext_handle::{drop_handle, handle_from_storage};
 
 use crate::{

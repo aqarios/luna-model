@@ -1,6 +1,6 @@
 use std::ffi::c_char;
 
-use luna_model::core::prelude::Constraint;
+use lunamodel_core::prelude::Constraint;
 use lunamodel_cext_handle::drop_handle;
 
 use crate::{

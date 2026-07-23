@@ -1,6 +1,6 @@
 use std::ffi::c_char;
 
-use luna_model::core::prelude::{LazyBounds, VarRef};
+use lunamodel_core::prelude::{LazyBounds, VarRef};
 
 use crate::{
     LmEnv, LmLazyBounds, LmStatus, LmVref, LmVtype,

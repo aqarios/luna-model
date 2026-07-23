@@ -1,4 +1,4 @@
-use luna_model::core::prelude::HigherOrder;
+use lunamodel_core::prelude::HigherOrder;
 
 use crate::{
     LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer, LmStatus, LmStrBuffer,

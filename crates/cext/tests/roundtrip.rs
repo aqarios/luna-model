@@ -12,8 +12,8 @@ use lunamodel_cext::sol::{lm_sol_deserialize, lm_sol_free};
 use lunamodel_cext::version::{lm_abi_version, lm_version};
 use lunamodel_cext::{CAPI_ABI_VERSION, LmBuffer, LmModel, LmSol, LmStatus};
 
-use luna_model::core::{Model, Solution};
-use luna_model::serializer::prelude::*;
+use lunamodel_core::{Model, Solution};
+use lunamodel_serializer::prelude::*;
 
 /// Copies an `LmBuffer`'s bytes into a `Vec`, then frees the buffer.
 ///

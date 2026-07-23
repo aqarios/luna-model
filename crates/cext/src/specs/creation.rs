@@ -1,4 +1,4 @@
-use luna_model::types::{Ctype, EnumSetFromVec, Specs, Vtype};
+use lunamodel_types::{Ctype, EnumSetFromVec, Specs, Vtype};
 
 use crate::{
     LmCtype, LmSense, LmSpecs, LmStatus, LmVtype,

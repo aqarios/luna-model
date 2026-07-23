@@ -1,4 +1,4 @@
-use luna_model::core::Expression;
+use lunamodel_core::Expression;
 use lunamodel_cext_handle::{ExpressionHandle, drop_handle, handle_from_storage};
 
 use crate::{LmExpr, error::CapiError, utils::storage_from_c};

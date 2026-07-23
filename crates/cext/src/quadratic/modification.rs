@@ -1,6 +1,6 @@
 use std::ops::{AddAssign, MulAssign, Neg};
 
-use luna_model::core::prelude::Quadratic;
+use lunamodel_core::prelude::Quadratic;
 
 use crate::{
     LmQuadratic, LmStatus,

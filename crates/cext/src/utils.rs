@@ -1,12 +1,10 @@
 use std::ffi::{CStr, c_char};
 
-use luna_model::{
-    core::solution::Assignment,
-    types::{Bound, Comparator, Ctype, Sense, ValueSource, Vtype},
-};
 use lunamodel_cext_handle::{
     HandleKind, Shared, SharedHandleKind, handle_from_shared, handle_ref, new_handle,
 };
+use lunamodel_core::solution::Assignment;
+use lunamodel_types::{Bound, Comparator, Ctype, Sense, ValueSource, Vtype};
 
 use crate::{
     LmAssignment, LmBound, LmBoundTag, LmComparator, LmCtype, LmSense, LmStatus, LmValueSource,

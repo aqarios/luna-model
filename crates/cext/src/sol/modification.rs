@@ -1,6 +1,6 @@
 use std::ffi::c_char;
 
-use luna_model::core::Timing;
+use lunamodel_core::Timing;
 
 use crate::{
     LmAssignment, LmColumn, LmColumnBuffer, LmSense, LmSol, LmStatus, LmTiming, LmVtype,

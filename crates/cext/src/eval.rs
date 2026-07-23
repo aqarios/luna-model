@@ -2,7 +2,8 @@
 
 use std::{collections::HashMap, ffi::c_char};
 
-use luna_model::{core::TryIndex, error::LunaModelError};
+use lunamodel_core::TryIndex;
+use lunamodel_error::LunaModelError;
 
 use crate::{
     error::CapiError,

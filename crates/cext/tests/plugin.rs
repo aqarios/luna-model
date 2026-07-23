@@ -11,7 +11,7 @@ use std::{
     sync::atomic::{AtomicBool, AtomicUsize, Ordering},
 };
 
-use luna_model::core::{Model, Solution};
+use lunamodel_core::{Model, Solution};
 use lunamodel_transpiler::PassManager;
 use lunamodel_cext::plugin::CPluginTransformPass;
 use lunamodel_cext::{

@@ -30,11 +30,11 @@ pub unsafe extern "C" fn lm_bound_value(bound: *const LmBound, out: *mut f64) ->
         let bound = bound_from_c(*unsafe { ref_from_c(bound, "bound") }?);
         let out = unsafe { out_from_c(out) }?;
         match bound {
-            luna_model::types::Bound::Bounded(value) => {
+            lunamodel_types::Bound::Bounded(value) => {
                 *out = value;
                 Ok(())
             }
-            luna_model::types::Bound::Unbounded => Err(crate::error::CapiError::new(
+            lunamodel_types::Bound::Unbounded => Err(crate::error::CapiError::new(
                 LmStatus::Absent,
                 "bound is unbounded",
             )),
