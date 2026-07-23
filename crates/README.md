@@ -24,7 +24,7 @@ keep the workspace layout concise.
 | `lunamodel-error` | Shared error and result types. |
 | `lunamodel-serializer` | Serialization for models and solutions. |
 | `lunamodel-hashing` | Stable hashing of models. |
-| `lunamodel-io` | Readers, writers, and `Display` implementations. |
+| `lunamodel-fmt` | Readers, writers, and `Display` implementations. |
 | `lunamodel-translate` | Translators to and from formats such as LP and MPS. |
 | `lunamodel-transform` | Builtin model transformations. |
 | `lunamodel-transpiler` | The transformation and transpilation stack. |

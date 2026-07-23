@@ -682,7 +682,7 @@ dependencies = [
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-hashing",
- "lunamodel-io",
+ "lunamodel-fmt",
  "lunamodel-python",
  "lunamodel-serializer",
  "lunamodel-transform",
@@ -787,7 +787,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lunamodel-io"
+name = "lunamodel-fmt"
 version = "0.6.11"
 dependencies = [
  "indexmap",
@@ -816,7 +816,7 @@ dependencies = [
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-hashing",
- "lunamodel-io",
+ "lunamodel-fmt",
  "lunamodel-python-macros",
  "lunamodel-serializer",
  "lunamodel-transform",

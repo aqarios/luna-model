@@ -1,5 +1,5 @@
 [package]
-name = "lunamodel-io"
+name = "lunamodel-fmt"
 version.workspace = true
 license.workspace = true
 publish = false

@@ -83,7 +83,7 @@ luna-model = { path = "crates/lunamodel", version = "0.6.11", default-features =
 lunamodel-types = { path = "crates/types", version = "0.6.11", default-features = false }
 lunamodel-error = { path = "crates/error", version = "0.6.11", default-features = false }
 lunamodel-core = { path = "crates/core", version = "0.6.11", default-features = false }
-lunamodel-io = { path = "crates/io", version = "0.6.11", default-features = false }
+lunamodel-fmt = { path = "crates/fmt", version = "0.6.11", default-features = false }
 lunamodel-hashing = { path = "crates/hashing", version = "0.6.11", default-features = false }
 lunamodel-serializer = { path = "crates/serializer", version = "0.6.11", default-features = false }
 lunamodel-transform = { path = "crates/transform", version = "0.6.11", default-features = false }
