@@ -8,8 +8,8 @@
 //! built-in passes.
 
 use lunamodel_types::Vtype;
-use lunamodel_capi::capi_table::LUNA_MODEL_C_API;
-use lunamodel_capi::plugin::{CPluginAnalysisPass, CPluginTransformPass};
+use lunamodel_capi_host::capi_table::LUNA_MODEL_C_API;
+use lunamodel_capi_host::plugin::{CPluginAnalysisPass, CPluginTransformPass};
 use lunamodel_transpiler::PassManager;
 use rs_lunamodel::plugin::{descriptor, descriptor_analysis, register_backward};
 
