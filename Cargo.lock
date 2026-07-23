@@ -681,8 +681,8 @@ version = "0.6.11"
 dependencies = [
  "lunamodel-core",
  "lunamodel-error",
- "lunamodel-hashing",
  "lunamodel-fmt",
+ "lunamodel-hashing",
  "lunamodel-python",
  "lunamodel-serializer",
  "lunamodel-transform",
@@ -777,16 +777,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lunamodel-hashing"
-version = "0.6.11"
-dependencies = [
- "itertools 0.15.0",
- "lunamodel-core",
- "lunamodel-types",
- "prost",
-]
-
-[[package]]
 name = "lunamodel-fmt"
 version = "0.6.11"
 dependencies = [
@@ -803,6 +793,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "lunamodel-hashing"
+version = "0.6.11"
+dependencies = [
+ "itertools 0.15.0",
+ "lunamodel-core",
+ "lunamodel-types",
+ "prost",
+]
+
+[[package]]
 name = "lunamodel-python"
 version = "0.6.11"
 dependencies = [
@@ -815,8 +815,8 @@ dependencies = [
  "lunamodel-cext-vtable",
  "lunamodel-core",
  "lunamodel-error",
- "lunamodel-hashing",
  "lunamodel-fmt",
+ "lunamodel-hashing",
  "lunamodel-python-macros",
  "lunamodel-serializer",
  "lunamodel-transform",

@@ -1,6 +1,6 @@
 //! Display and debug formatting for Python bounds.
 
-use lunamodel_io::{CustomFormat, FormatOpt};
+use lunamodel_fmt::{CustomFormat, FormatOpt};
 use lunamodel_unwind::*;
 use pyo3::pymethods;
 

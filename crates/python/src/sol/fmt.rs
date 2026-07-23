@@ -1,6 +1,6 @@
 //! Display and debug formatting for Python solutions.
 
-use lunamodel_io::{
+use lunamodel_fmt::{
     CustomFormat, FormatOpt,
     sol::{PrintLayout, PySolFormatOpts, ShowMetadata},
 };

@@ -1,6 +1,6 @@
 //! Python wrapper for reusable transformation pipelines.
 
-use lunamodel_io::{CustomFormat, FormatOpt};
+use lunamodel_fmt::{CustomFormat, FormatOpt};
 use lunamodel_transpiler::{Pipeline, PipelineStep};
 use pyo3::{Py, PyAny, PyResult, Python, pyclass, pymethods};
 

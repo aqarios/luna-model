@@ -1,6 +1,6 @@
 //! Python wrapper for [`PassManager`].
 
-use lunamodel_io::{CustomFormat, FormatOpt};
+use lunamodel_fmt::{CustomFormat, FormatOpt};
 use lunamodel_transpiler::PassManager;
 use lunamodel_unwind::*;
 use pyo3::{FromPyObject, PyResult, Python, pyclass, pymethods};

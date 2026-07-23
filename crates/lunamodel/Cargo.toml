@@ -49,7 +49,7 @@ optional = true
 
 [features]
 hashing = ["lunamodel-hashing"]
-io = ["lunamodel-fmt"]
+fmt = ["lunamodel-fmt"]
 python = ["lunamodel-python"]
 serializer = ["lunamodel-serializer"]
 transform = ["lunamodel-transform"]
@@ -63,14 +63,14 @@ py-error = ["lunamodel-error/py"]
 
 full = [
   "hashing",
-  "io",
+  "fmt",
   "python",
   "serializer",
   "transform",
   "transpiler",
   "translate",
   "unwind",
-  "py-io",
+  "py-fmt",
   "py-types",
   "py-error"
 ]
