@@ -90,6 +90,8 @@ pub use traits::{
 pub use variable::Variable;
 pub use vref::VarRef;
 
+pub use prost;
+
 /// Re-export of the ABI dispatch-table type, for obtaining and passing it to
 /// [`init`].
 pub use lunamodel_capi::LunaModelCApi;

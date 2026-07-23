@@ -1,12 +1,14 @@
 //! Analysis pass that computes minimum achievable values per constraint.
 
-use std::collections::HashMap;
+use std::{any::Any, collections::HashMap};
 
+use lunamodel_capi_plugin_proto::proto::MinConstraintValues as ProtoMinConstraintValues;
 use lunamodel_core::{Model, prelude::Bounds};
 use lunamodel_transpiler::{
     AnalysisKey, AnalysisPass, PassContext, PipelineStep, TranspileKindResult, analysis,
 };
 use lunamodel_types::Bound;
+use prost::Message;
 
 use crate::error::TransformError;
 
@@ -61,4 +63,18 @@ impl AnalysisPass for MinValueForConstraintAnalysis {
 
         Ok(MinConstraintValues { vals: minvalues })
     }
+}
+
+impl From<&MinConstraintValues> for ProtoMinConstraintValues {
+    fn from(native: &MinConstraintValues) -> Self {
+        Self {
+            vals: native.vals.clone(),
+        }
+    }
+}
+
+/// Serializes a stored `MinConstraintValues` to the shared protobuf wire from a plugin decodes.
+pub(crate) fn serialize_min_constraint_values(value: &(dyn Any + Send + Sync)) -> Option<Vec<u8>> {
+    let native = value.downcast_ref::<MinConstraintValues>()?;
+    Some(ProtoMinConstraintValues::from(native).encode_to_vec())
 }

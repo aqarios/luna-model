@@ -16,29 +16,22 @@
 //! This is the C-boundary (Rust-backed) authoring path; it coexists with writing passes in pure
 //! Python (subclassing luna-model's `PyTransformationPass`/`PyAnalysisPass`).
 
+use prost::Message;
 use pyo3::prelude::*;
 use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
 const NEW_NAME: &str = "renamed-by-py-plugin";
 
 /// Typed inverse-transformation artifact for the standalone rename pass.
+#[derive(Message)]
 pub struct RenameInverse {
+    #[prost(string, tag = "1")]
     previous: String,
 }
 
 impl Artifact for RenameInverse {
     fn static_type_tag() -> &'static str {
         "luna_plugin_ext::rename::artifact"
-    }
-
-    fn serialize(&self) -> rs_lunamodel::Result<Vec<u8>> {
-        Ok(self.previous.clone().into_bytes())
-    }
-
-    fn deserialize(bytes: &[u8]) -> rs_lunamodel::Result<Self> {
-        Ok(Self {
-            previous: String::from_utf8_lossy(bytes).into_owned(),
-        })
     }
 }
 
@@ -89,32 +82,21 @@ impl RenamePass {
 /// The shared **contract** both plugins agree on: the analysis result type. In a real split this
 /// lives in plugin A's crate, which plugin B depends on to obtain the type (and its `type_tag`).
 mod contract {
+    use prost::Message;
     use rs_lunamodel::plugin::AnalysisResult;
 
     /// Stable name the result is stored/read under.
     pub const VARIABLE_COUNT: &str = "luna_plugin_ext::variable-count";
 
-    #[derive(Clone)]
+    #[derive(Message)]
     pub struct VariableCount {
+        #[prost(uint64, tag = "1")]
         pub count: u64,
     }
 
     impl AnalysisResult for VariableCount {
         fn static_type_tag() -> &'static str {
             "luna_plugin_ext::variable-count"
-        }
-
-        fn serialize(&self) -> rs_lunamodel::Result<Vec<u8>> {
-            Ok(self.count.to_le_bytes().to_vec())
-        }
-
-        fn deserialize(bytes: &[u8]) -> rs_lunamodel::Result<Self> {
-            let arr: [u8; 8] = bytes
-                .try_into()
-                .map_err(|_| rs_lunamodel::Error::computation("bad VariableCount bytes"))?;
-            Ok(Self {
-                count: u64::from_le_bytes(arr),
-            })
         }
     }
 }
@@ -164,23 +146,17 @@ mod plugin_a {
 /// context, then tags the model name with the count. Depends only on the shared contract type.
 mod plugin_b {
     use super::contract::{VARIABLE_COUNT, VariableCount};
+    use prost::Message;
     use pyo3::prelude::*;
     use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
     /// Inverse artifact — tagging carries no reversal data.
-    pub struct TagInverse;
+    #[derive(Message)]
+    pub struct TagInverse {}
 
     impl Artifact for TagInverse {
         fn static_type_tag() -> &'static str {
             "luna_plugin_ext::tag::artifact"
-        }
-
-        fn serialize(&self) -> rs_lunamodel::Result<Vec<u8>> {
-            Ok(Vec::new())
-        }
-
-        fn deserialize(_bytes: &[u8]) -> rs_lunamodel::Result<Self> {
-            Ok(Self)
         }
     }
 
@@ -227,7 +203,7 @@ mod plugin_b {
             // Read plugin A's analysis result across the C-ABI, decoding into the contract type.
             let counted: VariableCount = ctx.require_analysis(VARIABLE_COUNT)?;
             model.set_name(format!("vars={}", counted.count))?;
-            Ok(TagInverse)
+            Ok(TagInverse {})
         }
     }
 

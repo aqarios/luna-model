@@ -9,6 +9,7 @@ use lunamodel_capi_host::capi_table::LUNA_MODEL_C_API;
 use lunamodel_capi_host::plugin::CPluginTransformPass;
 
 use lunamodel_transpiler::PassManager;
+use prost::Message;
 use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
 const NEW_NAME: &str = "renamed-by-rust-plugin";
@@ -17,23 +18,15 @@ static BACKWARD_CALLS: AtomicUsize = AtomicUsize::new(0);
 static BACKWARD_PREV_OK: AtomicBool = AtomicBool::new(false);
 
 /// Typed inverse-transformation artifact — exactly as a native pass would define one.
+#[derive(Message)]
 struct RenameArtifact {
+    #[prost(string, tag = "1")]
     previous: String,
 }
 
 impl Artifact for RenameArtifact {
     fn static_type_tag() -> &'static str {
         "rust::rename::artifact"
-    }
-
-    fn serialize(&self) -> rs_lunamodel::Result<Vec<u8>> {
-        Ok(self.previous.clone().into_bytes())
-    }
-
-    fn deserialize(bytes: &[u8]) -> rs_lunamodel::Result<Self> {
-        Ok(Self {
-            previous: String::from_utf8_lossy(bytes).into_owned(),
-        })
     }
 }
 

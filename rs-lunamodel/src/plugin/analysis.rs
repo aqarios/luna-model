@@ -1,5 +1,7 @@
 //! The plugin-side mirror of the transpiler's analysis pass and its result.
 
+use prost::Message;
+
 use crate::Model;
 
 use super::PassContext;
@@ -14,27 +16,14 @@ use super::PassContext;
 ///
 /// The shape mirrors [`Artifact`](super::Artifact); a type used both as a transformation artifact
 /// and as an analysis result can implement both with the same body.
-pub trait AnalysisResult: Send + Sync + 'static {
+pub trait AnalysisResult: Message + Default + Send + Sync + 'static {
+    /// Unique type identifier for this result type.
+    fn static_type_tag() -> &'static str;
+
     /// Unique type identifier for this result value.
-    fn type_tag(&self) -> &'static str
-    where
-        Self: Sized,
-    {
+    fn type_tag(&self) -> &'static str {
         Self::static_type_tag()
     }
-
-    /// Unique type identifier for this result type.
-    fn static_type_tag() -> &'static str
-    where
-        Self: Sized;
-
-    /// Serializes this result to bytes.
-    fn serialize(&self) -> crate::Result<Vec<u8>>;
-
-    /// Reconstructs this result from bytes.
-    fn deserialize(bytes: &[u8]) -> crate::Result<Self>
-    where
-        Self: Sized;
 }
 
 /// An analysis pass: computes a result from a model without transforming it.

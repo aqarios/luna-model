@@ -100,6 +100,7 @@ lunamodel-capi = { path = "crates/capi", version = "0.6.11", default-features = 
 lunamodel-capi-handle = { path = "crates/capi-handle", version = "0.6.11", default-features = false }
 lunamodel-capi-pyffi = { path = "crates/capi-pyffi", version = "0.6.11", default-features = false }
 lunamodel-capi-plugin = { path = "crates/capi-plugin", version = "0.6.11", default-features = false }
+lunamodel-capi-plugin-proto = { path = "crates/capi-plugin-proto", version = "0.6.11", default-features = false }
 
 lunamodel-transpiler-macros = { path = "crates/transpiler/transpiler_macros", version = "0.6.11", default-features = false }
 lunamodel-python-macros = { path = "crates/python/python_macros", version = "0.6.11", default-features = false }

@@ -14,8 +14,10 @@ use lunamodel_capi::plugin::{LmByteSink, LmPassContext};
 use crate::error::{CapiError, guard};
 use crate::utils::str_from_c;
 
-/// Reads a plugin analysis result deposited under `name` earlier in the same run, verifies its
-/// recorded type tag matches `expected_type_tag`, and hands the serialized bytes to `sink`.
+/// Reads an analysis result stored under `name` earlier in the same run, verifies its recorded type
+/// tag matches `expected_type_tag`, and hands the serialized bytes to `sink`. Serves both plugin
+/// analyses (which deposit serialized bytes) and built-in analyses (whose typed result is serialized
+/// on demand via a registered serializer).
 ///
 /// Returns `Absent` when nothing is stored under `name`, and `InvalidArgument` when a result is
 /// present but was produced by a different type than `expected_type_tag`; `sink` is invoked exactly
@@ -41,22 +43,36 @@ pub unsafe extern "C" fn lm_pass_context_get_analysis(
         let name = unsafe { str_from_c(name, "name") }?;
         let expected = unsafe { str_from_c(expected_type_tag, "expected_type_tag") }?;
 
-        match manager.get_serialized(name) {
+        // First, a plugin analysis that deposited serialized bytes directly.
+        if let Some(result) = manager.get_serialized(name) {
+            if result.type_tag != expected {
+                return Err(CapiError::new(
+                    LmStatus::InvalidArgument,
+                    format!(
+                        "analysis '{name}' has type tag '{}', but '{expected}' was expected",
+                        result.type_tag
+                    ),
+                ));
+            }
+            unsafe { sink(sink_ctx, result.bytes.as_ptr(), result.bytes.len()) };
+            return Ok(());
+        }
+
+        // Otherwise, a native (built-in) typed result with an on-demand serializer registered via
+        // `register_analysis_serializer` — serialized to the shared wire format on request.
+        match lunamodel_transpiler::serialize_named_analysis(manager, name) {
+            Some((type_tag, _)) if type_tag != expected => Err(CapiError::new(
+                LmStatus::InvalidArgument,
+                format!("analysis '{name}' has type tag '{type_tag}', but '{expected}' was expected"),
+            )),
+            Some((_, bytes)) => {
+                unsafe { sink(sink_ctx, bytes.as_ptr(), bytes.len()) };
+                Ok(())
+            }
             None => Err(CapiError::new(
                 LmStatus::Absent,
                 format!("no analysis result stored under '{name}'"),
             )),
-            Some(result) if result.type_tag != expected => Err(CapiError::new(
-                LmStatus::InvalidArgument,
-                format!(
-                    "analysis '{name}' has type tag '{}', but '{expected}' was expected",
-                    result.type_tag
-                ),
-            )),
-            Some(result) => {
-                unsafe { sink(sink_ctx, result.bytes.as_ptr(), result.bytes.len()) };
-                Ok(())
-            }
         }
     })
 }

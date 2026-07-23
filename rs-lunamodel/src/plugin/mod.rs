@@ -16,6 +16,8 @@ use lunamodel_capi::plugin::{
 };
 use lunamodel_capi::{LmModel, LmSol, LmStatus};
 
+use prost::Message;
+
 use crate::ffi::{OwnedHandle, adopt};
 use crate::{Error, Model, Solution, Status};
 
@@ -172,13 +174,11 @@ unsafe extern "C" fn trampoline_forward<P: TransformationPass>(
     let result = state.pass.forward(&mut model, &context);
     let _ = model.into_raw_owned();
     match result {
-        Ok(artifact) => match artifact.serialize() {
-            Ok(bytes) => {
-                unsafe { sink(sink_ctx, bytes.as_ptr(), bytes.len()) };
-                LmStatus::Ok
-            }
-            Err(_) => LmStatus::Serialization,
-        },
+        Ok(artifact) => {
+            let bytes = artifact.encode_to_vec();
+            unsafe { sink(sink_ctx, bytes.as_ptr(), bytes.len()) };
+            LmStatus::Ok
+        }
         Err(_) => LmStatus::Errored,
     }
 }
@@ -200,7 +200,7 @@ unsafe extern "C" fn trampoline_backward<P: TransformationPass>(
         Ok(solution) => solution,
         Err(_) => return LmStatus::NullPointer,
     };
-    let artifact = match <P::Artifact as Artifact>::deserialize(bytes) {
+    let artifact = match <P::Artifact as Message>::decode(bytes) {
         Ok(artifact) => artifact,
         Err(_) => return LmStatus::Deserialization,
     };
@@ -277,13 +277,11 @@ unsafe extern "C" fn analysis_trampoline_run<A: AnalysisPass>(
     let result = state.pass.run(&model, &context);
     let _ = model.into_raw_owned();
     match result {
-        Ok(output) => match output.serialize() {
-            Ok(bytes) => {
-                unsafe { sink(sink_ctx, bytes.as_ptr(), bytes.len()) };
-                LmStatus::Ok
-            }
-            Err(_) => LmStatus::Serialization,
-        },
+        Ok(output) => {
+            let bytes = output.encode_to_vec();
+            unsafe { sink(sink_ctx, bytes.as_ptr(), bytes.len()) };
+            LmStatus::Ok
+        }
         Err(_) => LmStatus::Errored,
     }
 }

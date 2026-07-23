@@ -73,7 +73,9 @@ impl PassContext {
         if !crate::error::present(status)? {
             return Ok(None);
         }
-        R::deserialize(&buf).map(Some)
+        <R as prost::Message>::decode(&buf[..])
+            .map(Some)
+            .map_err(|e| Error::new(Status::Deserialization, e.to_string()))
     }
 
     /// Reads an analysis result deposited under `name`, decoding it into `R`, erroring if no such

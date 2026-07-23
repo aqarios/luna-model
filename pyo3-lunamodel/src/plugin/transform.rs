@@ -40,17 +40,16 @@ macro_rules! py_transform_plugin {
 
         #[::pyo3::pymethods]
         impl $artifact {
-            /// Serializes the artifact to bytes.
+            /// Serializes the artifact to protobuf bytes.
             fn serialize<'py>(
                 &self,
                 py: ::pyo3::Python<'py>,
             ) -> ::pyo3::PyResult<::pyo3::Bound<'py, ::pyo3::types::PyBytes>> {
-                let bytes = $crate::rs_lunamodel::plugin::Artifact::serialize(&self.0)
-                    .map_err(|e| ::pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
+                let bytes = $crate::rs_lunamodel::prost::Message::encode_to_vec(&self.0);
                 ::core::result::Result::Ok(::pyo3::types::PyBytes::new(py, &bytes))
             }
 
-            /// Reconstructs the artifact from bytes.
+            /// Reconstructs the artifact from protobuf bytes.
             #[staticmethod]
             fn deserialize(
                 bytes: &::pyo3::Bound<'_, ::pyo3::types::PyBytes>,
@@ -58,8 +57,8 @@ macro_rules! py_transform_plugin {
                 use ::pyo3::types::PyBytesMethods;
                 let artifact = <
                     <$logic as $crate::rs_lunamodel::plugin::Reversible>::Artifact
-                    as $crate::rs_lunamodel::plugin::Artifact
-                >::deserialize(bytes.as_bytes())
+                    as $crate::rs_lunamodel::prost::Message
+                >::decode(bytes.as_bytes())
                     .map_err(|e| ::pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
                 ::core::result::Result::Ok(Self(artifact))
             }

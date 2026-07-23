@@ -28,6 +28,7 @@ enumset = "1.1.13"
 indexmap = "2.14.0"
 itertools = "0.15.0"
 num = "0.4.3"
+prost = "0.14"
 
 # ABI table plus LunaModel's lightweight shared value-type crate. No
 # `luna-model` core is linked: model operations dispatch into the host table.

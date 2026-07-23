@@ -27,8 +27,10 @@ LmStatus lm_register_plugin_backward(LmPassKind kind,
                                      void *user_data);
 
 /**
- * Reads a plugin analysis result deposited under `name` earlier in the same run, verifies its
- * recorded type tag matches `expected_type_tag`, and hands the serialized bytes to `sink`.
+ * Reads an analysis result stored under `name` earlier in the same run, verifies its recorded type
+ * tag matches `expected_type_tag`, and hands the serialized bytes to `sink`. Serves both plugin
+ * analyses (which deposit serialized bytes) and built-in analyses (whose typed result is serialized
+ * on demand via a registered serializer).
  *
  * Returns `Absent` when nothing is stored under `name`, and `InvalidArgument` when a result is
  * present but was produced by a different type than `expected_type_tag`; `sink` is invoked exactly

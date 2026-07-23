@@ -7,10 +7,10 @@
 //! deposits the analysis result, and lends it back to the consuming pass — exactly as it does for
 //! built-in passes.
 
-use lunamodel_types::Vtype;
 use lunamodel_capi_host::capi_table::LUNA_MODEL_C_API;
 use lunamodel_capi_host::plugin::{CPluginAnalysisPass, CPluginTransformPass};
 use lunamodel_transpiler::PassManager;
+use lunamodel_types::Vtype;
 use rs_lunamodel::plugin::{descriptor, descriptor_analysis, register_backward};
 
 /// Installs the host C-API table (the one host-side `unsafe`, shared by all tests).
@@ -42,32 +42,21 @@ fn model_with_vars(n: usize) -> lunamodel_core::Model {
 /// split this lives in plugin A's crate, which plugin B depends on and compiles — giving B the type
 /// (and its `type_tag`) needed to decode A's result.
 mod contract {
+    use prost::Message;
     use rs_lunamodel::plugin::AnalysisResult;
 
     /// Stable name the result is stored/read under.
     pub const VARIABLE_COUNT: &str = "contract::variable-count";
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Message, Clone, PartialEq)]
     pub struct VariableCount {
+        #[prost(uint64, tag = "1")]
         pub count: u64,
     }
 
     impl AnalysisResult for VariableCount {
         fn static_type_tag() -> &'static str {
             "contract::variable-count"
-        }
-
-        fn serialize(&self) -> rs_lunamodel::Result<Vec<u8>> {
-            Ok(self.count.to_le_bytes().to_vec())
-        }
-
-        fn deserialize(bytes: &[u8]) -> rs_lunamodel::Result<Self> {
-            let arr: [u8; 8] = bytes
-                .try_into()
-                .map_err(|_| rs_lunamodel::Error::computation("bad VariableCount bytes"))?;
-            Ok(Self {
-                count: u64::from_le_bytes(arr),
-            })
         }
     }
 }
@@ -105,28 +94,18 @@ mod plugin_a {
 /// context. B depends only on the shared contract type, never on the core.
 mod plugin_b {
     use super::contract::{VARIABLE_COUNT, VariableCount};
+    use prost::Message;
     use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
+    #[derive(Message)]
     pub struct CountArtifact {
+        #[prost(uint64, tag = "1")]
         pub count: u64,
     }
 
     impl Artifact for CountArtifact {
         fn static_type_tag() -> &'static str {
             "pluginB::count-artifact"
-        }
-
-        fn serialize(&self) -> rs_lunamodel::Result<Vec<u8>> {
-            Ok(self.count.to_le_bytes().to_vec())
-        }
-
-        fn deserialize(bytes: &[u8]) -> rs_lunamodel::Result<Self> {
-            let arr: [u8; 8] = bytes
-                .try_into()
-                .map_err(|_| rs_lunamodel::Error::computation("bad CountArtifact bytes"))?;
-            Ok(Self {
-                count: u64::from_le_bytes(arr),
-            })
         }
     }
 
@@ -187,14 +166,18 @@ fn plugin_transform_reads_plugin_analysis() {
     register_backward::<plugin_b::TagWithVariableCount>().expect("register plugin backward");
 
     let analysis = descriptor_analysis(plugin_a::CountVariables).expect("analysis descriptor");
-    let transform = descriptor(plugin_b::TagWithVariableCount::new()).expect("transform descriptor");
+    let transform =
+        descriptor(plugin_b::TagWithVariableCount::new()).expect("transform descriptor");
 
     let pm = PassManager::default()
         .add_analysis(CPluginAnalysisPass::from_descriptor(&analysis))
         .add_transform(CPluginTransformPass::from_descriptor(&transform));
 
     let out = pm.run(model_with_vars(3)).expect("pass manager run");
-    assert_eq!(out.model.name, "vars=3", "transform read the analysis result");
+    assert_eq!(
+        out.model.name, "vars=3",
+        "transform read the analysis result"
+    );
 
     out.record
         .backward(lunamodel_core::Solution::default())
@@ -209,7 +192,8 @@ fn cross_plugin_analysis_dependency() {
     register_backward::<plugin_b::TagWithVariableCount>().expect("register plugin backward");
 
     // Without plugin A, plugin B's required analysis is absent -> the run fails.
-    let transform = descriptor(plugin_b::TagWithVariableCount::new()).expect("transform descriptor");
+    let transform =
+        descriptor(plugin_b::TagWithVariableCount::new()).expect("transform descriptor");
     let pm_missing =
         PassManager::default().add_transform(CPluginTransformPass::from_descriptor(&transform));
     assert!(
@@ -219,11 +203,15 @@ fn cross_plugin_analysis_dependency() {
 
     // With plugin A scheduled first, plugin B reads A's result and the run succeeds.
     let analysis = descriptor_analysis(plugin_a::CountVariables).expect("analysis descriptor");
-    let transform = descriptor(plugin_b::TagWithVariableCount::new()).expect("transform descriptor");
+    let transform =
+        descriptor(plugin_b::TagWithVariableCount::new()).expect("transform descriptor");
     let pm = PassManager::default()
         .add_analysis(CPluginAnalysisPass::from_descriptor(&analysis))
         .add_transform(CPluginTransformPass::from_descriptor(&transform));
 
     let out = pm.run(model_with_vars(2)).expect("pass manager run");
-    assert_eq!(out.model.name, "vars=2", "plugin B consumed plugin A's result");
+    assert_eq!(
+        out.model.name, "vars=2",
+        "plugin B consumed plugin A's result"
+    );
 }

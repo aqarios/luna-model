@@ -1,8 +1,8 @@
 //! Built-in analyses over [`lunamodel_core::Model`] values.
-mod check_model_specs;
-mod max_bias;
-mod min_val_in_constr;
-mod specs;
+pub(super) mod check_model_specs;
+pub(super) mod max_bias;
+pub(super) mod min_val_in_constr;
+pub(super) mod specs;
 
 pub use check_model_specs::{CheckModelSpecsAnalysis, Nothing};
 pub use max_bias::{MaxBias, MaxBiasAnalysis};

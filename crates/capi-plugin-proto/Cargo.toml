@@ -1,0 +1,18 @@
+[package]
+name = "lunamodel-capi-plugin-proto"
+version.workspace = true
+license.workspace = true
+publish = false
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[dependencies]
+prost = { workspace = true }
+rs-lunamodel = { path = "../../rs-lunamodel" }
+
+[build-dependencies]
+prost-build = "0.14"
+protox = "0.9.1"

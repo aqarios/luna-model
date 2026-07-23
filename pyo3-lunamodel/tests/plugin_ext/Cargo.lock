@@ -217,6 +217,7 @@ checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 name = "luna-plugin-ext"
 version = "0.0.1"
 dependencies = [
+ "prost",
  "pyo3",
  "pyo3-lunamodel",
  "rs-lunamodel",
@@ -490,6 +491,7 @@ dependencies = [
  "lunamodel-capi",
  "lunamodel-types",
  "num",
+ "prost",
  "rs-lunamodel-derive",
 ]
 

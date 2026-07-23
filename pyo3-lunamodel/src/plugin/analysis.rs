@@ -45,17 +45,16 @@ macro_rules! py_analysis_plugin {
 
         #[::pyo3::pymethods]
         impl $result {
-            /// Serializes the result to bytes.
+            /// Serializes the result to protobuf bytes.
             fn serialize<'py>(
                 &self,
                 py: ::pyo3::Python<'py>,
             ) -> ::pyo3::PyResult<::pyo3::Bound<'py, ::pyo3::types::PyBytes>> {
-                let bytes = $crate::rs_lunamodel::plugin::AnalysisResult::serialize(&self.0)
-                    .map_err(|e| ::pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
+                let bytes = $crate::rs_lunamodel::prost::Message::encode_to_vec(&self.0);
                 ::core::result::Result::Ok(::pyo3::types::PyBytes::new(py, &bytes))
             }
 
-            /// Reconstructs the result from bytes.
+            /// Reconstructs the result from protobuf bytes.
             #[staticmethod]
             fn deserialize(
                 bytes: &::pyo3::Bound<'_, ::pyo3::types::PyBytes>,
@@ -63,8 +62,8 @@ macro_rules! py_analysis_plugin {
                 use ::pyo3::types::PyBytesMethods;
                 let result = <
                     <$logic as $crate::rs_lunamodel::plugin::AnalysisPass>::Output
-                    as $crate::rs_lunamodel::plugin::AnalysisResult
-                >::deserialize(bytes.as_bytes())
+                    as $crate::rs_lunamodel::prost::Message
+                >::decode(bytes.as_bytes())
                     .map_err(|e| ::pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
                 ::core::result::Result::Ok(Self(result))
             }

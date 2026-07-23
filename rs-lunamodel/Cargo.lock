@@ -918,6 +918,7 @@ dependencies = [
  "lunamodel-capi-host",
  "lunamodel-types",
  "num",
+ "prost",
  "rs-lunamodel-derive",
 ]
 

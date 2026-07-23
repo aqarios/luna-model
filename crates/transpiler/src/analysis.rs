@@ -1,6 +1,12 @@
 //! Typed analysis keys and analysis storage.
 
-use std::{any::Any, collections::HashMap, fmt::Debug, marker::PhantomData, sync::Arc};
+use std::{
+    any::Any,
+    collections::HashMap,
+    fmt::Debug,
+    marker::PhantomData,
+    sync::{Arc, OnceLock, RwLock},
+};
 
 use crate::error::{TranspileErrorKind, TranspileKindResult};
 
@@ -95,4 +101,46 @@ impl AnalysisManager {
             self.results.remove(key);
         }
     }
+}
+
+/// Serializes a native (typed) analysis result in value for cross-ABI consumption by a plugin.
+///
+/// Receives the type-erased result stored in an [`AnalysisManager`]. Downcasts to its concrete type
+/// and encodes it (as protobuf, by the registering crate), or returns `None` on a type mismatch.
+pub type AnalysisResultSerializer = fn(&(dyn Any + Send + Sync)) -> Option<Vec<u8>>;
+fn analysis_serializers()
+-> &'static RwLock<HashMap<String, (&'static str, AnalysisResultSerializer)>> {
+    static REGISTRY: OnceLock<RwLock<HashMap<String, (&'static str, AnalysisResultSerializer)>>> =
+        OnceLock::new();
+    REGISTRY.get_or_init(|| RwLock::new(HashMap::new()))
+}
+
+/// Registers how to serialize the **native** analysis result stored under `name`, so a plugin can
+/// consume a built-in analysis across the C-ABI. Built-ins keep storing typed results for native consumers.
+/// This only adds an on-demand byte encoding. `type_tag` identifies the result type so a consumer
+/// decoding into the wrong type is rejected. Idempotent per `name`.
+pub fn register_analysis_serializer(
+    name: impl Into<String>,
+    type_tag: &'static str,
+    serializer: AnalysisResultSerializer,
+) {
+    analysis_serializers()
+        .write()
+        .expect("analysis serializer registry poisoned")
+        .insert(name.into(), (type_tag, serializer));
+}
+
+/// Serializes the analysis result stored under `name` using a serializer registered with
+/// [`register_analysis_serializer`], returning `(type_tag, bytes)`. `None` if no serializer is
+/// registered for `name` or no result is stored under it.
+pub fn serialize_named_analysis(
+    manager: &AnalysisManager,
+    name: &str,
+) -> Option<(&'static str, Vec<u8>)> {
+    let (type_tag, serializer) = *analysis_serializers()
+        .read()
+        .expect("analysis serializer registry poisoned")
+        .get(name)?;
+    let value = manager.results.get(name)?;
+    Some((type_tag, serializer(value.as_ref())?))
 }
