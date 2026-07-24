@@ -8,10 +8,7 @@ use numpy::{
     IxDyn, ToPyArray,
     ndarray::{ArrayD, Dimension},
 };
-use pyo3::{
-    Bound, FromPyObject, Py, PyAny, PyResult, Python, pymethods,
-    types::{PyAnyMethods, PyModule},
-};
+use pyo3::{Bound, FromPyObject, IntoPyObjectExt, Py, PyAny, PyResult, Python, pymethods};
 
 use super::PyModel;
 use crate::{
@@ -84,11 +81,6 @@ impl PyModel {
             true => Self::add_variable_with_fallback,
             false => Self::add_variable,
         };
-
-        let varcls = PyModule::import(py, "luna_model")?
-            .getattr("Variable")?
-            .unbind();
-
         let arr: ArrayD<Py<PyAny>> = ArrayD::from_shape_fn(IxDyn(&shape), |idx| {
             let mut indices = Vec::new();
             for i in 0..idx.ndim() {
@@ -103,10 +95,10 @@ impl PyModel {
                     .collect::<Vec<_>>()
                     .join(&delimiter)
             );
-            let out = adder(self, n, vtype, lower, upper).expect("cannot create variable");
-            varcls
-                .call_method1(py, "_from_pyvar", (out,))
-                .expect("variable creation")
+            adder(self, n, vtype, lower, upper)
+                .expect("cannot create variable")
+                .into_py_any(py)
+                .expect("cannot convert to Any")
         });
 
         Ok(arr.to_pyarray(py).into_any())
