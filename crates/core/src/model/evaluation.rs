@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 
 use super::Model;
 use crate::ops::SolutionLookup;
-use crate::{solution::Column, Solution};
+use crate::{Solution, solution::Column};
 
 impl Model {
     /// Evaluates a solution against the model.
@@ -112,7 +112,7 @@ impl Model {
             .constraints
             .iter()
             .map(|(n, _)| n.clone())
-            .zip(constrs_results.into_iter())
+            .zip(constrs_results)
             .collect();
         newsol.variable_bounds = vbounds;
 

@@ -4,7 +4,10 @@ use std::fmt::Debug;
 use std::ops::Mul;
 
 use crate::{
-    Environment, Expression, Solution, TryIndex, prelude::{HigherOrder, Linear, Quadratic, VarRef}, solution::sample::SampleView, traits::DefaultEditable
+    Environment, Expression, Solution, TryIndex,
+    prelude::{HigherOrder, Linear, Quadratic, VarRef},
+    solution::sample::SampleView,
+    traits::DefaultEditable,
 };
 use indexmap::IndexMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
