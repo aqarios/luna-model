@@ -172,6 +172,15 @@ cpp-plugin-test: wheelheaders
     # luna-model is reinstalled too — otherwise the test silently builds against stale headers.
     cd {{cpp_plugin_test}} && uv sync --group dev --reinstall-package luna-model --reinstall-package luna-cxx-plugin-ext && uv run pytest pytests/ -v
 
+# Set up clangd/editor support for the C++ plugin extension: build it, then symlink the generated
+# extension-mode compile_commands.json next to the sources (the .clangd there points clangd at it).
+# Gives full resolution — Python + nanobind + luna_model headers, -DLUNA_MODEL_PYTHON_EXTENSION — for
+# plugin.cpp and, if you point cxx-lunamodel/.clangd here too, the SDK headers.
+cpp-plugin-dev: wheelheaders
+    cd {{cpp_plugin_test}} && uv sync --group dev --reinstall-package luna-model --reinstall-package luna-cxx-plugin-ext
+    ln -sf "$(ls -t {{justfile_directory()}}/{{cpp_plugin_test}}/build/*/compile_commands.json | head -1)" {{justfile_directory()}}/{{cpp_plugin_test}}/compile_commands.json
+    @echo "clangd database linked: {{cpp_plugin_test}}/compile_commands.json"
+
 # End-to-end test of a Rust-authored plugin (pyo3 + maturin) driven from Python: a plugin transform
 # consumes both another plugin's analysis and a built-in luna-model analysis. Reinstalls luna-model
 # so the built-in registrations (+ shared proto tags) are current.

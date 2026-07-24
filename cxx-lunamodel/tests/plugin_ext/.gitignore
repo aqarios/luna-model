@@ -4,3 +4,4 @@ build/
 __pycache__/
 uv.lock
 *.so
+compile_commands.json

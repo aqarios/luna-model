@@ -18,10 +18,14 @@
 #include <string>
 #include <vector>
 
-#define LUNA_MODEL_PYTHON_EXTENSION
+// LUNA_MODEL_PYTHON_EXTENSION is set by the build (target_compile_definitions in CMakeLists.txt), so
+// it also lands in compile_commands.json where clangd/editors can see it.
 #include <luna_model/plugin.hpp>
 
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/string.h>  // std::string <-> str for the interop function signatures
+
+#include <luna_model/nanobind.hpp>  // type casters: lm::Model <-> luna_model.Model, etc.
 
 #include "plugin.pb.h"              // generated from proto/plugin.proto
 #include "luna_model/plugin.pb.h"   // generated from the wheel's luna_model/plugin.proto (get_proto)
@@ -199,6 +203,32 @@ NB_MODULE(luna_cxx_plugin_ext, m) {
     nb::class_<TagWithMinConstraintPass>(m, "TagWithMinConstraintPass")
         .def(nb::init<>())
         .def(lm::plugin::python::TRANSFORM_METHOD, &tag_with_min_constraint_capsule);
+
+    // Plain (non-plugin) C++ functions that receive / return luna_model Python objects directly,
+    // via the nanobind type casters (luna_model/nanobind.hpp) — the general Python<->native interop.
+    m.def("model_variable_count",
+          [](lm::Model model) { return static_cast<std::uint64_t>(model.num_variables()); });
+    m.def("make_named_model", [](const std::string &name) {
+        lm::Model model;
+        model.set_name(name);
+        return model;
+    });
+
+    // Identity round-trips exercising the interop casters for every transferable type: each
+    // compile-checks both directions (from_python on the argument, from_cpp on the return), and a
+    // couple are round-tripped from Python in the tests.
+    m.def("roundtrip_solution", [](lm::Solution s) { return s; });
+    m.def("roundtrip_environment", [](lm::Env e) { return e; });
+    m.def("roundtrip_expression", [](lm::Expression e) { return e; });
+    m.def("roundtrip_constraint", [](lm::Constraint c) { return c; });
+    m.def("roundtrip_constraint_collection", [](lm::ConstraintCollection cc) { return cc; });
+    m.def("roundtrip_variable", [](lm::Vref v) { return v; });
+    m.def("roundtrip_bounds", [](lm::LazyBounds b) { return b; });
+    m.def("roundtrip_specs", [](lm::Specs s) { return s; });
+
+    // Enum interop: Python luna_model.Vtype <-> C LmVtype (via the enum casters).
+    m.def("vtype_value", [](LmVtype v) { return static_cast<int>(v); });
+    m.def("binary_vtype", []() { return LmVtype_Binary; });
 
     // Invoked by `luna_model.register(module)`: install the transforms' reversal handlers.
     m.def("__luna_register__", []() {

@@ -4,6 +4,11 @@ project(luna_cxx_plugin_ext LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Emit compile_commands.json so editors/clangd can resolve the extension-mode build (the full
+# Python + nanobind + luna_model include paths and -DLUNA_MODEL_PYTHON_EXTENSION). See `just
+# cpp-plugin-dev`, which symlinks it next to the sources.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Python + nanobind. nanobind ships its CMake config in its pip package; scikit-build-core puts it
 # on CMAKE_PREFIX_PATH, so `find_package(nanobind CONFIG)` resolves it.
 find_package(Python 3.11 REQUIRED COMPONENTS Interpreter Development.Module)
@@ -67,5 +72,10 @@ protobuf_generate(
 target_include_directories(luna_cxx_plugin_ext
   PRIVATE "${LUNA_MODEL_INCLUDE}" "${_proto_gen}")
 target_link_libraries(luna_cxx_plugin_ext PRIVATE protobuf::libprotobuf)
+
+# Build as a luna-model Python extension: dispatch lm_* through the imported _C_API table and enable
+# the SDK's Python-interop headers. Setting it as a definition (not a source #define) makes it appear
+# in compile_commands.json, so clangd resolves the extension-mode view of the SDK headers.
+target_compile_definitions(luna_cxx_plugin_ext PRIVATE LUNA_MODEL_PYTHON_EXTENSION)
 
 install(TARGETS luna_cxx_plugin_ext LIBRARY DESTINATION .)

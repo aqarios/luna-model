@@ -64,7 +64,6 @@ node_modules/
 *.tbl
 
 # Project
-/py-lunamodel/src/luna_model/include/
 /py-lunamodel/docs/assets/data/
 /py-lunamodel/docs/assets/people.md
 /py-lunamodel/site/
