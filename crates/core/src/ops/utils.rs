@@ -4,8 +4,9 @@ use std::fmt::Debug;
 use std::ops::Mul;
 
 use crate::{
-    Environment, Expression, TryIndex,
+    Environment, Expression, Solution, TryIndex,
     prelude::{HigherOrder, Linear, Quadratic, VarRef},
+    solution::sample::SampleView,
     traits::DefaultEditable,
 };
 use indexmap::IndexMap;
@@ -246,27 +247,83 @@ where
     Some(reduced)
 }
 
-pub fn make_lookup<S>(
-    env: &Environment,
-    vars: impl Iterator<Item = u32>,
-    sample: &S,
-    lu: &mut Vec<Bias>,
-) -> LunaModelResult<()>
-where
-    for<'s> S: TryIndex<&'s str, Output = Bias, Err = LunaModelError>,
-{
-    if lu.len() < env.next_idx as usize {
-        lu.resize(env.next_idx as usize, 0.0);
+pub struct Lookup {
+    pub lu: Vec<Bias>,
+    vids: Vec<u32>,
+    vnames: Vec<String>,
+    inverted: Vec<bool>,
+}
+
+impl Lookup {
+    pub fn new(env: &Environment, vars: impl Iterator<Item = u32>) -> LunaModelResult<Self> {
+        let lu = vec![0.0; env.next_idx as usize];
+
+        let vids: Vec<u32> = vars.collect();
+        let mut vnames: Vec<String> = Vec::with_capacity(vids.len());
+        let mut inverted = Vec::with_capacity(vids.len());
+        for i in vids.iter() {
+            let v = &env.variables[i];
+            let (vname, inv) = match v.vtype {
+                Vtype::InvertedBinary => {
+                    let x = v
+                        .inverted
+                        .ok_or(LunaModelError::InvalidInversion(v.name.clone().into()))?;
+                    (&env.variables[&x].name, true)
+                }
+                _ => (&v.name, false),
+            };
+            vnames.push(vname.into());
+            inverted.push(inv);
+        }
+        Ok(Lookup {
+            lu,
+            vids,
+            vnames,
+            inverted,
+        })
     }
-    for i in vars {
-        let v = &env.variables[&i];
-        let val = match v.vtype {
-            Vtype::InvertedBinary => {
-                1.0 - sample.try_index(&env.variables[&v.inverted.unwrap()].name)?
-            }
-            _ => *sample.try_index(&v.name)?,
-        };
-        lu[i as usize] = val;
+
+    pub fn update<S>(&mut self, sample: &S) -> LunaModelResult<()>
+    where
+        for<'s> S: TryIndex<&'s str, Output = Bias, Err = LunaModelError>,
+    {
+        for i in 0..self.vids.len() {
+            let v = sample.try_index(&self.vnames[i])?;
+            self.lu[self.vids[i] as usize] = if self.inverted[i] { 1.0 - v } else { *v };
+        }
+        Ok(())
     }
-    Ok(())
+}
+
+pub struct SolutionLookup {
+    pub lu: Vec<Bias>,
+    vids: Vec<u32>,
+    inverted: Vec<bool>,
+}
+
+impl SolutionLookup {
+    pub fn new(env: &Environment, sol: &Solution) -> LunaModelResult<Self> {
+        let lu = vec![0.0; env.next_idx as usize];
+
+        let sol_var_names = sol.variable_names();
+        let mut vids = Vec::with_capacity(sol_var_names.len());
+        let mut inverted = Vec::with_capacity(sol_var_names.len());
+
+        for name in &sol_var_names {
+            let vid = env.lookup(name)?;
+            let var = &env.variables[&vid];
+            let is_inv = matches!(var.vtype, Vtype::InvertedBinary);
+            vids.push(vid);
+            inverted.push(is_inv);
+        }
+
+        Ok(SolutionLookup { lu, vids, inverted })
+    }
+
+    pub fn update(&mut self, sample: &SampleView) -> LunaModelResult<()> {
+        for (i, v) in sample.iter().enumerate() {
+            self.lu[self.vids[i] as usize] = if self.inverted[i] { 1.0 - v } else { v };
+        }
+        Ok(())
+    }
 }

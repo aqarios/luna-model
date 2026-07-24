@@ -34,4 +34,4 @@ mod vref;
 
 pub use traits::{LmAddAssign, LmMulAssign, LmPow, LmPowAssign, LmSubAssign};
 
-pub use utils::make_lookup;
+pub use utils::{Lookup, SolutionLookup};

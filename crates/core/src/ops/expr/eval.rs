@@ -3,7 +3,7 @@
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
 
-use crate::{ops::utils::make_lookup, prelude::Expression, traits::TryIndex};
+use crate::{ops::Lookup, prelude::Expression, traits::TryIndex};
 
 impl Expression {
     /// Evaluates the expression over an iterator of samples.
@@ -18,15 +18,10 @@ impl Expression {
     {
         let mut res = Vec::new();
 
-        let mut lu = vec![0.0; self.env.len()];
+        let mut lookup = Lookup::new(&self.env.read_arc(), self.complete_vars().map(|v| v.id()))?;
         for sample in sampleset {
-            make_lookup(
-                &self.env.read_arc(),
-                self.complete_vars().map(|v| v.id()),
-                &sample,
-                &mut lu,
-            )?;
-            res.push(self.evaluate_sample_quick(&lu)?);
+            lookup.update(&sample)?;
+            res.push(self.evaluate_sample_quick(&lookup.lu)?);
         }
         Ok(res)
     }
@@ -36,14 +31,9 @@ impl Expression {
     where
         for<'s> S: TryIndex<&'s str, Output = Bias, Err = LunaModelError>,
     {
-        let mut lu = vec![0.0; self.env.len()];
-        make_lookup(
-            &self.env.read_arc(),
-            self.complete_vars().map(|v| v.id()),
-            sample,
-            &mut lu,
-        )?;
-        self.evaluate_sample_quick(&lu)
+        let mut lookup = Lookup::new(&self.env.read_arc(), self.complete_vars().map(|v| v.id()))?;
+        lookup.update(sample)?;
+        self.evaluate_sample_quick(&lookup.lu)
     }
 
     /// Evaluates the expression against a pre-built index lookup vector.
