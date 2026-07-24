@@ -42,7 +42,7 @@ impl CPluginTransformPass {
         let desc = *desc;
         let id = unsafe { borrow_cstr((desc.id)(desc.user_data)) };
         let name = unsafe { borrow_cstr((desc.name)(desc.user_data)) };
-        let requires = unsafe { collect_strings(desc.user_data, desc.requires) };
+        let requires = unsafe { collect_strings(desc.user_data, desc.requires_analyses) };
         let invalidates = unsafe { collect_strings(desc.user_data, desc.invalidates) };
         Self {
             desc,

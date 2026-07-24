@@ -11,7 +11,10 @@ include = ["lunamodel-capi"]
 
 [export]
 item_types = ["constants", "enums", "structs", "unions", "typedefs", "opaque"]
-include = ["LunaModelCApi", "CAPI_ABI_VERSION"]
+# `LmPluginTransform`/`LmPluginAnalysis` are not reachable from the vtable (plugins hand them to the
+# host, not vice versa), so force-emit them for C/C++ plugin authors. Their field types are already
+# reachable via `LunaModelCApi`.
+include = ["LunaModelCApi", "CAPI_ABI_VERSION", "LmPluginTransform", "LmPluginAnalysis"]
 
 [export.rename]
 "CAPI_ABI_VERSION" = "LUNA_MODEL_CAPI_ABI_VERSION"

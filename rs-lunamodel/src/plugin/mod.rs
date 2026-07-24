@@ -46,7 +46,7 @@ pub fn descriptor<P: TransformationPass>(pass: P) -> crate::Result<LmPluginTrans
         user_data: Box::into_raw(state) as *mut c_void,
         id: trampoline_id::<P>,
         name: trampoline_name::<P>,
-        requires: trampoline_requires::<P>,
+        requires_analyses: trampoline_requires::<P>,
         invalidates: trampoline_invalidates::<P>,
         forward: trampoline_forward::<P>,
         free: trampoline_free::<P>,
@@ -71,7 +71,7 @@ pub fn descriptor_analysis<A: AnalysisPass>(pass: A) -> crate::Result<LmPluginAn
         name: analysis_trampoline_name::<A>,
         provides: analysis_trampoline_provides::<A>,
         result_type_tag: analysis_trampoline_result_tag::<A>,
-        requires: analysis_trampoline_requires::<A>,
+        requires_analyses: analysis_trampoline_requires::<A>,
         run: analysis_trampoline_run::<A>,
         free: analysis_trampoline_free::<A>,
     })

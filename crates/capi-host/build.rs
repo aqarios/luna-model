@@ -16,7 +16,9 @@ fn main() {
     println!("cargo:rerun-if-changed=src");
     println!("cargo:rerun-if-changed=cbindgen.types.toml");
     println!("cargo:rerun-if-changed=cbindgen.funcs.toml");
-    println!("cargo:rerun-if-changed=../capi/src/*.rs");
+    // Watch the directory (cargo's rerun-if-changed does not expand globs) so the headers
+    // regenerate when the ABI types in the `capi` crate change.
+    println!("cargo:rerun-if-changed=../capi/src");
 
     std::fs::create_dir_all(&out_dir).expect("create include/luna_model");
 

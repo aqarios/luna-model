@@ -17,7 +17,6 @@
 
 #include "luna_model/detail/capi.hpp"
 #include "luna_model/expr.hpp"
-#include "luna_model/funcs.h"
 #include "luna_model/vref.hpp"
 
 namespace lm {

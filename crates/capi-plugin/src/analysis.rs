@@ -43,7 +43,7 @@ impl CPluginAnalysisPass {
         let name = unsafe { borrow_cstr((desc.name)(desc.user_data)) };
         let provides = unsafe { borrow_cstr((desc.provides)(desc.user_data)) };
         let result_type_tag = unsafe { borrow_cstr((desc.result_type_tag)(desc.user_data)) };
-        let requires = unsafe { collect_strings(desc.user_data, desc.requires) };
+        let requires = unsafe { collect_strings(desc.user_data, desc.requires_analyses) };
         Self {
             desc,
             id,

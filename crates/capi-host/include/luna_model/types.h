@@ -1383,4 +1383,118 @@ typedef struct {
                                           void *sink_ctx);
 } LunaModelCApi;
 
+/**
+ * Callback luna-model uses to collect a list of string produced by a plugin (e.g.
+ * `requires`/`invalidates`) without transferring ownership across the ABI. The plugin calls
+ * `sink(ctx, s)` once per NUL-termianted string. luna-model copies each immediately, so `s` need
+ * only stay valid for the call.
+ */
+typedef void (*LmStrSink)(void *ctx, const char *s);
+
+/**
+ * Descriptor for a plugin **transformation** pass.
+ *
+ * Filled by an extension and handed to luna-model via `lm_add_plugin_transform`. luna-model copies
+ * the struct takes ownership of `user_data`, and wraps it in a host-side pass the transpiler
+ * treats exactly like a built-in one. All function pointers must be non-null.
+ *
+ * The model crosses as a live borrowed handle: `forward` receives a `*mut LmModel` it mutates
+ * through the ordinary `lm_*` API. Reversal is registered separately (see [`LmBackwardFn`]).
+ */
+typedef struct {
+    /**
+     * Opaque plugin state. luna-model owns it once the pass is added and releases it via `free`.
+     * Passed back to every callback.
+     */
+    void *user_data;
+    /**
+     * Stable id used to route reversal to the matching [`LmBackwardFn`]
+     * (e.g. `"myplugin::relabel"`). Return a borrowed string, copied immediately.
+     */
+    const char *(*id)(void *user_data);
+    /**
+     * Human-readable pass name. Returns a borrowed string, copied immediately.
+     */
+    const char *(*name)(void *user_data);
+    /**
+     * Emits the analysis names this pass requires, one per `sink` call. (Named `requires_analyses`,
+     * not `requires`, because `requires` is a reserved keyword in C++20 and this struct is used
+     * from C++ plugin authors.)
+     */
+    void (*requires_analyses)(void *user_data, LmStrSink sink, void *sink_ctx);
+    /**
+     * Emits the analysis names this pass invalidates, one per `sink` call.
+     */
+    void (*invalidates)(void *user_data, LmStrSink sink, void *sink_ctx);
+    /**
+     * Applies the transformation to the lent model and emits the inverse-artifact bytes via
+     * `sink`. Return non-`Ok` to abort the run.
+     */
+    LmStatus (*forward)(void *user_data,
+                        LmModel *model,
+                        const LmPassContext *ctx,
+                        LmByteSink sink,
+                        void *sink_ctx);
+    /**
+     * Releases `user_data`. Called once when luna-model drops the pass.
+     */
+    void (*free)(void *user_data);
+} LmPluginTransform;
+
+/**
+ * Descriptor for a plugin **analysis** pass.
+ *
+ * Filled by an extension and handed to luna-model, which copies it, takes ownership of `user_data`,
+ * and wraps it in a host-side pass the transpiler runs like a built-in analysis. The analysis
+ * reads the lent model and produces a serialized result deposited under `provides` in the run's
+ * analysis store, where later passes — including *other* plugins — read it back by that name (via
+ * `pass_context_get_analysis`). All function pointers must be non-null.
+ *
+ * The model crosses as a live borrowed handle for reading only; unlike a transformation it is not
+ * moved out and back.
+ */
+typedef struct {
+    /**
+     * Opaque plugin state. luna-model owns it once the pass is added and releases it via `free`.
+     */
+    void *user_data;
+    /**
+     * Stable pass id (e.g. `"myplugin::coeff-widths-analysis"`). Borrowed, copied immediately.
+     */
+    const char *(*id)(void *user_data);
+    /**
+     * Human-readable pass name. Borrowed, copied immediately.
+     */
+    const char *(*name)(void *user_data);
+    /**
+     * Name the result is stored under in the analysis store (e.g. `"myplugin::coeff-widths"`);
+     * consumers read it back with this name. Borrowed, copied immediately.
+     */
+    const char *(*provides)(void *user_data);
+    /**
+     * Stable type tag of the produced result type, verified when a consumer decodes it. Borrowed,
+     * copied immediately.
+     */
+    const char *(*result_type_tag)(void *user_data);
+    /**
+     * Emits the analysis names this pass requires, one per `sink` call. (Named `requires_analyses`,
+     * not `requires`, because `requires` is a reserved keyword in C++20 and this struct is used
+     * from C++ plugin authors.)
+     */
+    void (*requires_analyses)(void *user_data, LmStrSink sink, void *sink_ctx);
+    /**
+     * Computes the result from the lent read-only model and emits its serialized bytes via `sink`.
+     * Return non-`Ok` to abort the run.
+     */
+    LmStatus (*run)(void *user_data,
+                    const LmModel *model,
+                    const LmPassContext *ctx,
+                    LmByteSink sink,
+                    void *sink_ctx);
+    /**
+     * Releases `user_data`. Called once when luna-model drops the pass.
+     */
+    void (*free)(void *user_data);
+} LmPluginAnalysis;
+
 #endif  /* LUNA_MODEL_TYPES_H */

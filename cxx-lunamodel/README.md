@@ -7,7 +7,7 @@ exceptions over the `lm_*` C functions.
 
 Build the C library and headers first (from the repo root):
 
-    make c        # produces dist/c/lib/liblunamodel.* and dist/c/include
+    just c        # produces dist/c/lib/liblunamodel.* and dist/c/include
 
 Then add two include paths and link the library:
 
@@ -27,11 +27,11 @@ int main() {
 
 See `samples/` for a buildable example and `test/` for the CTest suite:
 
-    make cpp-samples
-    make cpp-test
+    just cpp-samples
+    just cpp-test
 
 ## Editor setup (clangd / Neovim)
 
-Run `make cpp-test` once to generate `test/build/compile_commands.json`; the
+Run `just cpp-test` once to generate `test/build/compile_commands.json`; the
 `.clangd` file points clangd at it so `<luna_model.h>` and the wrapper headers
 resolve while editing.

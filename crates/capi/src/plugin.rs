@@ -72,8 +72,10 @@ pub struct LmPluginTransform {
     pub id: unsafe extern "C" fn(user_data: *mut c_void) -> *const c_char,
     /// Human-readable pass name. Returns a borrowed string, copied immediately.
     pub name: unsafe extern "C" fn(user_data: *mut c_void) -> *const c_char,
-    /// Emits the analysis names this pass requires, one per `sink` call.
-    pub requires:
+    /// Emits the analysis names this pass requires, one per `sink` call. (Named `requires_analyses`,
+    /// not `requires`, because `requires` is a reserved keyword in C++20 and this struct is used
+    /// from C++ plugin authors.)
+    pub requires_analyses:
         unsafe extern "C" fn(user_data: *mut c_void, sink: LmStrSink, sink_ctx: *mut c_void),
     /// Emits the analysis names this pass invalidates, one per `sink` call.
     pub invalidates:
@@ -116,8 +118,10 @@ pub struct LmPluginAnalysis {
     /// Stable type tag of the produced result type, verified when a consumer decodes it. Borrowed,
     /// copied immediately.
     pub result_type_tag: unsafe extern "C" fn(user_data: *mut c_void) -> *const c_char,
-    /// Emits the analysis names this pass requires, one per `sink` call.
-    pub requires:
+    /// Emits the analysis names this pass requires, one per `sink` call. (Named `requires_analyses`,
+    /// not `requires`, because `requires` is a reserved keyword in C++20 and this struct is used
+    /// from C++ plugin authors.)
+    pub requires_analyses:
         unsafe extern "C" fn(user_data: *mut c_void, sink: LmStrSink, sink_ctx: *mut c_void),
     /// Computes the result from the lent read-only model and emits its serialized bytes via `sink`.
     /// Return non-`Ok` to abort the run.

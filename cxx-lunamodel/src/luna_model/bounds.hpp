@@ -6,7 +6,6 @@
 
 #include "luna_model/bound.hpp"
 #include "luna_model/detail/capi.hpp"
-#include "luna_model/funcs.h"
 
 namespace lm {
 
