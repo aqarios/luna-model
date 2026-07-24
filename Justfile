@@ -23,6 +23,7 @@ cpp_dir           := "cxx-lunamodel"
 cpp_samples_build := cpp_dir / "samples/build"
 cpp_test_build    := cpp_dir / "test/build"
 cpp_plugin_test   := cpp_dir / "tests/plugin_ext"
+rs_plugin_test    := "pyo3-lunamodel/tests/plugin_ext"
 
 # Absolute paths cmake needs (it is invoked from various build dirs).
 lib_dir_abs     := justfile_directory() / c_dir_out_lib
@@ -166,6 +167,13 @@ cpp-test: c
 
 # Build + run the C++ plugin extension end-to-end test (uv + nanobind + pytest).
 cpp-plugin-test: wheelheaders
-    # --reinstall-package forces a rebuild: plain `uv sync` does not re-detect edits to the
-    # extension's C++/proto sources, so without it the test can silently run a stale build.
-    cd {{cpp_plugin_test}} && uv sync --group dev --reinstall-package luna-cxx-plugin-ext && uv run pytest pytests/ -v
+    # Force a rebuild of both packages: plain `uv sync` does not re-detect edits, and the SDK
+    # headers just synced into the luna-model wheel (get_include()) only reach the C++ build if
+    # luna-model is reinstalled too — otherwise the test silently builds against stale headers.
+    cd {{cpp_plugin_test}} && uv sync --group dev --reinstall-package luna-model --reinstall-package luna-cxx-plugin-ext && uv run pytest pytests/ -v
+
+# End-to-end test of a Rust-authored plugin (pyo3 + maturin) driven from Python: a plugin transform
+# consumes both another plugin's analysis and a built-in luna-model analysis. Reinstalls luna-model
+# so the built-in registrations (+ shared proto tags) are current.
+rs-plugin-test:
+    cd {{rs_plugin_test}} && uv sync --group dev --reinstall-package luna-model --reinstall-package luna-plugin-ext && uv run pytest pytests/ -v

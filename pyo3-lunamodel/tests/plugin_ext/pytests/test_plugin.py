@@ -9,9 +9,9 @@ import importlib
 import pytest
 
 import luna_model
-from luna_model import Model, Sense, Solution
+from luna_model import Model, Sense, Solution, Vtype
 from luna_model.transformation import AnalysisPass, PassManager
-from luna_model.transformation.passes import ChangeSensePass
+from luna_model.transformation.passes import ChangeSensePass, MinValueForConstraintAnalysis
 
 # Typed protobuf class generated from `protos/variable_count.proto` by conftest (via `protoc`),
 # exactly as a real plugin author would generate + import theirs.
@@ -102,3 +102,24 @@ def test_pure_python_analysis_consumed_by_plugin(plugin):
     out = pm.run(model)
 
     assert out.model.name == "vars=3"
+
+
+def test_plugin_transform_consumes_builtin_analysis(plugin):
+    """A Rust plugin transform consumes a BUILT-IN luna-model analysis via the shared .proto.
+
+    The twin of the C++ test: luna-model's own ``MinValueForConstraintAnalysis`` produces a
+    ``MinConstraintValues`` result, which the plugin's ``TagWithMinConstraint`` reads back across the
+    C-ABI *by type* (the tag is derived from the result type, not passed) and tags the model with the
+    number of constraint entries.
+    """
+    model = Model("m")
+    x = model.add_variable("x", vtype=Vtype.BINARY)
+    y = model.add_variable("y", vtype=Vtype.BINARY)
+    model.objective = x + y
+    model.add_constraint(x + y <= 1, "c1")
+    model.add_constraint(x <= 1, "c2")
+
+    pm = PassManager([MinValueForConstraintAnalysis(), plugin.TagWithMinConstraint()])
+    out = pm.run(model)
+
+    assert out.model.name == "min-constraints:2"

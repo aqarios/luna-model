@@ -15,7 +15,6 @@
 #include <cstdint>
 #include <memory>
 #include <span>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -24,15 +23,20 @@
 
 #include <nanobind/nanobind.h>
 
-#include "plugin.pb.h"  // generated from proto/plugin.proto (protobuf_generate)
+#include "plugin.pb.h"              // generated from proto/plugin.proto
+#include "luna_model/plugin.pb.h"   // generated from the wheel's luna_model/plugin.proto (get_proto)
 
 namespace nb = nanobind;
 
 namespace {
 
-// Analysis name + result type tag the producer publishes and the consumer requires.
+// Analysis slot names: the key the producer publishes under and the consumer reads back. The
+// result's type tag is derived from the message type (its protobuf full name), never hand-written.
 constexpr const char *VAR_COUNT_NAME = "cxxplugin::var-count";
-constexpr const char *VAR_COUNT_TAG = "cxxplugin::var-count.v1";
+
+// A built-in luna-model analysis this plugin consumes; its result is the protobuf
+// `lunamodel.plugin.MinConstraintValues`, whose wire schema ships in the wheel (get_proto()).
+constexpr const char *MIN_CONSTRAINT_NAME = "luna_model::min-value-for-constraint";
 
 // Serialize a protobuf message into the byte payload the C ABI carries.
 template <typename Message>
@@ -74,7 +78,9 @@ class VarCountAnalysis : public lm::plugin::AnalysisPass {
     std::string id() const override { return "cxxplugin::var-count-analysis"; }
     std::string name() const override { return "cxx variable count"; }
     std::string provides() const override { return VAR_COUNT_NAME; }
-    std::string result_type_tag() const override { return VAR_COUNT_TAG; }
+    std::string result_type_tag() const override {
+        return lm::plugin::type_tag<luna_cxx_plugin::VariableCount>();
+    }
 
     std::vector<std::uint8_t> run(const lm::Model &model, const lm::plugin::PassContext &) override {
         luna_cxx_plugin::VariableCount result;
@@ -98,14 +104,42 @@ class TagWithCountPass : public lm::plugin::TransformationPass {
 
     std::vector<std::uint8_t> forward(lm::Model &model,
                                       const lm::plugin::PassContext &ctx) override {
-        const std::vector<std::uint8_t> raw = ctx.require_analysis(VAR_COUNT_NAME, VAR_COUNT_TAG);
-        luna_cxx_plugin::VariableCount count;
-        if (!count.ParseFromArray(raw.data(), static_cast<int>(raw.size()))) {
-            throw std::runtime_error("failed to decode VariableCount analysis result");
-        }
+        const auto count = ctx.require_analysis<luna_cxx_plugin::VariableCount>(VAR_COUNT_NAME);
 
         const std::string original = model.name();
         model.set_name(original + ":vars=" + std::to_string(count.count()));
+
+        luna_cxx_plugin::RenameArtifact artifact;
+        artifact.set_original_name(original);
+        return to_bytes(artifact);
+    }
+
+    static lm::Solution backward(std::span<const std::uint8_t>, lm::Solution solution) {
+        return solution;
+    }
+};
+
+// --- TagWithMinConstraintPass: a C++ transform that consumes a BUILT-IN (Rust) analysis ---
+//
+// Requires luna-model's built-in `min-value-for-constraint` analysis and decodes its result with
+// the C++ class generated from the wheel's shared `luna_model/plugin.proto`. This is the real
+// cross-language path: a Rust analysis result read by a C++ plugin over the C ABI via one schema.
+
+class TagWithMinConstraintPass : public lm::plugin::TransformationPass {
+  public:
+    static constexpr const char *ID = "cxxplugin::tag-with-min-constraint";
+
+    std::string id() const override { return ID; }
+    std::string name() const override { return "cxx tag with min-constraint"; }
+    std::vector<std::string> requires_analyses() const override { return {MIN_CONSTRAINT_NAME}; }
+
+    std::vector<std::uint8_t> forward(lm::Model &model,
+                                      const lm::plugin::PassContext &ctx) override {
+        const auto values =
+            ctx.require_analysis<lunamodel::plugin::MinConstraintValues>(MIN_CONSTRAINT_NAME);
+
+        const std::string original = model.name();
+        model.set_name("min-constraints:" + std::to_string(values.vals().size()));
 
         luna_cxx_plugin::RenameArtifact artifact;
         artifact.set_original_name(original);
@@ -137,6 +171,11 @@ nb::object tag_with_count_capsule(const TagWithCountPass &) {
         lm::plugin::make_descriptor(std::make_unique<TagWithCountPass>())));
 }
 
+nb::object tag_with_min_constraint_capsule(const TagWithMinConstraintPass &) {
+    return nb::steal(lm::plugin::python::transform_capsule(
+        lm::plugin::make_descriptor(std::make_unique<TagWithMinConstraintPass>())));
+}
+
 }  // namespace
 
 NB_MODULE(luna_cxx_plugin_ext, m) {
@@ -157,6 +196,10 @@ NB_MODULE(luna_cxx_plugin_ext, m) {
         .def(nb::init<>())
         .def(lm::plugin::python::TRANSFORM_METHOD, &tag_with_count_capsule);
 
+    nb::class_<TagWithMinConstraintPass>(m, "TagWithMinConstraintPass")
+        .def(nb::init<>())
+        .def(lm::plugin::python::TRANSFORM_METHOD, &tag_with_min_constraint_capsule);
+
     // Invoked by `luna_model.register(module)`: install the transforms' reversal handlers.
     m.def("__luna_register__", []() {
         if (import_luna_model() != 0) {
@@ -164,5 +207,6 @@ NB_MODULE(luna_cxx_plugin_ext, m) {
         }
         lm::plugin::register_backward<RenamePass>();
         lm::plugin::register_backward<TagWithCountPass>();
+        lm::plugin::register_backward<TagWithMinConstraintPass>();
     });
 }

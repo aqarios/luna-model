@@ -12,7 +12,11 @@ pub mod proto {
 }
 
 impl proto::MinConstraintValues {
-    pub const TYPE_TAG: &'static str = "luna_model::min-constraint-values";
+    /// The result's type tag: the protobuf fully-qualified name (`package.Message`). Using the FQN
+    /// means every language derives the same tag straight from the generated type — Rust here, and
+    /// C++ via `descriptor()->full_name()` — so no one hand-writes or shares a separate tag string.
+    /// Must equal the `.proto`'s `package` + message name.
+    pub const TYPE_TAG: &'static str = "lunamodel.plugin.MinConstraintValues";
 }
 
 impl AnalysisResult for proto::MinConstraintValues {

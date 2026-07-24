@@ -25,30 +25,47 @@ if(BREW_EXECUTABLE)
 endif()
 find_package(Protobuf CONFIG REQUIRED)
 
-# The luna_model wheel bundles the C ABI + C++ SDK headers; discover them the way a real plugin
-# author does — `luna_model.capi.get_include()`. Requires luna-model in the build environment
-# (declared as a build dependency in pyproject.toml).
+# Discover the luna_model wheel's bundled artifacts the way a real plugin author does.
+#   get_include() -> the C ABI + C++ SDK headers
+#   get_proto()   -> the .proto wire schemas of built-in analysis results
 execute_process(
   COMMAND "${Python_EXECUTABLE}" -c
           "import luna_model.capi,sys; sys.stdout.write(luna_model.capi.get_include())"
-  OUTPUT_VARIABLE LUNA_MODEL_INCLUDE
-  RESULT_VARIABLE _luna_include_rc)
+  OUTPUT_VARIABLE LUNA_MODEL_INCLUDE RESULT_VARIABLE _luna_include_rc)
 if(NOT _luna_include_rc EQUAL 0)
   message(FATAL_ERROR "could not locate luna_model headers via luna_model.capi.get_include()")
 endif()
+execute_process(
+  COMMAND "${Python_EXECUTABLE}" -c
+          "import luna_model.capi,sys; sys.stdout.write(luna_model.capi.get_proto())"
+  OUTPUT_VARIABLE LUNA_MODEL_PROTO RESULT_VARIABLE _luna_proto_rc)
+if(NOT _luna_proto_rc EQUAL 0)
+  message(FATAL_ERROR "could not locate luna_model protos via luna_model.capi.get_proto()")
+endif()
 message(STATUS "luna_model headers: ${LUNA_MODEL_INCLUDE}")
+message(STATUS "luna_model protos:  ${LUNA_MODEL_PROTO}")
 
-nanobind_add_module(luna_cxx_plugin_ext src/plugin.cpp proto/plugin.proto)
+nanobind_add_module(luna_cxx_plugin_ext src/plugin.cpp)
 
-# Generate the C++ protobuf sources from the .proto and compile them into the module.
+set(_proto_gen "${CMAKE_CURRENT_BINARY_DIR}/proto_gen")
+
+# This plugin's own artifact/result messages.
 protobuf_generate(
-  TARGET luna_cxx_plugin_ext
-  LANGUAGE cpp
+  TARGET luna_cxx_plugin_ext LANGUAGE cpp
+  PROTOS "${CMAKE_CURRENT_SOURCE_DIR}/proto/plugin.proto"
   IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto"
-  PROTOC_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/proto_gen")
+  PROTOC_OUT_DIR "${_proto_gen}")
+
+# luna-model's built-in analysis wire schema (from the wheel): lets this C++ plugin consume a
+# built-in (Rust) analysis result across the C ABI, generated from the exact same .proto.
+protobuf_generate(
+  TARGET luna_cxx_plugin_ext LANGUAGE cpp
+  PROTOS "${LUNA_MODEL_PROTO}/luna_model/plugin.proto"
+  IMPORT_DIRS "${LUNA_MODEL_PROTO}"
+  PROTOC_OUT_DIR "${_proto_gen}")
 
 target_include_directories(luna_cxx_plugin_ext
-  PRIVATE "${LUNA_MODEL_INCLUDE}" "${CMAKE_CURRENT_BINARY_DIR}/proto_gen")
+  PRIVATE "${LUNA_MODEL_INCLUDE}" "${_proto_gen}")
 target_link_libraries(luna_cxx_plugin_ext PRIVATE protobuf::libprotobuf)
 
 install(TARGETS luna_cxx_plugin_ext LIBRARY DESTINATION .)

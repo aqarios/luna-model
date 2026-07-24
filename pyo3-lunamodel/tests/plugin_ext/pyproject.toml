@@ -14,7 +14,13 @@ dependencies = [
 module-name = "luna_plugin_ext"
 manifest-path = "Cargo.toml"
 
+# luna-model is the local (Rust/maturin) wheel in this repo, not a published package.
+[tool.uv.sources]
+luna-model = { path = "../../../py-lunamodel" }
+
 [dependency-groups]
 dev = [
     "pytest>=9.1.0",
+    # conftest generates the test's typed protobuf class from its `.proto` (bundles protoc).
+    "grpcio-tools",
 ]

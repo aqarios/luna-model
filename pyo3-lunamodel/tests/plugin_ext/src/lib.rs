@@ -218,6 +218,88 @@ mod plugin_b {
     }
 }
 
+/// **Plugin C** — a transform that consumes a **built-in** luna-model analysis
+/// (`min-value-for-constraint`), decoding its result via the shared binding generated from
+/// luna-model's own `.proto`. This is the cross-language contract in action: a Rust plugin reads a
+/// result the Rust *core* produced, across the C-ABI, by type — the twin of the C++ test's
+/// `TagWithMinConstraintPass`.
+mod plugin_c {
+    use lunamodel_capi_plugin_proto::proto::MinConstraintValues;
+    use prost::Message;
+    use pyo3::prelude::*;
+    use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
+
+    /// The built-in analysis's stable slot name (its public contract).
+    const MIN_VALUE_FOR_CONSTRAINT: &str = "luna_model::min-value-for-constraint";
+
+    /// Inverse artifact — tagging carries no reversal data.
+    #[derive(Message)]
+    pub struct TagInverse {}
+
+    impl Artifact for TagInverse {
+        fn static_type_tag() -> &'static str {
+            "luna_plugin_ext::min-constraint-tag::artifact"
+        }
+    }
+
+    #[derive(Clone)]
+    pub struct TagWithMinConstraintLogic {
+        requires: Vec<String>,
+    }
+
+    impl TagWithMinConstraintLogic {
+        pub fn new() -> Self {
+            Self {
+                requires: vec![MIN_VALUE_FOR_CONSTRAINT.to_string()],
+            }
+        }
+    }
+
+    impl Reversible for TagWithMinConstraintLogic {
+        type Artifact = TagInverse;
+
+        const ID: &'static str = "luna_plugin_ext::tag-with-min-constraint";
+
+        fn backward(
+            _artifact: &TagInverse,
+            solution: rs_lunamodel::Solution,
+        ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+            Ok(solution)
+        }
+    }
+
+    impl TransformationPass for TagWithMinConstraintLogic {
+        fn name(&self) -> &str {
+            "tag-with-min-constraint"
+        }
+
+        fn requires(&self) -> &[String] {
+            &self.requires
+        }
+
+        fn forward(
+            &self,
+            model: &mut rs_lunamodel::Model,
+            ctx: &PassContext,
+        ) -> rs_lunamodel::Result<TagInverse> {
+            // The type carries its own tag (via `AnalysisResult`), so only the slot name is passed.
+            let values: MinConstraintValues = ctx.require_analysis(MIN_VALUE_FOR_CONSTRAINT)?;
+            model.set_name(format!("min-constraints:{}", values.vals.len()))?;
+            Ok(TagInverse {})
+        }
+    }
+
+    pyo3_lunamodel::py_transform_plugin!(pub TagWithMinConstraint(TagWithMinConstraintLogic) => MinConstraintTagArtifact);
+
+    #[pymethods]
+    impl TagWithMinConstraint {
+        #[new]
+        fn new() -> Self {
+            Self(TagWithMinConstraintLogic::new())
+        }
+    }
+}
+
 #[pymodule]
 fn luna_plugin_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RenamePass>()?;
@@ -226,7 +308,14 @@ fn luna_plugin_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<plugin_a::VariableCountResult>()?;
     m.add_class::<plugin_b::TagWithVariableCount>()?;
     m.add_class::<plugin_b::TagArtifact>()?;
+    m.add_class::<plugin_c::TagWithMinConstraint>()?;
+    m.add_class::<plugin_c::MinConstraintTagArtifact>()?;
     // Only reversible passes (transforms) register a backward handler; analyses do not.
-    pyo3_lunamodel::register_plugins!(m, RenameLogic, plugin_b::TagWithCountLogic)?;
+    pyo3_lunamodel::register_plugins!(
+        m,
+        RenameLogic,
+        plugin_b::TagWithCountLogic,
+        plugin_c::TagWithMinConstraintLogic
+    )?;
     Ok(())
 }

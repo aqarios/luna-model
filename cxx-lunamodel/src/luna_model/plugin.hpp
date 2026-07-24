@@ -45,6 +45,29 @@
 namespace lm {
 namespace plugin {
 
+/// A protobuf message — one that can be parsed from bytes and knows its own fully-qualified name.
+/// Constrains the typed analysis accessors so passing a non-message type fails with a clear error at
+/// the call site rather than deep inside a template.
+template <typename T>
+concept ProtoMessage = requires(T message, const void *data, int size) {
+    { message.ParseFromArray(data, size) } -> std::convertible_to<bool>;
+    // `full_name()` is string-like (its exact type — `const std::string&` vs `absl::string_view` —
+    // varies by protobuf version), so only require the accessor exists; `type_tag` builds a string.
+    T::descriptor()->full_name();
+};
+
+/// The type tag luna-model uses for a result message: its protobuf fully-qualified name (e.g.
+/// `lunamodel.plugin.MinConstraintValues`). This is derived from the type, so it never has to be
+/// written by hand and matches across languages (Rust registers the same FQN). A producer returns it
+/// from `AnalysisPass::result_type_tag()`; the typed `require_analysis<Message>` supplies it for a
+/// consumer implicitly.
+template <ProtoMessage Message>
+inline std::string type_tag() {
+    // Construct explicitly: `full_name()` may be `absl::string_view`, which is not implicitly
+    // convertible to `std::string`.
+    return std::string(Message::descriptor()->full_name());
+}
+
 /// Read-only view of the per-pass context lent to a plugin during `forward`/`run`. It exposes the
 /// analyses produced earlier in the same run (by built-ins or other plugins, in any language). The
 /// context is borrowed for the duration of the call only — do not retain it.
@@ -88,7 +111,37 @@ class PassContext {
         return *result;
     }
 
+    /// Reads the analysis stored under `name` and decodes it into the protobuf message `Message`.
+    /// `std::nullopt` if absent; throws `lm::Error` on a decode failure. The type tag is derived from
+    /// `Message` (its fully-qualified name), so only the name is passed:
+    /// `ctx.get_analysis<MyResult>(name)`.
+    template <ProtoMessage Message>
+    std::optional<Message> get_analysis(const std::string &name) const {
+        std::optional<std::vector<std::uint8_t>> bytes = get_analysis(name, type_tag<Message>());
+        if (!bytes) {
+            return std::nullopt;
+        }
+        return decode<Message>(*bytes, name);
+    }
+
+    /// Like `get_analysis<Message>`, but throws `lm::Error` if the analysis is absent. The typed
+    /// counterpart to the byte `require_analysis`: `ctx.require_analysis<MyResult>(name)`.
+    template <ProtoMessage Message>
+    Message require_analysis(const std::string &name) const {
+        return decode<Message>(require_analysis(name, type_tag<Message>()), name);
+    }
+
   private:
+    /// Parses `bytes` into a fresh `Message`, throwing `lm::Error` if the wire data is malformed.
+    template <ProtoMessage Message>
+    static Message decode(const std::vector<std::uint8_t> &bytes, const std::string &name) {
+        Message message;
+        if (!message.ParseFromArray(bytes.data(), static_cast<int>(bytes.size()))) {
+            throw Error(LmStatus_Deserialization, "failed to decode analysis '" + name + "'");
+        }
+        return message;
+    }
+
     const LmPassContext *raw_;
 };
 

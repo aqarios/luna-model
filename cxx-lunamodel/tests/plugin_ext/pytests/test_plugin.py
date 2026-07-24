@@ -11,9 +11,9 @@ import importlib
 import pytest
 
 import luna_model
-from luna_model import Model, Sense, Solution
+from luna_model import Model, Sense, Solution, Vtype
 from luna_model.transformation import PassManager
-from luna_model.transformation.passes import ChangeSensePass
+from luna_model.transformation.passes import ChangeSensePass, MinValueForConstraintAnalysis
 
 
 @pytest.fixture(scope="session")
@@ -66,3 +66,26 @@ def test_cxx_analysis_dependency_is_enforced(plugin):
     pm = PassManager([plugin.TagWithCountPass()])
     with pytest.raises(Exception):
         pm.run(model)
+
+
+def test_cxx_transform_consumes_builtin_analysis(plugin):
+    """A C++ transform consumes a BUILT-IN (Rust) analysis via the shared luna_model .proto.
+
+    luna-model's own ``MinValueForConstraintAnalysis`` produces a ``MinConstraintValues`` protobuf
+    result; the C++ pass decodes it with the class generated from the wheel's bundled
+    ``luna_model/plugin.proto`` (``luna_model.capi.get_proto()``) and tags the model with the number
+    of constraint entries — the real cross-language path: a Rust analysis result read by a C++ plugin
+    across the C ABI through one schema.
+    """
+    model = Model("m")
+    x = model.add_variable("x", vtype=Vtype.BINARY)
+    y = model.add_variable("y", vtype=Vtype.BINARY)
+    model.objective = x + y
+    model.add_constraint(x + y <= 1, "c1")
+    model.add_constraint(x <= 1, "c2")
+
+    pm = PassManager([MinValueForConstraintAnalysis(), plugin.TagWithMinConstraintPass()])
+    out = pm.run(model)
+
+    # Two constraints -> two entries in the built-in analysis result, decoded in C++.
+    assert out.model.name == "min-constraints:2"
