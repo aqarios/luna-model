@@ -53,7 +53,7 @@ class NDLmArray(np.ndarray):
             return NDLmArray(out)
         if isinstance(out, PyExpression):
             return wrap_expr(out)
-        return NDLmArray(out)
+        return out
 
     def __vectorized_le(self, other: float | np.ndarray | Self) -> Any:  # noqa: ANN401
         if isinstance(other, (type(self), np.ndarray)):
