@@ -1,5 +1,5 @@
-use derive_more::Deref;
 use crate::Sense;
+use derive_more::Deref;
 
 #[repr(transparent)]
 /// A wrapper around a [`Sense`] that can be converted to and from python with `pyo3`.

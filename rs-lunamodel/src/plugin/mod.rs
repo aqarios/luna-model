@@ -248,7 +248,11 @@ unsafe extern "C" fn analysis_trampoline_provides<A: AnalysisPass>(
 unsafe extern "C" fn analysis_trampoline_result_tag<A: AnalysisPass>(
     user_data: *mut c_void,
 ) -> *const c_char {
-    unsafe { (*(user_data as *const AnalysisState<A>)).result_type_tag.as_ptr() }
+    unsafe {
+        (*(user_data as *const AnalysisState<A>))
+            .result_type_tag
+            .as_ptr()
+    }
 }
 
 unsafe extern "C" fn analysis_trampoline_requires<A: AnalysisPass>(
