@@ -50,12 +50,12 @@ node_modules/
 # C/CPP|CXX
 /dist/
 /test/c/build/
-/cpp-lunamodel/samples/build/
-/cpp-lunamodel/test/build/
+/cxx-lunamodel/samples/build/
+/cxx-lunamodel/test/build/
 
 !/test/c/CMakeLists.txt
-!/cpp-lunamodel/samples/CMakeLists.txt
-!/cpp-lunamodel/test/CMakeLists.txt
+!/cxx-lunamodel/samples/CMakeLists.txt
+!/cxx-lunamodel/test/CMakeLists.txt
 
 # Data
 *.csv
@@ -72,9 +72,6 @@ node_modules/
 # User specific source setups
 # You can put anything here that needs to be done to prepare your env.
 .user_env.*
-# pixi environments
-.pixi/*
-!.pixi/config.toml
 
 NOTES.md
 # iykyk
@@ -96,3 +93,5 @@ py-lunamodel/tmp.py
 py-lunamodel/ignore.py
 
 dist/
+
+cxx-lunamodel/tests/plugin_ext/.cache/
