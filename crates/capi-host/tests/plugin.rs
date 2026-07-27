@@ -80,7 +80,7 @@ fn descriptor() -> LmPluginTransform {
         user_data: ptr::null_mut(),
         id,
         name,
-        requires,
+        requires_analyses: requires,
         invalidates,
         forward,
         free,

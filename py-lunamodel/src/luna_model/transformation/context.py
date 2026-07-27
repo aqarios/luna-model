@@ -17,7 +17,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypeVar, overload
 
 from luna_model._lm import PyPassContext
-from luna_model.errors import CompilationError
+from luna_model.errors import TransformError
 
 if TYPE_CHECKING:
     from luna_model.transformation.key import AnalysisKey
@@ -61,7 +61,7 @@ class PassContext(PyPassContext):
         """
         try:
             return self._c.require_analysis(key.name)
-        except CompilationError as e:
+        except TransformError as e:
             if default is not None:
                 return default
             raise e from e

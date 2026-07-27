@@ -368,11 +368,11 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-capi"
-version = "0.6.11"
+version = "0.6.13"
 
 [[package]]
 name = "lunamodel-capi-plugin-proto"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "prost",
  "prost-build",
@@ -382,7 +382,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-capi-pyffi"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "lunamodel-capi",
  "pyo3",
@@ -390,7 +390,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-error"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "prost",
  "rand",
@@ -399,7 +399,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-types"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "derive_more",
  "enumset",
@@ -411,7 +411,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "lunamodel-error",
  "num",
@@ -691,7 +691,7 @@ dependencies = [
 
 [[package]]
 name = "pyo3-lunamodel"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "derive_more",
  "lunamodel-capi",

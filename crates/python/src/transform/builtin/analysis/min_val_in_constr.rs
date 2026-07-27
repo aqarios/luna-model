@@ -9,6 +9,7 @@ use pyo3::{pyclass, pymethods};
 
 use crate::{
     PyModel,
+    bounds::BoundValue,
     transform::{PyPassContext, error::to_pyerr},
 };
 
@@ -18,8 +19,12 @@ pub struct PyMinConstraintValues(pub MinConstraintValues);
 #[pymethods]
 impl PyMinConstraintValues {
     #[getter]
-    fn vals(&self) -> HashMap<String, f64> {
-        self.0.vals.clone()
+    fn vals(&self) -> HashMap<String, BoundValue> {
+        self.0
+            .vals
+            .iter()
+            .map(|(n, b)| (n.clone(), b.into()))
+            .collect()
     }
 }
 

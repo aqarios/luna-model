@@ -14,6 +14,7 @@
 
 from . import analysis, control_flow, transformation
 from .analysis import (
+    CheckInfeasibleConstraintsAnalysis,
     CheckModelSpecsAnalysis,
     MaxBias,
     MaxBiasAnalysis,
@@ -35,6 +36,7 @@ from .transformation import (
 __all__ = [
     "BinarySpinPass",
     "ChangeSensePass",
+    "CheckInfeasibleConstraintsAnalysis",
     "CheckModelSpecsAnalysis",
     "EqualityConstraintsToQuadraticPenaltyPass",
     "GeToLeConstraintsPass",

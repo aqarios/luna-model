@@ -47,6 +47,15 @@ impl From<Bound> for BoundValue {
     }
 }
 
+impl From<&Bound> for BoundValue {
+    fn from(value: &Bound) -> Self {
+        match value {
+            Bound::Unbounded => Self::Unbounded,
+            Bound::Bounded(v) => Self::Value(*v),
+        }
+    }
+}
+
 impl From<Option<Bound>> for BoundValue {
     fn from(value: Option<Bound>) -> Self {
         match value {

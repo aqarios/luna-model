@@ -20,25 +20,41 @@ pub type TranspileKindResult<T> = Result<T, TranspileErrorKind>;
 #[derive(Debug)]
 pub enum TranspileErrorKind {
     /// A requested analysis result was missing.
-    MissingAnalysis { name: String },
+    MissingAnalysis {
+        name: String,
+    },
     /// An analysis result existed under a key but had the wrong type.
-    MismatchedAnalysis { name: String, tpe: String },
+    MismatchedAnalysis {
+        name: String,
+        tpe: String,
+    },
     /// A pass was scheduled before one of its requirements had been satisfied.
     UnsatisfiedRequirement {
         pass_name: String,
         requirement: String,
     },
     /// Backward execution requested a pass that was never registered.
-    UnregisteredPass { name: String },
+    UnregisteredPass {
+        name: String,
+    },
     /// An erased artifact was restored as the wrong concrete type.
-    ArtifactTypeMismatch { expected: String, found: String },
+    ArtifactTypeMismatch {
+        expected: String,
+        found: String,
+    },
     /// A query into the transformation record failed.
     RecordQuery {
         msg: &'static str,
         query: Option<String>,
     },
     /// External error occured
-    External { e: Box<dyn Error> },
+    External {
+        e: Box<dyn Error>,
+    },
+    Infeasible {
+        location: String,
+        reason: String,
+    },
 }
 impl Error for TranspileErrorKind {}
 
@@ -82,6 +98,9 @@ impl Display for TranspileErrorKind {
                 None => write!(f, "query failed: {msg}"),
             },
             Self::External { e } => write!(f, "external: {}", e),
+            Self::Infeasible { location, reason } => {
+                write!(f, "model is infeasible at {location}: {reason}")
+            }
         }
     }
 }
@@ -100,9 +119,16 @@ impl From<LunaModelError> for TranspileErrorKind {
 
 impl From<TranspileErrorKind> for LunaModelError {
     fn from(value: TranspileErrorKind) -> Self {
-        Self::Transformation {
-            msg: value.to_string().into(),
-            record: None,
+        match value {
+            TranspileErrorKind::Infeasible { location, reason } => Self::Infeasible {
+                location,
+                reason,
+                record: None,
+            },
+            _ => Self::Transformation {
+                msg: value.to_string().into(),
+                record: None,
+            },
         }
     }
 }
@@ -110,12 +136,15 @@ impl From<TranspileErrorKind> for LunaModelError {
 impl From<TranspilerError> for LunaModelError {
     fn from(value: TranspilerError) -> Self {
         let msg: ErrString = value.to_string().into();
-        match value.record {
-            None => LunaModelError::Transformation { msg, record: None },
-            Some(r) => LunaModelError::Transformation {
-                msg,
-                record: Some(ErasedRecord::new(r)),
+        let TranspilerError { kind, record } = value;
+        let record = record.map(ErasedRecord::new);
+        match kind {
+            TranspileErrorKind::Infeasible { location, reason } => LunaModelError::Infeasible {
+                location,
+                reason,
+                record,
             },
+            _ => LunaModelError::Transformation { msg, record },
         }
     }
 }

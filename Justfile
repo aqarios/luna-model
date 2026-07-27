@@ -8,18 +8,21 @@ c_dir_capi_include := "crates/capi-host/include"
 c_dir_test         := "test/c"
 c_dir_test_build   := c_dir_test / "build"
 
+py_dir     := "py-lunamodel"
+js_dir     := "js-lunamodel"
+rs_sdk_dir := "rs-lunamodel"
+
 # Platform-specific cdylib name + soname/install-name linker flag.
 c_lib_cargo_filename := if os() == "windows" { "lunamodel_capi_host.dll" } else if os() == "macos" { "liblunamodel_capi_host.dylib" } else { "liblunamodel_capi_host.so" }
 c_lib_soname_flag    := if os() == "windows" { "" } else if os() == "macos" { "-Clink-arg=-Wl,-install_name,@rpath/liblunamodel.dylib" } else { "-Clink-arg=-Wl,-soname,liblunamodel.so" }
 c_lib_out            := c_dir_out_lib / replace(c_lib_cargo_filename, "_capi_host", "")
 
 proto_dir_src := "proto"
-proto_dir_pkg := "py-lunamodel/src/luna_model/proto"
-
-wheel_include := "py-lunamodel/src/luna_model/include"
-cpp_src       := "cxx-lunamodel/src"
+proto_dir_pkg := py_dir / "src/luna_model/proto"
+wheel_include := py_dir / "src/luna_model/include"
 
 cpp_dir           := "cxx-lunamodel"
+cpp_src       := cpp_dir / "src"
 cpp_samples_build := cpp_dir / "samples/build"
 cpp_test_build    := cpp_dir / "test/build"
 cpp_plugin_test   := cpp_dir / "tests/plugin_ext"
@@ -186,3 +189,31 @@ cpp-plugin-dev: wheelheaders
 # so the built-in registrations (+ shared proto tags) are current.
 rs-plugin-test:
     cd {{rs_plugin_test}} && uv sync --group dev --reinstall-package luna-model --reinstall-package luna-plugin-ext && uv run pytest pytests/ -v
+
+# Rust tests: the whole main workspace EXCEPT the pyo3/napi crates. Those force pyo3's
+# `extension-module` feature (whose no-libpython-linking breaks a plain `cargo test` binary via
+# feature unification), and they are exercised by the Python/JS suites below instead. Also the
+# separate rs-lunamodel SDK workspace (excluded from the main workspace).
+
+# Rust test suites: the main workspace core (pyo3/napi crates excluded) + the rs-lunamodel SDK.
+test-rust:
+    cargo test --workspace \
+      --exclude pylm --exclude pyo3-lunamodel --exclude lunamodel-python \
+      --exclude lunamodel-capi-pyffi --exclude js-lunamodel
+    cd {{rs_sdk_dir}} && cargo test
+
+# The luna-model core Python test suite: uv builds the luna-model wheel, then pytest.
+test-py:
+    cd {{py_dir}} && uv run pytest
+
+# The JS / WASM binding tests (the package's "test" script builds the native addon, then runs bun).
+test-js:
+    cd {{js_dir}} && bun run test:all
+
+# Run EVERYTHING: Rust (core + rs-lunamodel SDK) -> C -> C++ -> core Python -> both plugin extensions
+# (C++ and Rust, driven from Python) -> JS bindings. Fails fast on the first failing suite. This is
+# heavy: it builds the C library, the luna-model wheel (a few times), and both plugin extensions.
+
+# Run every test suite in the repo: Rust, C, C++, core Python, both plugin extensions, and JS.
+test: test-rust ctest cpp-test test-py cpp-plugin-test rs-plugin-test test-js
+    @echo "✓ all test suites passed"

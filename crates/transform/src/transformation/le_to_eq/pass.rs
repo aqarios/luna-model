@@ -56,7 +56,7 @@ impl TransformationPass for LeToEqConstraintsPass {
                     &format!("slack_{}", name),
                     Vtype::Integer,
                     Some(LazyBounds::new(
-                        Some(Bound::Bounded(minval)),
+                        Some(minval),
                         Some(Bound::Bounded(constr.rhs)),
                     )),
                     None,

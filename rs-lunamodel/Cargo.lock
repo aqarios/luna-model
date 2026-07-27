@@ -114,7 +114,7 @@ dependencies = [
  "quote",
  "serde",
  "serde_json",
- "syn",
+ "syn 2.0.118",
  "tempfile",
  "toml",
 ]
@@ -221,7 +221,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "strsim",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -234,7 +234,7 @@ dependencies = [
  "ident_case",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -245,7 +245,7 @@ checksum = "fc34b93ccb385b40dc71c6fceac4b2ad23662c7eeb248cf10d529b7e055b6ead"
 dependencies = [
  "darling_core 0.20.11",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -256,7 +256,7 @@ checksum = "d38308df82d1080de0afee5d069fa14b0326a88c14f15c5ccda35b4a6c414c81"
 dependencies = [
  "darling_core 0.21.3",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -277,7 +277,7 @@ dependencies = [
  "darling 0.20.11",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -287,7 +287,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab63b0e2bf4d5928aff72e83a7dace85d7bba5fe12dcc3c5a572d78caffd3f3c"
 dependencies = [
  "derive_builder_core",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -308,7 +308,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rustc_version",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -335,7 +335,7 @@ dependencies = [
  "darling 0.21.3",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -541,11 +541,11 @@ checksum = "0ceec5bc11778974d1bcb055b18002eba7f4b3518b6a0081b3af5f21666da9ad"
 
 [[package]]
 name = "lunamodel-capi"
-version = "0.6.11"
+version = "0.6.13"
 
 [[package]]
 name = "lunamodel-capi-handle"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "lunamodel-capi",
  "lunamodel-core",
@@ -555,7 +555,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-capi-host"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "cbindgen",
  "indexmap",
@@ -568,12 +568,12 @@ dependencies = [
  "lunamodel-serializer",
  "lunamodel-transpiler",
  "lunamodel-types",
- "syn",
+ "syn 3.0.3",
 ]
 
 [[package]]
 name = "lunamodel-capi-plugin"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "lunamodel-capi",
  "lunamodel-capi-handle",
@@ -583,7 +583,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-core"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "bitvec",
  "derive_more",
@@ -606,7 +606,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-error"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "prost",
  "rand",
@@ -615,7 +615,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-serializer"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "bitvec",
  "indexmap",
@@ -632,7 +632,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "lunamodel-core",
  "lunamodel-error",
@@ -642,16 +642,16 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler-macros"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 3.0.3",
 ]
 
 [[package]]
 name = "lunamodel-types"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "derive_more",
  "enumset",
@@ -663,7 +663,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.6.11"
+version = "0.6.13"
 dependencies = [
  "lunamodel-error",
  "num",
@@ -848,7 +848,7 @@ dependencies = [
  "itertools 0.14.0",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -927,7 +927,7 @@ name = "rs-lunamodel-derive"
 version = "0.0.1"
 dependencies = [
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -997,7 +997,7 @@ checksum = "d540f220d3187173da220f885ab66608367b6574e925011a9353e4badda91d79"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -1073,7 +1073,7 @@ dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -1081,6 +1081,17 @@ name = "syn"
 version = "2.0.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b9ae57f904213ebb649ce6895b8a66c66f0203b9319718f69a5612a065b1422"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
+]
+
+[[package]]
+name = "syn"
+version = "3.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53e9bae58849f64dfa4f5d5ae372c8341f7305f82a3868709269343628b659a3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1123,7 +1134,7 @@ checksum = "ebc4ee7f67670e9b64d05fa4253e753e016c6c95ff35b89b7941d6b856dec1d5"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -1220,7 +1231,7 @@ dependencies = [
  "bumpalo",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.118",
  "wasm-bindgen-shared",
 ]
 

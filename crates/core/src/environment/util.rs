@@ -3,10 +3,21 @@
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::VarIdx;
 use std::collections::HashMap;
+use std::sync::LazyLock;
 
-// pub(super) fn freeidx(freeidx: &mut Vec<VarIdx>, nvars: VarIdx) -> VarIdx {
-//     freeidx.pop().map_or_else(|| nvars, |i| i)
-// }
+const ALLOWED_EXTRA: &str = r#"_.,;(){}"‘’'@#!$%&?"#;
+
+static ALLOWED_MSG: LazyLock<String> = LazyLock::new(|| {
+    let allowed = ALLOWED_EXTRA
+        .chars()
+        .map(|c| format!("'{c}'"))
+        .collect::<Vec<_>>()
+        .join(", ");
+    format!(
+        "must only contain alphanumeric characters or one of:
+  {allowed}"
+    )
+});
 
 /// Validates whether a proposed variable name fits LunaModel's naming rules.
 ///
@@ -20,11 +31,11 @@ pub(super) fn ensure_name_valid(name: &str) -> LunaModelResult<()> {
         ))
     } else if !name
         .chars()
-        .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ',' || c == ')' || c == '(')
+        .all(|c| c.is_ascii_alphanumeric() || ALLOWED_EXTRA.contains(c))
     {
         Err(LunaModelError::VariableNameInvalid(
             name.to_string(),
-            "must only contain alphanumeric characters, '_', ',', ')' or '('".into(),
+            ALLOWED_MSG.as_str().into(),
         ))
     } else {
         Ok(())

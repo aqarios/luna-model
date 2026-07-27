@@ -5,7 +5,8 @@ use std::sync::Arc;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transform::{
     analysis::{
-        CheckModelSpecsAnalysis, MaxBiasAnalysis, MinValueForConstraintAnalysis, SpecsAnalysis,
+        CheckInfeasibleConstraintsAnalysis, CheckModelSpecsAnalysis, MaxBiasAnalysis,
+        MinValueForConstraintAnalysis, SpecsAnalysis,
     },
     control_flow::IfElsePass,
     transformation::{
@@ -34,8 +35,8 @@ use crate::transform::{
     },
     builtin::{
         analysis::{
-            PyCheckModelSpecsAnalysis, PyMaxBiasAnalysis, PyMinValueForConstraintAnalysis,
-            PySpecsAnalysis,
+            PyCheckInfeasibleConstraintsAnalysis, PyCheckModelSpecsAnalysis, PyMaxBiasAnalysis,
+            PyMinValueForConstraintAnalysis, PySpecsAnalysis,
         },
         control_flow::PyIfElsePass,
         pipeline::{PyToBinaryMinimizationPipeline, PyToUnconstrainedBinaryPipeline},
@@ -238,6 +239,7 @@ define_py_pass!(
         (PyMaxBiasAnalysis, MaxBiasAnalysis),
         (PyMinValueForConstraintAnalysis, MinValueForConstraintAnalysis),
         (PySpecsAnalysis, SpecsAnalysis),
+        (PyCheckInfeasibleConstraintsAnalysis, CheckInfeasibleConstraintsAnalysis),
     ],
     transformation: [
         (PyBinarySpinPass, BinarySpinPass),

@@ -18,6 +18,7 @@ import base64
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, overload
 
+import numpy as np
 from numpy import ndarray
 
 from luna_model._lm import PyModel, PyModelMetadata
@@ -502,14 +503,16 @@ class Model:
         (2, 2, 3)
         """
         return NDLmArray(
-            self._m.add_variables(
-                name=name,
-                shape=shape,
-                vtype=vtype._val,
-                lower=lower,
-                upper=upper,
-                with_fallback=with_fallback,
-                delimiter=delimiter,
+            np.frompyfunc(wrap_var, 1, 1)(
+                self._m.add_variables(
+                    name=name,
+                    shape=shape,
+                    vtype=vtype._val,
+                    lower=lower,
+                    upper=upper,
+                    with_fallback=with_fallback,
+                    delimiter=delimiter,
+                )
             )
         )
 

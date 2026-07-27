@@ -1,12 +1,9 @@
-//! Model evaluation against solutions and samples.
-
-use itertools::Itertools;
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_types::Bias;
 use std::collections::{HashMap, HashSet};
 
 use super::Model;
-use crate::{Solution, ops::make_lookup};
+use crate::ops::SolutionLookup;
+use crate::{Solution, solution::Column};
 
 impl Model {
     /// Evaluates a solution against the model.
@@ -39,6 +36,8 @@ impl Model {
             &sol.variable_names(),
         )?;
 
+        let num_samples = sol.len();
+
         let mut newsol = Solution {
             samples: sol.samples.clone(),
             counts: sol.counts.clone(),
@@ -48,51 +47,73 @@ impl Model {
             ..Default::default()
         };
 
-        let mut obj_vals = Vec::new();
-        let mut constrs: HashMap<String, Vec<bool>> = self
+        let mut obj_vals = Vec::with_capacity(num_samples);
+        let mut feasible = Vec::with_capacity(num_samples);
+
+        let mut constrs_results: Vec<Vec<bool>> = self
             .constraints
             .iter()
-            .map(|(n, _)| (n.clone(), Vec::default()))
+            .map(|_| Vec::with_capacity(num_samples))
             .collect();
-        let mut vbounds: HashMap<String, Vec<bool>> = sol
-            .variable_names()
-            .into_iter()
-            .map(|n| (n, Vec::default()))
-            .collect();
-        let mut feasible: Vec<bool> = Vec::new();
 
-        let mut lu: Vec<Bias> = vec![0.0; self.environment.read_arc().next_idx as usize];
-        for sample in sol.samples() {
-            make_lookup(
-                &self.environment.read_arc(),
-                self.objective
-                    .complete_vars()
-                    .chain(self.constraints.complete_vars())
-                    .map(|v| v.id())
-                    .unique(),
-                &sample,
-                &mut lu,
-            )?;
-            obj_vals.push(self.objective.evaluate_sample_quick(&lu)?);
+        let cols: Vec<&Column> = sol.samples.values().collect();
+
+        // Direct column-by-column variable bounds evaluation
+        let sol_var_names = sol.variable_names();
+        let mut vbounds: HashMap<String, Vec<bool>> = HashMap::with_capacity(sol_var_names.len());
+        let mut all_vars_ok: Vec<bool> = vec![true; num_samples];
+
+        for name in &sol_var_names {
+            if let Some(col_idx) = sol.samples.get_index_of(name) {
+                let v = self.environment.lookup(name)?;
+                let b = v.bounds()?;
+                let col = cols[col_idx];
+                let bool_vec = (0..num_samples)
+                    .map(|s_idx| {
+                        let vok = b.evaluate(col[s_idx], tol)?;
+                        if !vok {
+                            all_vars_ok[s_idx] = false;
+                        }
+                        Ok(vok)
+                    })
+                    .collect::<LunaModelResult<Vec<bool>>>()?;
+                vbounds.insert(name.clone(), bool_vec);
+            }
+        }
+
+        let mut lookup = SolutionLookup::new(&self.environment.read_arc(), sol)?;
+
+        for (sample, v_ok) in sol.samples().zip(all_vars_ok) {
+            // Lookup update
+            lookup.update(&sample)?;
+
+            // Objective evaluation
+            let obj_val = self.objective.evaluate_sample_quick(&lookup.lu)?;
+            obj_vals.push(obj_val);
+
+            // Constraint evaluation
             let mut all_constr_ok = true;
-            for (cname, val) in self.constraints.evaluate_sample_quick(&lu, tol)? {
-                constrs.get_mut(&cname).unwrap().push(val);
+            for (val_res, c_res) in self
+                .constraints
+                .iter()
+                .map(|(_, c)| c.evaluate_sample_quick(&lookup.lu, tol))
+                .zip(constrs_results.iter_mut())
+            {
+                let val = val_res?;
+                c_res.push(val);
                 all_constr_ok = all_constr_ok && val;
             }
-            let mut all_vars_ok = true;
-            for name in sol.variable_names() {
-                let bs = vbounds.get_mut(&name).unwrap();
-                let v = self.environment.lookup(&name)?;
-                let vok = v.evaluate(sample[&name], tol)?;
-                bs.push(vok);
-                all_vars_ok = all_vars_ok && vok;
-            }
-            feasible.push(all_vars_ok && all_constr_ok);
+            feasible.push(v_ok && all_constr_ok);
         }
 
         newsol.obj_values = Some(obj_vals);
         newsol.feasible = Some(feasible);
-        newsol.constraints = constrs;
+        newsol.constraints = self
+            .constraints
+            .iter()
+            .map(|(n, _)| n.clone())
+            .zip(constrs_results)
+            .collect();
         newsol.variable_bounds = vbounds;
 
         Ok(newsol)
@@ -105,12 +126,6 @@ impl Model {
 /// are not.
 fn check_alignment(expr_vars: &[String], sample_vars: &[String]) -> LunaModelResult<()> {
     let sample_set: HashSet<&str> = sample_vars.iter().map(String::as_str).collect();
-    // Removed checks to allow solutions with more variables than the model.
-    // if expr_vars.len() != sample_vars.len() {
-    //     return Err(LunaModelError::Evaluation(
-    //         "number of variables does not match".into(),
-    //     ));
-    // }
     for ev in expr_vars {
         if !sample_set.contains(ev.as_str()) {
             return Err(LunaModelError::Evaluation(
@@ -118,12 +133,5 @@ fn check_alignment(expr_vars: &[String], sample_vars: &[String]) -> LunaModelRes
             ));
         }
     }
-    // for sv in sample_vars {
-    //     if !expr_vars.contains(sv) {
-    //         return Err(LunaModelError::Evaluation(
-    //             format!("variable '{sv}' is not contained in expression").into(),
-    //         ));
-    //     }
-    // }
     Ok(())
 }
