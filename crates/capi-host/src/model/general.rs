@@ -1,8 +1,8 @@
 use std::ffi::c_char;
 
+use lunamodel_capi::LmLazyBounds;
 use lunamodel_core::Bounds;
 use lunamodel_types::Specs;
-use lunamodel_capi::LmLazyBounds;
 
 use crate::{
     LmModel, LmSpecs, LmStatus, LmVref, LmVtype,

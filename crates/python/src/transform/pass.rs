@@ -2,6 +2,10 @@
 
 use std::sync::Arc;
 
+use lunamodel_capi_plugin::{CPluginAnalysisPass, CPluginTransformPass};
+use lunamodel_capi_pyffi::plugin::{
+    PLUGIN_ANALYSIS_METHOD, PLUGIN_TRANSFORM_METHOD, read_plugin_analysis, read_plugin_transform,
+};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transform::{
     analysis::{
@@ -16,10 +20,6 @@ use lunamodel_transform::{
     },
 };
 use lunamodel_transpiler::{Pipeline, PipelineStep};
-use lunamodel_capi_plugin::{CPluginAnalysisPass, CPluginTransformPass};
-use lunamodel_capi_pyffi::plugin::{
-    PLUGIN_ANALYSIS_METHOD, PLUGIN_TRANSFORM_METHOD, read_plugin_analysis, read_plugin_transform,
-};
 use pyo3::{
     FromPyObject, IntoPyObjectExt, Py, PyAny, PyErr, PyResult, Python,
     exceptions::PyTypeError,

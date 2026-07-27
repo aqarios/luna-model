@@ -9,7 +9,7 @@ use super::{PassContext, Reversible};
 /// A 1:1 mirror of `lunamodel_transpiler::TransformationPass`: `forward` mutates the model and
 /// produces the [`Artifact`](Reversible::Artifact); reversal is provided by the [`Reversible`]
 /// super-trait. Implement this and hand the type to the SDK (`descriptor` / `register_backward`,
-/// or the `pyo3-lunamodel` macros) — no `unsafe`, no C types.
+/// or the `rs-lunamodel` macros) — no `unsafe`, no C types.
 pub trait TransformationPass: Send + Sync + Reversible {
     /// Name for this pass.
     fn name(&self) -> &str;

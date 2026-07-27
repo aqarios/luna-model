@@ -7,9 +7,9 @@
 
 use std::ffi::{c_char, c_void};
 
-use lunamodel_transpiler::AnalysisManager;
 use lunamodel_capi::LmStatus;
 use lunamodel_capi::plugin::{LmByteSink, LmPassContext};
+use lunamodel_transpiler::AnalysisManager;
 
 use crate::error::{CapiError, guard};
 use crate::utils::str_from_c;
@@ -63,7 +63,9 @@ pub unsafe extern "C" fn lm_pass_context_get_analysis(
         match lunamodel_transpiler::serialize_named_analysis(manager, name) {
             Some((type_tag, _)) if type_tag.as_str() != expected => Err(CapiError::new(
                 LmStatus::InvalidArgument,
-                format!("analysis '{name}' has type tag '{type_tag}', but '{expected}' was expected"),
+                format!(
+                    "analysis '{name}' has type tag '{type_tag}', but '{expected}' was expected"
+                ),
             )),
             Some((_, bytes)) => {
                 unsafe { sink(sink_ctx, bytes.as_ptr(), bytes.len()) };

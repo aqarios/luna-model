@@ -59,6 +59,10 @@ pub mod types;
 mod variable;
 mod vref;
 
+#[cfg(feature = "py")]
+#[macro_use]
+pub mod py;
+
 pub use api::{InitError, abi_version, init, is_initialized, version};
 pub use assignment::Assignment;
 pub use bound::Bound;

@@ -24,9 +24,14 @@ def get_proto() -> str:
         import luna_model.capi
 
         # protoc -I <get_proto()> --python_out=. --pyi_out=. luna_model/plugin.proto
-        subprocess.run([
-            "protoc", f"-I{luna_model.capi.get_proto()}",
-            "--python_out=.", "--pyi_out=.", "luna_model/plugin.proto",
-        ])
+        subprocess.run(
+            [
+                "protoc",
+                f"-I{luna_model.capi.get_proto()}",
+                "--python_out=.",
+                "--pyi_out=.",
+                "luna_model/plugin.proto",
+            ]
+        )
     """
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), "proto")

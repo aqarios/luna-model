@@ -107,7 +107,9 @@ impl AnalysisPass for PyAnalysisPassAdapter {
                 )
                 .map_err(map_pyerr)?;
             // Enforce the opt-in contract: a plugin-consumable result must be a protobuf message.
-            if self.result_type_tag.is_some() && !res.hasattr("SerializeToString").map_err(map_pyerr)? {
+            if self.result_type_tag.is_some()
+                && !res.hasattr("SerializeToString").map_err(map_pyerr)?
+            {
                 return Err(map_pyerr(pyo3::exceptions::PyTypeError::new_err(format!(
                     "analysis '{}' declares result_type_tag, so run() must return a protobuf \
                      message (with SerializeToString())",

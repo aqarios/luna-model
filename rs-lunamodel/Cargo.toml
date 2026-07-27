@@ -24,7 +24,7 @@ incremental = false
 members = ["derive"]
 
 [dependencies]
-enumset = "1.1.13"
+enumset = "1.1.14"
 indexmap = "2.14.0"
 itertools = "0.15.0"
 num = "0.4.3"
@@ -36,5 +36,21 @@ lunamodel-capi = { path = "../crates/capi" }
 lunamodel-types = { path = "../crates/types" }
 rs-lunamodel-derive = { path = "./derive" }
 
+[dependencies.pyo3]
+optional = true
+version = "0.29.0"
+features = ["generate-import-lib"]
+
+[dependencies.derive_more]
+optional = true
+version = "2.1.1"
+
+[dependencies.lunamodel-capi-pyffi]
+optional = true
+path = "../crates/capi-pyffi"
+
 [dev-dependencies]
 lunamodel-capi-host = { path = "../crates/capi-host" }
+
+[features]
+py = ["pyo3", "derive_more", "lunamodel-capi-pyffi"]

@@ -7,8 +7,8 @@
 use std::ffi::{CStr, c_char, c_void};
 use std::sync::Arc;
 
-use lunamodel_capi_handle::{Shared, SharedHandleKind, handle_into_shared};
 use lunamodel_capi::plugin::LmStrSink;
+use lunamodel_capi_handle::{Shared, SharedHandleKind, handle_into_shared};
 use lunamodel_transpiler::{TranspileErrorKind, TranspileKindResult};
 
 /// Copies a plugin-owned, borrowed C string into an owned `String`.
@@ -16,7 +16,9 @@ pub(crate) unsafe fn borrow_cstr(ptr: *const c_char) -> String {
     if ptr.is_null() {
         return String::new();
     }
-    unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned()
+    unsafe { CStr::from_ptr(ptr) }
+        .to_string_lossy()
+        .into_owned()
 }
 
 /// Drives a plugin string-list callback, collecting the emitted strings.

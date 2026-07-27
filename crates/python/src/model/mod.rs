@@ -1,8 +1,8 @@
 //! Python wrapper for models and model metadata.
 mod access;
 mod construction;
-mod general;
 mod fmt;
+mod general;
 mod metadata;
 mod modification;
 mod ser;

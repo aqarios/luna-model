@@ -57,19 +57,21 @@ Using LunaModel and n = 5 and W = 25:
 
 ```python
 from luna_model import Expression, Model, Sense, Vtype
+
 # A faster alternative to creating Expressions using loops in Python.
 from luna_model.utils import quicksum
+
 # Initialize the known values:
 n: int = 5  # number of items.
-W: int = 25 # maximum capacity.
-weights: list[float] = [ 1.5, 10.0, 5.2,  3.5, 8.32] # weight of each item.
-values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
+W: int = 25  # maximum capacity.
+weights: list[float] = [1.5, 10.0, 5.2, 3.5, 8.32]  # weight of each item.
+values: list[float] = [10.0, 22.0, 3.2, 1.99, 6.25]  # value of each item.
 # First, we create the Model with it's sense set to Maximize the objective function.
 # You can also give your model a name, optionally but recommended.
 model = Model(sense=Sense.MAX, name="Knapsack")
 # Next, we need to create all variables. Note, there are alternative ways to create
 # variables, you can find details in the LunaModel docs.
-variables = [model.add_variable(f"x_{i+1}", vtype=Vtype.BINARY) for i in range(n)]
+variables = [model.add_variable(f"x_{i + 1}", vtype=Vtype.BINARY) for i in range(n)]
 # Now we can define the objective function:
 model.objective = quicksum(values[i] * variables[i] for i in range(n))
 # And for the constraints:
@@ -77,7 +79,7 @@ model.objective = quicksum(values[i] * variables[i] for i in range(n))
 model.constraints += quicksum(weights[i] * variables[i] for i in range(n)) <= W
 # The second constraint that all `x_i` are in [0, 1] is natively encoded by using
 # Binary variables.
-print(model) # to display the model.
+print(model)  # to display the model.
 ```
 
 As an extension, the **Bounded Knapsack Problem (BKP)** with a maximum number of each item c = 4 can be defined like this:
@@ -93,14 +95,16 @@ _Note that we have to use Integer variables now._
 - Using Bounds on the variables:
   ```python
   from luna_model import Expression, Model, Sense, Vtype, Bounds
+
   # A faster alternative to creating Expressions using loops in Python.
   from luna_model.utils import quicksum
+
   # Initialize the known values:
   c: int = 4  # maximum number of each item.
   n: int = 5  # number of items.
-  W: int = 25 # maximum capacity.
-  weights: list[float] = [ 1.5, 10.0, 5.2,  3.5, 8.32] # weight of each item.
-  values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
+  W: int = 25  # maximum capacity.
+  weights: list[float] = [1.5, 10.0, 5.2, 3.5, 8.32]  # weight of each item.
+  values: list[float] = [10.0, 22.0, 3.2, 1.99, 6.25]  # value of each item.
   # First, we create the Model with it's sense set to Maximize the objective function.
   # You can also give your model a name, optionally but recommended.
   model = Model(sense=Sense.MAX, name="Bounded Knapsack")
@@ -108,7 +112,7 @@ _Note that we have to use Integer variables now._
   # variables, you can find details in the LunaModel docs.
   variables = [
       # We can have each item at least `0` times and at most `c` times.
-      model.add_variable(f"x_{i+1}", vtype=Vtype.INTEGER, lower=0, upper=c)
+      model.add_variable(f"x_{i + 1}", vtype=Vtype.INTEGER, lower=0, upper=c)
       for i in range(n)
   ]
   # Now we can define the objective function:
@@ -123,23 +127,22 @@ _Note that we have to use Integer variables now._
 - Using a Constraint for each variable:
   ```python
   from luna_model import Expression, Model, Sense, Vtype, Bounds
+
   # A faster alternative to creating Expressions using loops in Python.
   from luna_model.utils import quicksum
+
   # Initialize the known values:
   c: int = 4  # maximum number of each item.
   n: int = 5  # number of items.
-  W: int = 25 # maximum capacity.
-  weights: list[float] = [ 1.5, 10.0, 5.2,  3.5, 8.32] # weight of each item.
-  values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
+  W: int = 25  # maximum capacity.
+  weights: list[float] = [1.5, 10.0, 5.2, 3.5, 8.32]  # weight of each item.
+  values: list[float] = [10.0, 22.0, 3.2, 1.99, 6.25]  # value of each item.
   # First, we create the Model with it's sense set to Maximize the objective function.
   # You can also give your model a name, optionally but recommended.
   model = Model(sense=Sense.MAX, name="Bounded Knapsack")
   # Next, we need to create all variables. Note, there are alternative ways to create
   # variables, you can find details in the LunaModel docs.
-  variables = [
-      model.add_variable(f"x_{i+1}", vtype=Vtype.INTEGER)
-      for i in range(n)
-  ]
+  variables = [model.add_variable(f"x_{i + 1}", vtype=Vtype.INTEGER) for i in range(n)]
   # Now we can define the objective function:
   model.objective = quicksum(values[i] * variables[i] for i in range(n))
   # And for the constraints:

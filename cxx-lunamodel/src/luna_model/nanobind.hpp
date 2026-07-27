@@ -95,7 +95,7 @@ struct type_caster<lm::Specs> : luna_model_caster<lm::Specs> {};
 //
 // luna-model's Python enums are string-valued Enum members, so nanobind's built-in (int-based) enum
 // handling can't convert them. These casters map by the Python member name, per the tables below
-// (mirroring pyo3-lunamodel's `python_enum_wrapper!` variant lists). `TranslationTarget` has no
+// (mirroring rs-lunamodel's `python_enum_wrapper!` variant lists). `TranslationTarget` has no
 // C-ABI enum, so it is not included.
 
 /// Per-enum interop data: the Python class under `luna_model`, and the member-name <-> C-value table.

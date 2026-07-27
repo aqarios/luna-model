@@ -3,7 +3,7 @@
 #
 # The `[workspace.package] version` in the root Cargo.toml is the single
 # source of truth:
-#   - every crate (pylm, js-lunamodel, pyo3-lunamodel, crates/*) inherits it
+#   - every crate (pylm, js-lunamodel, rs-lunamodel, crates/*) inherits it
 #     via `version.workspace = true`, so the Python wheel version (read by
 #     maturin from pylm) and the napi crate version can never drift
 #   - js-lunamodel/package.json is synced to it here

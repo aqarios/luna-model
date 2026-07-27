@@ -1,8 +1,8 @@
 //! C-handle capsule transport for Python bounds wrappers.
 
+use lunamodel_capi::LmLazyBounds;
 use lunamodel_capi_handle::{drop_handle, handle_from_storage, handle_into_storage};
 use lunamodel_capi_pyffi::{new_capsule, take_handle};
-use lunamodel_capi::LmLazyBounds;
 use lunamodel_core::prelude::LazyBounds;
 use lunamodel_unwind::*;
 use pyo3::{Bound, PyResult, Python, pymethods, types::PyCapsule};

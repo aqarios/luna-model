@@ -1,10 +1,10 @@
 //! C-handle capsule transport for Python constraint-collection wrappers.
 
+use lunamodel_capi::LmCC;
 use lunamodel_capi_handle::{
     ConstraintCollectionHandle, drop_handle, handle_from_storage, handle_into_storage,
 };
 use lunamodel_capi_pyffi::{new_capsule, take_handle};
-use lunamodel_capi::LmCC;
 use lunamodel_unwind::*;
 use pyo3::{Bound, PyResult, Python, pymethods, types::PyCapsule};
 

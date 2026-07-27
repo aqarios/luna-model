@@ -26,10 +26,8 @@ pub use general::{
 };
 pub use modification::{
     lm_expr_add_higher_order_term, lm_expr_add_linear_term, lm_expr_add_quadratic_term,
-    lm_expr_set_offset,
-    lm_expr_set_linear_term,
+    lm_expr_set_higher_order_term, lm_expr_set_linear_term, lm_expr_set_offset,
     lm_expr_set_quadratic_term,
-    lm_expr_set_higher_order_term,
 };
 pub use serialize::{lm_expr_deserialize, lm_expr_serialize};
 

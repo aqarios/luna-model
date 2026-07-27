@@ -1,5 +1,5 @@
-use lunamodel_core::Expression;
 use lunamodel_capi_handle::{ExpressionHandle, drop_handle, handle_from_storage};
+use lunamodel_core::Expression;
 
 use crate::{LmExpr, error::CapiError, utils::storage_from_c};
 

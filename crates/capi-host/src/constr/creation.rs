@@ -1,7 +1,7 @@
 use std::ffi::c_char;
 
-use lunamodel_core::prelude::Constraint;
 use lunamodel_capi_handle::drop_handle;
+use lunamodel_core::prelude::Constraint;
 
 use crate::{
     LmComparator, LmConstraint, LmExpr, LmStatus,

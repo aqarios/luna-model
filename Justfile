@@ -26,7 +26,7 @@ cpp_src       := cpp_dir / "src"
 cpp_samples_build := cpp_dir / "samples/build"
 cpp_test_build    := cpp_dir / "test/build"
 cpp_plugin_test   := cpp_dir / "tests/plugin_ext"
-rs_plugin_test    := "pyo3-lunamodel/tests/plugin_ext"
+rs_plugin_test    := "rs-lunamodel/tests/plugin_ext"
 
 # Absolute paths cmake needs (it is invoked from various build dirs).
 lib_dir_abs     := justfile_directory() / c_dir_out_lib
@@ -188,7 +188,7 @@ cpp-plugin-dev: wheelheaders
 # consumes both another plugin's analysis and a built-in luna-model analysis. Reinstalls luna-model
 # so the built-in registrations (+ shared proto tags) are current.
 rs-plugin-test:
-    cd {{rs_plugin_test}} && uv sync --group dev --reinstall-package luna-model --reinstall-package luna-plugin-ext && uv run pytest pytests/ -v
+    cd {{rs_plugin_test}} && rm -rf .venv/ && uv sync --group dev && uv sync --reinstall-package luna-plugin-ext && uv run pytest pytests/ -v
 
 # Rust tests: the whole main workspace EXCEPT the pyo3/napi crates. Those force pyo3's
 # `extension-module` feature (whose no-libpython-linking breaks a plain `cargo test` binary via
@@ -198,7 +198,7 @@ rs-plugin-test:
 # Rust test suites: the main workspace core (pyo3/napi crates excluded) + the rs-lunamodel SDK.
 test-rust:
     cargo test --workspace \
-      --exclude pylm --exclude pyo3-lunamodel --exclude lunamodel-python \
+      --exclude pylm --exclude lunamodel-python \
       --exclude lunamodel-capi-pyffi --exclude js-lunamodel
     cd {{rs_sdk_dir}} && cargo test
 

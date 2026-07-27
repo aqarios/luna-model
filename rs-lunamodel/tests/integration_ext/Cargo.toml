@@ -1,0 +1,15 @@
+[package]
+name = "rs-lunamodel-integration-ext"
+version = "0.0.1"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[lib]
+name = "rs_lunamodel_integration_ext"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.29.0", features = ["extension-module"] }
+rs-lunamodel = { path = "../..", features = ["py"] }

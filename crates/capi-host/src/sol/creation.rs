@@ -1,6 +1,6 @@
 use itertools::Either;
-use lunamodel_core::{ArcEnv, Model, Solution};
 use lunamodel_capi_handle::{drop_handle, new_handle};
+use lunamodel_core::{ArcEnv, Model, Solution};
 
 use crate::{
     LmEnv, LmModel, LmSense, LmSol, LmStatus,
