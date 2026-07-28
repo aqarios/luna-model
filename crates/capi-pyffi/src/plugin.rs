@@ -164,9 +164,7 @@ pub fn new_plugin_meta_analysis_capsule(
 }
 
 /// Copies the plugin meta-analysis descriptor out of a capsule (non-consuming).
-pub fn read_plugin_meta_analysis(
-    capsule: &Bound<'_, PyCapsule>,
-) -> PyResult<LmPluginMetaAnalysis> {
+pub fn read_plugin_meta_analysis(capsule: &Bound<'_, PyCapsule>) -> PyResult<LmPluginMetaAnalysis> {
     let pointer = capsule.pointer_checked(Some(PLUGIN_META_ANALYSIS_CAPSULE_NAME))?;
     // `LmPluginMetaAnalysis` is `Copy`; read a copy and leave the capsule's own copy intact.
     let carrier = unsafe { pointer.cast::<PluginMetaAnalysisCarrier>().as_ref() };
@@ -205,9 +203,7 @@ pub fn new_plugin_control_flow_capsule(
 }
 
 /// Copies the plugin control-flow descriptor out of a capsule (non-consuming).
-pub fn read_plugin_control_flow(
-    capsule: &Bound<'_, PyCapsule>,
-) -> PyResult<LmPluginControlFlow> {
+pub fn read_plugin_control_flow(capsule: &Bound<'_, PyCapsule>) -> PyResult<LmPluginControlFlow> {
     let pointer = capsule.pointer_checked(Some(PLUGIN_CONTROL_FLOW_CAPSULE_NAME))?;
     // `LmPluginControlFlow` is `Copy`; read a copy and leave the capsule's own copy intact.
     let carrier = unsafe { pointer.cast::<PluginControlFlowCarrier>().as_ref() };

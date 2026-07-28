@@ -152,7 +152,9 @@ pub unsafe extern "C" fn lm_step_list_invalidates(
 ) -> LmStatus {
     guard(|| {
         let view = unsafe { view(steps) }?;
-        let items = view.invalidates(index).ok_or_else(|| out_of_bounds(index))?;
+        let items = view
+            .invalidates(index)
+            .ok_or_else(|| out_of_bounds(index))?;
         unsafe { emit(&items, sink, sink_ctx) };
         Ok(())
     })

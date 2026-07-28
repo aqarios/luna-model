@@ -103,7 +103,8 @@ fn control_flow_selects_and_runs_a_branch() {
     // The branch transform is reversible, so its backward must be registered (routed by its id).
     register_backward::<branch::RenameTo>().expect("register branch backward");
 
-    let cf = CPluginControlFlowPass::from_descriptor(&descriptor_control_flow(cf::PickBranch).unwrap());
+    let cf =
+        CPluginControlFlowPass::from_descriptor(&descriptor_control_flow(cf::PickBranch).unwrap());
     let out = PassManager::default()
         .add_step(PipelineStep::ControlFlow(Arc::new(cf)))
         .run(lunamodel_core::Model::default())

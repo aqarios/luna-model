@@ -804,8 +804,10 @@ pub struct LunaModelCApi {
         sink_ctx: *mut c_void,
     ) -> LmStatus,
     /// Creates a new control-flow execution plan for `name`, written to `out_plan`.
-    pub control_flow_plan_new:
-        unsafe extern "C" fn(name: *const c_char, out_plan: *mut *mut LmControlFlowPlan) -> LmStatus,
+    pub control_flow_plan_new: unsafe extern "C" fn(
+        name: *const c_char,
+        out_plan: *mut *mut LmControlFlowPlan,
+    ) -> LmStatus,
     /// Frees an unconsumed control-flow plan handle.
     pub control_flow_plan_free: unsafe extern "C" fn(plan: *mut LmControlFlowPlan),
     /// Appends a plugin transformation pass step to a control-flow plan.

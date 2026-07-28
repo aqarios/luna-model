@@ -184,10 +184,12 @@ mod consumer {
 #[test]
 fn composite_forward_transforms_and_reverses() {
     init();
-    register_composite_backward::<composite::RenameAndCount>().expect("register composite backward");
+    register_composite_backward::<composite::RenameAndCount>()
+        .expect("register composite backward");
 
-    let pass =
-        CPluginCompositePass::from_descriptor(&descriptor_composite(composite::RenameAndCount).unwrap());
+    let pass = CPluginCompositePass::from_descriptor(
+        &descriptor_composite(composite::RenameAndCount).unwrap(),
+    );
     let out = PassManager::default()
         .add_composite(pass)
         .run(model_with_vars(3))
@@ -206,12 +208,14 @@ fn composite_forward_transforms_and_reverses() {
 #[test]
 fn composite_result_is_consumed_downstream() {
     init();
-    register_composite_backward::<composite::RenameAndCount>().expect("register composite backward");
+    register_composite_backward::<composite::RenameAndCount>()
+        .expect("register composite backward");
 
     let composite = CPluginCompositePass::from_descriptor(
         &descriptor_composite(composite::RenameAndCount).unwrap(),
     );
-    let tag = CPluginTransformPass::from_descriptor(&descriptor(consumer::TagWithCount::new()).unwrap());
+    let tag =
+        CPluginTransformPass::from_descriptor(&descriptor(consumer::TagWithCount::new()).unwrap());
 
     let out = PassManager::default()
         .add_composite(composite)

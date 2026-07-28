@@ -146,8 +146,9 @@ fn meta_analysis_describes_following_steps() {
     init();
     register_backward::<consumer::TagWithFollowingInfo>().expect("register consumer backward");
 
-    let meta =
-        CPluginMetaAnalysisPass::from_descriptor(&descriptor_meta_analysis(meta::DescribeFollowing).unwrap());
+    let meta = CPluginMetaAnalysisPass::from_descriptor(
+        &descriptor_meta_analysis(meta::DescribeFollowing).unwrap(),
+    );
     let tag = CPluginTransformPass::from_descriptor(
         &descriptor(consumer::TagWithFollowingInfo::new()).unwrap(),
     );
