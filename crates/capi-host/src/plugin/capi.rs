@@ -28,13 +28,15 @@ pub unsafe extern "C" fn lm_register_plugin_backward(
         lunamodel_capi_plugin::ensure_registered();
         let id = unsafe { str_from_c(id, "id") }?.to_owned();
         match kind {
-            LmPassKind::Transformation => {
-                lunamodel_capi_plugin::register_transform(id, func, user_data);
+            // Transformation and composite passes are the reversible kinds; both route reversal by
+            // plugin id through the same shared table.
+            LmPassKind::Transformation | LmPassKind::Composite => {
+                lunamodel_capi_plugin::register(id, func, user_data);
                 Ok(())
             }
             _ => Err(CapiError::new(
                 LmStatus::InvalidArgument,
-                "only Transformation plugin backward handlers are supported yet",
+                "only Transformation and Composite plugin backward handlers are reversible",
             )),
         }
     })

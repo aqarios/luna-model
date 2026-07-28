@@ -109,7 +109,7 @@ impl Reversible for CPluginTransformPass {
     const ID: &'static str = "luna_model::CPluginTransformPass";
 
     fn backward(artifact: &Self::Artifact, solution: Solution) -> TranspileKindResult<Solution> {
-        let (func, user_data) = registry::lookup_transform(&artifact.plugin_pass_id).ok_or(
+        let (func, user_data) = registry::lookup(&artifact.plugin_pass_id).ok_or(
             TranspileErrorKind::UnregisteredPass {
                 name: artifact.plugin_pass_id.clone(),
             },

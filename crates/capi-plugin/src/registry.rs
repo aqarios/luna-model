@@ -1,9 +1,10 @@
 //! Process-global table of plugin reversal handlers.
 //!
-//! Plugin transformation passes all share one [`Reversible::ID`], so their backward dispatch is
-//! routed by the plugin's own stable pass id. `luna_model.register(...)` (via
-//! `lm_register_plugin_backward`) populates this table. It is consulted by
-//! [`super::pass::CPluginTransformPass`]'s `backward`, possibly long after the pass instance is
+//! All plugin transformation passes share one [`Reversible::ID`], and all plugin composite passes
+//! share another, so their backward dispatch is routed by the plugin's own stable pass id (unique
+//! across kinds). `luna_model.register(...)` (via `lm_register_plugin_backward`) populates this
+//! table. It is consulted by [`super::pass::CPluginTransformPass`]'s and
+//! [`super::composite::CPluginCompositePass`]'s `backward`, possibly long after the pass instance is
 //! gone or after a record was reloaded, so each handler carries its own module-level `user_data`
 //! rather than any per-instance state.
 
@@ -31,16 +32,17 @@ fn table() -> &'static Mutex<HashMap<String, PluginBackward>> {
     TRANSFORM_BACKWARDS.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-/// Registers (or replaces) the reversal handler for a transformation plugin `id`.
-pub fn register_transform(id: String, func: LmBackwardFn, user_data: *mut c_void) {
+/// Registers (or replaces) the reversal handler for a reversible plugin pass `id` (transformation
+/// or composite — ids are unique across kinds).
+pub fn register(id: String, func: LmBackwardFn, user_data: *mut c_void) {
     table()
         .lock()
         .unwrap()
         .insert(id, PluginBackward { func, user_data });
 }
 
-/// Looks up a transformation reversal handler by plugin id.
-pub(crate) fn lookup_transform(id: &str) -> Option<(LmBackwardFn, *mut c_void)> {
+/// Looks up a reversal handler by plugin id.
+pub(crate) fn lookup(id: &str) -> Option<(LmBackwardFn, *mut c_void)> {
     table()
         .lock()
         .unwrap()

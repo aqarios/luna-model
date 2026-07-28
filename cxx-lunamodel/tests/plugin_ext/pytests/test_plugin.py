@@ -89,3 +89,75 @@ def test_cxx_transform_consumes_builtin_analysis(plugin):
 
     # Two constraints -> two entries in the built-in analysis result, decoded in C++.
     assert out.model.name == "min-constraints:2"
+
+
+def test_cxx_composite_transforms_and_provides(plugin):
+    """A composite pass's transform half runs: one C++ ``forward`` renames the model.
+
+    ``RenameAndCountPass`` is the fused kind — a single pass that both mutates the model and produces
+    an analysis result. Here we exercise the transform half in isolation.
+    """
+    model = Model("m")
+    vs = model.add_variables("x", 3)
+    model.objective = vs.sum()
+
+    pm = PassManager([plugin.RenameAndCountPass()])
+    out = pm.run(model)
+
+    # The composite's `forward` renamed the model (prefixing the original name).
+    assert out.model.name == "renamed-and-counted:m"
+
+
+def test_cxx_composite_result_feeds_consumer(plugin):
+    """A composite's *analysis* half feeds the existing consumer, mediated by luna_model.
+
+    ``RenameAndCountPass`` publishes its variable count under the same slot ``VarCountAnalysis`` uses,
+    so ``TagWithCountPass`` reads it back across the C ABI exactly as before — proving the composite
+    is a drop-in producer of the shared contract.
+    """
+    model = Model("m")
+    vs = model.add_variables("x", 3)
+    model.objective = vs.sum()
+
+    pm = PassManager([plugin.RenameAndCountPass(), plugin.TagWithCountPass()])
+    out = pm.run(model)
+
+    # The composite renamed the model to "renamed-and-counted:m", then the consumer appended the
+    # count the composite's analysis half published (3 variables).
+    assert out.model.name == "renamed-and-counted:m:vars=3"
+
+
+def test_cxx_meta_analysis_feeds_consumer(plugin):
+    """A C++ meta-analysis introspects the following steps; its count feeds a consumer transform.
+
+    ``CountFollowingMeta`` reads no model — it counts the pipeline steps that follow it (the view
+    starts at the meta pass's OWN position, so index 0 is the meta pass itself), reusing the
+    ``VariableCount`` message and publishing under the same slot ``VarCountAnalysis`` uses, so the
+    existing ``TagWithCountPass`` consumer reads it back unchanged. The view here is
+    ``[CountFollowingMeta, TagWithCountPass]`` — two steps, the first being the meta pass — so the
+    consumer sees ``count == 2``.
+    """
+    model = Model("m")
+    vs = model.add_variables("x", 3)
+    model.objective = vs.sum()
+
+    pm = PassManager([plugin.CountFollowingMeta(), plugin.TagWithCountPass()])
+    out = pm.run(model)
+
+    assert out.model.name == "m:vars=2"
+
+
+def test_cxx_control_flow_plan_runs_chosen_steps(plugin):
+    """A C++ control-flow pass builds a plan of steps at run time, which the engine then runs.
+
+    ``PickBranchPass`` reads the model/context and returns a ``ControlFlowPlan`` holding one transform
+    step — the existing rename. The engine executes that plan, so the model ends up renamed exactly
+    as if ``RenamePass`` had run directly, proving the plan is built and its steps are driven.
+    """
+    model = Model("original")
+
+    pm = PassManager([plugin.PickBranchPass()])
+    out = pm.run(model)
+
+    # The plan's single transform step renamed the model, just like RenamePass.forward does.
+    assert out.model.name == "renamed:original"

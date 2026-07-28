@@ -1,6 +1,10 @@
 use std::ffi::{c_char, c_void};
 
-use crate::plugin::{LmBackwardFn, LmByteSink, LmPassContext, LmPassKind};
+use crate::plugin::{
+    LmBackwardFn, LmByteSink, LmControlFlowPlan, LmPassContext, LmPassKind, LmPluginAnalysis,
+    LmPluginComposite, LmPluginControlFlow, LmPluginMetaAnalysis, LmPluginTransform, LmStepList,
+    LmStrSink,
+};
 
 pub use super::{
     LmAssignment, LmBoolMapBuffer, LmBound, LmBounds, LmBuffer, LmCC, LmCmpBuffer, LmColumn,
@@ -760,5 +764,73 @@ pub struct LunaModelCApi {
         expected_type_tag: *const c_char,
         sink: LmByteSink,
         sink_ctx: *mut c_void,
+    ) -> LmStatus,
+    /// Number of steps in the read-only view lent to a meta-analysis `run`. Writes the count to
+    /// `out_len`.
+    pub step_list_len:
+        unsafe extern "C" fn(steps: *const LmStepList, out_len: *mut usize) -> LmStatus,
+    /// Kind of the step at `index` (writes to `out_kind`). `OutOfBounds` if `index >= len`.
+    pub step_list_kind: unsafe extern "C" fn(
+        steps: *const LmStepList,
+        index: usize,
+        out_kind: *mut LmPassKind,
+    ) -> LmStatus,
+    /// Emits the name of the step at `index` via `sink` (once). `OutOfBounds` if `index >= len`.
+    pub step_list_name: unsafe extern "C" fn(
+        steps: *const LmStepList,
+        index: usize,
+        sink: LmStrSink,
+        sink_ctx: *mut c_void,
+    ) -> LmStatus,
+    /// Emits the analysis names the step at `index` requires, one per `sink` call.
+    pub step_list_requires: unsafe extern "C" fn(
+        steps: *const LmStepList,
+        index: usize,
+        sink: LmStrSink,
+        sink_ctx: *mut c_void,
+    ) -> LmStatus,
+    /// Emits the analysis names the step at `index` provides, one per `sink` call.
+    pub step_list_provides: unsafe extern "C" fn(
+        steps: *const LmStepList,
+        index: usize,
+        sink: LmStrSink,
+        sink_ctx: *mut c_void,
+    ) -> LmStatus,
+    /// Emits the analysis names the step at `index` invalidates, one per `sink` call.
+    pub step_list_invalidates: unsafe extern "C" fn(
+        steps: *const LmStepList,
+        index: usize,
+        sink: LmStrSink,
+        sink_ctx: *mut c_void,
+    ) -> LmStatus,
+    /// Creates a new control-flow execution plan for `name`, written to `out_plan`.
+    pub control_flow_plan_new:
+        unsafe extern "C" fn(name: *const c_char, out_plan: *mut *mut LmControlFlowPlan) -> LmStatus,
+    /// Frees an unconsumed control-flow plan handle.
+    pub control_flow_plan_free: unsafe extern "C" fn(plan: *mut LmControlFlowPlan),
+    /// Appends a plugin transformation pass step to a control-flow plan.
+    pub control_flow_plan_add_transform: unsafe extern "C" fn(
+        plan: *mut LmControlFlowPlan,
+        desc: *const LmPluginTransform,
+    ) -> LmStatus,
+    /// Appends a plugin analysis pass step to a control-flow plan.
+    pub control_flow_plan_add_analysis: unsafe extern "C" fn(
+        plan: *mut LmControlFlowPlan,
+        desc: *const LmPluginAnalysis,
+    ) -> LmStatus,
+    /// Appends a plugin composite pass step to a control-flow plan.
+    pub control_flow_plan_add_composite: unsafe extern "C" fn(
+        plan: *mut LmControlFlowPlan,
+        desc: *const LmPluginComposite,
+    ) -> LmStatus,
+    /// Appends a plugin control-flow pass step to a control-flow plan.
+    pub control_flow_plan_add_control_flow: unsafe extern "C" fn(
+        plan: *mut LmControlFlowPlan,
+        desc: *const LmPluginControlFlow,
+    ) -> LmStatus,
+    /// Appends a plugin meta-analysis pass step to a control-flow plan.
+    pub control_flow_plan_add_meta_analysis: unsafe extern "C" fn(
+        plan: *mut LmControlFlowPlan,
+        desc: *const LmPluginMetaAnalysis,
     ) -> LmStatus,
 }

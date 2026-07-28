@@ -123,3 +123,74 @@ def test_plugin_transform_consumes_builtin_analysis(plugin):
     out = pm.run(model)
 
     assert out.model.name == "min-constraints:2"
+
+
+def test_composite_transforms_and_provides(plugin):
+    """A composite pass's transform half runs: one ``forward`` renames the model.
+
+    ``RenameAndCount`` is the fused kind — a single pass that both mutates the model and produces an
+    analysis result. Here we exercise the transform half in isolation.
+    """
+    model = Model("m")
+    vs = model.add_variables("x", 3)
+    model.objective = vs.sum()
+
+    pm = PassManager([plugin.RenameAndCount()])
+    out = pm.run(model)
+
+    # The composite's `forward` renamed the model.
+    assert out.model.name == "renamed-and-counted"
+
+
+def test_composite_result_feeds_consumer(plugin):
+    """A composite's *analysis* half feeds an existing consumer, mediated by luna_model.
+
+    ``RenameAndCount`` publishes its variable count under the same slot plugin A's analysis uses, so
+    ``TagWithVariableCount`` reads it back across the C-ABI exactly as before — proving the composite
+    is a drop-in producer of the shared contract.
+    """
+    model = Model("m")
+    vs = model.add_variables("x", 3)
+    model.objective = vs.sum()
+
+    pm = PassManager([plugin.RenameAndCount(), plugin.TagWithVariableCount()])
+    out = pm.run(model)
+
+    # The composite renamed the model, then the consumer overwrote the name with the count the
+    # composite's analysis half published (3 variables).
+    assert out.model.name == "vars=3"
+
+
+def test_meta_analysis_feeds_consumer(plugin):
+    """A meta-analysis introspects the following steps; its count feeds a consumer transform.
+
+    ``CountFollowing`` reads no model — it counts the pipeline steps that follow it (the view starts
+    at the meta pass's OWN position, so index 0 is the meta pass itself) and publishes the count,
+    which ``TagWithFollowingCount`` reads back across the C-ABI. The view here is
+    ``[CountFollowing, TagWithFollowingCount]`` — two steps, the first being the meta pass — so the
+    consumer sees ``count == 2``.
+    """
+    model = Model("m")
+    vs = model.add_variables("x", 3)
+    model.objective = vs.sum()
+
+    pm = PassManager([plugin.CountFollowing(), plugin.TagWithFollowingCount()])
+    out = pm.run(model)
+
+    assert out.model.name == "meta-steps=2"
+
+
+def test_control_flow_plan_runs_chosen_steps(plugin):
+    """A control-flow pass builds a plan of steps at run time, which the engine then runs.
+
+    ``PickBranch`` reads the model/context and returns a ``ControlFlowPlan`` holding one transform
+    step — the standalone rename. The engine executes that plan, so the model ends up renamed exactly
+    as if ``RenamePass`` had run directly, proving the plan is built and its steps are driven.
+    """
+    model = Model("original")
+
+    pm = PassManager([plugin.PickBranch()])
+    out = pm.run(model)
+
+    # The plan's single transform step renamed the model, just like RenamePass.forward does.
+    assert out.model.name == "renamed-by-py-plugin"

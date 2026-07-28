@@ -300,6 +300,255 @@ mod plugin_c {
     }
 }
 
+/// **Plugin D** — a **composite** pass: one `forward` both *transforms* the model (renames it) and
+/// *produces* an analysis result (the variable count), published under the SAME slot as plugin A's
+/// analysis (`contract::VARIABLE_COUNT`). This proves the fused kind is a drop-in producer: the
+/// existing `plugin_b::TagWithVariableCount` consumer reads the composite's analysis half exactly as
+/// it would plugin A's, with no changes on the consumer side.
+mod plugin_d {
+    use super::contract::{VARIABLE_COUNT, VariableCount};
+    use prost::Message;
+    use pyo3::prelude::*;
+    use rs_lunamodel::plugin::{Artifact, CompositePass, PassContext, Reversible};
+
+    /// Typed inverse artifact — carries the original name so the rename half can be undone.
+    #[derive(Message)]
+    pub struct RenameAndCountInverse {
+        #[prost(string, tag = "1")]
+        previous: String,
+    }
+
+    impl Artifact for RenameAndCountInverse {
+        fn static_type_tag() -> &'static str {
+            "luna_plugin_ext::rename-and-count::artifact"
+        }
+    }
+
+    #[derive(Clone)]
+    pub struct RenameAndCountLogic;
+
+    impl Reversible for RenameAndCountLogic {
+        type Artifact = RenameAndCountInverse;
+
+        const ID: &'static str = "luna_plugin_ext::rename-and-count";
+
+        fn backward(
+            _artifact: &RenameAndCountInverse,
+            solution: rs_lunamodel::Solution,
+        ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+            // Renaming does not affect assignments, so reversal is a no-op on the solution.
+            Ok(solution)
+        }
+    }
+
+    impl CompositePass for RenameAndCountLogic {
+        type Output = VariableCount;
+
+        const PROVIDES: &'static str = VARIABLE_COUNT;
+
+        fn name(&self) -> &str {
+            "rename-and-count"
+        }
+
+        fn forward(
+            &self,
+            model: &mut rs_lunamodel::Model,
+            _ctx: &PassContext,
+        ) -> rs_lunamodel::Result<(RenameAndCountInverse, VariableCount)> {
+            // Transform half: rename the model, capturing the previous name for reversal.
+            let previous = model.name()?;
+            model.set_name("renamed-and-counted".into())?;
+            // Analysis half: count participating variables and publish under `VARIABLE_COUNT`.
+            let count = model.num_variables()? as u64;
+            Ok((RenameAndCountInverse { previous }, VariableCount { count }))
+        }
+    }
+
+    rs_lunamodel::py::py_composite_plugin!(pub RenameAndCount(RenameAndCountLogic) => RenameAndCountArtifact, RenameAndCountResult);
+
+    #[pymethods]
+    impl RenameAndCount {
+        #[new]
+        fn new() -> Self {
+            Self(RenameAndCountLogic)
+        }
+    }
+}
+
+/// **Plugin E** — a **meta-analysis** pass: it reads NO model. Instead it introspects the pipeline
+/// steps that FOLLOW it (through the `StepList` facade) and publishes how many there are under
+/// `FOLLOWING_COUNT`. Matching the native semantics, the step view starts at the meta pass's OWN
+/// position — index 0 is the meta pass itself — so a `[CountFollowing, consumer]` pipeline reports
+/// two steps. A companion transform reads that count back across the C-ABI and tags the model with
+/// it, proving the meta result is a drop-in producer of the shared analysis contract.
+mod plugin_e {
+    use prost::Message;
+    use pyo3::prelude::*;
+    use rs_lunamodel::plugin::{
+        AnalysisResult, Artifact, MetaAnalysisPass, PassContext, Reversible, StepList,
+        TransformationPass,
+    };
+
+    /// Stable name the meta result is stored/read under.
+    const FOLLOWING_COUNT: &str = "luna_plugin_ext::following-count";
+
+    /// The meta-analysis result: the number of pipeline steps in the view following (and including)
+    /// the meta pass.
+    #[derive(Message)]
+    pub struct FollowingCount {
+        #[prost(uint64, tag = "1")]
+        pub count: u64,
+    }
+
+    impl AnalysisResult for FollowingCount {
+        fn static_type_tag() -> &'static str {
+            "luna_plugin_ext.following-count"
+        }
+    }
+
+    #[derive(Clone)]
+    pub struct CountFollowingLogic;
+
+    impl MetaAnalysisPass for CountFollowingLogic {
+        type Output = FollowingCount;
+
+        const PROVIDES: &'static str = FOLLOWING_COUNT;
+
+        fn name(&self) -> &str {
+            "count-following"
+        }
+
+        fn run(&self, steps: &StepList) -> rs_lunamodel::Result<FollowingCount> {
+            // The view starts at this pass's own position, so `len` counts it plus the steps after.
+            Ok(FollowingCount {
+                count: steps.len() as u64,
+            })
+        }
+    }
+
+    rs_lunamodel::py::py_meta_analysis_plugin!(pub CountFollowing(CountFollowingLogic) => FollowingCountResult);
+
+    #[pymethods]
+    impl CountFollowing {
+        #[new]
+        fn new() -> Self {
+            Self(CountFollowingLogic)
+        }
+    }
+
+    /// Inverse artifact — tagging carries no reversal data.
+    #[derive(Message)]
+    pub struct TagInverse {}
+
+    impl Artifact for TagInverse {
+        fn static_type_tag() -> &'static str {
+            "luna_plugin_ext::following-tag::artifact"
+        }
+    }
+
+    /// The consumer transform: `requires` the meta result and reads it back through the context, then
+    /// tags the model name with the step count.
+    #[derive(Clone)]
+    pub struct TagWithFollowingCountLogic {
+        requires: Vec<String>,
+    }
+
+    impl TagWithFollowingCountLogic {
+        pub fn new() -> Self {
+            Self {
+                requires: vec![FOLLOWING_COUNT.to_string()],
+            }
+        }
+    }
+
+    impl Reversible for TagWithFollowingCountLogic {
+        type Artifact = TagInverse;
+
+        const ID: &'static str = "luna_plugin_ext::tag-with-following-count";
+
+        fn backward(
+            _artifact: &TagInverse,
+            solution: rs_lunamodel::Solution,
+        ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+            Ok(solution)
+        }
+    }
+
+    impl TransformationPass for TagWithFollowingCountLogic {
+        fn name(&self) -> &str {
+            "tag-with-following-count"
+        }
+
+        fn requires(&self) -> &[String] {
+            &self.requires
+        }
+
+        fn forward(
+            &self,
+            model: &mut rs_lunamodel::Model,
+            ctx: &PassContext,
+        ) -> rs_lunamodel::Result<TagInverse> {
+            // Read the meta-analysis result across the C-ABI, decoding into the contract type.
+            let counted: FollowingCount = ctx.require_analysis(FOLLOWING_COUNT)?;
+            model.set_name(format!("meta-steps={}", counted.count))?;
+            Ok(TagInverse {})
+        }
+    }
+
+    rs_lunamodel::py::py_transform_plugin!(pub TagWithFollowingCount(TagWithFollowingCountLogic) => FollowingCountTagArtifact);
+
+    #[pymethods]
+    impl TagWithFollowingCount {
+        #[new]
+        fn new() -> Self {
+            Self(TagWithFollowingCountLogic::new())
+        }
+    }
+}
+
+/// **Plugin F** — a **control-flow** pass: it reads no serialized payload and produces no artifact.
+/// At `run` it inspects the read-only model/context and builds a `ControlFlowPlan` — the pipeline of
+/// steps to execute next — here a single transform step reusing the standalone `RenameLogic`. The
+/// engine then runs that plan, so the model ends up renamed exactly as if `RenamePass` had run
+/// directly. A control-flow pass is not itself reversible (its steps carry their own reversal —
+/// `RenameLogic`'s backward is already registered in the top-level `register_plugins!`), so it is
+/// absent from the reversal registration.
+mod plugin_f {
+    use pyo3::prelude::*;
+    use rs_lunamodel::plugin::{ControlFlowPass, ControlFlowPlan, PassContext};
+
+    #[derive(Clone)]
+    pub struct PickBranchLogic;
+
+    impl ControlFlowPass for PickBranchLogic {
+        fn name(&self) -> &str {
+            "pick-branch"
+        }
+
+        fn run(
+            &self,
+            _model: &rs_lunamodel::Model,
+            _ctx: &PassContext,
+        ) -> rs_lunamodel::Result<ControlFlowPlan> {
+            // Build the chosen branch: one transform step (the standalone rename), returned for the
+            // engine to run. Reversible steps still register their own backward, as any pass does.
+            let mut plan = ControlFlowPlan::new("chosen")?;
+            plan.add_transform(super::RenameLogic)?;
+            Ok(plan)
+        }
+    }
+
+    rs_lunamodel::py::py_control_flow_plugin!(pub PickBranch(PickBranchLogic));
+
+    #[pymethods]
+    impl PickBranch {
+        #[new]
+        fn new() -> Self {
+            Self(PickBranchLogic)
+        }
+    }
+}
+
 #[pymodule]
 fn luna_plugin_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RenamePass>()?;
@@ -310,12 +559,25 @@ fn luna_plugin_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<plugin_b::TagArtifact>()?;
     m.add_class::<plugin_c::TagWithMinConstraint>()?;
     m.add_class::<plugin_c::MinConstraintTagArtifact>()?;
-    // Only reversible passes (transforms) register a backward handler; analyses do not.
+    m.add_class::<plugin_d::RenameAndCount>()?;
+    m.add_class::<plugin_d::RenameAndCountArtifact>()?;
+    m.add_class::<plugin_d::RenameAndCountResult>()?;
+    m.add_class::<plugin_e::CountFollowing>()?;
+    m.add_class::<plugin_e::FollowingCountResult>()?;
+    m.add_class::<plugin_e::TagWithFollowingCount>()?;
+    m.add_class::<plugin_e::FollowingCountTagArtifact>()?;
+    m.add_class::<plugin_f::PickBranch>()?;
+    // Only reversible passes (transforms + composites) register a backward handler; analyses and
+    // meta-analyses do not.
     rs_lunamodel::py::register_plugins!(
         m,
-        RenameLogic,
-        plugin_b::TagWithCountLogic,
-        plugin_c::TagWithMinConstraintLogic
+        transform: [
+            RenameLogic,
+            plugin_b::TagWithCountLogic,
+            plugin_c::TagWithMinConstraintLogic,
+            plugin_e::TagWithFollowingCountLogic
+        ],
+        composite: [plugin_d::RenameAndCountLogic]
     )?;
     Ok(())
 }

@@ -2,9 +2,15 @@
 
 use std::sync::Arc;
 
-use lunamodel_capi_plugin::{CPluginAnalysisPass, CPluginTransformPass};
+use lunamodel_capi_plugin::{
+    CPluginAnalysisPass, CPluginCompositePass, CPluginControlFlowPass, CPluginMetaAnalysisPass,
+    CPluginTransformPass,
+};
 use lunamodel_capi_pyffi::plugin::{
-    PLUGIN_ANALYSIS_METHOD, PLUGIN_TRANSFORM_METHOD, read_plugin_analysis, read_plugin_transform,
+    PLUGIN_ANALYSIS_METHOD, PLUGIN_COMPOSITE_METHOD, PLUGIN_CONTROL_FLOW_METHOD,
+    PLUGIN_META_ANALYSIS_METHOD, PLUGIN_TRANSFORM_METHOD, read_plugin_analysis,
+    read_plugin_composite, read_plugin_control_flow, read_plugin_meta_analysis,
+    read_plugin_transform,
 };
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transform::{
@@ -278,6 +284,33 @@ fn plugin_pass_step(obj: &Py<PyAny>, py: Python<'_>) -> PyResult<PipelineStep> {
         let descriptor = read_plugin_analysis(&capsule)?;
         return Ok(PipelineStep::Analysis(Arc::new(
             CPluginAnalysisPass::from_descriptor(&descriptor),
+        )));
+    }
+    if bound.hasattr(PLUGIN_COMPOSITE_METHOD)? {
+        let capsule = bound
+            .call_method0(PLUGIN_COMPOSITE_METHOD)?
+            .cast_into::<PyCapsule>()?;
+        let descriptor = read_plugin_composite(&capsule)?;
+        return Ok(PipelineStep::Composite(Arc::new(
+            CPluginCompositePass::from_descriptor(&descriptor),
+        )));
+    }
+    if bound.hasattr(PLUGIN_META_ANALYSIS_METHOD)? {
+        let capsule = bound
+            .call_method0(PLUGIN_META_ANALYSIS_METHOD)?
+            .cast_into::<PyCapsule>()?;
+        let descriptor = read_plugin_meta_analysis(&capsule)?;
+        return Ok(PipelineStep::MetaAnalysis(Arc::new(
+            CPluginMetaAnalysisPass::from_descriptor(&descriptor),
+        )));
+    }
+    if bound.hasattr(PLUGIN_CONTROL_FLOW_METHOD)? {
+        let capsule = bound
+            .call_method0(PLUGIN_CONTROL_FLOW_METHOD)?
+            .cast_into::<PyCapsule>()?;
+        let descriptor = read_plugin_control_flow(&capsule)?;
+        return Ok(PipelineStep::ControlFlow(Arc::new(
+            CPluginControlFlowPass::from_descriptor(&descriptor),
         )));
     }
     Err(invalid_pass_error(obj, py))
