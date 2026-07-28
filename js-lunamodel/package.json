@@ -43,7 +43,7 @@
   "devDependencies": {
     "@emnapi/core": "1.11.3",
     "@emnapi/runtime": "1.11.3",
-    "@napi-rs/cli": "^3.7.4",
+    "@napi-rs/cli": "^3.8.0",
     "@napi-rs/wasm-runtime": "^1.1.6"
   }
 }
