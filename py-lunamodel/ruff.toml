@@ -69,6 +69,7 @@ ignore = [
     "SLF001", # Private member access is required to make the wrapping a bit less verbose.
     "FBT001", # We have boolen types and they are also defaulted - no other way.
     "FBT002", # We have boolen types and they are also defaulted - no other way.
+    "PLR0917", # We require many positional arguments to be API compatible for now.
     "PLW1641", # We don't care for the hash
 ]
 # Allow unused variables when underscore-prefixed.
