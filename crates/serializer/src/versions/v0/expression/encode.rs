@@ -79,17 +79,19 @@ impl SerExpression {
         expr: &Expression,
     ) {
         if let Some(q) = &expr.quadratic {
-            *qs = q.len() as u32;
             for (u, n) in q.iter() {
+                *qs += 1u32;
                 if n.is_empty() {
                     continue;
                 }
                 qni.push(u);
-                qnl.push(n.len() as u32);
+                let mut neighborhood_len = 0;
                 for (v, b) in n.iter() {
+                    neighborhood_len += 1;
                     qn.push(v);
                     qnv.push(b);
                 }
+                qnl.push(neighborhood_len);
             }
         }
     }
@@ -103,8 +105,8 @@ impl SerExpression {
         expr: &Expression,
     ) {
         if let Some(h) = &expr.higher_order {
-            *hs = h.len() as u32;
             for (mut vs, b) in h.iter_contrib() {
+                *hs += 1u32;
                 hv.push(b);
                 hl.push(vs.len() as u32);
                 hi.append(&mut vs);
