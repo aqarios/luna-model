@@ -44,17 +44,29 @@ impl Quadratic {
 
     /// Returns `true` if the sum of all stored quadratic biases is zero.
     pub fn is_zero(&self) -> bool {
-        self.iter_flat().map(|(_, _, b)| b).sum::<Bias>() == 0.0
+        self.iter_flat()
+            .map(|(_, _, b)| b)
+            .all(|b| b == Bias::default())
     }
 
     /// Iterates over the outer adjacency entries.
     pub fn iter(&self) -> impl Iterator<Item = (VarIdx, &Neighborhood)> {
-        self.adj.iter().map(|t| (t.idx, &t.neighborhood))
+        self.adj
+            .iter()
+            .filter_map(|t| match t.neighborhood.is_zero() {
+                false => Some((t.idx, &t.neighborhood)),
+                true => None,
+            })
     }
 
     /// Iterates mutably over the outer adjacency entries.
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (VarIdx, &mut Neighborhood)> {
-        self.adj.iter_mut().map(|t| (t.idx, &mut t.neighborhood))
+        self.adj
+            .iter_mut()
+            .filter_map(|t| match t.neighborhood.is_zero() {
+                false => Some((t.idx, &mut t.neighborhood)),
+                true => None,
+            })
     }
 
     /// Flattens the sparse adjacency list into `(u, v, bias)` triples.
