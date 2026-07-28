@@ -1,5 +1,7 @@
 //! Internal helper traits for Python transformation wrappers.
 
+use std::sync::Arc;
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::PipelineStep;
 use pyo3::{FromPyObject, Py, PyAny, PyErr, PyResult, Python};
@@ -9,7 +11,7 @@ use crate::transform::{pass::PyPass, pipeline::PyPipeline};
 pub fn map_pyerr(err: PyErr) -> LunaModelError {
     LunaModelError::WithCause(
         Box::new(LunaModelError::Internal(err.to_string().into())),
-        err.into(),
+        Arc::new(err),
     )
 }
 

@@ -382,29 +382,12 @@ impl From<Lme> for PyErr {
 
             Lme::WithCause(e, cause) => {
                 let pyerr: PyErr = (*e).into();
-                Python::attach(|py| pyerr.set_cause(py, Some(cause.err)));
+                if let Some(py_cause) = cause.downcast_ref::<PyErr>() {
+                    Python::attach(|py| pyerr.set_cause(py, Some(py_cause.clone_ref(py))));
+                }
                 return pyerr;
             }
         };
         err(lme.to_string())
-    }
-}
-
-#[derive(Debug)]
-pub struct PyErrW {
-    pub err: PyErr,
-}
-
-impl Clone for PyErrW {
-    fn clone(&self) -> Self {
-        PyErrW {
-            err: Python::attach(|py| self.err.clone_ref(py)),
-        }
-    }
-}
-
-impl From<PyErr> for PyErrW {
-    fn from(err: PyErr) -> Self {
-        Self { err }
     }
 }

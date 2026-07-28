@@ -135,12 +135,18 @@ pub enum LunaModelError {
         reason: String,
         record: Option<ErasedRecord>,
     },
-    #[cfg(feature = "py")]
-    /// Wraps a domain error together with a Python-side cause.
-    WithCause(Box<LunaModelError>, py::PyErrW),
+    /// Wraps a domain error together with a cause.
+    WithCause(Box<LunaModelError>, Arc<dyn Error + Send + Sync>),
 }
 
-impl Error for LunaModelError {}
+impl Error for LunaModelError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::WithCause(_, cause) => Some(cause.as_ref()),
+            _ => None,
+        }
+    }
+}
 
 impl Display for LunaModelError {
     /// Formats the error in a human-readable developer-oriented form.
@@ -193,8 +199,7 @@ impl Display for LunaModelError {
             Transformation { msg, .. } => write!(f, "transformation error: {}", msg),
             RandomSampling(msg) => write!(f, "random sampling failed due to: {}", msg),
             InvalidTolerance(msg) => write!(f, "invalid tolerance: {}", msg),
-            #[cfg(feature = "py")]
-            WithCause(err, _) => write!(f, "{}", err),
+            WithCause(err, cause) => write!(f, "{err} - caused by: {cause}"),
 
             Infeasible {
                 location, reason, ..
@@ -208,6 +213,9 @@ impl Display for LunaModelError {
 impl LunaModelError {
     /// Recovers the type-erased payload attached to a [`LunaModelError::Transformation`] as `&T`,
     /// if present and of type `T`.
+    ///
+    /// Looks through [`LunaModelError::WithCause`] so a wrapped cause never hides the
+    /// record carried by the domain error it wraps.
     pub fn recover<T: Any>(&self) -> Option<&T> {
         match self {
             Self::Transformation {
@@ -216,6 +224,7 @@ impl LunaModelError {
             Self::Infeasible {
                 record: Some(r), ..
             } => r.downcast_ref::<T>(),
+            Self::WithCause(inner, _) => inner.recover::<T>(),
             _ => None,
         }
     }

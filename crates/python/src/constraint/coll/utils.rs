@@ -1,5 +1,7 @@
 //! Helper utilities for Python constraint-collection wrappers.
 
+use std::sync::Arc;
+
 use lunamodel_core::{Constraint, ConstraintCollection};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use numpy::{PyArray1, PyArrayMethods};
@@ -170,7 +172,7 @@ fn make_element(
         Err(e) => {
             let mapped = LunaModelError::Dtype(e.to_string().into());
             let pye: PyErr = e;
-            Err(LunaModelError::WithCause(Box::new(mapped), pye.into()))
+            Err(LunaModelError::WithCause(Box::new(mapped), Arc::new(pye)))
         }
     }
 }
