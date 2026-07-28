@@ -36,27 +36,37 @@ impl HigherOrder {
 
     /// Returns `true` if all stored contributions sum to zero.
     pub fn is_zero(&self) -> bool {
-        self.iter().map(|(_, b)| b).sum::<Bias>() == Bias::default()
+        self.iter().map(|(_, b)| b).all(|b| b == Bias::default())
     }
 
     /// Returns `true` if no effective higher-order contribution is present.
     pub fn is_empty(&self) -> bool {
-        self.entries.is_empty() || self.entries.values().sum::<Bias>() == Bias::default()
+        self.entries.is_empty() || self.is_zero()
     }
 
     /// Iterates over the canonical contribution keys and their biases.
     pub fn iter(&self) -> impl Iterator<Item = (&String, Bias)> {
-        self.entries.iter().map(|(k, b)| (k, *b))
+        self.entries
+            .iter()
+            .filter_map(|(k, b)| match *b != Bias::default() {
+                true => Some((k, *b)),
+                false => None,
+            })
     }
 
     /// Iterates mutably over the canonical contribution keys and their biases.
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (&String, &mut Bias)> {
-        self.entries.iter_mut()
+        self.entries
+            .iter_mut()
+            .filter_map(|(k, b)| match *b != Bias::default() {
+                true => Some((k, b)),
+                false => None,
+            })
     }
 
     /// Iterates over decoded variable tuples and their biases.
     pub fn iter_contrib(&self) -> impl Iterator<Item = (Vec<VarIdx>, Bias)> {
-        self.entries.iter().map(|(k, b)| (contribs(k), *b))
+        self.iter().map(|(k, b)| (contribs(k), b))
     }
 
     /// Removes explicitly stored zero contributions.

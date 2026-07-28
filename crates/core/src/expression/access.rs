@@ -147,7 +147,7 @@ impl Expression {
     /// stored higher-order degree.
     pub fn degree(&self) -> usize {
         match (
-            !self.linear.is_empty(),
+            !self.linear.is_zero(),
             self.has_quadratic(),
             self.has_higher_order(),
         ) {
@@ -171,14 +171,14 @@ impl Expression {
     pub fn has_quadratic(&self) -> bool {
         self.quadratic
             .as_ref()
-            .map_or_else(|| false, |q| !q.is_empty())
+            .map_or_else(|| false, |q| !q.is_zero())
     }
 
     /// Returns whether the higher-order storage contains any non-zero terms.
     pub fn has_higher_order(&self) -> bool {
         self.higher_order
             .as_ref()
-            .map_or_else(|| false, |h| !h.is_empty())
+            .map_or_else(|| false, |h| !h.is_zero())
     }
 
     /// Returns the linear bias for a variable index.
