@@ -137,7 +137,10 @@ impl Step<'_> {
 /// Drives a string-emitting C call, collecting the emitted strings into a `Vec`.
 fn collect(call: impl FnOnce(LmStrSink, *mut c_void) -> LmStatus) -> crate::Result<Vec<String>> {
     let mut out: Vec<String> = Vec::new();
-    let status = call(collect_string, (&mut out as *mut Vec<String>).cast::<c_void>());
+    let status = call(
+        collect_string,
+        (&mut out as *mut Vec<String>).cast::<c_void>(),
+    );
     check(status)?;
     Ok(out)
 }

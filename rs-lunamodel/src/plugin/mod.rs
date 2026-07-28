@@ -470,7 +470,13 @@ unsafe extern "C" fn composite_trampoline_forward<C: CompositePass>(
         Ok((artifact, output)) => {
             // Emit the two payloads independently: inverse artifact, then analysis result.
             let artifact_bytes = artifact.encode_to_vec();
-            unsafe { artifact_sink(artifact_sink_ctx, artifact_bytes.as_ptr(), artifact_bytes.len()) };
+            unsafe {
+                artifact_sink(
+                    artifact_sink_ctx,
+                    artifact_bytes.as_ptr(),
+                    artifact_bytes.len(),
+                )
+            };
             let result_bytes = output.encode_to_vec();
             unsafe { result_sink(result_sink_ctx, result_bytes.as_ptr(), result_bytes.len()) };
             LmStatus::Ok
