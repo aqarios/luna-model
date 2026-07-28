@@ -59,18 +59,27 @@ impl Neighborhood {
 
     /// Returns `true` if the sum of all biases is zero.
     pub fn is_zero(&self) -> bool {
-        Bias::default() == self.iter().map(|(_, b)| b).sum::<Bias>()
+        self.iter().map(|(_, b)| b).all(|b| b == Bias::default())
     }
 
     /// Iterates over `(variable, bias)` pairs.
     pub fn iter(&self) -> impl Iterator<Item = (VarIdx, Bias)> {
-        self.0.iter().map(|t| (t.idx, t.bias))
+        self.0
+            .iter()
+            .filter_map(|t| match t.bias != Bias::default() {
+                true => Some((t.idx, t.bias)),
+                false => None,
+            })
     }
 
     /// Iterates mutably over `(variable, bias)` pairs.
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (VarIdx, &mut Bias)> {
         let mvec: &mut Vec<OneVarTerm> = self.0.as_mut();
-        mvec.iter_mut().map(|t| (t.idx, &mut t.bias))
+        mvec.iter_mut()
+            .filter_map(|t| match t.bias != Bias::default() {
+                true => Some((t.idx, &mut t.bias)),
+                false => None,
+            })
     }
 
     /// Appends a new term to the back without checking ordering.
