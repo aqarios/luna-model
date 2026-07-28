@@ -1,5 +1,7 @@
 //! Filtering helpers for Python solutions.
 
+use std::sync::Arc;
+
 use lunamodel_core::Solution;
 use lunamodel_error::LunaModelError;
 use lunamodel_unwind::*;
@@ -27,14 +29,14 @@ impl PySolution {
                     .map_err(|e| {
                         LunaModelError::WithCause(
                             Box::new(LunaModelError::Computation(e.to_string().into())),
-                            e.into(),
+                            Arc::new(e),
                         )
                     })?
                     .extract::<bool>()
                     .map_err(|e| {
                         LunaModelError::WithCause(
                             Box::new(LunaModelError::Computation(e.to_string().into())),
-                            e.into(),
+                            Arc::new(e),
                         )
                     })?;
                 Ok(r)
