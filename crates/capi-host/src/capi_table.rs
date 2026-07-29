@@ -544,4 +544,17 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // ///////////// //
     register_plugin_backward: crate::plugin::lm_register_plugin_backward,
     pass_context_get_analysis: crate::plugin::lm_pass_context_get_analysis,
+    step_list_len: crate::plugin::lm_step_list_len,
+    step_list_kind: crate::plugin::lm_step_list_kind,
+    step_list_name: crate::plugin::lm_step_list_name,
+    step_list_requires: crate::plugin::lm_step_list_requires,
+    step_list_provides: crate::plugin::lm_step_list_provides,
+    step_list_invalidates: crate::plugin::lm_step_list_invalidates,
+    control_flow_plan_new: crate::plugin::lm_control_flow_plan_new,
+    control_flow_plan_free: crate::plugin::lm_control_flow_plan_free,
+    control_flow_plan_add_transform: crate::plugin::lm_control_flow_plan_add_transform,
+    control_flow_plan_add_analysis: crate::plugin::lm_control_flow_plan_add_analysis,
+    control_flow_plan_add_composite: crate::plugin::lm_control_flow_plan_add_composite,
+    control_flow_plan_add_control_flow: crate::plugin::lm_control_flow_plan_add_control_flow,
+    control_flow_plan_add_meta_analysis: crate::plugin::lm_control_flow_plan_add_meta_analysis,
 };

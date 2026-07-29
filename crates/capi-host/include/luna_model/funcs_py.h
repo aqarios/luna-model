@@ -452,6 +452,19 @@ static inline int import_luna_model(void) {
 #define lm_timing_qpu(...) (lunamodel__vtable->timing_qpu(__VA_ARGS__))
 #define lm_register_plugin_backward(...) (lunamodel__vtable->register_plugin_backward(__VA_ARGS__))
 #define lm_pass_context_get_analysis(...) (lunamodel__vtable->pass_context_get_analysis(__VA_ARGS__))
+#define lm_step_list_len(...) (lunamodel__vtable->step_list_len(__VA_ARGS__))
+#define lm_step_list_kind(...) (lunamodel__vtable->step_list_kind(__VA_ARGS__))
+#define lm_step_list_name(...) (lunamodel__vtable->step_list_name(__VA_ARGS__))
+#define lm_step_list_requires(...) (lunamodel__vtable->step_list_requires(__VA_ARGS__))
+#define lm_step_list_provides(...) (lunamodel__vtable->step_list_provides(__VA_ARGS__))
+#define lm_step_list_invalidates(...) (lunamodel__vtable->step_list_invalidates(__VA_ARGS__))
+#define lm_control_flow_plan_new(...) (lunamodel__vtable->control_flow_plan_new(__VA_ARGS__))
+#define lm_control_flow_plan_free(...) (lunamodel__vtable->control_flow_plan_free(__VA_ARGS__))
+#define lm_control_flow_plan_add_transform(...) (lunamodel__vtable->control_flow_plan_add_transform(__VA_ARGS__))
+#define lm_control_flow_plan_add_analysis(...) (lunamodel__vtable->control_flow_plan_add_analysis(__VA_ARGS__))
+#define lm_control_flow_plan_add_composite(...) (lunamodel__vtable->control_flow_plan_add_composite(__VA_ARGS__))
+#define lm_control_flow_plan_add_control_flow(...) (lunamodel__vtable->control_flow_plan_add_control_flow(__VA_ARGS__))
+#define lm_control_flow_plan_add_meta_analysis(...) (lunamodel__vtable->control_flow_plan_add_meta_analysis(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -25,7 +25,10 @@ pub use lunamodel_capi_pyffi;
 // (`rs_lunamodel::py_transform_plugin!`). Re-export them here so authors can also reach them under
 // the `py` module — `rs_lunamodel::py::py_transform_plugin!(...)` — matching the single-package
 // layout (the macros' own `$crate::…` paths still resolve against the crate root either way).
-pub use crate::{py_analysis_plugin, py_transform_plugin, register_plugins};
+pub use crate::{
+    py_analysis_plugin, py_composite_plugin, py_control_flow_plugin, py_meta_analysis_plugin,
+    py_transform_plugin, register_plugins,
+};
 
 use crate::LunaModelCApi;
 use lunamodel_capi_pyffi::C_API_CAPSULE_NAME;

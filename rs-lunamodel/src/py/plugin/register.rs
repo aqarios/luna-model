@@ -15,16 +15,26 @@
 /// ```
 #[macro_export]
 macro_rules! register_plugins {
-    ($module:expr, $($logic:ty),+ $(,)?) => {{
+    // Explicit kind groups. Transformation and composite passes are the reversible kinds; analyses
+    // and the other kinds are not reversible and are not listed.
+    ($module:expr, transform: [$($t:ty),* $(,)?], composite: [$($c:ty),* $(,)?] $(,)?) => {{
         #[::pyo3::pyfunction]
         fn __luna_register__(py: ::pyo3::Python<'_>) -> ::pyo3::PyResult<()> {
             $crate::py::ensure_c_api(py)?;
             $(
-                $crate::plugin::register_backward::<$logic>()
+                $crate::plugin::register_backward::<$t>()
                     .map_err(|error| ::pyo3::exceptions::PyRuntimeError::new_err(error.to_string()))?;
-            )+
+            )*
+            $(
+                $crate::plugin::register_composite_backward::<$c>()
+                    .map_err(|error| ::pyo3::exceptions::PyRuntimeError::new_err(error.to_string()))?;
+            )*
             ::core::result::Result::Ok(())
         }
         $module.add_function(::pyo3::wrap_pyfunction!(__luna_register__, $module)?)
     }};
+    // Back-compat shorthand: a bare list is all transformation passes.
+    ($module:expr, $($logic:ty),+ $(,)?) => {
+        $crate::register_plugins!($module, transform: [$($logic),+], composite: [])
+    };
 }

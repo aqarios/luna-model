@@ -27,6 +27,65 @@ LmStatus lm_register_plugin_backward(LmPassKind kind,
                                      void *user_data);
 
 /**
+ * Creates a new control-flow plan with name `name`, written to `out_plan`.
+ *
+ * # Safety
+ * `name` must be a valid NUL-terminated C string. `out_plan` must be a valid writable pointer.
+ */
+LmStatus lm_control_flow_plan_new(const char *name, LmControlFlowPlan **out_plan);
+
+/**
+ * Frees an unconsumed control-flow plan handle.
+ *
+ * # Safety
+ * `plan` must be a handle returned by `lm_control_flow_plan_new` that has not yet been consumed
+ * or freed.
+ */
+void lm_control_flow_plan_free(LmControlFlowPlan *plan);
+
+/**
+ * Appends a plugin transformation pass step to a control-flow plan.
+ *
+ * # Safety
+ * `plan` must be a live `*mut LmControlFlowPlan` handle. `desc` must point to a valid descriptor.
+ */
+LmStatus lm_control_flow_plan_add_transform(LmControlFlowPlan *plan, const LmPluginTransform *desc);
+
+/**
+ * Appends a plugin analysis pass step to a control-flow plan.
+ *
+ * # Safety
+ * `plan` must be a live `*mut LmControlFlowPlan` handle. `desc` must point to a valid descriptor.
+ */
+LmStatus lm_control_flow_plan_add_analysis(LmControlFlowPlan *plan, const LmPluginAnalysis *desc);
+
+/**
+ * Appends a plugin composite pass step to a control-flow plan.
+ *
+ * # Safety
+ * `plan` must be a live `*mut LmControlFlowPlan` handle. `desc` must point to a valid descriptor.
+ */
+LmStatus lm_control_flow_plan_add_composite(LmControlFlowPlan *plan, const LmPluginComposite *desc);
+
+/**
+ * Appends a plugin control-flow pass step to a control-flow plan.
+ *
+ * # Safety
+ * `plan` must be a live `*mut LmControlFlowPlan` handle. `desc` must point to a valid descriptor.
+ */
+LmStatus lm_control_flow_plan_add_control_flow(LmControlFlowPlan *plan,
+                                               const LmPluginControlFlow *desc);
+
+/**
+ * Appends a plugin meta-analysis pass step to a control-flow plan.
+ *
+ * # Safety
+ * `plan` must be a live `*mut LmControlFlowPlan` handle. `desc` must point to a valid descriptor.
+ */
+LmStatus lm_control_flow_plan_add_meta_analysis(LmControlFlowPlan *plan,
+                                                const LmPluginMetaAnalysis *desc);
+
+/**
  * Reads an analysis result stored under `name` earlier in the same run, verifies its recorded type
  * tag matches `expected_type_tag`, and hands the serialized bytes to `sink`. Serves both plugin
  * analyses (which deposit serialized bytes) and built-in analyses (whose typed result is serialized
@@ -46,6 +105,66 @@ LmStatus lm_pass_context_get_analysis(const LmPassContext *ctx,
                                       const char *expected_type_tag,
                                       LmByteSink sink,
                                       void *sink_ctx);
+
+/**
+ * Writes the number of steps in the lent view to `out_len`.
+ *
+ * # Safety
+ * `steps` must be a live `*const LmStepList`; `out_len` must be a valid writable `usize`.
+ */
+LmStatus lm_step_list_len(const LmStepList *steps, uintptr_t *out_len);
+
+/**
+ * Writes the kind of the step at `index` to `out_kind`. `InvalidArgument` if out of bounds.
+ *
+ * # Safety
+ * `steps` must be a live `*const LmStepList`; `out_kind` must be a valid writable `LmPassKind`.
+ */
+LmStatus lm_step_list_kind(const LmStepList *steps, uintptr_t index, LmPassKind *out_kind);
+
+/**
+ * Emits the name of the step at `index` via `sink` (once). `InvalidArgument` if out of bounds.
+ *
+ * # Safety
+ * `steps` must be a live `*const LmStepList`; `sink` must copy the string before returning.
+ */
+LmStatus lm_step_list_name(const LmStepList *steps,
+                           uintptr_t index,
+                           LmStrSink sink,
+                           void *sink_ctx);
+
+/**
+ * Emits the analysis names the step at `index` requires, one per `sink` call.
+ *
+ * # Safety
+ * `steps` must be a live `*const LmStepList`; `sink` must copy each string before returning.
+ */
+LmStatus lm_step_list_requires(const LmStepList *steps,
+                               uintptr_t index,
+                               LmStrSink sink,
+                               void *sink_ctx);
+
+/**
+ * Emits the analysis names the step at `index` provides, one per `sink` call.
+ *
+ * # Safety
+ * `steps` must be a live `*const LmStepList`; `sink` must copy each string before returning.
+ */
+LmStatus lm_step_list_provides(const LmStepList *steps,
+                               uintptr_t index,
+                               LmStrSink sink,
+                               void *sink_ctx);
+
+/**
+ * Emits the analysis names the step at `index` invalidates, one per `sink` call.
+ *
+ * # Safety
+ * `steps` must be a live `*const LmStepList`; `sink` must copy each string before returning.
+ */
+LmStatus lm_step_list_invalidates(const LmStepList *steps,
+                                  uintptr_t index,
+                                  LmStrSink sink,
+                                  void *sink_ctx);
 
 /**
  * Returns whether the bound is finite (`Bounded`) rather than `Unbounded`.

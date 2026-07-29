@@ -8,9 +8,11 @@ use std::{ops::Deref, sync::Arc};
 
 use lunamodel_capi::{
     LmCC, LmConstraint, LmEnv, LmExpr, LmLazyBounds, LmModel, LmSol, LmSpecs, LmVref,
+    plugin::LmControlFlowPlan,
 };
 use lunamodel_core::prelude::{LazyBounds, VarRef};
 use lunamodel_core::{ArcEnv, Constraint, ConstraintCollection, Expression, Model, Solution};
+use lunamodel_transpiler::ControlFlowPlan;
 use lunamodel_types::Specs;
 use parking_lot::{
     MappedRwLockReadGuard, MappedRwLockWriteGuard, RwLock, RwLockReadGuard, RwLockWriteGuard,
@@ -81,6 +83,12 @@ unsafe impl HandleKind for LmLazyBounds {
 
 unsafe impl HandleKind for LmSpecs {
     type Storage = Specs;
+}
+
+// A control-flow plan is a transient owned builder (created, populated with steps, then consumed by
+// the host adapter within one control-flow `run`); it stores the plan value directly, with no lock.
+unsafe impl HandleKind for LmControlFlowPlan {
+    type Storage = ControlFlowPlan;
 }
 
 /// Storage for either a standalone expression or a live model-objective view.
@@ -277,6 +285,15 @@ where
 /// `handle` must be null or a live handle of type `H` created by this crate.
 pub unsafe fn handle_ref<'a, H: HandleKind>(handle: *const H) -> Option<&'a H::Storage> {
     unsafe { handle.cast::<H::Storage>().as_ref() }
+}
+
+/// Mutably borrows the concrete storage behind an owned opaque handle.
+///
+/// # Safety
+/// `handle` must be null or a live owned handle of type `H`, exclusively borrowed for `'a` (no other
+/// reference to the same handle may be live).
+pub unsafe fn handle_mut<'a, H: HandleKind>(handle: *mut H) -> Option<&'a mut H::Storage> {
+    unsafe { handle.cast::<H::Storage>().as_mut() }
 }
 
 /// Consumes an opaque handle and returns its concrete storage.

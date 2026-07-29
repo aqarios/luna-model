@@ -155,6 +155,91 @@ class TagWithMinConstraintPass : public lm::plugin::TransformationPass {
     }
 };
 
+// --- RenameAndCountPass: a COMPOSITE pass (fused transform + analysis) ---
+//
+// One `forward` both renames the model (transform half) AND publishes the variable count under
+// VAR_COUNT_NAME (analysis half) — the same slot VarCountAnalysis uses, so the existing
+// TagWithCountPass consumer reads it back unchanged. It returns `{artifact_bytes, result_bytes}`:
+// the inverse RenameArtifact for reversal, plus the VariableCount result. Reversible (identity on
+// solution, since a rename does not touch the solution space).
+
+class RenameAndCountPass : public lm::plugin::CompositePass {
+  public:
+    static constexpr const char *ID = "lm_cxx_plugin_ext::rename-and-count";
+
+    std::string id() const override { return ID; }
+    std::string name() const override { return "cxx rename and count"; }
+    std::string provides() const override { return VAR_COUNT_NAME; }
+    std::string result_type_tag() const override {
+        return lm::plugin::type_tag<luna_cxx_plugin::VariableCount>();
+    }
+
+    std::pair<std::vector<std::uint8_t>, std::vector<std::uint8_t>>
+    forward(lm::Model &model, const lm::plugin::PassContext &) override {
+        // Transform half: rename the model, capturing the original name for reversal.
+        const std::string original = model.name();
+        model.set_name("renamed-and-counted:" + original);
+
+        // Analysis half: count participating variables, published under VAR_COUNT_NAME.
+        luna_cxx_plugin::VariableCount result;
+        result.set_count(static_cast<std::uint64_t>(model.num_variables()));
+
+        // Inverse artifact for the transform half.
+        luna_cxx_plugin::RenameArtifact artifact;
+        artifact.set_original_name(original);
+
+        return {to_bytes(artifact), to_bytes(result)};
+    }
+
+    static lm::Solution backward(std::span<const std::uint8_t>, lm::Solution solution) {
+        return solution;  // a rename leaves the solution unchanged
+    }
+};
+
+// --- CountFollowingMeta: a META-ANALYSIS pass (reads no model) ---
+//
+// Unlike an analysis it introspects the pipeline steps that FOLLOW it (via the StepList facade) and
+// publishes how many there are. The step view starts at the meta pass's OWN position — index 0 is
+// this pass itself — so a `[CountFollowingMeta, consumer]` pipeline reports two steps. It reuses the
+// VariableCount message (its `count` field carries the step count) and publishes under
+// VAR_COUNT_NAME, so the existing TagWithCountPass consumer reads it back unchanged. Not reversible
+// (no id / backward / register_backward).
+
+class CountFollowingMeta : public lm::plugin::MetaAnalysisPass {
+  public:
+    std::string name() const override { return "cxx count following"; }
+    std::string provides() const override { return VAR_COUNT_NAME; }
+    std::string result_type_tag() const override {
+        return lm::plugin::type_tag<luna_cxx_plugin::VariableCount>();
+    }
+
+    std::vector<std::uint8_t> run(const lm::plugin::StepList &steps) override {
+        luna_cxx_plugin::VariableCount result;
+        result.set_count(static_cast<std::uint64_t>(steps.size()));
+        return to_bytes(result);
+    }
+};
+
+// --- PickBranchPass: a CONTROL-FLOW pass (reads no payload, produces a plan) ---
+//
+// Unlike the other kinds it returns neither an artifact nor a serialized result: at `run` it reads
+// the read-only model/context and builds a `ControlFlowPlan` — the pipeline of steps to execute
+// next — here a single transform step reusing the existing RenamePass. The engine then runs that
+// plan, so the model ends up renamed exactly as if RenamePass had run directly. Not itself
+// reversible (its steps carry their own reversal — RenamePass's backward is registered below), so it
+// has no id / backward / register_backward.
+
+class PickBranchPass : public lm::plugin::ControlFlowPass {
+  public:
+    std::string name() const override { return "cxx pick branch"; }
+
+    lm::plugin::ControlFlowPlan run(const lm::Model &, const lm::plugin::PassContext &) override {
+        lm::plugin::ControlFlowPlan plan("chosen");
+        plan.add_transform(std::make_unique<RenamePass>());
+        return plan;
+    }
+};
+
 // --- Python-facing shells ---
 //
 // Each shell exposes the capsule method the host reads. `make_descriptor` takes ownership of a fresh
@@ -180,6 +265,21 @@ nb::object tag_with_min_constraint_capsule(const TagWithMinConstraintPass &) {
         lm::plugin::make_descriptor(std::make_unique<TagWithMinConstraintPass>())));
 }
 
+nb::object rename_and_count_capsule(const RenameAndCountPass &) {
+    return nb::steal(lm::plugin::python::composite_capsule(
+        lm::plugin::make_descriptor(std::make_unique<RenameAndCountPass>())));
+}
+
+nb::object count_following_meta_capsule(const CountFollowingMeta &) {
+    return nb::steal(lm::plugin::python::meta_analysis_capsule(
+        lm::plugin::make_descriptor(std::make_unique<CountFollowingMeta>())));
+}
+
+nb::object pick_branch_capsule(const PickBranchPass &) {
+    return nb::steal(lm::plugin::python::control_flow_capsule(
+        lm::plugin::make_descriptor(std::make_unique<PickBranchPass>())));
+}
+
 }  // namespace
 
 NB_MODULE(luna_cxx_plugin_ext, m) {
@@ -203,6 +303,18 @@ NB_MODULE(luna_cxx_plugin_ext, m) {
     nb::class_<TagWithMinConstraintPass>(m, "TagWithMinConstraintPass")
         .def(nb::init<>())
         .def(lm::plugin::python::TRANSFORM_METHOD, &tag_with_min_constraint_capsule);
+
+    nb::class_<RenameAndCountPass>(m, "RenameAndCountPass")
+        .def(nb::init<>())
+        .def(lm::plugin::python::COMPOSITE_METHOD, &rename_and_count_capsule);
+
+    nb::class_<CountFollowingMeta>(m, "CountFollowingMeta")
+        .def(nb::init<>())
+        .def(lm::plugin::python::META_ANALYSIS_METHOD, &count_following_meta_capsule);
+
+    nb::class_<PickBranchPass>(m, "PickBranchPass")
+        .def(nb::init<>())
+        .def(lm::plugin::python::CONTROL_FLOW_METHOD, &pick_branch_capsule);
 
     // Plain (non-plugin) C++ functions that receive / return luna_model Python objects directly,
     // via the nanobind type casters (luna_model/nanobind.hpp) — the general Python<->native interop.
@@ -238,5 +350,6 @@ NB_MODULE(luna_cxx_plugin_ext, m) {
         lm::plugin::register_backward<RenamePass>();
         lm::plugin::register_backward<TagWithCountPass>();
         lm::plugin::register_backward<TagWithMinConstraintPass>();
+        lm::plugin::register_backward<RenameAndCountPass>();
     });
 }

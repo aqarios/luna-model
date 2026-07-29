@@ -12,8 +12,14 @@
 //! macro per file:
 //! - [`py_transform_plugin!`] — transformation passes (`transform`).
 //! - [`py_analysis_plugin!`] — analysis passes (`analysis`).
+//! - [`py_composite_plugin!`] — composite passes (`composite`).
+//! - [`py_meta_analysis_plugin!`] — meta-analysis passes (`meta`).
+//! - [`py_control_flow_plugin!`] — control-flow passes (`control_flow`).
 //! - [`register_plugins!`] — the `__luna_register__` module hook for reversal handlers (`register`).
 
 mod analysis;
+mod composite;
+mod control_flow;
+mod meta;
 mod register;
 mod transform;
