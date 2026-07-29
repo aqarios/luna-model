@@ -6,7 +6,7 @@ use std::ops::Mul;
 use crate::{
     Environment, Expression, Solution, TryIndex,
     prelude::{HigherOrder, Linear, Quadratic, VarRef},
-    solution::sample::SampleView,
+    solution::{Column, sample::SampleView},
     traits::DefaultEditable,
 };
 use indexmap::IndexMap;
@@ -325,5 +325,17 @@ impl SolutionLookup {
             self.lu[self.vids[i] as usize] = if self.inverted[i] { 1.0 - v } else { v };
         }
         Ok(())
+    }
+
+    pub fn write_sol(&self, idx: u32, sol: &mut Solution) {
+        for (col, vid) in sol.samples.values_mut().zip(self.vids.iter()) {
+            let vec: &mut Vec<f64> = match col {
+                Column::Binary(x) => &mut x.0,
+                Column::Integer(x) => &mut x.0,
+                Column::Real(x) => &mut x.0,
+                Column::Spin(x) => &mut x.0,
+            };
+            vec[idx as usize] = self.lu[*vid as usize];
+        }
     }
 }

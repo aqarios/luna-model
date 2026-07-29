@@ -10,6 +10,8 @@ homepage.workspace = true
 repository.workspace = true
 
 [dependencies]
+anyhow = { workspace = true }
+
 lunamodel-core = { workspace = true }
 lunamodel-types = { workspace = true }
 lunamodel-transpiler-macros = { workspace = true }

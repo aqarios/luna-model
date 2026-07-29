@@ -44,8 +44,8 @@ dimod = [
     "dimod>=0.12.22",
 ]
 qiskit = [
-    "qiskit>=2.5.0",
-    "qiskit>=2.5.0",
+    "qiskit>=2.5.1",
+    "qiskit>=2.5.1",
     "qiskit-addon-opt-mapper>=0.1.0",
 ]
 scip = [
@@ -101,7 +101,7 @@ dev = [
     "pre-commit>=4.6.1",
     "pyscipopt>=6.2.1",
     "pytest>=9.0.2",
-    "qiskit>=2.5.0",
+    "qiskit>=2.5.1",
     "qiskit-addon-opt-mapper>=0.1.0",
     "qiskit-ibm-runtime>=0.48.0",
     "qiskit-optimization>=0.6.1",

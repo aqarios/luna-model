@@ -1,6 +1,6 @@
 //! Errors originating from pass orchestration and pipeline validation.
 
-use std::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display, sync::Arc};
 
 use lunamodel_error::{ErasedRecord, ErrString, LunaModelError};
 
@@ -11,7 +11,11 @@ pub struct TranspilerError {
     pub kind: TranspileErrorKind,
     pub record: Option<TransformationRecord>,
 }
-impl Error for TranspilerError {}
+impl Error for TranspilerError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        Some(&self.kind)
+    }
+}
 
 pub type TranspilerResult<T> = Result<T, TranspilerError>;
 pub type TranspileKindResult<T> = Result<T, TranspileErrorKind>;
@@ -49,14 +53,21 @@ pub enum TranspileErrorKind {
     },
     /// External error occured
     External {
-        e: Box<dyn Error>,
+        e: anyhow::Error,
     },
     Infeasible {
         location: String,
         reason: String,
     },
 }
-impl Error for TranspileErrorKind {}
+impl Error for TranspileErrorKind {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::External { e } => Some(e.as_ref()),
+            _ => None,
+        }
+    }
+}
 
 impl Display for TranspilerError {
     /// Formats the orchestration error for developers.
@@ -97,7 +108,7 @@ impl Display for TranspileErrorKind {
                 Some(q) => write!(f, "query failed: {msg} for '{q}'"),
                 None => write!(f, "query failed: {msg}"),
             },
-            Self::External { e } => write!(f, "external: {}", e),
+            Self::External { e } => write!(f, "external: {}", describe_external(e)),
             Self::Infeasible { location, reason } => {
                 write!(f, "model is infeasible at {location}: {reason}")
             }
@@ -106,14 +117,18 @@ impl Display for TranspileErrorKind {
 }
 
 impl TranspileErrorKind {
-    pub fn external<E: Error + 'static>(e: E) -> Self {
-        Self::External { e: Box::new(e) }
+    pub fn external<E: Error + Send + Sync + 'static>(e: E) -> Self {
+        Self::External {
+            e: anyhow::Error::from(e),
+        }
     }
 }
 
 impl From<LunaModelError> for TranspileErrorKind {
     fn from(value: LunaModelError) -> Self {
-        Self::External { e: Box::new(value) }
+        Self::External {
+            e: anyhow::Error::from(value),
+        }
     }
 }
 
@@ -125,8 +140,12 @@ impl From<TranspileErrorKind> for LunaModelError {
                 reason,
                 record: None,
             },
-            _ => Self::Transformation {
-                msg: value.to_string().into(),
+            TranspileErrorKind::External { e } => {
+                let msg = describe_external(&e);
+                with_cause(Self::Transformation { msg, record: None }, &e)
+            }
+            other => Self::Transformation {
+                msg: other.to_string().into(),
                 record: None,
             },
         }
@@ -135,7 +154,6 @@ impl From<TranspileErrorKind> for LunaModelError {
 
 impl From<TranspilerError> for LunaModelError {
     fn from(value: TranspilerError) -> Self {
-        let msg: ErrString = value.to_string().into();
         let TranspilerError { kind, record } = value;
         let record = record.map(ErasedRecord::new);
         match kind {
@@ -144,7 +162,14 @@ impl From<TranspilerError> for LunaModelError {
                 reason,
                 record,
             },
-            _ => LunaModelError::Transformation { msg, record },
+            TranspileErrorKind::External { e } => {
+                let msg = describe_external(&e);
+                with_cause(LunaModelError::Transformation { msg, record }, &e)
+            }
+            other => LunaModelError::Transformation {
+                msg: other.to_string().into(),
+                record,
+            },
         }
     }
 }
@@ -194,5 +219,27 @@ pub fn attach_nested(
             entries.push(make_entry(record.unwrap_or_else(|| Vec::new().into())));
             Err(kind.into())
         }
+    }
+}
+
+fn describe_external(e: &anyhow::Error) -> ErrString {
+    e.chain()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(" - caused by: ")
+        .into()
+}
+
+fn with_cause(inner: LunaModelError, e: &anyhow::Error) -> LunaModelError {
+    let cause = e
+        .chain()
+        .find_map(|link| link.downcast_ref::<LunaModelError>())
+        .and_then(|lme| match lme {
+            LunaModelError::WithCause(_, cause) => Some(Arc::clone(cause)),
+            _ => None,
+        });
+    match cause {
+        Some(cause) => LunaModelError::WithCause(Box::new(inner), cause),
+        None => inner,
     }
 }

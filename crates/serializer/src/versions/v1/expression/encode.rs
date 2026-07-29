@@ -60,7 +60,7 @@ impl SerExpression {
         if let Some(q) = &expr.quadratic {
             *qs = q.len() as u32;
             for (u, n) in q.iter() {
-                if n.is_zero() {
+                if n.is_empty() {
                     continue;
                 }
                 qni.push(u);

@@ -52,16 +52,29 @@ impl Neighborhood {
         Self(Vec::new())
     }
 
+    /// Returns `true` if the sum of all biases is zero.
     pub fn is_zero(&self) -> bool {
-        self.iter().map(|(_, bias)| bias).sum::<Bias>() == Bias::default()
+        self.iter().map(|(_, b)| b).all(|b| b == Bias::default())
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (VarIdx, Bias)> + '_ {
-        self.0.iter().map(|term| (term.idx, term.bias))
+    /// Iterates over `(variable, bias)` pairs.
+    pub fn iter(&self) -> impl Iterator<Item = (VarIdx, Bias)> {
+        self.0
+            .iter()
+            .filter_map(|t| match t.bias != Bias::default() {
+                true => Some((t.idx, t.bias)),
+                false => None,
+            })
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = (VarIdx, &mut Bias)> + '_ {
-        self.0.iter_mut().map(|term| (term.idx, &mut term.bias))
+    /// Iterates mutably over `(variable, bias)` pairs.
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (VarIdx, &mut Bias)> {
+        let mvec: &mut Vec<OneVarTerm> = self.0.as_mut();
+        mvec.iter_mut()
+            .filter_map(|t| match t.bias != Bias::default() {
+                true => Some((t.idx, &mut t.bias)),
+                false => None,
+            })
     }
 
     pub fn push_back(&mut self, var: VarIdx, bias: Bias) -> &mut Self {
