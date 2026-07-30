@@ -3644,6 +3644,49 @@ LmStatus lm_sol_serialize(const LmSol *sol, LmBuffer *out);
 LmStatus lm_sol_deserialize(const uint8_t *data, uintptr_t len, LmSol **out);
 
 /**
+ * Frees a solution-lookup handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `lookup` must originate from [`lm_sol_lookup_new`] and must not be used or
+ * freed again.
+ */
+void lm_sol_lookup_free(LmSolutionLookup *lookup);
+
+/**
+ * Builds a bulk per-sample lookup table over `env`'s variables for `sol`.
+ *
+ * # Safety
+ * `env` and `sol` must be valid handles and `out` must be writable.
+ */
+LmStatus lm_sol_lookup_new(const LmEnv *env, const LmSol *sol, LmSolutionLookup **out);
+
+/**
+ * Loads one sample row's values into the lookup table, in place.
+ *
+ * # Safety
+ * `lookup` and `view` must be valid handles.
+ */
+LmStatus lm_sol_lookup_update(LmSolutionLookup *lookup, const LmSampleView *view);
+
+/**
+ * Returns a borrowed view of the current lookup values, indexed by variable id.
+ *
+ * The pointer remains valid until the lookup table is next updated or freed.
+ *
+ * # Safety
+ * `lookup`, `data`, and `len` must be valid pointers.
+ */
+LmStatus lm_sol_lookup_values(const LmSolutionLookup *lookup, const double **data, uintptr_t *len);
+
+/**
+ * Writes the lookup table's current values back into row `idx` of `sol`.
+ *
+ * # Safety
+ * `lookup` and `sol` must be valid handles.
+ */
+LmStatus lm_sol_lookup_write_sol(const LmSolutionLookup *lookup, uint32_t idx, LmSol *sol);
+
+/**
  * Returns the specs's sense, if one is set.
  *
  * On success (`LmStatus::Ok`), `*out` is set to the specs's sense. If the specs

@@ -212,6 +212,14 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Sol -- serializer
     sol_serialize: crate::sol::lm_sol_serialize,
     sol_deserialize: crate::sol::lm_sol_deserialize,
+    // /////////////// //
+    // SOLUTION LOOKUP //
+    // /////////////// //
+    sol_lookup_free: crate::sol_lookup::lm_sol_lookup_free,
+    sol_lookup_new: crate::sol_lookup::lm_sol_lookup_new,
+    sol_lookup_update: crate::sol_lookup::lm_sol_lookup_update,
+    sol_lookup_values: crate::sol_lookup::lm_sol_lookup_values,
+    sol_lookup_write_sol: crate::sol_lookup::lm_sol_lookup_write_sol,
     // ////////// //
     // EXPRESSION //
     // ////////// //
