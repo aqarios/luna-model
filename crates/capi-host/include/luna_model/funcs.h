@@ -3514,6 +3514,33 @@ LmStatus lm_sol_set_timing(LmSol *sol, const LmTiming *timing);
 LmStatus lm_sol_set_sense(LmSol *sol, LmSense sense);
 
 /**
+ * Replaces the optional per-sample raw energies. A null `data` clears the value.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle. `data` must be null or point
+ * to `len` readable values.
+ */
+LmStatus lm_sol_set_raw_energies(LmSol *sol, const double *data, uintptr_t len);
+
+/**
+ * Replaces the optional per-sample objective values. A null `data` clears the value.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle. `data` must be null or point
+ * to `len` readable values.
+ */
+LmStatus lm_sol_set_obj_values(LmSol *sol, const double *data, uintptr_t len);
+
+/**
+ * Replaces the optional per-sample feasibility flags. A null `data` clears the value.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle. `data` must be null or point
+ * to `len` readable values.
+ */
+LmStatus lm_sol_set_feasible(LmSol *sol, const bool *data, uintptr_t len);
+
+/**
  * Returns the `(variable name, column)` entries of the solution's sample map.
  *
  * The returned buffer must be released with [`lm_index_map_buffer_free`].

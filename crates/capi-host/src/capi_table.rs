@@ -203,6 +203,9 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     sol_set_counts: crate::sol::lm_sol_set_counts,
     sol_set_timing: crate::sol::lm_sol_set_timing,
     sol_set_sense: crate::sol::lm_sol_set_sense,
+    sol_set_raw_energies: crate::sol::lm_sol_set_raw_energies,
+    sol_set_obj_values: crate::sol::lm_sol_set_obj_values,
+    sol_set_feasible: crate::sol::lm_sol_set_feasible,
     // Sol -- convenience
     sol_cvar: crate::sol::lm_sol_cvar,
     sol_expectation_value: crate::sol::lm_sol_expectation_value,

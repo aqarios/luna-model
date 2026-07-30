@@ -330,6 +330,11 @@ pub struct LunaModelCApi {
     pub sol_set_counts: unsafe extern "C" fn(*mut LmSol, *const usize, usize) -> LmStatus,
     pub sol_set_timing: unsafe extern "C" fn(*mut LmSol, *const LmTiming) -> LmStatus,
     pub sol_set_sense: unsafe extern "C" fn(*mut LmSol, LmSense) -> LmStatus,
+    // Sol -- setters for evaluation results (null pointer clears to `None`;
+    // non-null with len 0 is an explicit empty `Some(vec![])`)
+    pub sol_set_raw_energies: unsafe extern "C" fn(*mut LmSol, *const f64, usize) -> LmStatus,
+    pub sol_set_obj_values: unsafe extern "C" fn(*mut LmSol, *const f64, usize) -> LmStatus,
+    pub sol_set_feasible: unsafe extern "C" fn(*mut LmSol, *const bool, usize) -> LmStatus,
     // Sol -- convenience
     pub sol_cvar:
         unsafe extern "C" fn(*const LmSol, f64, *const LmValueSource, *mut f64) -> LmStatus,

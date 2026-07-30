@@ -7,8 +7,9 @@ use crate::{
     buffer::column_buffer_from_vec,
     error::{CapiError, guard},
     utils::{
-        assignment_from_c, handle_to_c, new_handle_out_from_c, opt_from_c, out_from_c, ref_from_c,
-        sense_from_c, shared_from_c, slice_from_c, str_from_c, vtype_from_c,
+        assignment_from_c, handle_to_c, new_handle_out_from_c, opt_from_c, opt_slice_from_c,
+        out_from_c, ref_from_c, sense_from_c, shared_from_c, slice_from_c, str_from_c,
+        vtype_from_c,
     },
 };
 
@@ -378,6 +379,60 @@ pub unsafe extern "C" fn lm_sol_set_sense(sol: *mut LmSol, sense: LmSense) -> Lm
     guard(|| {
         let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
         sol.sense = sense_from_c(sense);
+        Ok(())
+    })
+}
+
+/// Replaces the optional per-sample raw energies. A null `data` clears the value.
+///
+/// # Safety
+/// `sol` must be a valid mutable solution handle. `data` must be null or point
+/// to `len` readable values.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_sol_set_raw_energies(
+    sol: *mut LmSol,
+    data: *const f64,
+    len: usize,
+) -> LmStatus {
+    guard(|| {
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
+        sol.raw_energies = unsafe { opt_slice_from_c(data, len) }.map(|s| s.to_vec());
+        Ok(())
+    })
+}
+
+/// Replaces the optional per-sample objective values. A null `data` clears the value.
+///
+/// # Safety
+/// `sol` must be a valid mutable solution handle. `data` must be null or point
+/// to `len` readable values.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_sol_set_obj_values(
+    sol: *mut LmSol,
+    data: *const f64,
+    len: usize,
+) -> LmStatus {
+    guard(|| {
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
+        sol.obj_values = unsafe { opt_slice_from_c(data, len) }.map(|s| s.to_vec());
+        Ok(())
+    })
+}
+
+/// Replaces the optional per-sample feasibility flags. A null `data` clears the value.
+///
+/// # Safety
+/// `sol` must be a valid mutable solution handle. `data` must be null or point
+/// to `len` readable values.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_sol_set_feasible(
+    sol: *mut LmSol,
+    data: *const bool,
+    len: usize,
+) -> LmStatus {
+    guard(|| {
+        let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
+        sol.feasible = unsafe { opt_slice_from_c(data, len) }.map(|s| s.to_vec());
         Ok(())
     })
 }
