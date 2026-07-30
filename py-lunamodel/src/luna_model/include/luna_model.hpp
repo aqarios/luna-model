@@ -30,6 +30,7 @@
 #include "luna_model/quadratic.hpp"             // IWYU pragma: export
 #include "luna_model/result_view.hpp"           // IWYU pragma: export
 #include "luna_model/sample_view.hpp"           // IWYU pragma: export
+#include "luna_model/sol_lookup.hpp"             // IWYU pragma: export
 #include "luna_model/solution.hpp"              // IWYU pragma: export
 #include "luna_model/specs.hpp"                 // IWYU pragma: export
 #include "luna_model/timer.hpp"                 // IWYU pragma: export

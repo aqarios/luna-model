@@ -28,8 +28,9 @@ pub use core::{
     LmEnv, LmEnvId, LmExpr, LmF64Buffer, LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer,
     LmIndexMapItem, LmIndexMapItemBuffer, LmLazyBounds, LmLinear, LmLinearItem, LmLinearItemBuffer,
     LmModel, LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer, LmResultView, LmResultViewBuffer,
-    LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSpecs, LmStatus, LmStrBuffer, LmTimer,
-    LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
+    LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSolutionLookup, LmSpecs, LmStatus,
+    LmStrBuffer, LmTimer, LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref, LmVrefBuffer,
+    LmVtype, LmVtypeBuffer,
 };
 
 pub use vtable::LunaModelCApi;

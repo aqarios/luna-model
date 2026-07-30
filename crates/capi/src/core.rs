@@ -490,6 +490,20 @@ pub struct LmColumn {
     _private: [u8; 0],
 }
 
+/// Opaque handle to a bulk per-sample solution lookup table.
+///
+/// Built once from an [`LmEnv`] and an [`LmSol`] with [`lm_sol_lookup_new`], then
+/// reused across many samples: [`lm_sol_lookup_update`] loads one sample row's
+/// values by variable id, and [`lm_sol_lookup_write_sol`] writes them back. This
+/// avoids one ABI round-trip per value in hot per-sample loops (e.g. samplers).
+/// Release with [`lm_sol_lookup_free`].
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmSolutionLookup {
+    _private: [u8; 0],
+}
+
 /// Opaque handle to a borrowed LunaModel result-view.
 ///
 /// Created by [`lm_sol_result`] and released with [`lm_result_view_free`]. It

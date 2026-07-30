@@ -11,9 +11,9 @@ pub use super::{
     LmColumnBuffer, LmComparator, LmConstraint, LmCtype, LmCtypeBuffer, LmEnv, LmEnvId, LmExpr,
     LmF64Buffer, LmHigherOrder, LmHigherOrderItemBuffer, LmIndexMapItemBuffer, LmLazyBounds,
     LmLinear, LmLinearItemBuffer, LmModel, LmQuadratic, LmQuadraticItemBuffer, LmResultView,
-    LmResultViewBuffer, LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSpecs, LmStatus,
-    LmStrBuffer, LmTimer, LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref, LmVrefBuffer,
-    LmVtype, LmVtypeBuffer,
+    LmResultViewBuffer, LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSolutionLookup,
+    LmSpecs, LmStatus, LmStrBuffer, LmTimer, LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref,
+    LmVrefBuffer, LmVtype, LmVtypeBuffer,
 };
 
 /// Stable, versioned table of LunaModel C API entry points.
@@ -343,6 +343,25 @@ pub struct LunaModelCApi {
     // Sol -- serializer
     pub sol_serialize: unsafe extern "C" fn(*const LmSol, *mut LmBuffer) -> LmStatus,
     pub sol_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmSol) -> LmStatus,
+    // /////////////// //
+    // SOLUTION LOOKUP //
+    // /////////////// //
+    //
+    // A bulk per-sample lookup table, avoiding one ABI round-trip per value in
+    // hot per-sample loops (e.g. samplers). Built once from an env + solution,
+    // updated in place per sample row, and written back on demand.
+    pub sol_lookup_free: unsafe extern "C" fn(*mut LmSolutionLookup),
+    pub sol_lookup_new: unsafe extern "C" fn(
+        *const LmEnv,
+        *const LmSol,
+        *mut *mut LmSolutionLookup,
+    ) -> LmStatus,
+    pub sol_lookup_update:
+        unsafe extern "C" fn(*mut LmSolutionLookup, *const LmSampleView) -> LmStatus,
+    pub sol_lookup_values:
+        unsafe extern "C" fn(*const LmSolutionLookup, *mut *const f64, *mut usize) -> LmStatus,
+    pub sol_lookup_write_sol:
+        unsafe extern "C" fn(*const LmSolutionLookup, u32, *mut LmSol) -> LmStatus,
     // ////////// //
     // EXPRESSION //
     // ////////// //

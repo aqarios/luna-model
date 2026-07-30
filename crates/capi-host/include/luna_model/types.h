@@ -1160,6 +1160,20 @@ typedef struct {
 } LmTiming;
 
 /**
+ * Opaque handle to a bulk per-sample solution lookup table.
+ *
+ * Built once from an [`LmEnv`] and an [`LmSol`] with [`lm_sol_lookup_new`], then
+ * reused across many samples: [`lm_sol_lookup_update`] loads one sample row's
+ * values by variable id, and [`lm_sol_lookup_write_sol`] writes them back. This
+ * avoids one ABI round-trip per value in hot per-sample loops (e.g. samplers).
+ * Release with [`lm_sol_lookup_free`].
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmSolutionLookup;
+
+/**
  * Opaque handle to a LunaModel timer reference.
  *
  */
@@ -1381,6 +1395,11 @@ typedef struct {
     LmStatus (*sol_highest_constraint_violations)(const LmSol*, LmBuffer*);
     LmStatus (*sol_serialize)(const LmSol*, LmBuffer*);
     LmStatus (*sol_deserialize)(const uint8_t*, uintptr_t, LmSol**);
+    void (*sol_lookup_free)(LmSolutionLookup*);
+    LmStatus (*sol_lookup_new)(const LmEnv*, const LmSol*, LmSolutionLookup**);
+    LmStatus (*sol_lookup_update)(LmSolutionLookup*, const LmSampleView*);
+    LmStatus (*sol_lookup_values)(const LmSolutionLookup*, const double**, uintptr_t*);
+    LmStatus (*sol_lookup_write_sol)(const LmSolutionLookup*, uint32_t, LmSol*);
     void (*expr_free)(LmExpr*);
     LmExpr *(*expr_default)(void);
     LmStatus (*expr_new)(const LmEnv*, LmExpr**);

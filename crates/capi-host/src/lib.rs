@@ -13,8 +13,9 @@ pub use lunamodel_capi::{
     LmEnv, LmEnvId, LmExpr, LmF64Buffer, LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer,
     LmIndexMapItem, LmIndexMapItemBuffer, LmLazyBounds, LmLinear, LmLinearItem, LmLinearItemBuffer,
     LmModel, LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer, LmResultView, LmResultViewBuffer,
-    LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSpecs, LmStatus, LmStrBuffer, LmTimer,
-    LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
+    LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSolutionLookup, LmSpecs, LmStatus,
+    LmStrBuffer, LmTimer, LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref, LmVrefBuffer,
+    LmVtype, LmVtypeBuffer,
 };
 
 /// ABI version of the C API table.
@@ -50,6 +51,7 @@ pub mod quadratic;
 pub mod res;
 pub mod sample;
 pub mod sol;
+pub mod sol_lookup;
 pub mod specs;
 pub mod timer;
 pub mod timing;
