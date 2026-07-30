@@ -126,4 +126,19 @@ impl Solution {
         check!(sol_set_sense(@mut self, ~sense))?;
         Ok(self)
     }
+
+    /// Replaces or clears the optional per-sample raw energies.
+    pub fn set_raw_energies(&mut self, values: Option<Vec<f64>>) -> Result<()> {
+        check!(sol_set_raw_energies(@mut self, ?*values))
+    }
+
+    /// Replaces or clears the optional per-sample objective values.
+    pub fn set_obj_values(&mut self, values: Option<Vec<f64>>) -> Result<()> {
+        check!(sol_set_obj_values(@mut self, ?*values))
+    }
+
+    /// Replaces or clears the optional per-sample feasibility flags.
+    pub fn set_feasible(&mut self, values: Option<Vec<bool>>) -> Result<()> {
+        check!(sol_set_feasible(@mut self, ?*values))
+    }
 }

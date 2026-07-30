@@ -1388,6 +1388,9 @@ typedef struct {
     LmStatus (*sol_set_counts)(LmSol*, const uintptr_t*, uintptr_t);
     LmStatus (*sol_set_timing)(LmSol*, const LmTiming*);
     LmStatus (*sol_set_sense)(LmSol*, LmSense);
+    LmStatus (*sol_set_raw_energies)(LmSol*, const double*, uintptr_t);
+    LmStatus (*sol_set_obj_values)(LmSol*, const double*, uintptr_t);
+    LmStatus (*sol_set_feasible)(LmSol*, const bool*, uintptr_t);
     LmStatus (*sol_cvar)(const LmSol*, double, const LmValueSource*, double*);
     LmStatus (*sol_expectation_value)(const LmSol*, const LmValueSource*, double*);
     LmStatus (*sol_temperature_weighted)(const LmSol*, double, const LmValueSource*, double*);
