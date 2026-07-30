@@ -12,7 +12,9 @@ use crate::{
     LmEnv, LmSampleView, LmSol, LmSolutionLookup, LmStatus,
     error::{CapiError, guard},
     sample::SampleViewHandle,
-    utils::{drop_from_c, handle_to_c, mut_from_c, out_from_c, ref_from_c, shared_from_c, storage_from_c},
+    utils::{
+        drop_from_c, handle_to_c, mut_from_c, out_from_c, ref_from_c, shared_from_c, storage_from_c,
+    },
 };
 
 /// Frees a solution-lookup handle. Passing null is a no-op.

@@ -351,11 +351,8 @@ pub struct LunaModelCApi {
     // hot per-sample loops (e.g. samplers). Built once from an env + solution,
     // updated in place per sample row, and written back on demand.
     pub sol_lookup_free: unsafe extern "C" fn(*mut LmSolutionLookup),
-    pub sol_lookup_new: unsafe extern "C" fn(
-        *const LmEnv,
-        *const LmSol,
-        *mut *mut LmSolutionLookup,
-    ) -> LmStatus,
+    pub sol_lookup_new:
+        unsafe extern "C" fn(*const LmEnv, *const LmSol, *mut *mut LmSolutionLookup) -> LmStatus,
     pub sol_lookup_update:
         unsafe extern "C" fn(*mut LmSolutionLookup, *const LmSampleView) -> LmStatus,
     pub sol_lookup_values:
