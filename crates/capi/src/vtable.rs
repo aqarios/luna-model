@@ -362,8 +362,13 @@ pub struct LunaModelCApi {
         unsafe extern "C" fn(*mut LmSolutionLookup, *const LmSampleView) -> LmStatus,
     pub sol_lookup_values:
         unsafe extern "C" fn(*const LmSolutionLookup, *mut *const f64, *mut usize) -> LmStatus,
-    pub sol_lookup_write_sol:
-        unsafe extern "C" fn(*const LmSolutionLookup, u32, *mut LmSol) -> LmStatus,
+    pub sol_lookup_write_sol: unsafe extern "C" fn(
+        *mut LmSolutionLookup,
+        u32,
+        *const f64,
+        usize,
+        *mut LmSol,
+    ) -> LmStatus,
     // ////////// //
     // EXPRESSION //
     // ////////// //

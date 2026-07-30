@@ -1402,7 +1402,7 @@ typedef struct {
     LmStatus (*sol_lookup_new)(const LmEnv*, const LmSol*, LmSolutionLookup**);
     LmStatus (*sol_lookup_update)(LmSolutionLookup*, const LmSampleView*);
     LmStatus (*sol_lookup_values)(const LmSolutionLookup*, const double**, uintptr_t*);
-    LmStatus (*sol_lookup_write_sol)(const LmSolutionLookup*, uint32_t, LmSol*);
+    LmStatus (*sol_lookup_write_sol)(LmSolutionLookup*, uint32_t, const double*, uintptr_t, LmSol*);
     void (*expr_free)(LmExpr*);
     LmExpr *(*expr_default)(void);
     LmStatus (*expr_new)(const LmEnv*, LmExpr**);

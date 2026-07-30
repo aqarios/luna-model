@@ -43,8 +43,18 @@ impl SolutionLookup {
         out_slice!(sol_lookup_values(@self))
     }
 
-    /// Writes the lookup table's current values back into row `idx` of `sol`.
-    pub fn write_sol(&self, idx: u32, sol: &mut Solution) -> Result<()> {
-        check!(sol_lookup_write_sol(@self, idx, @mut sol))
+    /// Overwrites row `idx` of `sol` with `values` (indexed by variable id).
+    ///
+    /// `values` is typically a caller-owned copy of a prior [`values`](Self::values)
+    /// call, mutated locally (e.g. by a sampler's hot per-flip loop) without any
+    /// further ABI round-trips, then written back once per sample here.
+    pub fn write_sol(&mut self, idx: u32, values: &[f64], sol: &mut Solution) -> Result<()> {
+        check!(sol_lookup_write_sol(
+            @mut self,
+            idx,
+            values.as_ptr(),
+            values.len(),
+            @mut sol
+        ))
     }
 }

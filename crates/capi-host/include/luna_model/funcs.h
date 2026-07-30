@@ -3706,12 +3706,22 @@ LmStatus lm_sol_lookup_update(LmSolutionLookup *lookup, const LmSampleView *view
 LmStatus lm_sol_lookup_values(const LmSolutionLookup *lookup, const double **data, uintptr_t *len);
 
 /**
- * Writes the lookup table's current values back into row `idx` of `sol`.
+ * Overwrites row `idx` of `sol` with `values` (indexed by variable id), using
+ * `lookup`'s variable mapping.
+ *
+ * `values` is typically a caller-owned copy of a prior [`lm_sol_lookup_values`]
+ * call, mutated locally (e.g. by a sampler's hot per-flip loop) without any
+ * further ABI round-trips, then written back once per sample here.
  *
  * # Safety
- * `lookup` and `sol` must be valid handles.
+ * `lookup` and `sol` must be valid handles. `values` must be null when `len`
+ * is zero or point to `len` readable values matching `lookup`'s variable count.
  */
-LmStatus lm_sol_lookup_write_sol(const LmSolutionLookup *lookup, uint32_t idx, LmSol *sol);
+LmStatus lm_sol_lookup_write_sol(LmSolutionLookup *lookup,
+                                 uint32_t idx,
+                                 const double *values,
+                                 uintptr_t len,
+                                 LmSol *sol);
 
 /**
  * Returns the specs's sense, if one is set.
