@@ -45,6 +45,7 @@ impl Section {
             || lu == "GENERAL CONSTRAINT"
             || lu == "G.C."
             || lu == "SCENARIO"
+            || lu.ends_with(":")
         {
             Some(Section::Unsupported)
         } else {
@@ -115,6 +116,12 @@ pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
 
         // If we have a new section header we process the accumulated line(s).
         if let Some(next_section) = Section::try_header(line) {
+            if next_section == Section::Unsupported {
+                return Err(LunaModelError::Translation(
+                    format!("Unsupported section '{line}'").into(),
+                ));
+            }
+
             accumulated_line.push(' ');
             accumulated_line.push_str(&line_cache);
             line_cache = String::new();
