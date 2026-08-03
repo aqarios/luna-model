@@ -43,6 +43,22 @@ End
         assert_eq!(model.constraints.len(), 1);
         assert_eq!(model.objective.linear.len(), 2);
     }
+    #[test]
+    fn test_explicit_with_colon() {
+        let lp_content = r#"
+Minimize:
+ obj: x_0 + x_1
+Binaries:
+ x_0 x_1
+End
+"#;
+
+        let model = LpTranslator::translate(lp_content.to_string()).unwrap();
+        assert_eq!(model.sense, Sense::Min);
+        assert_eq!(model.environment.vars().len(), 2);
+        assert_eq!(model.constraints.len(), 0);
+        assert_eq!(model.objective.linear.len(), 2);
+    }
 
     #[test]
     fn test_parse_simple_linear() {

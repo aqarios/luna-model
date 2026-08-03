@@ -22,7 +22,7 @@ enum Section {
 impl Section {
     /// Detects whether `line` starts a new LP section.
     fn try_header(line: &str) -> Option<Section> {
-        let lu = line.trim().to_uppercase();
+        let lu = line.trim().trim_end_matches(':').trim().to_uppercase();
         if lu == "MINIMIZE" || lu == "MINIMUM" || lu == "MIN" {
             Some(Section::Objective(Sense::Min))
         } else if lu == "MAXIMIZE" || lu == "MAXIMUM" || lu == "MAX" {
