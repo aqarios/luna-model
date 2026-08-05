@@ -33,7 +33,7 @@ pub use expression::Expression;
 pub use model::Model;
 pub use solution::{Solution, ValueSource};
 
-pub use timer::{Timer, Timing, SubTimer};
+pub use timer::{SubTimer, Timer, Timing};
 
 /// Trait for indexing domain collections with fallible APIs.
 pub use traits::TryIndex;
