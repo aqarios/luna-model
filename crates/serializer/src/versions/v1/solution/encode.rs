@@ -7,6 +7,7 @@ use prost::Message;
 
 use crate::encode::{BytesEncodable, Encodable};
 use crate::utils::vtype_to_u8;
+use crate::versionize::Versionizable;
 
 use super::SerSolution;
 
@@ -24,7 +25,10 @@ impl SerSolution {
         self.num_samples = sol.len() as u64;
         self.variable_names = sol.variable_names();
         self.sense = sol.sense.to_string();
-        self.timing = sol.timing.map(|t| t.serialize());
+        self.timing = sol
+            .timing
+            .clone()
+            .map(|t| t.serialize().versionize(t.version()));
         self.counts = sol.counts.iter().map(|&c| c as u64).collect();
         self.obj_values = sol.obj_values.clone().unwrap_or_default();
         self.raw_energies = sol.raw_energies.clone().unwrap_or_default();
