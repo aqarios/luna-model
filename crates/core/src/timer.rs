@@ -34,9 +34,7 @@ impl Timing {
     }
 
     pub fn total_for(&self, key: impl Into<String>) -> Option<f64> {
-        self.timings
-            .get(&key.into())
-            .map_or(None, |v| Some(v.iter().sum()))
+        self.timings.get(&key.into()).map(|v| v.iter().sum())
     }
 
     pub fn merge(&mut self, other: &Self) {
@@ -83,6 +81,12 @@ struct TimerState {
 pub struct Timer {
     start: SystemTime,
     state: Arc<RwLock<TimerState>>,
+}
+
+impl Default for Timer {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Timer {
