@@ -60,8 +60,8 @@ def test_sol_direct_from_scip(zib_model, tmp_path: Path):
     assert len(sol.counts) == 1
     assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None
-    assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5)
-    assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5)
+    assert np.isclose(sol.runtime.total, timing.total, atol=1e-5)
+    assert np.isclose(sol.runtime.total, timing.total, atol=1e-5)
     assert sol.runtime.qpu is None
     assert sol.obj_values is None
     assert sol.raw_energies is None
@@ -169,8 +169,8 @@ def test_sol_direct_from_ibm():
     assert sol.counts.tolist() == truth_counts
     assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None
-    assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds)
-    assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds())
+    assert np.isclose(sol.runtime.total, timing.total)
+    assert np.isclose(sol.runtime.total, timing.total)
     assert sol.runtime.qpu is None
     assert sol.obj_values is None
 

@@ -3,7 +3,7 @@
 use lunamodel_error::{LunaModelError, LunaModelResult};
 
 use super::Solution;
-use crate::{Model, Timing};
+use crate::Model;
 
 impl Solution {
     /// Merges multiple solutions that share the same variable schema and sense.
@@ -101,20 +101,11 @@ impl Solution {
                 }
             }
 
-            match solution.timing {
+            match &solution.timing {
                 None => merged.timing = None,
                 Some(t) => {
                     if let Some(mt) = merged.timing.as_mut() {
-                        *mt = Timing::new(
-                            t.start().min(mt.start()),
-                            t.end().max(mt.end()),
-                            match (t.qpu, mt.qpu) {
-                                (Some(tq), Some(mtq)) => Some(tq + mtq),
-                                (Some(tq), None) => Some(tq),
-                                (None, Some(mtq)) => Some(mtq),
-                                (None, None) => None,
-                            },
-                        )
+                        mt.merge(t)
                     }
                 }
             }
