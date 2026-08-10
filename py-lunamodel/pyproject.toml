@@ -89,7 +89,7 @@ cache-keys = [
 dev = [
     "dimod>=0.12.22",
     "docplex>=2.30.251",
-    "ipython>=9.16.0",
+    "ipython>=9.16.1",
     "numpy>=2.4.6",
     "pre-commit>=4.6.1",
     "pyscipopt>=6.2.1",
@@ -110,7 +110,7 @@ dev = [
     "pytest-xdist>=3.8.0",
 ]
 docs = [
-    "zensical>=0.0.52",
+    "zensical>=0.0.53",
     "mkdocs-jupyter>=0.24.1",
     "mkdocs-macros-plugin>=1.5.0",
     "mkdocstrings[python]>=1.0.6",
