@@ -205,12 +205,12 @@ class Timer:
     >>> t = Timer.start()
     >>> preprocessing = t.record("preprocessing")
     >>> # ... perform preprocessing ...
-    >>> preprocessing.stop()
+    >>> _ = preprocessing.stop()
     >>> qpu = t.record("qpu")
     >>> # ... call the QPU ...
-    >>> qpu.stop()
+    >>> _ = qpu.stop()
     >>> timing = t.stop()
-    >>> print(f"Elapsed: {timing.total} seconds")
+    >>> print(f"Elapsed: {timing.total} seconds")  # doctest: +SKIP
     Elapsed: ... seconds
     """
 
