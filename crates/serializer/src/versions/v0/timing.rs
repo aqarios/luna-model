@@ -35,6 +35,8 @@ impl SerTiming {
             .map_err(|e| LunaModelError::Internal(e.to_string().into()))?
             .as_secs_f64();
         let mut timing = Timing::new(total);
+        timing.start = Some(start);
+        timing.end = Some(end);
         if let Some(qpu) = self.qpu {
             timing.set("qpu", qpu);
         }
