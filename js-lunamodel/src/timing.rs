@@ -21,7 +21,7 @@ impl JsTiming {
     /// the JS side if you want a `Date` object.
     #[napi(getter)]
     pub fn start(&self) -> Result<Option<f64>> {
-        self.inner.start.map(|t| millis_since_epoch(t)).transpose()
+        self.inner.start.map(millis_since_epoch).transpose()
     }
 
     /// Wall-clock end time, in milliseconds since the Unix epoch (UTC).
@@ -30,7 +30,7 @@ impl JsTiming {
     /// the JS side if you want a `Date` object.
     #[napi(getter)]
     pub fn end(&self) -> Result<Option<f64>> {
-        self.inner.end.map(|t| millis_since_epoch(t)).transpose()
+        self.inner.end.map(millis_since_epoch).transpose()
     }
 
     /// Total runtime in seconds.
