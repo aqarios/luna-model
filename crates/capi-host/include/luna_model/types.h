@@ -1120,6 +1120,14 @@ typedef struct {
 } LmLazyBounds;
 
 /**
+ * Opaque handle to a structured LunaModel error. See [`crate::error::RichError`].
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmError;
+
+/**
  * Opaque handle to a LunaModel linear terms reference.
  *
  */
@@ -1672,6 +1680,38 @@ typedef struct {
     LmStatus (*timing_start_ns)(const LmTiming*, uint64_t*);
     LmStatus (*timing_end_ns)(const LmTiming*, uint64_t*);
     LmStatus (*timing_qpu)(const LmTiming*, double*);
+    /**
+     * Frees an error handle. Passing null is a no-op.
+     */
+    void (*error_free)(LmError*);
+    /**
+     * Writes the error's kind tag (an open, stable string such as `"variable_not_existing"` or
+     * a plugin-defined `"myplugin::infeasible_subproblem"`) into `out`.
+     */
+    LmStatus (*error_kind)(const LmError*, LmBuffer*);
+    /**
+     * Writes the error's human-readable message into `out`.
+     */
+    LmStatus (*error_message)(const LmError*, LmBuffer*);
+    /**
+     * Returns the error's cause as a new owned handle in `out`, or `LmStatus::Absent` if this
+     * error has no cause.
+     */
+    LmStatus (*error_cause)(const LmError*, LmError**);
+    /**
+     * Returns the current thread's last structured error, or null if none is set. Every
+     * fallible C API call clears this before running, so it always reflects the most recent
+     * call on this thread. Superseded by, and kept in sync with, `last_error_message`.
+     */
+    LmError *(*last_error)(void);
+    /**
+     * Sets the current thread's last structured error. Called by plugin/extension SDKs to
+     * report a pass failure with full fidelity (kind, message, cause chain) instead of just a
+     * non-`Ok` status code; the host folds it into the same error chain a native pass failure
+     * would produce. `kind` and `message` are copied immediately; `cause` (if non-null) is
+     * consumed.
+     */
+    LmStatus (*set_last_error)(const char*, const char*, LmError*);
     /**
      * Register a reversal handler for a plugin pass, keyed by its stable id.
      * Call this (e.g. from `luna_model.register(...)`) before reversing a record that

@@ -68,7 +68,20 @@ where
         .ok_or_else(|| plugin_error(&format!("{what} reference leaked out of plugin {phase}")))
 }
 
-/// Builds a transpiler error from a plugin-boundary failure message.
-pub(crate) fn plugin_error(msg: &str) -> TranspileErrorKind {
-    TranspileErrorKind::external(std::io::Error::other(msg.to_string()))
+/// Builds a transpiler error from a plugin-boundary failure.
+///
+/// Plugin SDKs report their own failure via `lm_set_last_error` before returning a non-`Ok`
+/// status; callers here clear the thread-local right before invoking the plugin callback (so a
+/// stale error from an unrelated earlier call is never misattributed), then check it once the
+/// callback returns non-`Ok`. When the plugin did report one, that structured error (kind,
+/// message, and its cause chain — [`lunamodel_capi::error::RichError`] implements
+/// [`std::error::Error`]) becomes the *cause* here, so it folds into the same
+/// `LunaModelError::WithCause` chain a native pass failure would produce, rather than being
+/// replaced by a generic message. `fallback` covers plugins (e.g. minimal C authors) that don't
+/// call `lm_set_last_error` and only return the status code.
+pub(crate) fn plugin_error(fallback: &str) -> TranspileErrorKind {
+    match lunamodel_capi::error::last() {
+        Some(rich) => TranspileErrorKind::external_with_kind(rich.kind.clone(), rich),
+        None => TranspileErrorKind::external(std::io::Error::other(fallback.to_string())),
+    }
 }

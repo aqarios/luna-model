@@ -1281,6 +1281,58 @@ LmStatus lm_env_deserialize(const uint8_t *data, uintptr_t len, LmEnv **out);
 const char *lm_last_error_message(void);
 
 /**
+ * Returns the current thread's last structured error as a new owned handle, or null if none is
+ * set. Must be released with [`lm_error_free`].
+ */
+LmError *lm_last_error(void);
+
+/**
+ * Sets the current thread's last structured error. Intended for plugin/extension SDKs to report
+ * a pass failure with full fidelity instead of just a non-`Ok` status code.
+ *
+ * `kind` and `message` are copied immediately. `cause` (if non-null) is consumed — the caller
+ * must not use or free it afterwards.
+ *
+ * # Safety
+ * `kind` and `message` must be null or valid NUL-terminated UTF-8 C strings. `cause`, if
+ * non-null, must be a valid error handle created by this library.
+ */
+LmStatus lm_set_last_error(const char *kind, const char *message, LmError *cause);
+
+/**
+ * Frees an error handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `err` must originate from this library and must not be used or freed again.
+ */
+void lm_error_free(LmError *err);
+
+/**
+ * Writes the error's kind tag into `out`.
+ *
+ * # Safety
+ * `err` must be a valid error handle and `out` must be writable.
+ */
+LmStatus lm_error_kind(const LmError *err, LmBuffer *out);
+
+/**
+ * Writes the error's message into `out`.
+ *
+ * # Safety
+ * `err` must be a valid error handle and `out` must be writable.
+ */
+LmStatus lm_error_message(const LmError *err, LmBuffer *out);
+
+/**
+ * Returns the error's cause as a new owned handle in `out`, or `LmStatus::Absent` if this error
+ * has no cause.
+ *
+ * # Safety
+ * `err` must be a valid error handle and `out` must be writable.
+ */
+LmStatus lm_error_cause(const LmError *err, LmError **out);
+
+/**
  * Returns the environment of the expression.
  *
  * # Safety
@@ -3514,6 +3566,33 @@ LmStatus lm_sol_set_timing(LmSol *sol, const LmTiming *timing);
 LmStatus lm_sol_set_sense(LmSol *sol, LmSense sense);
 
 /**
+ * Replaces the optional per-sample raw energies. A null `data` clears the value.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle. `data` must be null or point
+ * to `len` readable values.
+ */
+LmStatus lm_sol_set_raw_energies(LmSol *sol, const double *data, uintptr_t len);
+
+/**
+ * Replaces the optional per-sample objective values. A null `data` clears the value.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle. `data` must be null or point
+ * to `len` readable values.
+ */
+LmStatus lm_sol_set_obj_values(LmSol *sol, const double *data, uintptr_t len);
+
+/**
+ * Replaces the optional per-sample feasibility flags. A null `data` clears the value.
+ *
+ * # Safety
+ * `sol` must be a valid mutable solution handle. `data` must be null or point
+ * to `len` readable values.
+ */
+LmStatus lm_sol_set_feasible(LmSol *sol, const bool *data, uintptr_t len);
+
+/**
  * Returns the `(variable name, column)` entries of the solution's sample map.
  *
  * The returned buffer must be released with [`lm_index_map_buffer_free`].
@@ -3679,12 +3758,22 @@ LmStatus lm_sol_lookup_update(LmSolutionLookup *lookup, const LmSampleView *view
 LmStatus lm_sol_lookup_values(const LmSolutionLookup *lookup, const double **data, uintptr_t *len);
 
 /**
- * Writes the lookup table's current values back into row `idx` of `sol`.
+ * Overwrites row `idx` of `sol` with `values` (indexed by variable id), using
+ * `lookup`'s variable mapping.
+ *
+ * `values` is typically a caller-owned copy of a prior [`lm_sol_lookup_values`]
+ * call, mutated locally (e.g. by a sampler's hot per-flip loop) without any
+ * further ABI round-trips, then written back once per sample here.
  *
  * # Safety
- * `lookup` and `sol` must be valid handles.
+ * `lookup` and `sol` must be valid handles. `values` must be null when `len`
+ * is zero or point to `len` readable values matching `lookup`'s variable count.
  */
-LmStatus lm_sol_lookup_write_sol(const LmSolutionLookup *lookup, uint32_t idx, LmSol *sol);
+LmStatus lm_sol_lookup_write_sol(LmSolutionLookup *lookup,
+                                 uint32_t idx,
+                                 const double *values,
+                                 uintptr_t len,
+                                 LmSol *sol);
 
 /**
  * Returns the specs's sense, if one is set.

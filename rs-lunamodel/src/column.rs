@@ -92,6 +92,7 @@ impl Column {
             return Err(Error {
                 status: Status::NullPointer,
                 message: "C API returned a null column-values pointer".to_owned(),
+                kind: None,
             });
         }
         Ok(if len == 0 {
@@ -109,6 +110,7 @@ impl Column {
         let value = value.to_f64().ok_or_else(|| Error {
             status: Status::InvalidArgument,
             message: "sample value is not representable as f64".to_owned(),
+            kind: None,
         })?;
         check!(col_try_push(@mut self, value, ?tol))
     }

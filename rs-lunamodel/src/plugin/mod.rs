@@ -216,6 +216,7 @@ fn interior_nul(field: &str) -> Error {
     Error {
         status: Status::InvalidArgument,
         message: format!("plugin `{field}` contains an interior NUL byte"),
+        kind: None,
     }
 }
 
@@ -277,7 +278,7 @@ unsafe extern "C" fn trampoline_forward<P: TransformationPass>(
             unsafe { sink(sink_ctx, bytes.as_ptr(), bytes.len()) };
             LmStatus::Ok
         }
-        Err(_) => LmStatus::Errored,
+        Err(e) => crate::error::report(&e),
     }
 }
 
@@ -307,7 +308,7 @@ unsafe extern "C" fn trampoline_backward<P: Reversible>(
             unsafe { *out_solution = result.into_raw_owned() };
             LmStatus::Ok
         }
-        Err(_) => LmStatus::Errored,
+        Err(e) => crate::error::report(&e),
     }
 }
 
@@ -384,7 +385,7 @@ unsafe extern "C" fn analysis_trampoline_run<A: AnalysisPass>(
             unsafe { sink(sink_ctx, bytes.as_ptr(), bytes.len()) };
             LmStatus::Ok
         }
-        Err(_) => LmStatus::Errored,
+        Err(e) => crate::error::report(&e),
     }
 }
 
@@ -481,7 +482,7 @@ unsafe extern "C" fn composite_trampoline_forward<C: CompositePass>(
             unsafe { result_sink(result_sink_ctx, result_bytes.as_ptr(), result_bytes.len()) };
             LmStatus::Ok
         }
-        Err(_) => LmStatus::Errored,
+        Err(e) => crate::error::report(&e),
     }
 }
 
@@ -534,7 +535,7 @@ unsafe extern "C" fn meta_trampoline_run<M: MetaAnalysisPass>(
             unsafe { sink(sink_ctx, bytes.as_ptr(), bytes.len()) };
             LmStatus::Ok
         }
-        Err(_) => LmStatus::Errored,
+        Err(e) => crate::error::report(&e),
     }
 }
 
@@ -603,7 +604,7 @@ unsafe extern "C" fn control_flow_trampoline_run<C: ControlFlowPass>(
             unsafe { *out_plan = plan.into_raw() };
             LmStatus::Ok
         }
-        Err(_) => LmStatus::Errored,
+        Err(e) => crate::error::report(&e),
     }
 }
 

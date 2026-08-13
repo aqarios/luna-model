@@ -53,6 +53,7 @@ pub fn derive_raw_handle(input: TokenStream) -> TokenStream {
                             " handle with a successful status",
                         )
                         .to_owned(),
+                        kind: None,
                     })
                 } else {
                     Ok(Self::from_raw(handle))

@@ -8,12 +8,12 @@ use crate::plugin::{
 
 pub use super::{
     LmAssignment, LmBoolMapBuffer, LmBound, LmBounds, LmBuffer, LmCC, LmCmpBuffer, LmColumn,
-    LmColumnBuffer, LmComparator, LmConstraint, LmCtype, LmCtypeBuffer, LmEnv, LmEnvId, LmExpr,
-    LmF64Buffer, LmHigherOrder, LmHigherOrderItemBuffer, LmIndexMapItemBuffer, LmLazyBounds,
-    LmLinear, LmLinearItemBuffer, LmModel, LmQuadratic, LmQuadraticItemBuffer, LmResultView,
-    LmResultViewBuffer, LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSolutionLookup,
-    LmSpecs, LmStatus, LmStrBuffer, LmTimer, LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref,
-    LmVrefBuffer, LmVtype, LmVtypeBuffer,
+    LmColumnBuffer, LmComparator, LmConstraint, LmCtype, LmCtypeBuffer, LmEnv, LmEnvId, LmError,
+    LmExpr, LmF64Buffer, LmHigherOrder, LmHigherOrderItemBuffer, LmIndexMapItemBuffer,
+    LmLazyBounds, LmLinear, LmLinearItemBuffer, LmModel, LmQuadratic, LmQuadraticItemBuffer,
+    LmResultView, LmResultViewBuffer, LmSampleView, LmSampleViewBuffer, LmSense, LmSol,
+    LmSolutionLookup, LmSpecs, LmStatus, LmStrBuffer, LmTimer, LmTiming, LmU32Buffer,
+    LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
 };
 
 /// Stable, versioned table of LunaModel C API entry points.
@@ -760,6 +760,30 @@ pub struct LunaModelCApi {
     pub timing_start_ns: unsafe extern "C" fn(*const LmTiming, *mut u64) -> LmStatus,
     pub timing_end_ns: unsafe extern "C" fn(*const LmTiming, *mut u64) -> LmStatus,
     pub timing_qpu: unsafe extern "C" fn(*const LmTiming, *mut f64) -> LmStatus,
+    // ///// //
+    // Error //
+    // ///// //
+    /// Frees an error handle. Passing null is a no-op.
+    pub error_free: unsafe extern "C" fn(*mut LmError),
+    /// Writes the error's kind tag (an open, stable string such as `"variable_not_existing"` or
+    /// a plugin-defined `"myplugin::infeasible_subproblem"`) into `out`.
+    pub error_kind: unsafe extern "C" fn(*const LmError, *mut LmBuffer) -> LmStatus,
+    /// Writes the error's human-readable message into `out`.
+    pub error_message: unsafe extern "C" fn(*const LmError, *mut LmBuffer) -> LmStatus,
+    /// Returns the error's cause as a new owned handle in `out`, or `LmStatus::Absent` if this
+    /// error has no cause.
+    pub error_cause: unsafe extern "C" fn(*const LmError, *mut *mut LmError) -> LmStatus,
+    /// Returns the current thread's last structured error, or null if none is set. Every
+    /// fallible C API call clears this before running, so it always reflects the most recent
+    /// call on this thread. Superseded by, and kept in sync with, `last_error_message`.
+    pub last_error: extern "C" fn() -> *mut LmError,
+    /// Sets the current thread's last structured error. Called by plugin/extension SDKs to
+    /// report a pass failure with full fidelity (kind, message, cause chain) instead of just a
+    /// non-`Ok` status code; the host folds it into the same error chain a native pass failure
+    /// would produce. `kind` and `message` are copied immediately; `cause` (if non-null) is
+    /// consumed.
+    pub set_last_error:
+        unsafe extern "C" fn(*const c_char, *const c_char, *mut LmError) -> LmStatus,
     // ///////////// //
     // Plugin passes //
     // ///////////// //

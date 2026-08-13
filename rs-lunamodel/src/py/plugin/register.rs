@@ -23,11 +23,11 @@ macro_rules! register_plugins {
             $crate::py::ensure_c_api(py)?;
             $(
                 $crate::plugin::register_backward::<$t>()
-                    .map_err(|error| ::pyo3::exceptions::PyRuntimeError::new_err(error.to_string()))?;
+                    .map_err($crate::py::error::into_pyerr)?;
             )*
             $(
                 $crate::plugin::register_composite_backward::<$c>()
-                    .map_err(|error| ::pyo3::exceptions::PyRuntimeError::new_err(error.to_string()))?;
+                    .map_err($crate::py::error::into_pyerr)?;
             )*
             ::core::result::Result::Ok(())
         }

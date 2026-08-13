@@ -10,12 +10,12 @@ pub use lunamodel_capi::LunaModelCApi;
 pub use lunamodel_capi::{
     LmAssignment, LmBoolMapBuffer, LmBoolMapEntry, LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC,
     LmCmpBuffer, LmColumn, LmColumnBuffer, LmComparator, LmConstraint, LmCtype, LmCtypeBuffer,
-    LmEnv, LmEnvId, LmExpr, LmF64Buffer, LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer,
-    LmIndexMapItem, LmIndexMapItemBuffer, LmLazyBounds, LmLinear, LmLinearItem, LmLinearItemBuffer,
-    LmModel, LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer, LmResultView, LmResultViewBuffer,
-    LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSolutionLookup, LmSpecs, LmStatus,
-    LmStrBuffer, LmTimer, LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref, LmVrefBuffer,
-    LmVtype, LmVtypeBuffer,
+    LmEnv, LmEnvId, LmError, LmExpr, LmF64Buffer, LmHigherOrder, LmHigherOrderItem,
+    LmHigherOrderItemBuffer, LmIndexMapItem, LmIndexMapItemBuffer, LmLazyBounds, LmLinear,
+    LmLinearItem, LmLinearItemBuffer, LmModel, LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer,
+    LmResultView, LmResultViewBuffer, LmSampleView, LmSampleViewBuffer, LmSense, LmSol,
+    LmSolutionLookup, LmSpecs, LmStatus, LmStrBuffer, LmTimer, LmTiming, LmU32Buffer,
+    LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
 };
 
 /// ABI version of the C API table.

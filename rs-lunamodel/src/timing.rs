@@ -74,10 +74,12 @@ fn unix_nanos(time: SystemTime, field: &str) -> Result<u64> {
     let duration = time.duration_since(UNIX_EPOCH).map_err(|_| Error {
         status: Status::InvalidArgument,
         message: format!("{field} must not precede the Unix epoch"),
+        kind: None,
     })?;
 
     u64::try_from(duration.as_nanos()).map_err(|_| Error {
         status: Status::InvalidArgument,
         message: format!("{field} is too large to represent as Unix nanoseconds"),
+        kind: None,
     })
 }

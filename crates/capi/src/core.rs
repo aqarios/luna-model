@@ -571,6 +571,14 @@ pub struct LmTimer {
     _private: [u8; 0],
 }
 
+/// Opaque handle to a structured LunaModel error. See [`crate::error::RichError`].
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmError {
+    _private: [u8; 0],
+}
+
 /// Opaque handle to a LunaModel variable reference.
 ///
 /// cbindgen:opaque

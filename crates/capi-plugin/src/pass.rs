@@ -80,6 +80,10 @@ impl TransformationPass for CPluginTransformPass {
         // borrows so the plugin can read analyses through `pass_context_get_analysis`.
         let ctx_ptr = (ctx.manager() as *const AnalysisManager).cast::<LmPassContext>();
         let mut payload: Vec<u8> = Vec::new();
+        // Cleared right before the call so a stale error from an unrelated earlier call is never
+        // misattributed to this one; see marshal::plugin_error.
+        lunamodel_capi::error::clear_last();
+
         let status = unsafe {
             (self.desc.forward)(
                 self.desc.user_data,
@@ -117,6 +121,10 @@ impl Reversible for CPluginTransformPass {
         // Transfer ownership of the solution to the plugin, and reclaim the one it produces.
         let in_handle = new_handle::<LmSol>(solution);
         let mut out_handle: *mut LmSol = std::ptr::null_mut();
+        // Cleared right before the call so a stale error from an unrelated earlier call is never
+        // misattributed to this one; see marshal::plugin_error.
+        lunamodel_capi::error::clear_last();
+
         let status = unsafe {
             func(
                 user_data,

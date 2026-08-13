@@ -43,6 +43,10 @@ pub struct Error {
     pub status: Status,
     /// The associated message, if any.
     pub message: String,
+    /// An open, stable string tag identifying this error's specific origin (e.g.
+    /// `"myplugin::infeasible_subproblem"`), reported as `RichError::kind` in place of the
+    /// generic status-derived tag. `None` falls back to [`Status::as_kind`].
+    pub kind: Option<String>,
 }
 
 impl Error {
@@ -51,6 +55,7 @@ impl Error {
         Self {
             status,
             message: message.into(),
+            kind: None,
         }
     }
 
@@ -62,6 +67,13 @@ impl Error {
     /// Creates an error for an unexpected adapter-side state.
     pub fn internal(message: impl Into<String>) -> Self {
         Self::new(Status::Panic, message)
+    }
+
+    /// Attaches a specific kind tag, reported in place of the generic status-derived one.
+    #[must_use]
+    pub fn with_kind(mut self, kind: impl Into<String>) -> Self {
+        self.kind = Some(kind.into());
+        self
     }
 }
 
@@ -91,6 +103,44 @@ impl Status {
             LmStatus::Absent => Some(Status::Absent),
         }
     }
+
+    /// Maps back to the non-`Ok` status code a trampoline should return for this status.
+    fn to_code(self) -> LmStatus {
+        match self {
+            Status::NullPointer => LmStatus::NullPointer,
+            Status::InvalidArgument => LmStatus::InvalidArgument,
+            Status::Serialization => LmStatus::Serialization,
+            Status::Deserialization => LmStatus::Deserialization,
+            Status::Panic => LmStatus::Panic,
+            Status::Errored => LmStatus::Errored,
+            Status::Absent => LmStatus::Absent,
+        }
+    }
+
+    /// A stable kind tag for this status, used to populate `RichError::kind` when a pass author's
+    /// error doesn't otherwise carry a more specific one.
+    fn as_kind(self) -> &'static str {
+        match self {
+            Status::NullPointer => "null_pointer",
+            Status::InvalidArgument => "invalid_argument",
+            Status::Serialization => "serialization",
+            Status::Deserialization => "deserialization",
+            Status::Panic => "panic",
+            Status::Errored => "errored",
+            Status::Absent => "absent",
+        }
+    }
+}
+
+/// Reports a pass author's error to the host via `lm_set_last_error` before a trampoline returns
+/// its status, so the error's message (and, going forward, richer context) crosses the ABI
+/// instead of being silently discarded. Returns the status code the trampoline should return.
+pub(crate) fn report(e: &Error) -> LmStatus {
+    let kind_str = e.kind.as_deref().unwrap_or_else(|| e.status.as_kind());
+    let kind = std::ffi::CString::new(kind_str).unwrap_or_default();
+    let message = std::ffi::CString::new(e.message.replace('\0', " ")).unwrap_or_default();
+    unsafe { (api().set_last_error)(kind.as_ptr(), message.as_ptr(), std::ptr::null_mut()) };
+    e.status.to_code()
 }
 
 /// Turns a status code into `Ok(())` or an [`Error`] carrying the thread-local
@@ -101,6 +151,7 @@ pub(crate) fn check(status: LmStatus) -> Result<()> {
         Some(status) => Err(Error {
             status,
             message: last_error_message(),
+            kind: None,
         }),
     }
 }
