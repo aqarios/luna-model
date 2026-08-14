@@ -22,18 +22,22 @@ impl SerModel {
     fn extract(&self) -> LunaModelResult<Model> {
         let sense = Sense::from_str(&self.sense)
             .map_err(|e| LunaModelError::Decoding(e.to_string().into()))?;
-        let env: Environment = self.environment.as_slice().unversionize().decode(())?;
+        let env: Environment = self
+            .environment
+            .as_slice()
+            .unversionize_nested()
+            .decode(())?;
         let arcenv = ArcEnv::from(env);
         let mut model = Model::with_env(Some(self.name.clone()), Some(sense), arcenv.clone());
         model.objective = self
             .objective
             .as_slice()
-            .unversionize()
+            .unversionize_nested()
             .decode(arcenv.clone())?;
         model.constraints = self
             .constraints
             .as_slice()
-            .unversionize()
+            .unversionize_nested()
             .decode(arcenv.clone())?;
         Ok(model)
     }
