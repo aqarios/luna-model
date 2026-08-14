@@ -35,8 +35,6 @@ impl Decodable<Environment> for Versioned<Vec<u8>> {
         match self.version {
             Some(Version::V0) => SerEnvV0::decoder(self.data.as_slice(), payload),
             Some(Version::V1) => SerEnvV1::decoder(self.data.as_slice(), payload),
-            // Fallback for unversioned data (nested environments written before
-            // this field carried its own version tag) - was always v0.
             _ => SerEnvV0::decoder(self.data.as_slice(), payload),
         }
     }
