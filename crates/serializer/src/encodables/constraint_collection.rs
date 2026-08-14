@@ -39,7 +39,9 @@ impl Decodable<ConstraintCollection> for Versioned<Vec<u8>> {
     fn decode(&self, payload: Self::Payload) -> LunaModelResult<ConstraintCollection> {
         match self.version {
             Some(Version::V0) => SerConstrCollV0::decoder(self.data.as_slice(), payload),
-            _ => SerConstrLatest::decoder(self.data.as_slice(), payload),
+            // Fallback for unversioned data - was always v0. Pinned explicitly
+            // (not via SerConstrLatest) so this stays correct once a V1 lands.
+            _ => SerConstrCollV0::decoder(self.data.as_slice(), payload),
         }
     }
 }
