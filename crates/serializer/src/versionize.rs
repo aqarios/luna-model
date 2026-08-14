@@ -15,11 +15,20 @@ pub enum Version {
 /// Utility methods for working on the version enum.
 impl Version {
     /// Helper function to recover the version as an Enum based on a u32.
-    pub fn from(u: u32) -> Self {
+    ///
+    /// Returns `None` for an unrecognized version number instead of panicking.
+    /// This isn't just future-proofing: protobuf doesn't distinguish message
+    /// types on the wire, so legacy data that was never wrapped in a
+    /// `SerVersioned` envelope (written before a field started being
+    /// versionized) can still parse "successfully" as one, yielding a
+    /// nonsense version number. `unversionize` treats that the same as an
+    /// outright decode failure - fall back to unversioned/legacy handling
+    /// rather than panicking on data that was always valid, just older.
+    pub fn from(u: u32) -> Option<Self> {
         match u {
-            0 => Version::V0,
-            1 => Version::V1,
-            _ => panic!("unkown version"),
+            0 => Some(Version::V0),
+            1 => Some(Version::V1),
+            _ => None,
         }
     }
 }
@@ -108,9 +117,16 @@ where
     /// Extract self to a `Versioned` struct with the date being expressed as a vector
     /// of bytes.
     fn unversionize(&self) -> Versioned<Vec<u8>> {
-        let result = SerVersioned::decode(self.as_slice());
-        match result {
-            Ok(versioned) => Versioned::new(Version::from(versioned.version), versioned.data),
+        match SerVersioned::decode(self.as_slice()) {
+            Ok(versioned) => match Version::from(versioned.version) {
+                Some(version) => Versioned::new(version, versioned.data),
+                // Decoded "successfully" but with an unrecognized version
+                // number - this is legacy data that was never actually
+                // SerVersioned-wrapped, not a real (if future) version tag.
+                // Fall back to the original bytes, not `versioned.data`
+                // (which would be a bogus sub-slice of them).
+                None => Versioned::unknown(self.as_slice().to_vec()),
+            },
             Err(_) => {
                 // Unversioned data...
                 Versioned::unknown(self.as_slice().to_vec())
