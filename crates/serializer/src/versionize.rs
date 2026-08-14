@@ -15,15 +15,6 @@ pub enum Version {
 /// Utility methods for working on the version enum.
 impl Version {
     /// Helper function to recover the version as an Enum based on a u32.
-    ///
-    /// Returns `None` for an unrecognized version number instead of panicking.
-    /// This isn't just future-proofing: protobuf doesn't distinguish message
-    /// types on the wire, so legacy data that was never wrapped in a
-    /// `SerVersioned` envelope (written before a field started being
-    /// versionized) can still parse "successfully" as one, yielding a
-    /// nonsense version number. `unversionize` treats that the same as an
-    /// outright decode failure - fall back to unversioned/legacy handling
-    /// rather than panicking on data that was always valid, just older.
     pub fn from(u: u32) -> Option<Self> {
         match u {
             0 => Some(Version::V0),
@@ -32,6 +23,8 @@ impl Version {
         }
     }
 }
+
+const NESTED_MARKER: u8 = 0xFE;
 
 /// A serializable version structure defining the data layout for protocol buffer
 /// based encoding and decoding. Used internally to implement the encoding and decoding
@@ -106,6 +99,12 @@ where
     fn versionize(self, version: Version) -> Vec<u8> {
         SerVersioned::new(version, self.to_vec()).encode_to_vec()
     }
+
+    fn versionize_nested(self, version: Version) -> Vec<u8> {
+        let mut out = vec![NESTED_MARKER];
+        out.extend(self.versionize(version));
+        out
+    }
 }
 
 /// This trait defines the required methods for an object to be unversionizable, i.e.,
@@ -120,17 +119,19 @@ where
         match SerVersioned::decode(self.as_slice()) {
             Ok(versioned) => match Version::from(versioned.version) {
                 Some(version) => Versioned::new(version, versioned.data),
-                // Decoded "successfully" but with an unrecognized version
-                // number - this is legacy data that was never actually
-                // SerVersioned-wrapped, not a real (if future) version tag.
-                // Fall back to the original bytes, not `versioned.data`
-                // (which would be a bogus sub-slice of them).
                 None => Versioned::unknown(self.as_slice().to_vec()),
             },
             Err(_) => {
                 // Unversioned data...
                 Versioned::unknown(self.as_slice().to_vec())
             }
+        }
+    }
+
+    fn unversionize_nested(&self) -> Versioned<Vec<u8>> {
+        match self.as_slice().split_first() {
+            Some((&NESTED_MARKER, rest)) => rest.unversionize(),
+            _ => Versioned::unknown(self.as_slice().to_vec()),
         }
     }
 }
