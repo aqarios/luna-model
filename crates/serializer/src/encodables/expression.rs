@@ -12,26 +12,14 @@ use lunamodel_error::LunaModelResult;
 /// of an [Expression]. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
-// TODO: delete until TODO(@HERE) and uncomment from TODO(@HERE) for V1 activation.
-// Issue(474): <https://github.com/aqarios/luna-model/issues/474>
-type SerExprLatest = SerExprV0;
+type SerExprLatest = SerExprV1;
 /// Makes an [Expression] encodable.
-impl Encodable<SerExprV0> for Expression {
+impl Encodable<SerExprV1> for Expression {
     fn version(&self) -> Version {
-        Version::V0
+        Version::V1
     }
 }
-impl Decoder<Expression, ArcEnv> for SerExprV1 {}
-// TODO: delete ABOVE code and activate below code for V1 activation.
-// Issue(474): <https://github.com/aqarios/luna-model/issues/474>
-// type SerExprLatest = SerExprV1;
-// /// Makes an [Expression] encodable.
-// impl Encodable<SerExprV1> for Expression {
-//     fn version(&self) -> Version {
-//         Version::V1
-//     }
-// }
-// impl Decoder<Expression, ArcEnv> for SerExprV0 {}
+impl Decoder<Expression, ArcEnv> for SerExprV0 {}
 
 /// Makes a raw byte vector (`Vec<u8>`) decodable into an [`Expression`].
 ///
