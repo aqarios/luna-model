@@ -305,6 +305,35 @@ class Solution {
     /* Sets the optimization sense. */
     void set_sense(LmSense sense) { detail::check(lm_sol_set_sense(handle_, sense)); }
 
+    /* Replaces or clears the optional per-sample raw energies. */
+    void set_raw_energies(const std::optional<std::vector<double>> &values) {
+        const double *data = values ? values->data() : nullptr;
+        std::size_t len = values ? values->size() : 0;
+        detail::check(lm_sol_set_raw_energies(handle_, data, len));
+    }
+
+    /* Replaces or clears the optional per-sample objective values. */
+    void set_obj_values(const std::optional<std::vector<double>> &values) {
+        const double *data = values ? values->data() : nullptr;
+        std::size_t len = values ? values->size() : 0;
+        detail::check(lm_sol_set_obj_values(handle_, data, len));
+    }
+
+    /* Replaces or clears the optional per-sample feasibility flags. */
+    void set_feasible(const std::optional<std::vector<bool>> &values) {
+        if (!values) {
+            detail::check(lm_sol_set_feasible(handle_, nullptr, 0));
+            return;
+        }
+        // `std::vector<bool>` is bit-packed and not contiguous; unpack into a real `bool[]`.
+        std::size_t len = values->size();
+        std::unique_ptr<bool[]> unpacked(new bool[len]);
+        for (std::size_t i = 0; i < len; ++i) {
+            unpacked[i] = (*values)[i];
+        }
+        detail::check(lm_sol_set_feasible(handle_, unpacked.get(), len));
+    }
+
     /* Appends a sample row from typed assignments.
      *
      * `names` and `assignments` must have equal length; `counts` is the number

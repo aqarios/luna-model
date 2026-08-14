@@ -6,6 +6,7 @@
 //! higher-level integrations do not need to constantly remap domain errors.
 use std::{
     any::Any,
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter},
     ops::Deref,
@@ -124,6 +125,11 @@ pub enum LunaModelError {
     Transformation {
         msg: ErrString,
         record: Option<ErasedRecord>,
+        /// The originating kind tag, when this wraps a specifically-tagged external failure
+        /// (e.g. a plugin's own [`RichError`](../../lunamodel_capi/error/struct.RichError.html)
+        /// `kind`) rather than a generic transformation failure. `None` keeps the default
+        /// `"transformation"` tag from [`kind_tag`](Self::kind_tag).
+        kind: Option<ErrString>,
     },
     /// Random sampling failed.
     RandomSampling(ErrString),
@@ -137,6 +143,10 @@ pub enum LunaModelError {
     },
     /// Wraps a domain error together with a cause.
     WithCause(Box<LunaModelError>, Arc<dyn Error + Send + Sync>),
+    /// A single link in an external error's context chain (e.g. one `anyhow::Context` frame),
+    /// preserved as its own node so the full chain survives structurally instead of being
+    /// flattened into one string. See [`LunaModelError::WithCause`].
+    External(ErrString),
 }
 
 impl Error for LunaModelError {
@@ -200,6 +210,7 @@ impl Display for LunaModelError {
             RandomSampling(msg) => write!(f, "random sampling failed due to: {}", msg),
             InvalidTolerance(msg) => write!(f, "invalid tolerance: {}", msg),
             WithCause(err, cause) => write!(f, "{err} - caused by: {cause}"),
+            External(msg) => write!(f, "{}", msg),
 
             Infeasible {
                 location, reason, ..
@@ -233,6 +244,62 @@ impl LunaModelError {
         Self::Transformation {
             msg: msg.into(),
             record: None,
+            kind: None,
+        }
+    }
+
+    /// A stable, open string tag identifying this error's variant, independent of its message.
+    ///
+    /// Used to carry variant identity across boundaries that can't hold the enum itself (the C
+    /// ABI's [`RichError`](../../lunamodel_capi/error/struct.RichError.html), for one) without
+    /// losing the ability to tell one kind of failure from another.
+    pub fn kind_tag(&self) -> Cow<'static, str> {
+        use LunaModelError::*;
+        match self {
+            DifferentEnvironments => Cow::Borrowed("different_environments"),
+            VariableExists(_) => Cow::Borrowed("variable_exists"),
+            VariableNotExisting(_) => Cow::Borrowed("variable_not_existing"),
+            VariableNameInvalid(_, _) => Cow::Borrowed("variable_name_invalid"),
+            ConstraintNameInvalid(_) => Cow::Borrowed("constraint_name_invalid"),
+            InvalidBounds(_) => Cow::Borrowed("invalid_bounds"),
+            InvalidInversion(_) => Cow::Borrowed("invalid_inversion"),
+            Compression(_) => Cow::Borrowed("compression"),
+            Decoding(_) => Cow::Borrowed("decoding"),
+            Formatter(_) => Cow::Borrowed("formatter"),
+            UnsupportedOperation(_) => Cow::Borrowed("unsupported_operation"),
+            Internal(_) => Cow::Borrowed("internal"),
+            Dtype(_) => Cow::Borrowed("dtype"),
+            Computation(_) => Cow::Borrowed("computation"),
+            NoConstraintForKey(_) => Cow::Borrowed("no_constraint_for_key"),
+            DuplicateConstraintName(_) => Cow::Borrowed("duplicate_constraint_name"),
+            ModelNotQuadratic => Cow::Borrowed("model_not_quadratic"),
+            ModelNotUnconstrained => Cow::Borrowed("model_not_unconstrained"),
+            ModelSenseNotMinimize => Cow::Borrowed("model_sense_not_minimize"),
+            Vtype(_) => Cow::Borrowed("vtype"),
+            Translation(_) => Cow::Borrowed("translation"),
+            IndexOutOfBounds(_) => Cow::Borrowed("index_out_of_bounds"),
+            Evaluation(_) => Cow::Borrowed("evaluation"),
+            SampleIncorrectLength(_) => Cow::Borrowed("sample_incorrect_length"),
+            SampleUnexpectedVariable(_) => Cow::Borrowed("sample_unexpected_variable"),
+            SampleIncompatibleVtype => Cow::Borrowed("sample_incompatible_vtype"),
+            VariableNames(_) => Cow::Borrowed("variable_names"),
+            TransformationPass(_, _) => Cow::Borrowed("transformation_pass"),
+            AnalysisPass(_, _) => Cow::Borrowed("analysis_pass"),
+            IfElsePass(_) => Cow::Borrowed("if_else_pass"),
+            MetaAnalysisPass(_, _) => Cow::Borrowed("meta_analysis_pass"),
+            // A plugin-originated failure carries its own kind tag (e.g.
+            // `"myplugin::infeasible_subproblem"`) through from `RichError.kind`; only fall back
+            // to the generic tag for native transformation failures.
+            Transformation { kind, .. } => kind
+                .as_ref()
+                .map(|k| Cow::Owned(k.as_ref().to_string()))
+                .unwrap_or(Cow::Borrowed("transformation")),
+            RandomSampling(_) => Cow::Borrowed("random_sampling"),
+            InvalidTolerance(_) => Cow::Borrowed("invalid_tolerance"),
+            Infeasible { .. } => Cow::Borrowed("infeasible"),
+            External(_) => Cow::Borrowed("external"),
+            // Transparent: the kind is that of the wrapped domain error, not of the wrapping.
+            WithCause(inner, _) => inner.kind_tag(),
         }
     }
 }

@@ -109,7 +109,7 @@ macro_rules! py_analysis_plugin {
                     model.inner(),
                     context,
                 )
-                .map_err(|e| ::pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
+                .map_err($crate::py::error::into_pyerr)?;
                 ::core::result::Result::Ok($result(output))
             }
 
@@ -120,7 +120,7 @@ macro_rules! py_analysis_plugin {
             ) -> ::pyo3::PyResult<::pyo3::Bound<'py, ::pyo3::types::PyCapsule>> {
                 $crate::py::ensure_c_api(py)?;
                 let descriptor = $crate::plugin::descriptor_analysis(self.0.clone())
-                    .map_err(|e| ::pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
+                    .map_err($crate::py::error::into_pyerr)?;
                 $crate::py::lunamodel_capi_pyffi::plugin::new_plugin_analysis_capsule(py, descriptor)
             }
         }

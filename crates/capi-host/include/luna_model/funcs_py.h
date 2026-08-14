@@ -55,7 +55,6 @@ static inline int import_luna_model(void) {
 
 /* Dispatch macros (one per LunaModelCApi field, generated): */
 #define lm_version(...) (lunamodel__vtable->version(__VA_ARGS__))
-#define lm_last_error_message(...) (lunamodel__vtable->last_error_message(__VA_ARGS__))
 #define lm_buffer_free(...) (lunamodel__vtable->buffer_free(__VA_ARGS__))
 #define lm_str_buffer_free(...) (lunamodel__vtable->str_buffer_free(__VA_ARGS__))
 #define lm_vtype_buffer_free(...) (lunamodel__vtable->vtype_buffer_free(__VA_ARGS__))
@@ -458,6 +457,12 @@ static inline int import_luna_model(void) {
 #define lm_timing_start_ns(...) (lunamodel__vtable->timing_start_ns(__VA_ARGS__))
 #define lm_timing_end_ns(...) (lunamodel__vtable->timing_end_ns(__VA_ARGS__))
 #define lm_timing_qpu(...) (lunamodel__vtable->timing_qpu(__VA_ARGS__))
+#define lm_error_free(...) (lunamodel__vtable->error_free(__VA_ARGS__))
+#define lm_error_kind(...) (lunamodel__vtable->error_kind(__VA_ARGS__))
+#define lm_error_message(...) (lunamodel__vtable->error_message(__VA_ARGS__))
+#define lm_error_cause(...) (lunamodel__vtable->error_cause(__VA_ARGS__))
+#define lm_last_error(...) (lunamodel__vtable->last_error(__VA_ARGS__))
+#define lm_set_last_error(...) (lunamodel__vtable->set_last_error(__VA_ARGS__))
 #define lm_register_plugin_backward(...) (lunamodel__vtable->register_plugin_backward(__VA_ARGS__))
 #define lm_pass_context_get_analysis(...) (lunamodel__vtable->pass_context_get_analysis(__VA_ARGS__))
 #define lm_step_list_len(...) (lunamodel__vtable->step_list_len(__VA_ARGS__))

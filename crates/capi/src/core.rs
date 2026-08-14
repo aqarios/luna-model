@@ -2,9 +2,9 @@ use std::os::raw::c_char;
 
 /// Status codes returned by every fallible `lm_*` entry point.
 ///
-/// `Ok` is guaranteed to be `0`. On any non-`Ok` status, a human-readable
-/// description is available from [`lm_last_error_message`] until the next C API
-/// call on the same thread.
+/// `Ok` is guaranteed to be `0`. On any non-`Ok` status, a structured description is available
+/// from `lm_last_error` (and the `lm_error_*` accessors) until the next C API call on the same
+/// thread.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LmStatus {
@@ -568,6 +568,14 @@ pub struct LmTiming {
 /// cbindgen:opaque
 #[repr(C)]
 pub struct LmTimer {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a structured LunaModel error. See [`crate::error::RichError`].
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmError {
     _private: [u8; 0],
 }
 

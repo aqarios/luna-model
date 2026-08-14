@@ -1270,15 +1270,56 @@ LmStatus lm_env_serialize(const LmEnv *env, LmBuffer *out);
 LmStatus lm_env_deserialize(const uint8_t *data, uintptr_t len, LmEnv **out);
 
 /**
- * Returns the last error message for the current thread, or null if there is none.
+ * Returns the current thread's last structured error as a new owned handle, or null if none is
+ * set. Must be released with [`lm_error_free`].
+ */
+LmError *lm_last_error(void);
+
+/**
+ * Sets the current thread's last structured error. Intended for plugin/extension SDKs to report
+ * a pass failure with full fidelity instead of just a non-`Ok` status code.
  *
- * The pointer is owned by LunaModel and stays valid only until the next C API
- * call on this thread. Copy it if you need to keep it; do not free it.
+ * `kind` and `message` are copied immediately. `cause` (if non-null) is consumed — the caller
+ * must not use or free it afterwards.
  *
  * # Safety
- * The caller must not retain the returned pointer across further C API calls.
+ * `kind` and `message` must be null or valid NUL-terminated UTF-8 C strings. `cause`, if
+ * non-null, must be a valid error handle created by this library.
  */
-const char *lm_last_error_message(void);
+LmStatus lm_set_last_error(const char *kind, const char *message, LmError *cause);
+
+/**
+ * Frees an error handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `err` must originate from this library and must not be used or freed again.
+ */
+void lm_error_free(LmError *err);
+
+/**
+ * Writes the error's kind tag into `out`.
+ *
+ * # Safety
+ * `err` must be a valid error handle and `out` must be writable.
+ */
+LmStatus lm_error_kind(const LmError *err, LmBuffer *out);
+
+/**
+ * Writes the error's message into `out`.
+ *
+ * # Safety
+ * `err` must be a valid error handle and `out` must be writable.
+ */
+LmStatus lm_error_message(const LmError *err, LmBuffer *out);
+
+/**
+ * Returns the error's cause as a new owned handle in `out`, or `LmStatus::Absent` if this error
+ * has no cause.
+ *
+ * # Safety
+ * `err` must be a valid error handle and `out` must be writable.
+ */
+LmStatus lm_error_cause(const LmError *err, LmError **out);
 
 /**
  * Returns the environment of the expression.

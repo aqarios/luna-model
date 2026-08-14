@@ -88,6 +88,7 @@ pub fn version() -> crate::Result<String> {
         return Err(crate::Error {
             status: crate::Status::NullPointer,
             message: "the LunaModel host returned a null version string".to_owned(),
+            kind: None,
         });
     }
     Ok(unsafe { CStr::from_ptr(ptr) }

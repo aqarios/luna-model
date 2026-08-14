@@ -63,9 +63,14 @@ class SolutionLookup {
         return std::vector<double>(data, data + len);
     }
 
-    /* Writes the lookup table's current values back into row `idx` of `sol`. */
-    void write_sol(std::uint32_t idx, Solution &sol) const {
-        detail::check(lm_sol_lookup_write_sol(handle_, idx, sol.get()));
+    /* Overwrites row `idx` of `sol` with `values` (indexed by variable id).
+     *
+     * `values` is typically a caller-owned copy of a prior `values()` call,
+     * mutated locally (e.g. by a sampler's hot per-flip loop) without any
+     * further ABI round-trips, then written back once per sample here. */
+    void write_sol(std::uint32_t idx, const std::vector<double> &values, Solution &sol) {
+        detail::check(
+            lm_sol_lookup_write_sol(handle_, idx, values.data(), values.size(), sol.get()));
     }
 
     LmSolutionLookup *get() const noexcept { return handle_; }

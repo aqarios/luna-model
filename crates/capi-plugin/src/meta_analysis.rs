@@ -81,6 +81,10 @@ impl MetaAnalysisPass for CPluginMetaAnalysisPass {
         // `step_list_*` API entries and never retains the pointer.
         let view = StepListView::new(steps);
         let mut payload: Vec<u8> = Vec::new();
+        // Cleared right before the call so a stale error from an unrelated earlier call is never
+        // misattributed to this one; see marshal::plugin_error.
+        lunamodel_capi::error::clear_last();
+
         let status = unsafe {
             (self.desc.run)(
                 self.desc.user_data,

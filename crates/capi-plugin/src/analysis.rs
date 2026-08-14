@@ -91,6 +91,10 @@ impl AnalysisPass for CPluginAnalysisPass {
         let handle = new_handle::<LmModel>(model.clone());
         let ctx_ptr = (ctx.manager() as *const AnalysisManager).cast::<LmPassContext>();
         let mut payload: Vec<u8> = Vec::new();
+        // Cleared right before the call so a stale error from an unrelated earlier call is never
+        // misattributed to this one; see marshal::plugin_error.
+        lunamodel_capi::error::clear_last();
+
         let status = unsafe {
             (self.desc.run)(
                 self.desc.user_data,

@@ -12,6 +12,7 @@
 mod core;
 mod vtable;
 
+pub mod error;
 pub mod plugin;
 
 /// ABI version of the C API table.
@@ -25,12 +26,12 @@ pub const CAPI_ABI_VERSION: u32 = 1;
 pub use core::{
     LmAssignment, LmBoolMapBuffer, LmBoolMapEntry, LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC,
     LmCmpBuffer, LmColumn, LmColumnBuffer, LmComparator, LmConstraint, LmCtype, LmCtypeBuffer,
-    LmEnv, LmEnvId, LmExpr, LmF64Buffer, LmHigherOrder, LmHigherOrderItem, LmHigherOrderItemBuffer,
-    LmIndexMapItem, LmIndexMapItemBuffer, LmLazyBounds, LmLinear, LmLinearItem, LmLinearItemBuffer,
-    LmModel, LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer, LmResultView, LmResultViewBuffer,
-    LmSampleView, LmSampleViewBuffer, LmSense, LmSol, LmSolutionLookup, LmSpecs, LmStatus,
-    LmStrBuffer, LmTimer, LmTiming, LmU32Buffer, LmValueSource, LmVar, LmVref, LmVrefBuffer,
-    LmVtype, LmVtypeBuffer,
+    LmEnv, LmEnvId, LmError, LmExpr, LmF64Buffer, LmHigherOrder, LmHigherOrderItem,
+    LmHigherOrderItemBuffer, LmIndexMapItem, LmIndexMapItemBuffer, LmLazyBounds, LmLinear,
+    LmLinearItem, LmLinearItemBuffer, LmModel, LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer,
+    LmResultView, LmResultViewBuffer, LmSampleView, LmSampleViewBuffer, LmSense, LmSol,
+    LmSolutionLookup, LmSpecs, LmStatus, LmStrBuffer, LmTimer, LmTiming, LmU32Buffer,
+    LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
 };
 
 pub use vtable::LunaModelCApi;

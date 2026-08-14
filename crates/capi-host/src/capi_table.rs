@@ -11,7 +11,6 @@ use crate::{CAPI_ABI_VERSION, LunaModelCApi};
 pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     abi_version: CAPI_ABI_VERSION,
     version: crate::version::lm_version,
-    last_error_message: crate::error::lm_last_error_message,
     // ////// //
     // BUFFER //
     // ////// //
@@ -550,6 +549,15 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     timing_start_ns: crate::timing::lm_timing_start_ns,
     timing_end_ns: crate::timing::lm_timing_end_ns,
     timing_qpu: crate::timing::lm_timing_qpu,
+    // ///// //
+    // Error //
+    // ///// //
+    error_free: crate::error::lm_error_free,
+    error_kind: crate::error::lm_error_kind,
+    error_message: crate::error::lm_error_message,
+    error_cause: crate::error::lm_error_cause,
+    last_error: crate::error::lm_last_error,
+    set_last_error: crate::error::lm_set_last_error,
     // ///////////// //
     // Plugin passes //
     // ///////////// //

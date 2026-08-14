@@ -538,7 +538,7 @@ inline LmPluginTransform make_descriptor(std::unique_ptr<TransformationPass> pas
                 return LmStatus_Ok;
             } catch (...) {
                 borrowed.release();
-                return LmStatus_Errored;
+                return lm::detail::report_exception();
             }
         },
         .free = [](void *ud) { delete static_cast<detail::TransformState *>(ud); },
@@ -592,7 +592,7 @@ inline LmPluginAnalysis make_descriptor(std::unique_ptr<AnalysisPass> pass) {
                 return LmStatus_Ok;
             } catch (...) {
                 borrowed.release();
-                return LmStatus_Errored;
+                return lm::detail::report_exception();
             }
         },
         .free = [](void *ud) { delete static_cast<detail::AnalysisState *>(ud); },
@@ -656,7 +656,7 @@ inline LmPluginComposite make_descriptor(std::unique_ptr<CompositePass> pass) {
                 return LmStatus_Ok;
             } catch (...) {
                 borrowed.release();
-                return LmStatus_Errored;
+                return lm::detail::report_exception();
             }
         },
         .free = [](void *ud) { delete static_cast<detail::CompositeState *>(ud); },
@@ -697,7 +697,7 @@ inline LmPluginMetaAnalysis make_descriptor(std::unique_ptr<MetaAnalysisPass> pa
                 sink(sink_ctx, bytes.data(), bytes.size());
                 return LmStatus_Ok;
             } catch (...) {
-                return LmStatus_Errored;
+                return lm::detail::report_exception();
             }
         },
         .free = [](void *ud) { delete static_cast<detail::MetaAnalysisState *>(ud); },
@@ -759,7 +759,7 @@ inline LmPluginControlFlow make_descriptor(std::unique_ptr<ControlFlowPass> pass
                 return LmStatus_Ok;
             } catch (...) {
                 borrowed.release();
-                return LmStatus_Errored;
+                return lm::detail::report_exception();
             }
         },
         .free = [](void *ud) { delete static_cast<detail::ControlFlowState *>(ud); },
@@ -815,7 +815,7 @@ inline void register_backward(LmPassKind kind, const char *id, BackwardFn backwa
             *out_solution = result.release();
             return LmStatus_Ok;
         } catch (...) {
-            return LmStatus_Errored;
+            return lm::detail::report_exception();
         }
     };
     lm::detail::check(lm_register_plugin_backward(kind, id, dispatch, boxed));

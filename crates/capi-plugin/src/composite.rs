@@ -108,6 +108,10 @@ impl CompositePass for CPluginCompositePass {
         // The plugin emits two independent payloads: the inverse artifact and the analysis result.
         let mut artifact_bytes: Vec<u8> = Vec::new();
         let mut result_bytes: Vec<u8> = Vec::new();
+        // Cleared right before the call so a stale error from an unrelated earlier call is never
+        // misattributed to this one; see marshal::plugin_error.
+        lunamodel_capi::error::clear_last();
+
         let status = unsafe {
             (self.desc.forward)(
                 self.desc.user_data,
@@ -153,6 +157,10 @@ impl Reversible for CPluginCompositePass {
         // Transfer ownership of the solution to the plugin, and reclaim the one it produces.
         let in_handle = new_handle::<LmSol>(solution);
         let mut out_handle: *mut LmSol = std::ptr::null_mut();
+        // Cleared right before the call so a stale error from an unrelated earlier call is never
+        // misattributed to this one; see marshal::plugin_error.
+        lunamodel_capi::error::clear_last();
+
         let status = unsafe {
             func(
                 user_data,

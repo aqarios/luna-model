@@ -19,9 +19,9 @@
 /**
  * Status codes returned by every fallible `lm_*` entry point.
  *
- * `Ok` is guaranteed to be `0`. On any non-`Ok` status, a human-readable
- * description is available from [`lm_last_error_message`] until the next C API
- * call on the same thread.
+ * `Ok` is guaranteed to be `0`. On any non-`Ok` status, a structured description is available
+ * from `lm_last_error` (and the `lm_error_*` accessors) until the next C API call on the same
+ * thread.
  */
 typedef enum {
     /**
@@ -1120,6 +1120,14 @@ typedef struct {
 } LmLazyBounds;
 
 /**
+ * Opaque handle to a structured LunaModel error. See [`crate::error::RichError`].
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmError;
+
+/**
  * Opaque handle to a LunaModel linear terms reference.
  *
  */
@@ -1193,7 +1201,6 @@ typedef struct {
      */
     uint32_t abi_version;
     const char *(*version)(void);
-    const char *(*last_error_message)(void);
     void (*buffer_free)(LmBuffer);
     void (*str_buffer_free)(LmStrBuffer);
     void (*vtype_buffer_free)(LmVtypeBuffer);
@@ -1388,6 +1395,9 @@ typedef struct {
     LmStatus (*sol_set_counts)(LmSol*, const uintptr_t*, uintptr_t);
     LmStatus (*sol_set_timing)(LmSol*, const LmTiming*);
     LmStatus (*sol_set_sense)(LmSol*, LmSense);
+    LmStatus (*sol_set_raw_energies)(LmSol*, const double*, uintptr_t);
+    LmStatus (*sol_set_obj_values)(LmSol*, const double*, uintptr_t);
+    LmStatus (*sol_set_feasible)(LmSol*, const bool*, uintptr_t);
     LmStatus (*sol_cvar)(const LmSol*, double, const LmValueSource*, double*);
     LmStatus (*sol_expectation_value)(const LmSol*, const LmValueSource*, double*);
     LmStatus (*sol_temperature_weighted)(const LmSol*, double, const LmValueSource*, double*);
@@ -1399,7 +1409,7 @@ typedef struct {
     LmStatus (*sol_lookup_new)(const LmEnv*, const LmSol*, LmSolutionLookup**);
     LmStatus (*sol_lookup_update)(LmSolutionLookup*, const LmSampleView*);
     LmStatus (*sol_lookup_values)(const LmSolutionLookup*, const double**, uintptr_t*);
-    LmStatus (*sol_lookup_write_sol)(const LmSolutionLookup*, uint32_t, LmSol*);
+    LmStatus (*sol_lookup_write_sol)(LmSolutionLookup*, uint32_t, const double*, uintptr_t, LmSol*);
     void (*expr_free)(LmExpr*);
     LmExpr *(*expr_default)(void);
     LmStatus (*expr_new)(const LmEnv*, LmExpr**);
@@ -1669,6 +1679,38 @@ typedef struct {
     LmStatus (*timing_start_ns)(const LmTiming*, uint64_t*);
     LmStatus (*timing_end_ns)(const LmTiming*, uint64_t*);
     LmStatus (*timing_qpu)(const LmTiming*, double*);
+    /**
+     * Frees an error handle. Passing null is a no-op.
+     */
+    void (*error_free)(LmError*);
+    /**
+     * Writes the error's kind tag (an open, stable string such as `"variable_not_existing"` or
+     * a plugin-defined `"myplugin::infeasible_subproblem"`) into `out`.
+     */
+    LmStatus (*error_kind)(const LmError*, LmBuffer*);
+    /**
+     * Writes the error's human-readable message into `out`.
+     */
+    LmStatus (*error_message)(const LmError*, LmBuffer*);
+    /**
+     * Returns the error's cause as a new owned handle in `out`, or `LmStatus::Absent` if this
+     * error has no cause.
+     */
+    LmStatus (*error_cause)(const LmError*, LmError**);
+    /**
+     * Returns the current thread's last structured error, or null if none is set. Every
+     * fallible C API call clears this before running, so it always reflects the most recent
+     * call on this thread.
+     */
+    LmError *(*last_error)(void);
+    /**
+     * Sets the current thread's last structured error. Called by plugin/extension SDKs to
+     * report a pass failure with full fidelity (kind, message, cause chain) instead of just a
+     * non-`Ok` status code; the host folds it into the same error chain a native pass failure
+     * would produce. `kind` and `message` are copied immediately; `cause` (if non-null) is
+     * consumed.
+     */
+    LmStatus (*set_last_error)(const char*, const char*, LmError*);
     /**
      * Register a reversal handler for a plugin pass, keyed by its stable id.
      * Call this (e.g. from `luna_model.register(...)`) before reversing a record that

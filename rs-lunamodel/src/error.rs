@@ -1,11 +1,11 @@
 //! Error handling mirroring the C ABI `LmStatus` codes.
 
-use std::ffi::CStr;
 use std::fmt;
 
-use lunamodel_capi::LmStatus;
+use lunamodel_capi::{LmBuffer, LmError, LmStatus};
 
 use crate::api::api;
+use crate::traits::TryToString;
 
 /// Result type returned by fallible C-ABI calls.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -43,6 +43,10 @@ pub struct Error {
     pub status: Status,
     /// The associated message, if any.
     pub message: String,
+    /// An open, stable string tag identifying this error's specific origin (e.g.
+    /// `"myplugin::infeasible_subproblem"`), reported as `RichError::kind` in place of the
+    /// generic status-derived tag. `None` falls back to [`Status::as_kind`].
+    pub kind: Option<String>,
 }
 
 impl Error {
@@ -51,6 +55,7 @@ impl Error {
         Self {
             status,
             message: message.into(),
+            kind: None,
         }
     }
 
@@ -62,6 +67,13 @@ impl Error {
     /// Creates an error for an unexpected adapter-side state.
     pub fn internal(message: impl Into<String>) -> Self {
         Self::new(Status::Panic, message)
+    }
+
+    /// Attaches a specific kind tag, reported in place of the generic status-derived one.
+    #[must_use]
+    pub fn with_kind(mut self, kind: impl Into<String>) -> Self {
+        self.kind = Some(kind.into());
+        self
     }
 }
 
@@ -91,17 +103,52 @@ impl Status {
             LmStatus::Absent => Some(Status::Absent),
         }
     }
+
+    /// Maps back to the non-`Ok` status code a trampoline should return for this status.
+    fn to_code(self) -> LmStatus {
+        match self {
+            Status::NullPointer => LmStatus::NullPointer,
+            Status::InvalidArgument => LmStatus::InvalidArgument,
+            Status::Serialization => LmStatus::Serialization,
+            Status::Deserialization => LmStatus::Deserialization,
+            Status::Panic => LmStatus::Panic,
+            Status::Errored => LmStatus::Errored,
+            Status::Absent => LmStatus::Absent,
+        }
+    }
+
+    /// A stable kind tag for this status, used to populate `RichError::kind` when a pass author's
+    /// error doesn't otherwise carry a more specific one.
+    fn as_kind(self) -> &'static str {
+        match self {
+            Status::NullPointer => "null_pointer",
+            Status::InvalidArgument => "invalid_argument",
+            Status::Serialization => "serialization",
+            Status::Deserialization => "deserialization",
+            Status::Panic => "panic",
+            Status::Errored => "errored",
+            Status::Absent => "absent",
+        }
+    }
 }
 
-/// Turns a status code into `Ok(())` or an [`Error`] carrying the thread-local
-/// last-error message.
+/// Reports a pass author's error to the host via `lm_set_last_error` before a trampoline returns
+/// its status, so the error's message (and, going forward, richer context) crosses the ABI
+/// instead of being silently discarded. Returns the status code the trampoline should return.
+pub(crate) fn report(e: &Error) -> LmStatus {
+    let kind_str = e.kind.as_deref().unwrap_or_else(|| e.status.as_kind());
+    let kind = std::ffi::CString::new(kind_str).unwrap_or_default();
+    let message = std::ffi::CString::new(e.message.replace('\0', " ")).unwrap_or_default();
+    unsafe { (api().set_last_error)(kind.as_ptr(), message.as_ptr(), std::ptr::null_mut()) };
+    e.status.to_code()
+}
+
+/// Turns a status code into `Ok(())` or an [`Error`] carrying the thread-local last structured
+/// error's message and kind.
 pub(crate) fn check(status: LmStatus) -> Result<()> {
     match Status::from_code(status) {
         None => Ok(()),
-        Some(status) => Err(Error {
-            status,
-            message: last_error_message(),
-        }),
+        Some(status) => Err(last_error(status)),
     }
 }
 
@@ -116,16 +163,36 @@ pub(crate) fn present(status: LmStatus) -> Result<bool> {
     }
 }
 
-/// Reads the thread-local last-error message set by the most recent C call.
-fn last_error_message() -> String {
-    let ptr = (api().last_error_message)();
-    if ptr.is_null() {
-        String::new()
-    } else {
-        // SAFETY: the table returns a pointer to a NUL-terminated string owned by
-        // the host and valid until the next call on this thread.
-        unsafe { CStr::from_ptr(ptr) }
-            .to_string_lossy()
-            .into_owned()
+/// Builds an [`Error`] for a failing `status`, reading the message and kind tag from the
+/// thread-local [`RichError`](lunamodel_capi::error::RichError) the host recorded for this call —
+/// the same structured accessors (`lm_last_error`/`lm_error_*`) a plugin's own reported errors are
+/// read back through, so an ordinary host-side failure carries just as much fidelity as one a
+/// plugin author reported via `lm_set_last_error`.
+fn last_error(status: Status) -> Error {
+    let err: *mut LmError = (api().last_error)();
+    if err.is_null() {
+        return Error {
+            status,
+            message: String::new(),
+            kind: None,
+        };
     }
+    let message = read_buffer(|out| unsafe { (api().error_message)(err, out) }).unwrap_or_default();
+    let kind = read_buffer(|out| unsafe { (api().error_kind)(err, out) });
+    unsafe { (api().error_free)(err) };
+    Error {
+        status,
+        message,
+        kind,
+    }
+}
+
+/// Runs a `lm_error_*(err, &mut LmBuffer)`-shaped accessor and converts its output buffer to an
+/// owned `String`, or `None` if the accessor itself reports failure (e.g. `LmStatus::Absent`).
+fn read_buffer(f: impl FnOnce(&mut LmBuffer) -> LmStatus) -> Option<String> {
+    let mut buf = LmBuffer::default();
+    if f(&mut buf) != LmStatus::Ok {
+        return None;
+    }
+    buf.try_to_string().ok()
 }

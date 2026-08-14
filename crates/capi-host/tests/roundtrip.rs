@@ -6,7 +6,7 @@ use std::ptr;
 use lunamodel_capi_host::{
     CAPI_ABI_VERSION, LmBuffer, LmModel, LmSol, LmStatus,
     buffer::lm_buffer_free,
-    error::lm_last_error_message,
+    error::{lm_error_free, lm_error_message, lm_last_error},
     model::{lm_model_default, lm_model_deserialize, lm_model_free, lm_model_serialize},
     sol::{lm_sol_deserialize, lm_sol_free},
     version::{lm_abi_version, lm_version},
@@ -35,6 +35,20 @@ fn empty_buffer() -> LmBuffer {
         len: 0,
         cap: 0,
     }
+}
+
+/// Reads the current thread's last structured error's message, or `None` if there is none.
+fn last_error_message() -> Option<String> {
+    let err = lm_last_error();
+    if err.is_null() {
+        return None;
+    }
+    let mut buf = empty_buffer();
+    let status = unsafe { lm_error_message(err, &mut buf) };
+    assert_eq!(status, LmStatus::Ok);
+    let message = String::from_utf8(unsafe { take_buffer(buf) }).unwrap();
+    unsafe { lm_error_free(err) };
+    Some(message)
 }
 
 #[test]
@@ -91,8 +105,8 @@ fn null_pointer_is_reported() {
     let status = unsafe { lm_model_serialize(ptr::null(), &mut buf) };
     assert_eq!(status, LmStatus::NullPointer);
 
-    let msg = unsafe { CStr::from_ptr(lm_last_error_message()) };
-    assert!(msg.to_str().unwrap().contains("model"));
+    let msg = last_error_message().expect("a structured error should be recorded");
+    assert!(msg.contains("model"));
 }
 
 #[test]
@@ -103,7 +117,7 @@ fn garbage_bytes_fail_without_unwinding() {
     // Either a clean decode error or a caught panic — never a crash, never Ok.
     assert_ne!(status, LmStatus::Ok);
     assert!(model.is_null());
-    assert!(!lm_last_error_message().is_null());
+    assert!(last_error_message().is_some());
 }
 
 #[test]

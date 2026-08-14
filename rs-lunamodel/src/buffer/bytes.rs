@@ -19,6 +19,7 @@ impl TryToString for LmBuffer {
         String::from_utf8(bytes).map_err(|err| crate::Error {
             status: crate::Status::InvalidArgument,
             message: err.to_string(),
+            kind: None,
         })
     }
 }

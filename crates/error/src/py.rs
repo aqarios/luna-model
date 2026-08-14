@@ -379,15 +379,33 @@ impl From<Lme> for PyErr {
 
             Lme::Transformation { .. } => PyTransformError::new_err,
             Lme::Infeasible { .. } => PyModelInfeasibleError::new_err,
+            Lme::External(_) => PyLunaModelError::new_err,
 
             Lme::WithCause(e, cause) => {
                 let pyerr: PyErr = (*e).into();
-                if let Some(py_cause) = cause.downcast_ref::<PyErr>() {
+                // `cause` may itself be a `LunaModelError::WithCause` wrapping further context
+                // frames (see `lunamodel_transpiler::error::with_cause`) before reaching an
+                // actual `PyErr` — e.g. one `map_pyerr` built around a Python exception. Walk its
+                // full `source()` chain rather than only checking the immediate cause, so the
+                // original exception's identity survives as `__cause__` regardless of how many
+                // context frames sit in between.
+                if let Some(py_cause) = find_py_cause(cause.as_ref()) {
                     Python::attach(|py| pyerr.set_cause(py, Some(py_cause.clone_ref(py))));
                 }
                 return pyerr;
             }
         };
         err(lme.to_string())
+    }
+}
+
+/// Finds a `PyErr` anywhere in `err`'s cause chain (including `err` itself), walking
+/// `std::error::Error::source()`.
+fn find_py_cause<'a>(mut err: &'a (dyn std::error::Error + 'static)) -> Option<&'a PyErr> {
+    loop {
+        if let Some(py_err) = err.downcast_ref::<PyErr>() {
+            return Some(py_err);
+        }
+        err = err.source()?;
     }
 }
