@@ -30,7 +30,7 @@ impl SerConstraintCollection {
             .zip(&self.comparators)
             .zip(&self.rhsides)
         {
-            let lhs = lhs.as_slice().unversionize().decode(env.clone())?;
+            let lhs = lhs.as_slice().unversionize_nested().decode(env.clone())?;
             let comparator = match cmp {
                 0 => Comparator::Le,
                 1 => Comparator::Eq,

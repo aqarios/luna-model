@@ -33,8 +33,6 @@ impl Decodable<Model> for Versioned<Vec<u8>> {
     fn decode(&self, payload: Self::Payload) -> LunaModelResult<Model> {
         match self.version {
             Some(Version::V0) => SerModelV0::decoder(self.data.as_slice(), payload),
-            // Fallback for unversioned data - was always v0. Pinned explicitly
-            // (not via SerModelLatest) so this stays correct once a V1 lands.
             _ => SerModelV0::decoder(self.data.as_slice(), payload),
         }
     }
