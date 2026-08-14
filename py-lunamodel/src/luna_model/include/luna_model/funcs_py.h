@@ -55,7 +55,6 @@ static inline int import_luna_model(void) {
 
 /* Dispatch macros (one per LunaModelCApi field, generated): */
 #define lm_version(...) (lunamodel__vtable->version(__VA_ARGS__))
-#define lm_last_error_message(...) (lunamodel__vtable->last_error_message(__VA_ARGS__))
 #define lm_buffer_free(...) (lunamodel__vtable->buffer_free(__VA_ARGS__))
 #define lm_str_buffer_free(...) (lunamodel__vtable->str_buffer_free(__VA_ARGS__))
 #define lm_vtype_buffer_free(...) (lunamodel__vtable->vtype_buffer_free(__VA_ARGS__))

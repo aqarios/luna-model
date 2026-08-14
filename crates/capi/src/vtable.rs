@@ -26,7 +26,6 @@ pub struct LunaModelCApi {
     /// ABI version of this table (`CAPI_ABI_VERSION` at build time).
     pub abi_version: u32,
     pub version: extern "C" fn() -> *const c_char,
-    pub last_error_message: extern "C" fn() -> *const c_char,
     pub buffer_free: unsafe extern "C" fn(LmBuffer),
     pub str_buffer_free: unsafe extern "C" fn(LmStrBuffer),
     pub vtype_buffer_free: unsafe extern "C" fn(LmVtypeBuffer),
@@ -775,7 +774,7 @@ pub struct LunaModelCApi {
     pub error_cause: unsafe extern "C" fn(*const LmError, *mut *mut LmError) -> LmStatus,
     /// Returns the current thread's last structured error, or null if none is set. Every
     /// fallible C API call clears this before running, so it always reflects the most recent
-    /// call on this thread. Superseded by, and kept in sync with, `last_error_message`.
+    /// call on this thread.
     pub last_error: extern "C" fn() -> *mut LmError,
     /// Sets the current thread's last structured error. Called by plugin/extension SDKs to
     /// report a pass failure with full fidelity (kind, message, cause chain) instead of just a

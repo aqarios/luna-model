@@ -16,7 +16,7 @@ use lunamodel_capi_host::{
     LmBuffer, LmModel, LmSol, LmStatus,
     error::{
         lm_error_cause, lm_error_free, lm_error_kind, lm_error_message, lm_last_error,
-        lm_last_error_message, lm_set_last_error,
+        lm_set_last_error,
     },
     model::lm_model_set_name,
     plugin::{CPluginTransformPass, lm_register_plugin_backward},
@@ -279,8 +279,8 @@ fn error_accessors_read_back_kind_message_and_cause() {
 }
 
 /// `lm_error_kind`/`lm_error_message`/`lm_error_cause` are read-only accessors on an
-/// already-owned handle; they must not clobber `lm_last_error`/`lm_last_error_message` as a side
-/// effect of merely inspecting that handle.
+/// already-owned handle; they must not clobber `lm_last_error` as a side effect of merely
+/// inspecting that handle.
 #[test]
 fn error_accessors_do_not_clobber_last_error_state() {
     let kind = c"test::inspected";
@@ -296,15 +296,19 @@ fn error_accessors_do_not_clobber_last_error_state() {
     assert_eq!(unsafe { lm_error_kind(err, &mut buf) }, LmStatus::Ok);
     unsafe { take_buffer_string(buf) };
 
-    let message_ptr = lm_last_error_message();
+    let still_last = lm_last_error();
     assert!(
-        !message_ptr.is_null(),
-        "lm_error_kind must not clear the thread-local last-error message"
+        !still_last.is_null(),
+        "lm_error_kind must not clear the thread-local last error"
     );
-    let still_there = unsafe { std::ffi::CStr::from_ptr(message_ptr) }
-        .to_str()
-        .unwrap();
+    let mut buf = LmBuffer::default();
+    assert_eq!(
+        unsafe { lm_error_message(still_last, &mut buf) },
+        LmStatus::Ok
+    );
+    let still_there = unsafe { take_buffer_string(buf) };
     assert_eq!(still_there, message.to_str().unwrap());
+    unsafe { lm_error_free(still_last) };
 
     unsafe { lm_error_free(err) };
 }

@@ -1,15 +1,11 @@
-//! Error handling for the C ABI: status codes + a thread-local last-error message.
+//! Error handling for the C ABI: status codes + a thread-local last structured error.
 //!
-//! Two things ride alongside every non-`Ok` [`LmStatus`]:
-//! - the legacy flat string, read back via [`lm_last_error_message`];
-//! - a structured [`RichError`] (kind tag + message + cause chain), read back via
-//!   [`lm_last_error`] and the `lm_error_*` accessors. This is what preserves a
-//!   [`LunaModelError`]'s variant identity and cause chain across the C ABI instead of
-//!   flattening it into an opaque string.
+//! Every non-`Ok` [`LmStatus`] rides alongside a structured [`RichError`] (kind tag + message +
+//! cause chain), read back via [`lm_last_error`] and the `lm_error_*` accessors. This is what
+//! preserves a [`LunaModelError`]'s variant identity and cause chain across the C ABI instead of
+//! flattening it into an opaque string.
 #![allow(dead_code)]
 
-use std::cell::RefCell;
-use std::ffi::CString;
 use std::os::raw::c_char;
 use std::panic::{self, AssertUnwindSafe};
 
@@ -20,10 +16,6 @@ use crate::LmError;
 use crate::LmStatus;
 use crate::utils::{drop_from_c, handle_to_c, out_from_c, ref_from_c, str_from_c};
 use crate::{LmBuffer, buffer::buffer_from_vec};
-
-thread_local! {
-    static LAST_ERROR: RefCell<Option<CString>> = const { RefCell::new(None) };
-}
 
 /// Internal error carrying the status code, flat message, and (when available) the structured
 /// error to surface to callers.
@@ -96,19 +88,13 @@ impl From<LunaModelError> for CapiError {
     }
 }
 
-fn set_last_error(message: &str) {
-    let cstring = CString::new(message.replace('\0', " ")).unwrap_or_default();
-    LAST_ERROR.with(|slot| *slot.borrow_mut() = Some(cstring));
-}
-
 /// Runs `f`, translating its outcome into an [`LmStatus`] and (on failure) recording the
-/// thread-local last-error state. Shared by [`guard`] and [`guard_readonly`]; see those for the
-/// difference in whether the last-error state is cleared *before* `f` runs.
+/// thread-local last structured error. Shared by [`guard`] and [`guard_readonly`]; see those for
+/// the difference in whether the last-error state is cleared *before* `f` runs.
 fn run_guarded(f: impl FnOnce() -> Result<(), CapiError>) -> LmStatus {
     match panic::catch_unwind(AssertUnwindSafe(f)) {
         Ok(Ok(())) => LmStatus::Ok,
         Ok(Err(err)) => {
-            set_last_error(&err.message);
             error::set_last(
                 err.rich
                     .unwrap_or_else(|| RichError::new("errored", err.message)),
@@ -121,7 +107,6 @@ fn run_guarded(f: impl FnOnce() -> Result<(), CapiError>) -> LmStatus {
                 .map(|s| s.to_string())
                 .or_else(|| payload.downcast_ref::<String>().cloned())
                 .unwrap_or_else(|| "panic in LunaModel C API".to_string());
-            set_last_error(&msg);
             error::set_last(RichError::new("panic", msg));
             LmStatus::Panic
         }
@@ -132,7 +117,6 @@ fn run_guarded(f: impl FnOnce() -> Result<(), CapiError>) -> LmStatus {
 /// before running `f`, so a stale error from an unrelated earlier call is never misattributed to
 /// this one, then records a fresh one if `f` fails.
 pub(crate) fn guard(f: impl FnOnce() -> Result<(), CapiError>) -> LmStatus {
-    LAST_ERROR.with(|slot| *slot.borrow_mut() = None);
     error::clear_last();
     run_guarded(f)
 }
@@ -140,26 +124,11 @@ pub(crate) fn guard(f: impl FnOnce() -> Result<(), CapiError>) -> LmStatus {
 /// Guards a read-only accessor on an already-owned handle (e.g. `lm_error_kind`). Unlike
 /// [`guard`], this does *not* clear the last-error state up front: the accessor isn't reporting a
 /// fresh top-level failure, it's just reading fields off a value the caller already holds, so it
-/// must not have the side effect of wiping `lm_last_error`/`lm_last_error_message` out from under
-/// an unrelated in-flight inspection. On failure (e.g. a null handle), the failure is still
-/// recorded like any other C API error.
+/// must not have the side effect of wiping `lm_last_error` out from under an unrelated in-flight
+/// inspection. On failure (e.g. a null handle), the failure is still recorded like any other C
+/// API error.
 pub(crate) fn guard_readonly(f: impl FnOnce() -> Result<(), CapiError>) -> LmStatus {
     run_guarded(f)
-}
-
-/// Returns the last error message for the current thread, or null if there is none.
-///
-/// The pointer is owned by LunaModel and stays valid only until the next C API
-/// call on this thread. Copy it if you need to keep it; do not free it.
-///
-/// # Safety
-/// The caller must not retain the returned pointer across further C API calls.
-#[unsafe(no_mangle)]
-pub extern "C" fn lm_last_error_message() -> *const c_char {
-    LAST_ERROR.with(|slot| match &*slot.borrow() {
-        Some(cstring) => cstring.as_ptr(),
-        None => std::ptr::null(),
-    })
 }
 
 /// Returns the current thread's last structured error as a new owned handle, or null if none is
@@ -195,7 +164,6 @@ pub unsafe extern "C" fn lm_set_last_error(
             let cause = unsafe { *Box::from_raw(cause as *mut RichError) };
             rich = rich.caused_by(cause);
         }
-        set_last_error(&rich.to_string());
         error::set_last(rich);
         Ok(())
     })

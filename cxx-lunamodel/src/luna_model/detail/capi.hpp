@@ -11,10 +11,20 @@
 namespace lm {
 namespace detail {
 
-/* Throws an lm::Error built from the thread-local last-error message. */
+/* Throws an lm::Error built from the thread-local last structured error. */
 [[noreturn]] inline void raise(LmStatus status) {
-    const char *msg = lm_last_error_message();
-    throw Error(status, msg ? std::string(msg) : std::string("unknown LunaModel error"));
+    LmError *err = lm_last_error();
+    if (err == nullptr) {
+        throw Error(status, std::string("unknown LunaModel error"));
+    }
+    std::string message("unknown LunaModel error");
+    LmBuffer buf = {nullptr, 0, 0};
+    if (lm_error_message(err, &buf) == LmStatus_Ok) {
+        message.assign(reinterpret_cast<const char *>(buf.data), buf.len);
+        lm_buffer_free(buf);
+    }
+    lm_error_free(err);
+    throw Error(status, message);
 }
 
 inline void check(LmStatus status) {

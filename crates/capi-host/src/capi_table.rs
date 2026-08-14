@@ -11,7 +11,6 @@ use crate::{CAPI_ABI_VERSION, LunaModelCApi};
 pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     abi_version: CAPI_ABI_VERSION,
     version: crate::version::lm_version,
-    last_error_message: crate::error::lm_last_error_message,
     // ////// //
     // BUFFER //
     // ////// //

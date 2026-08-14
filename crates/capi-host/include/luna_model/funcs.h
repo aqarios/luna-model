@@ -1270,17 +1270,6 @@ LmStatus lm_env_serialize(const LmEnv *env, LmBuffer *out);
 LmStatus lm_env_deserialize(const uint8_t *data, uintptr_t len, LmEnv **out);
 
 /**
- * Returns the last error message for the current thread, or null if there is none.
- *
- * The pointer is owned by LunaModel and stays valid only until the next C API
- * call on this thread. Copy it if you need to keep it; do not free it.
- *
- * # Safety
- * The caller must not retain the returned pointer across further C API calls.
- */
-const char *lm_last_error_message(void);
-
-/**
  * Returns the current thread's last structured error as a new owned handle, or null if none is
  * set. Must be released with [`lm_error_free`].
  */

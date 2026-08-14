@@ -19,9 +19,9 @@
 /**
  * Status codes returned by every fallible `lm_*` entry point.
  *
- * `Ok` is guaranteed to be `0`. On any non-`Ok` status, a human-readable
- * description is available from [`lm_last_error_message`] until the next C API
- * call on the same thread.
+ * `Ok` is guaranteed to be `0`. On any non-`Ok` status, a structured description is available
+ * from `lm_last_error` (and the `lm_error_*` accessors) until the next C API call on the same
+ * thread.
  */
 typedef enum {
     /**
@@ -1201,7 +1201,6 @@ typedef struct {
      */
     uint32_t abi_version;
     const char *(*version)(void);
-    const char *(*last_error_message)(void);
     void (*buffer_free)(LmBuffer);
     void (*str_buffer_free)(LmStrBuffer);
     void (*vtype_buffer_free)(LmVtypeBuffer);
@@ -1701,7 +1700,7 @@ typedef struct {
     /**
      * Returns the current thread's last structured error, or null if none is set. Every
      * fallible C API call clears this before running, so it always reflects the most recent
-     * call on this thread. Superseded by, and kept in sync with, `last_error_message`.
+     * call on this thread.
      */
     LmError *(*last_error)(void);
     /**

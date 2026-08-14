@@ -1,11 +1,11 @@
 //! Error handling mirroring the C ABI `LmStatus` codes.
 
-use std::ffi::CStr;
 use std::fmt;
 
-use lunamodel_capi::LmStatus;
+use lunamodel_capi::{LmBuffer, LmError, LmStatus};
 
 use crate::api::api;
+use crate::traits::TryToString;
 
 /// Result type returned by fallible C-ABI calls.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -143,16 +143,12 @@ pub(crate) fn report(e: &Error) -> LmStatus {
     e.status.to_code()
 }
 
-/// Turns a status code into `Ok(())` or an [`Error`] carrying the thread-local
-/// last-error message.
+/// Turns a status code into `Ok(())` or an [`Error`] carrying the thread-local last structured
+/// error's message and kind.
 pub(crate) fn check(status: LmStatus) -> Result<()> {
     match Status::from_code(status) {
         None => Ok(()),
-        Some(status) => Err(Error {
-            status,
-            message: last_error_message(),
-            kind: None,
-        }),
+        Some(status) => Err(last_error(status)),
     }
 }
 
@@ -167,16 +163,36 @@ pub(crate) fn present(status: LmStatus) -> Result<bool> {
     }
 }
 
-/// Reads the thread-local last-error message set by the most recent C call.
-fn last_error_message() -> String {
-    let ptr = (api().last_error_message)();
-    if ptr.is_null() {
-        String::new()
-    } else {
-        // SAFETY: the table returns a pointer to a NUL-terminated string owned by
-        // the host and valid until the next call on this thread.
-        unsafe { CStr::from_ptr(ptr) }
-            .to_string_lossy()
-            .into_owned()
+/// Builds an [`Error`] for a failing `status`, reading the message and kind tag from the
+/// thread-local [`RichError`](lunamodel_capi::error::RichError) the host recorded for this call —
+/// the same structured accessors (`lm_last_error`/`lm_error_*`) a plugin's own reported errors are
+/// read back through, so an ordinary host-side failure carries just as much fidelity as one a
+/// plugin author reported via `lm_set_last_error`.
+fn last_error(status: Status) -> Error {
+    let err: *mut LmError = (api().last_error)();
+    if err.is_null() {
+        return Error {
+            status,
+            message: String::new(),
+            kind: None,
+        };
     }
+    let message = read_buffer(|out| unsafe { (api().error_message)(err, out) }).unwrap_or_default();
+    let kind = read_buffer(|out| unsafe { (api().error_kind)(err, out) });
+    unsafe { (api().error_free)(err) };
+    Error {
+        status,
+        message,
+        kind,
+    }
+}
+
+/// Runs a `lm_error_*(err, &mut LmBuffer)`-shaped accessor and converts its output buffer to an
+/// owned `String`, or `None` if the accessor itself reports failure (e.g. `LmStatus::Absent`).
+fn read_buffer(f: impl FnOnce(&mut LmBuffer) -> LmStatus) -> Option<String> {
+    let mut buf = LmBuffer::default();
+    if f(&mut buf) != LmStatus::Ok {
+        return None;
+    }
+    buf.try_to_string().ok()
 }
