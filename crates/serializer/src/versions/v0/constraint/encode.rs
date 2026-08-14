@@ -5,6 +5,7 @@ use lunamodel_types::Comparator;
 use prost::Message;
 
 use crate::encode::{BytesEncodable, Encodable};
+use crate::versionize::Versionizable;
 
 use super::SerConstraintCollection;
 
@@ -19,7 +20,11 @@ impl SerConstraintCollection {
     /// Fills the protobuf structure from the runtime constraint collection.
     pub fn fill(mut self, cc: &ConstraintCollection) -> Self {
         for (_, c) in cc.iter() {
-            let lhs_bytes = c.lhs.serialize();
+            // Tagged with the LHS expression's own version so a decoder can
+            // dispatch to the right version-specific decoder even if the
+            // Expression format has moved ahead of this SerConstraintCollection
+            // format. See Issue(474): <https://github.com/aqarios/luna-model/issues/474>
+            let lhs_bytes = c.lhs.serialize().versionize(c.lhs.version());
             let cmp = match c.comparator {
                 Comparator::Le => 0,
                 Comparator::Eq => 1,
