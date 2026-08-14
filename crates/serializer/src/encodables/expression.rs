@@ -41,7 +41,9 @@ impl Decodable<Expression> for Versioned<Vec<u8>> {
         match self.version {
             Some(Version::V0) => SerExprV0::decoder(self.data.as_slice(), payload),
             Some(Version::V1) => SerExprV1::decoder(self.data.as_slice(), payload),
-            _ => SerExprLatest::decoder(self.data.as_slice(), payload),
+            // Fallback for unversioned data (nested expressions written before
+            // this field carried its own version tag) - was always v0.
+            _ => SerExprV0::decoder(self.data.as_slice(), payload),
         }
     }
 }
