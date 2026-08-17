@@ -43,6 +43,28 @@ class Timing:
         self._t = PyTiming(total)
 
     @classmethod
+    def from_dict(
+        cls,
+        timings: dict[str, float | list[float]] | dict[str, float] | dict[str, list[float]],
+        total: float | None = None,
+    ) -> Timing:
+        """Create a `Timing` from a dict of named sub-timings.
+
+        Parameters
+        ----------
+        timings : dict[str, float | list[float]]
+            Sub-timing values keyed by name. Each value is either a single
+            elapsed time in seconds or a list of elapsed times (e.g. from
+            repeated calls to `Timer.record()` under the same name).
+        total : float, optional
+            The overall elapsed time in seconds. Defaults to the sum of all
+            values in `timings`.
+        """
+        t = cls.__new__(cls)
+        t._t = PyTiming.from_dict(timings=timings, total=total)
+        return t
+
+    @classmethod
     def _from_pyt(cls, py_t: PyTiming) -> Timing:
         """Wrap an existing `PyTiming` instance without going through `__init__`."""
         t = cls.__new__(cls)

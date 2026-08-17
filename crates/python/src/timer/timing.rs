@@ -2,12 +2,19 @@
 
 use std::time::SystemTime;
 
+use indexmap::IndexMap;
 use lunamodel_core::Timing;
 use lunamodel_io::{CustomFormat, FormatOpt};
 use lunamodel_unwind::*;
-use pyo3::pymethods;
+use pyo3::{Bound, FromPyObject, pymethods, types::PyType};
 
 use super::PyTiming;
+
+#[derive(Debug, Clone, FromPyObject)]
+enum Item {
+    Float(f64),
+    List(Vec<f64>),
+}
 
 #[unwindable]
 #[pymethods]
@@ -18,6 +25,33 @@ impl PyTiming {
             Some(t) => Timing::new(t).into(),
             None => Timing::default().into(),
         }
+    }
+
+    #[classmethod]
+    fn from_dict(
+        _cls: &Bound<'_, PyType>,
+        timings: IndexMap<String, Item>,
+        total: Option<f64>,
+    ) -> Self {
+        let mut timing = Timing::default();
+        timing.timings = timings
+            .into_iter()
+            .map(|(key, e)| match e {
+                Item::List(values) => (key, values),
+                Item::Float(value) => (key, vec![value]),
+            })
+            .collect();
+
+        timing.total = match total {
+            Some(t) => t,
+            None => timing
+                .timings
+                .iter()
+                .map(|(_, values)| values.iter().sum::<f64>())
+                .sum(),
+        };
+
+        timing.into()
     }
 
     #[getter]
