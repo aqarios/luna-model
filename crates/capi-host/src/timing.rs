@@ -1,12 +1,14 @@
 use std::time::{Duration, UNIX_EPOCH};
 
 use lunamodel_core::prelude::Timing;
+use lunamodel_serializer::prelude::*;
 
 use crate::{
-    LmStatus, LmTiming,
+    LmBuffer, LmStatus, LmTiming,
+    buffer::buffer_from_vec,
     error::{CapiError, guard},
     utils::ref_from_c,
-    utils::{drop_from_c, handle_to_c, opt_from_c, out_from_c},
+    utils::{drop_from_c, handle_to_c, opt_from_c, out_from_c, slice_from_c},
 };
 
 /// Frees a timing handle. Passing null is a no-op.
@@ -143,6 +145,55 @@ pub unsafe extern "C" fn lm_timing_eq(
         let timing = unsafe { ref_from_c(timing as *const Timing, "timing") }?;
         let other = unsafe { ref_from_c(other as *const Timing, "other") }?;
         *unsafe { out_from_c(out) }? = timing == other;
+        Ok(())
+    })
+}
+
+/// Serializes a timing record to bytes, writing an owned buffer to `out`.
+///
+/// The buffer must be released with `lm_buffer_free`.
+///
+/// # Safety
+/// `timing` must be a valid timing handle created by this library.
+/// `out` must point to writable `LmBuffer` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_timing_serialize(
+    timing: *const LmTiming,
+    out: *mut LmBuffer,
+) -> LmStatus {
+    guard(|| {
+        let timing = unsafe { ref_from_c(timing as *const Timing, "timing") }?;
+        let out = unsafe { out_from_c(out) }?;
+        let bytes = timing
+            .encode(Some(true), None)
+            .map_err(CapiError::serialization)?;
+        *out = buffer_from_vec(bytes);
+        Ok(())
+    })
+}
+
+/// Deserializes a timing record from `len` bytes at `data`, writing a new handle to `out`.
+///
+/// The new handle must be released with [`lm_timing_free`].
+///
+/// # Safety
+/// `data` must point to `len` readable bytes and `out` must point to writable storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_timing_deserialize(
+    data: *const u8,
+    len: usize,
+    out: *mut *mut LmTiming,
+) -> LmStatus {
+    guard(|| {
+        let bytes = unsafe { slice_from_c(data, len, "data") }?;
+        let out = unsafe { out_from_c(out) }?;
+        let timing: Timing = bytes
+            .unversionize()
+            .decompress()
+            .map_err(CapiError::deserialization)?
+            .decode(())
+            .map_err(CapiError::deserialization)?;
+        *out = handle_to_c(timing);
         Ok(())
     })
 }

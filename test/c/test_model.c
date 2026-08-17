@@ -32,12 +32,19 @@ int test_model(int argc, char *argv[]) {
     lm_model_free(restored);
     lm_model_free(model);
 
-    /* Garbage input fails cleanly with an error message, no crash. */
+    /* Garbage input fails cleanly with a structured error, no crash. */
     uint8_t garbage[] = {1, 2, 3, 4, 5};
     LmModel *bad = NULL;
     CHECK(lm_model_deserialize(garbage, sizeof(garbage), &bad) != LmStatus_Ok);
     CHECK(bad == NULL);
-    CHECK(lm_last_error_message() != NULL);
+
+    LmError *err = lm_last_error();
+    CHECK(err != NULL);
+    LmBuffer msg = {NULL, 0, 0};
+    CHECK(lm_error_message(err, &msg) == LmStatus_Ok);
+    CHECK(msg.len > 0);
+    lm_buffer_free(msg);
+    lm_error_free(err);
 
     return 0;
 }

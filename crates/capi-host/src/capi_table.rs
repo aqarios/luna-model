@@ -332,6 +332,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // CC -- creation
     cc_default: crate::cc::lm_cc_default,
     cc_new: crate::cc::lm_cc_new,
+    cc_from_map: crate::cc::lm_cc_from_map,
     // CC -- general
     cc_clone: crate::cc::lm_cc_clone,
     cc_deep_clone: crate::cc::lm_cc_deep_clone,
@@ -351,6 +352,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     cc_get: crate::cc::lm_cc_get,
     // CC -- modification
     cc_add_constraint: crate::cc::lm_cc_add_constraint,
+    cc_add_many_constraints: crate::cc::lm_cc_add_many_constraints,
     cc_add_collection: crate::cc::lm_cc_add_collection,
     cc_set_constraint: crate::cc::lm_cc_set_constraint,
     cc_remove_constraint: crate::cc::lm_cc_remove_constraint,
@@ -549,6 +551,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     timing_start_ns: crate::timing::lm_timing_start_ns,
     timing_end_ns: crate::timing::lm_timing_end_ns,
     timing_qpu: crate::timing::lm_timing_qpu,
+    timing_serialize: crate::timing::lm_timing_serialize,
+    timing_deserialize: crate::timing::lm_timing_deserialize,
     // ///// //
     // Error //
     // ///// //

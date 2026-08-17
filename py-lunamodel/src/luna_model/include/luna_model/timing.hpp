@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <vector>
 
 #include <luna_model.h>
 
@@ -74,6 +75,25 @@ class Timing {
         double out = 0.0;
         detail::check(lm_timing_qpu(handle_, &out));
         return out;
+    }
+
+    /* Serializes this timing record to bytes. */
+    std::vector<std::uint8_t> serialize() const {
+        LmBuffer buf = {nullptr, 0, 0};
+        detail::check(lm_timing_serialize(handle_, &buf));
+        std::vector<std::uint8_t> bytes(buf.data, buf.data + buf.len);
+        lm_buffer_free(buf);
+        return bytes;
+    }
+
+    /* Deserializes a timing record from bytes. */
+    static Timing deserialize(const std::uint8_t *data, std::size_t len) {
+        LmTiming *out = nullptr;
+        detail::check(lm_timing_deserialize(data, len, &out));
+        return Timing(out);
+    }
+    static Timing deserialize(const std::vector<std::uint8_t> &bytes) {
+        return deserialize(bytes.data(), bytes.size());
     }
 
     LmTiming *get() const noexcept { return handle_; }

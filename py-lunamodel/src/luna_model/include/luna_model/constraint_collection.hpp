@@ -33,6 +33,28 @@ class ConstraintCollection {
     /* Adopts ownership of a raw C handle (for C interop). */
     explicit ConstraintCollection(LmCC *handle) noexcept : handle_(handle) {}
 
+    /* Builds a collection directly from `(name, constraint)` pairs, mirroring the native
+     * `From<IndexMap<String, Constraint>>` conversion. Unlike `add_constraint`, this does not
+     * synthesize fallback names or rename the inserted constraints to match their key — callers
+     * are responsible for keeping `entries`' names and each constraint's own name in sync. As
+     * with a plain map, a repeated name keeps its first position but takes the last matching
+     * constraint's value. */
+    static ConstraintCollection
+    from_map(const std::vector<std::pair<std::string, const Constraint *>> &entries) {
+        std::vector<const char *> name_ptrs;
+        std::vector<const LmConstraint *> constr_ptrs;
+        name_ptrs.reserve(entries.size());
+        constr_ptrs.reserve(entries.size());
+        for (const auto &[name, constr] : entries) {
+            name_ptrs.push_back(name.c_str());
+            constr_ptrs.push_back(constr->get());
+        }
+        LmCC *out = nullptr;
+        detail::check(
+            lm_cc_from_map(name_ptrs.data(), constr_ptrs.data(), name_ptrs.size(), &out));
+        return ConstraintCollection(out);
+    }
+
     ~ConstraintCollection() {
         if (handle_ != nullptr) {
             lm_cc_free(handle_);
@@ -156,15 +178,27 @@ class ConstraintCollection {
         return out;
     }
 
-    /* Adds many constraints, each with an optional name, returning the names
+    /* Adds many constraints in one call, each with an optional name, returning the names
      * they were stored under (in order). */
     std::vector<std::string> add_many_constraints(
         const std::vector<std::pair<const Constraint *, std::optional<std::string>>> &constraints) {
-        std::vector<std::string> out;
-        out.reserve(constraints.size());
+        std::vector<const LmConstraint *> constr_ptrs;
+        std::vector<const char *> name_ptrs;
+        constr_ptrs.reserve(constraints.size());
+        name_ptrs.reserve(constraints.size());
         for (const auto &[constr, name] : constraints) {
-            out.push_back(add_constraint(*constr, name));
+            constr_ptrs.push_back(constr->get());
+            name_ptrs.push_back(name ? name->c_str() : nullptr);
         }
+        LmStrBuffer buf = {nullptr, 0, 0};
+        detail::check(lm_cc_add_many_constraints(handle_, constr_ptrs.data(), name_ptrs.data(),
+                                                 constr_ptrs.size(), &buf));
+        std::vector<std::string> out;
+        out.reserve(buf.len);
+        for (std::size_t i = 0; i < buf.len; ++i) {
+            out.emplace_back(buf.data[i]);
+        }
+        lm_str_buffer_free(buf);
         return out;
     }
 

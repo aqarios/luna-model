@@ -576,6 +576,26 @@ LmCC *lm_cc_default(void);
 LmCC *lm_cc_new(void);
 
 /**
+ * Builds a constraint-collection directly from `len` `(name, constraint)` pairs, mirroring the
+ * native `From<IndexMap<String, Constraint>>` conversion. Unlike [`lm_cc_add_constraint`], this
+ * does not synthesize fallback names or rename the inserted constraints to match their key —
+ * callers are responsible for keeping `names` and each constraint's own name in sync. As with a
+ * plain `IndexMap`, a repeated name keeps its first position but takes the last matching
+ * constraint's value.
+ *
+ * Returns a non-null handle in `out` that must be released with [`lm_cc_free`].
+ *
+ * # Safety
+ * `names` must point to `len` valid NUL-terminated C strings.
+ * `constrs` must point to `len` valid constraint handles created by this library.
+ * `out` must point to writable `LmCC *` storage.
+ */
+LmStatus lm_cc_from_map(const char *const *names,
+                        const LmConstraint *const *constrs,
+                        uintptr_t len,
+                        LmCC **out);
+
+/**
  * Evaluates every constraint against a name-keyed sample.
  *
  * # Safety
@@ -657,6 +677,26 @@ LmStatus lm_cc_add_constraint(LmCC *cc,
                               const LmConstraint *constr,
                               const char *name,
                               LmBuffer *out);
+
+/**
+ * Inserts `len` constraints in one call, optionally overriding each one's name.
+ *
+ * `names` may be null to mean no explicit name for any constraint; when non-null, it must point
+ * to `len` (possibly individually null) C strings, each following the same "keep existing/
+ * synthesize a fallback" rule as [`lm_cc_add_constraint`]'s `name`. Writes the final assigned
+ * names, in the same order as `constrs`, to `out`.
+ *
+ * # Safety
+ * `cc` must be a valid mutable constraint-collection handle created by this library.
+ * `constrs` must point to `len` valid constraint handles created by this library.
+ * `names`, if non-null, must point to `len` C strings, each null or NUL-terminated.
+ * `out` must point to writable `LmStrBuffer` storage.
+ */
+LmStatus lm_cc_add_many_constraints(LmCC *cc,
+                                    const LmConstraint *const *constrs,
+                                    const char *const *names,
+                                    uintptr_t len,
+                                    LmStrBuffer *out);
 
 /**
  * Inserts a constraint-collection, optionally prefixing its current constraints' names.
@@ -3996,6 +4036,27 @@ LmStatus lm_timing_clone(const LmTiming *timing, LmTiming **out);
  * `timing` and `other` must be valid and `out` writable.
  */
 LmStatus lm_timing_eq(const LmTiming *timing, const LmTiming *other, bool *out);
+
+/**
+ * Serializes a timing record to bytes, writing an owned buffer to `out`.
+ *
+ * The buffer must be released with `lm_buffer_free`.
+ *
+ * # Safety
+ * `timing` must be a valid timing handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_timing_serialize(const LmTiming *timing, LmBuffer *out);
+
+/**
+ * Deserializes a timing record from `len` bytes at `data`, writing a new handle to `out`.
+ *
+ * The new handle must be released with [`lm_timing_free`].
+ *
+ * # Safety
+ * `data` must point to `len` readable bytes and `out` must point to writable storage.
+ */
+LmStatus lm_timing_deserialize(const uint8_t *data, uintptr_t len, LmTiming **out);
 
 /**
  * Frees a variable handle. Passing null is a no-op.

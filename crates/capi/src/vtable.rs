@@ -551,6 +551,19 @@ pub struct LunaModelCApi {
         *const c_char,
         *mut LmBuffer,
     ) -> LmStatus,
+    pub cc_add_many_constraints: unsafe extern "C" fn(
+        *mut LmCC,
+        *const *const LmConstraint,
+        *const *const c_char,
+        usize,
+        *mut LmStrBuffer,
+    ) -> LmStatus,
+    pub cc_from_map: unsafe extern "C" fn(
+        *const *const c_char,
+        *const *const LmConstraint,
+        usize,
+        *mut *mut LmCC,
+    ) -> LmStatus,
     pub cc_add_collection:
         unsafe extern "C" fn(*mut LmCC, *const LmCC, *const c_char, *mut LmStrBuffer) -> LmStatus,
     pub cc_set_constraint:
@@ -759,6 +772,8 @@ pub struct LunaModelCApi {
     pub timing_start_ns: unsafe extern "C" fn(*const LmTiming, *mut u64) -> LmStatus,
     pub timing_end_ns: unsafe extern "C" fn(*const LmTiming, *mut u64) -> LmStatus,
     pub timing_qpu: unsafe extern "C" fn(*const LmTiming, *mut f64) -> LmStatus,
+    pub timing_serialize: unsafe extern "C" fn(*const LmTiming, *mut LmBuffer) -> LmStatus,
+    pub timing_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmTiming) -> LmStatus,
     // ///// //
     // Error //
     // ///// //

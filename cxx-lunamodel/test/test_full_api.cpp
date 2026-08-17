@@ -79,6 +79,27 @@ int test_full_api(int argc, char *argv[]) {
     CHECK(cc2.is_empty());
     CHECK(cc.len() == 1u);
 
+    // Batch-adding constraints in one call.
+    lm::Constraint c2(x + y, 0.0, LmComparator_Ge, std::string("floor"));
+    lm::Constraint c3(x - y, 0.0, LmComparator_Le, std::string("skew"));
+    std::vector<std::string> added_many = cc.add_many_constraints({
+        {&c2, std::nullopt},
+        {&c3, std::nullopt},
+    });
+    CHECK(added_many.size() == 2u);
+    CHECK(added_many[0] == "floor");
+    CHECK(added_many[1] == "skew");
+    CHECK(cc.len() == 3u);
+    CHECK(cc.contains("floor"));
+    CHECK(cc.contains("skew"));
+
+    // Building a collection directly from (name, constraint) pairs.
+    lm::ConstraintCollection cc_map =
+        lm::ConstraintCollection::from_map({{"cap", &c}, {"floor", &c2}});
+    CHECK(cc_map.len() == 2u);
+    CHECK(cc_map.contains("cap"));
+    CHECK(cc_map.contains("floor"));
+
     // --- specs ---
     lm::Specs specs = model.specs();
     (void)specs.max_degree();

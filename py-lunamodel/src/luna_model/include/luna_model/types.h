@@ -1536,6 +1536,12 @@ typedef struct {
     LmStatus (*cc_contains)(const LmCC*, const char*, bool*);
     LmStatus (*cc_get)(const LmCC*, const char*, LmConstraint**);
     LmStatus (*cc_add_constraint)(LmCC*, const LmConstraint*, const char*, LmBuffer*);
+    LmStatus (*cc_add_many_constraints)(LmCC*,
+                                        const LmConstraint*const *,
+                                        const char*const *,
+                                        uintptr_t,
+                                        LmStrBuffer*);
+    LmStatus (*cc_from_map)(const char*const *, const LmConstraint*const *, uintptr_t, LmCC**);
     LmStatus (*cc_add_collection)(LmCC*, const LmCC*, const char*, LmStrBuffer*);
     LmStatus (*cc_set_constraint)(LmCC*, const char*, const LmConstraint*);
     LmStatus (*cc_remove_constraint)(LmCC*, const char*);
@@ -1679,6 +1685,8 @@ typedef struct {
     LmStatus (*timing_start_ns)(const LmTiming*, uint64_t*);
     LmStatus (*timing_end_ns)(const LmTiming*, uint64_t*);
     LmStatus (*timing_qpu)(const LmTiming*, double*);
+    LmStatus (*timing_serialize)(const LmTiming*, LmBuffer*);
+    LmStatus (*timing_deserialize)(const uint8_t*, uintptr_t, LmTiming**);
     /**
      * Frees an error handle. Passing null is a no-op.
      */

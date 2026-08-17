@@ -8,7 +8,10 @@ use crate::{
     buffer::{buffer_from_vec, str_buffer_from_vec},
     error::{CapiError, guard},
     expr::utils::expression_from_c,
-    utils::{opt_str_from_c, out_from_c, ref_from_c, shared_from_c, str_from_c},
+    utils::{
+        opt_slice_from_c, opt_str_from_c, out_from_c, ref_from_c, shared_from_c, slice_from_c,
+        str_from_c,
+    },
 };
 
 /// Inserts a constraint, optionally overriding its current name.
@@ -43,6 +46,50 @@ pub unsafe extern "C" fn lm_cc_add_constraint(
             .map_err(CapiError::errored)?;
 
         *out = buffer_from_vec(cname.into_bytes());
+        Ok(())
+    })
+}
+
+/// Inserts `len` constraints in one call, optionally overriding each one's name.
+///
+/// `names` may be null to mean no explicit name for any constraint; when non-null, it must point
+/// to `len` (possibly individually null) C strings, each following the same "keep existing/
+/// synthesize a fallback" rule as [`lm_cc_add_constraint`]'s `name`. Writes the final assigned
+/// names, in the same order as `constrs`, to `out`.
+///
+/// # Safety
+/// `cc` must be a valid mutable constraint-collection handle created by this library.
+/// `constrs` must point to `len` valid constraint handles created by this library.
+/// `names`, if non-null, must point to `len` C strings, each null or NUL-terminated.
+/// `out` must point to writable `LmStrBuffer` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_cc_add_many_constraints(
+    cc: *mut LmCC,
+    constrs: *const *const LmConstraint,
+    names: *const *const c_char,
+    len: usize,
+    out: *mut LmStrBuffer,
+) -> LmStatus {
+    guard(|| {
+        let constrs = unsafe { slice_from_c(constrs, len, "constrs") }?
+            .iter()
+            .map(|&c| unsafe { shared_from_c(c, "constr") }.map(|c| c.read_arc().clone()))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let names = match unsafe { opt_slice_from_c(names, len) } {
+            None => vec![None; constrs.len()],
+            Some(names) => names
+                .iter()
+                .map(|&n| unsafe { opt_str_from_c(n, "name") }.map(|s| s.map(str::to_owned)))
+                .collect::<Result<Vec<_>, _>>()?,
+        };
+
+        let out = unsafe { out_from_c(out) }?;
+        let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
+        let assigned = cc
+            .add_many_constraints(constrs.into_iter().zip(names))
+            .map_err(CapiError::errored)?;
+        *out = str_buffer_from_vec(assigned);
         Ok(())
     })
 }
