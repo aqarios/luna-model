@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from luna_model._deprecated import deprecated
 from luna_model._lm import PyTimer, PyTiming
 
 if TYPE_CHECKING:
@@ -88,7 +89,8 @@ class Timing:
         return self._t.total
 
     @property
-    def total_secs(self) -> float:
+    @deprecated("total_seconds is deprecated, use `total` instead.")
+    def total_seconds(self) -> float:
         """Get the overall elapsed time in seconds."""
         return self.total
 
