@@ -30,11 +30,11 @@ impl PyTiming {
     #[classmethod]
     fn from_dict(
         _cls: &Bound<'_, PyType>,
-        data: IndexMap<String, Item>,
+        timings: IndexMap<String, Item>,
         total: Option<f64>,
     ) -> Self {
         let mut timing = Timing::default();
-        timing.timings = data
+        timing.timings = timings
             .into_iter()
             .map(|(key, e)| match e {
                 Item::List(values) => (key, values),
