@@ -118,7 +118,7 @@ impl JsSolution {
     /// Python's `runtime` property.
     #[napi(getter)]
     pub fn timing(&self) -> Option<JsTiming> {
-        self.inner.read_arc().timing.clone().map(|t| t.into())
+        self.inner.read_arc().timing.map(|t| t.into())
     }
 
     /// Sense carried by this solution.

@@ -47,7 +47,7 @@ def test_large_model_hash():
             timer = Timer.start()
             hash(m)
             t0 = timer.stop()
-            t0s.append(t0.total)
+            t0s.append(t0.total_seconds)
 
         t0 = np.mean(t0s)
         # t0std = np.std(t0s)
@@ -57,7 +57,7 @@ def test_large_model_hash():
         #     timer = Timer.start()
         #     m.hash(compress=True, version=True)  # type: ignore
         #     t1 = timer.stop()
-        #     t1s.append(t1.total)
+        #     t1s.append(t1.total_seconds)
         # t1 = np.mean(t1s)
         # # t1std = np.std(t1s)
 
@@ -66,7 +66,7 @@ def test_large_model_hash():
         #     timer = Timer.start()
         #     m.hash(compress=False, version=True)  # type: ignore
         #     t2 = timer.stop()
-        #     t2s.append(t2.total)
+        #     t2s.append(t2.total_seconds)
         # t2 = np.mean(t2s)
         # # t2std = np.std(t2s)
 
@@ -75,7 +75,7 @@ def test_large_model_hash():
         #     timer = Timer.start()
         #     m.hash(compress=True, version=False)  # type: ignore
         #     t3 = timer.stop()
-        #     t3s.append(t3.total)
+        #     t3s.append(t3.total_seconds)
         # t3 = np.mean(t3s)
         # # t3std = np.std(t3s)
 
@@ -84,7 +84,7 @@ def test_large_model_hash():
         #     timer = Timer.start()
         #     m.hash(compress=False, version=False)  # type: ignore
         #     t4 = timer.stop()
-        #     t4s.append(t4.total)
+        #     t4s.append(t4.total_seconds)
         # t4 = np.mean(t4s)
         # # t4std = np.std(t4s)
 

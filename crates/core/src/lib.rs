@@ -22,7 +22,6 @@ mod expression;
 mod model;
 pub mod ops;
 pub mod solution;
-mod timer;
 mod traits;
 mod utils;
 mod variable;
@@ -31,9 +30,7 @@ pub use constraint::{Constraint, ConstraintCollection};
 pub use environment::{ArcEnv, Environment};
 pub use expression::Expression;
 pub use model::Model;
-pub use solution::{Solution, ValueSource};
-
-pub use timer::{SubTimer, Timer, Timing};
+pub use solution::{Solution, Timer, Timing, ValueSource};
 
 /// Trait for indexing domain collections with fallible APIs.
 pub use traits::TryIndex;

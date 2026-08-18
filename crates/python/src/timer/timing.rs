@@ -1,67 +1,42 @@
 //! Python wrappers around timing records.
 
-use std::time::SystemTime;
-
-use indexmap::IndexMap;
-use lunamodel_core::Timing;
 use lunamodel_io::{CustomFormat, FormatOpt};
 use lunamodel_unwind::*;
-use pyo3::{Bound, FromPyObject, pymethods, types::PyType};
+use pyo3::{
+    PyResult,
+    exceptions::{PyRuntimeError, PyValueError},
+    pymethods,
+};
+use std::time::{Duration, SystemTime};
 
 use super::PyTiming;
-
-#[derive(Debug, Clone, FromPyObject)]
-enum Item {
-    Float(f64),
-    List(Vec<f64>),
-}
 
 #[unwindable]
 #[pymethods]
 impl PyTiming {
-    #[new]
-    fn new(total: Option<f64>) -> Self {
-        match total {
-            Some(t) => Timing::new(t).into(),
-            None => Timing::default().into(),
-        }
-    }
-
-    #[classmethod]
-    fn from_dict(
-        _cls: &Bound<'_, PyType>,
-        timings: IndexMap<String, Item>,
-        total: Option<f64>,
-    ) -> Self {
-        let mut timing = Timing::default();
-        timing.timings = timings
-            .into_iter()
-            .map(|(key, e)| match e {
-                Item::List(values) => (key, values),
-                Item::Float(value) => (key, vec![value]),
-            })
-            .collect();
-
-        timing.total = match total {
-            Some(t) => t,
-            None => timing
-                .timings
-                .iter()
-                .map(|(_, values)| values.iter().sum::<f64>())
-                .sum(),
-        };
-
-        timing.into()
+    #[getter]
+    fn start(&self) -> SystemTime {
+        self.0.start()
     }
 
     #[getter]
-    fn start(&self) -> Option<SystemTime> {
-        self.0.read().start
+    fn end(&self) -> SystemTime {
+        self.0.end()
     }
 
+    /// The difference of the end and start time.
+    ///
+    /// Raises
+    /// ------
+    /// RuntimeError
+    ///     If total cannot be computed due to an inconsistent start or end time.
     #[getter]
-    fn end(&self) -> Option<SystemTime> {
-        self.0.read().end
+    fn get_total(&self) -> PyResult<Duration> {
+        self.total().map_err(|e| {
+            PyRuntimeError::new_err(format!(
+                "Solution timing could not be computed correctly. Reason: {e}"
+            ))
+        })
     }
 
     /// The total time in seconds an algorithm needed to run. Computed as the
@@ -72,35 +47,62 @@ impl PyTiming {
     /// RuntimeError
     ///     If total_seconds cannot be computed due to an inconsistent start or end time.
     #[getter]
-    fn get_total(&self) -> f64 {
-        self.0.read().total
+    fn total_seconds(&self) -> PyResult<f64> {
+        self.get_total().map(|t| t.as_secs_f64())
     }
 
-    fn total_for(&self, timing: String) -> Option<f64> {
-        self.0.read().total_for(timing)
+    /// The qpu usage time of the algorithm this timing object was created for.
+    #[getter]
+    fn qpu(&self) -> Option<f64> {
+        self.0.qpu
     }
 
-    fn get(&self, key: String) -> Vec<f64> {
-        self.0.read().get(key).to_vec()
+    /// Set the qpu usage time.
+    ///
+    /// Raises
+    /// ------
+    /// ValueError
+    ///     If `value` is negative.
+    #[setter]
+    fn set_qpu(&mut self, value: Option<f64>) -> PyResult<()> {
+        if value.unwrap_or_default() < 0.0 {
+            Err(PyValueError::new_err("QPU time must not be negative."))
+        } else {
+            self.0.qpu = value;
+            Ok(())
+        }
     }
 
-    fn __setitem__(&mut self, key: String, value: f64) {
-        self.0.write().set(key, value);
-    }
-
-    fn __getitem__(&mut self, key: String) -> f64 {
-        self.0.read().total_for(key).unwrap_or(0.0)
+    /// Add qpu usage time to the qpu usage time already present. If the current value
+    /// is None, this method acts like a setter.
+    ///
+    /// Parameters
+    /// ----------
+    /// value : float
+    ///     The value to add to the already present qpu value.
+    ///
+    /// Raises
+    /// ------
+    /// ValueError
+    ///     If `value` is negative.
+    fn add_qpu(&mut self, value: f64) -> PyResult<()> {
+        if value < 0.0 {
+            Err(PyValueError::new_err("QPU time must not be negative."))
+        } else {
+            self.0.qpu = Some(self.qpu.unwrap_or_default() + value);
+            Ok(())
+        }
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.0.read().eq(&other.0.read())
+        self.0 == other.0
     }
 
     fn __str__(&self) -> String {
-        format!("{}", self.0.read().format(FormatOpt::Py))
+        format!("{}", self.0.format(FormatOpt::Py))
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.0.read().format(FormatOpt::Py))
+        format!("{:?}", self.0.format(FormatOpt::Py))
     }
 }

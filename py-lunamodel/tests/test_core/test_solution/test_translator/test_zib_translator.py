@@ -41,8 +41,8 @@ def test_zib_translator(zib_model: Model, tmp_path: Path):
     assert len(sol.counts) == 1
     assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None
-    assert np.isclose(sol.runtime.total, timing.total, atol=1e-5)
-    assert np.isclose(sol.runtime.total, timing.total, atol=1e-5)
+    assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5)
+    assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5)
     assert sol.runtime.qpu is None
     assert sol.obj_values is None
     assert sol.raw_energies is None
@@ -88,8 +88,8 @@ def test_zib_translator_quadratic(zib_model_quadratic: Model, tmp_path: Path):
     assert len(sol.counts) == 1
     assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None
-    assert np.isclose(sol.runtime.total, timing.total, atol=1e-5)
-    assert np.isclose(sol.runtime.total, timing.total, atol=1e-5)
+    assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5)
+    assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5)
     assert sol.runtime.qpu is None
     assert sol.obj_values is None
     assert sol.raw_energies is None

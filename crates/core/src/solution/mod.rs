@@ -12,15 +12,16 @@ pub mod result;
 pub mod sample;
 mod samples;
 mod src;
-// pub mod timing;
+pub mod timing;
 
 pub use col::{Assignment, ColElement, Column};
 use indexmap::IndexMap;
 use lunamodel_types::Sense;
 pub use src::ValueSource;
 use std::collections::HashMap;
+pub use timing::{Timer, Timing};
 
-use crate::{Timing, traits::ContentEquality};
+use crate::traits::ContentEquality;
 
 /// Column-oriented solution data for a model evaluation or solver result.
 ///

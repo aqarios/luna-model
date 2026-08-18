@@ -99,7 +99,7 @@ def test_merge_full(model: Model):
     assert all([0.2, 1.1, 3.2, 23] == solution.raw_energies)
     assert all([2.2, 3.1, 5.2, 25] == solution.obj_values)
     assert solution.runtime is not None
-    assert np.isclose(sum(t.total for t in timings), solution.runtime.total, atol=0.1)
+    assert np.isclose(sum(t.total_seconds for t in timings), solution.runtime.total_seconds, atol=0.1)
 
     assert not solution[0].feasible
     assert solution[1].feasible
@@ -114,7 +114,7 @@ def test_merge_no_raw_in_one(model: Model):
     assert solution.raw_energies is None
     assert all([2.2, 3.1, 5.2, 25] == solution.obj_values)
     assert solution.runtime is not None
-    assert np.isclose(sum(t.total for t in timings), solution.runtime.total, atol=0.1)
+    assert np.isclose(sum(t.total_seconds for t in timings), solution.runtime.total_seconds, atol=0.1)
 
     assert not solution[0].feasible
     assert solution[1].feasible
@@ -165,7 +165,7 @@ def test_merge_no_obj(model: Model):
     assert all([0.2, 1.1, 3.2, 23] == solution.raw_energies)
     assert solution.obj_values is None
     assert solution.runtime is not None
-    assert np.isclose(sum(t.total for t in timings), solution.runtime.total, atol=0.1)
+    assert np.isclose(sum(t.total_seconds for t in timings), solution.runtime.total_seconds, atol=0.1)
 
     assert not solution[0].feasible
     assert solution[1].feasible
@@ -179,7 +179,7 @@ def test_merge_with_eval(model: Model):
     assert all([0.2, 1.1, 3.2, 23] == solution.raw_energies)
     assert all([1.7, 7.2, 11.7, 4.0] == solution.obj_values)
     assert solution.runtime is not None
-    assert np.isclose(sum(t.total for t in timings), solution.runtime.total, atol=0.1)
+    assert np.isclose(sum(t.total_seconds for t in timings), solution.runtime.total_seconds, atol=0.1)
 
     assert not solution[0].feasible
     assert solution[1].feasible

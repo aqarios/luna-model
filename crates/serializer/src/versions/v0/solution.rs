@@ -5,7 +5,6 @@ use std::{num::NonZeroUsize, str::FromStr};
 use crate::{
     encode::{BytesDecodable, BytesEncodable, Decodable},
     utils::u8_to_vtype,
-    versionize::Unversionizable,
 };
 use indexmap::IndexMap;
 use lunamodel_core::Solution;
@@ -251,7 +250,7 @@ impl SerSolution {
             sol.feasible = Some(feasible);
         }
         if let Some(t) = self.timing {
-            sol.timing = Some(t.as_slice().unversionize().decode(())?);
+            sol.timing = Some(t.decode(())?);
         }
 
         match self.sense {
