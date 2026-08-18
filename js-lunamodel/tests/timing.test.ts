@@ -12,6 +12,6 @@ test("exposes timing as a JavaScript object with millisecond timestamps", () => 
   expect(timing!.start).toBe(1000);
   expect(timing!.end).toBe(3000);
   expect(new Date(timing!.start).getTime()).toBe(1000);
-  expect(timing!.totalSeconds).toBe(2);
+  expect(timing!.total).toBe(2);
   expect(timing!.qpu).toBe(0.25);
 });

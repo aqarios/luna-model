@@ -40,7 +40,7 @@ impl PySolution {
 
     #[getter]
     fn get_runtime(&self) -> Option<PyTiming> {
-        self.s.read_arc().timing.map(|t| t.into())
+        self.s.read_arc().timing.clone().map(|t| t.into())
     }
 
     #[getter]

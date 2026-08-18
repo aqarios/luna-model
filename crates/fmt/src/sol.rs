@@ -117,10 +117,7 @@ impl CustomFormat<FormatOpt> for Solution {
                 };
 
                 let runtime = match &self.timing {
-                    Some(t) => t
-                        .total()
-                        .map_or_else(|e| e.to_string(), |d| d.as_secs_f64().to_string())
-                        .to_string(),
+                    Some(t) => t.total.to_string(),
                     None => "None".to_string(),
                 };
 
@@ -137,7 +134,7 @@ impl CustomFormat<FormatOpt> for Solution {
     }
 }
 mod pysolio {
-    use std::{cmp::Ordering, time::Duration};
+    use std::cmp::Ordering;
 
     use lunamodel_core::{
         Solution,
@@ -650,13 +647,10 @@ mod pysolio {
         out.push_str(&format!("\n\nTotal samples: {}", sol.n_samples()));
         out.push_str(&format!("\nUnique samples: {}", sol.len()));
         out.push_str(&format!("\nTotal variables: {}", sol.samples.len()));
-        if let Some(t) = sol.timing {
+        if let Some(t) = &sol.timing {
             out.push_str("\n\nTiming:");
-            out.push_str(&format!(
-                "\nTotal: {}s",
-                t.total().unwrap_or(Duration::ZERO).as_secs_f64()
-            ));
-            if let Some(qpu) = t.qpu {
+            out.push_str(&format!("\nTotal: {}s", t.total));
+            if let Some(qpu) = t.total_for("qpu") {
                 out.push_str(&format!("\nQPU: {qpu}s"))
             }
         }

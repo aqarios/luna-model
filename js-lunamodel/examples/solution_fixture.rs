@@ -1,5 +1,3 @@
-use std::time::{Duration, UNIX_EPOCH};
-
 use luna_model::core::{Solution, Timing};
 use luna_model::serializer::prelude::*;
 
@@ -37,11 +35,7 @@ fn full_solution() -> Solution {
 
 fn timing_solution() -> Solution {
     Solution {
-        timing: Some(Timing::new(
-            UNIX_EPOCH + Duration::from_secs(1),
-            UNIX_EPOCH + Duration::from_secs(3),
-            Some(0.25),
-        )),
+        timing: Some(Timing::new(4.0)),
         ..Default::default()
     }
 }
