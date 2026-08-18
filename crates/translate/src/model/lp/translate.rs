@@ -320,6 +320,20 @@ End
     }
 
     #[test]
+    fn test_illegal_colon() {
+        let lp_content = r#"
+Minimize:
+ obj: x_0 + x_1
+Binary:
+ x_0 x_1
+End
+"#;
+
+        let result = LpTranslator::translate(lp_content.to_string());
+        assert!(result.is_err());
+    }
+
+    #[test]
     fn test_real_world_binary_bounds() {
         // Real-world LP file where binary variables commonly have 0 <= b <= 1 bounds
         let lp_content = r#"
