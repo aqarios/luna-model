@@ -46,7 +46,7 @@ impl Solution {
                 .iter()
                 .map(|(key, sample)| (key.clone(), sample.filter_by_mask(mask)))
                 .collect(),
-            timing: self.timing,
+            timing: self.timing.clone(),
             sense: self.sense,
         })
     }

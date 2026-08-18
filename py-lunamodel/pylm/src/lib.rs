@@ -31,6 +31,8 @@ fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyConstraintCollection>()?;
     m.add_class::<PySolution>()?;
     m.add_class::<PyTimer>()?;
+    m.add_class::<PyTiming>()?;
+    m.add_class::<PySubTimer>()?;
 
     // For ConstraintCollection iteration
     m.add_class::<PyConstraintCollectionIterator>()?;
