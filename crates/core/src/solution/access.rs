@@ -188,7 +188,7 @@ impl Solution {
                 .iter()
                 .map(|(vname, cs)| (vname.clone(), vec![cs[row]]))
                 .collect(),
-            timing: self.timing.clone(),
+            timing: self.timing,
             sense: self.sense,
         }
     }

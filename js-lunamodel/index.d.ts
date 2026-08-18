@@ -126,16 +126,22 @@ export declare class Timing {
    * This matches Python's `start` property; wrap with `new Date(...)` on
    * the JS side if you want a `Date` object.
    */
-  get start(): number | null
+  get start(): number
   /**
    * Wall-clock end time, in milliseconds since the Unix epoch (UTC).
    *
    * This matches Python's `end` property; wrap with `new Date(...)` on
    * the JS side if you want a `Date` object.
    */
-  get end(): number | null
-  /** Total runtime in seconds. */
-  get total(): number
+  get end(): number
+  /**
+   * Total runtime in seconds.
+   *
+   * This is computed as the difference between `end` and `start`. Throws if
+   * the timing record is inconsistent and the total duration cannot be
+   * computed. This matches Python's `total_seconds` property.
+   */
+  get totalSeconds(): number
   /**
    * QPU usage time reported by the backend.
    *

@@ -42,7 +42,7 @@ impl Model {
             samples: sol.samples.clone(),
             counts: sol.counts.clone(),
             raw_energies: sol.raw_energies.clone(),
-            timing: sol.timing.clone(),
+            timing: sol.timing,
             sense: sol.sense,
             ..Default::default()
         };

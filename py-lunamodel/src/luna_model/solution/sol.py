@@ -22,7 +22,6 @@ from numpy import ndarray
 from luna_model._lm import PySolution
 from luna_model.model.sense import Sense
 from luna_model.solution.src import ValueSource
-from luna_model.timer import Timing
 from luna_model.variable.vtype import Vtype
 
 if TYPE_CHECKING:
@@ -38,6 +37,7 @@ if TYPE_CHECKING:
     from luna_model.model.model import Model
     from luna_model.solution.res import ResultIter, ResultView
     from luna_model.solution.sample import Samples
+    from luna_model.timer import Timing
     from luna_model.variable.var import Variable
 
 
@@ -161,7 +161,7 @@ class Solution:
             feasible=feasible,
             constraints=constraints,
             variables_bounds=variables_bounds,
-            timing=timing._t if timing else None,
+            timing=timing,
             sense=sense._val if sense else None,
             env=env,
             vtypes=[vtype._val for vtype in vtypes] if vtypes else None,
@@ -208,13 +208,12 @@ class Solution:
     @property
     def runtime(self) -> Timing | None:
         """Get runtime."""
-        py_t = self._s.runtime
-        return Timing._from_pyt(py_t) if py_t is not None else None
+        return self._s.runtime
 
     @runtime.setter
     def runtime(self, timing: Timing) -> None:
         """Set runtime."""
-        self._s.runtime = timing._t
+        self._s.runtime = timing
 
     @property
     def sense(self) -> Sense:
@@ -660,7 +659,7 @@ class Solution:
                 data=data,
                 env=env,
                 model=model,
-                timing=timing._t if timing else None,
+                timing=timing,
                 counts=counts,
                 sense=sense._val if sense else None,
                 energy=energy,
@@ -721,7 +720,7 @@ class Solution:
                 data=data,
                 env=env,
                 model=model,
-                timing=timing._t if timing else None,
+                timing=timing,
                 counts=counts,
                 sense=sense._val if sense else None,
                 energies=energies,
@@ -786,7 +785,7 @@ class Solution:
                 variables=variables,
                 env=env,
                 model=model,
-                timing=timing._t if timing else None,
+                timing=timing,
                 counts=counts,
                 sense=sense._val if sense is not None else None,
                 energies=energies,
@@ -846,7 +845,7 @@ class Solution:
                 data=data,
                 env=env,
                 model=model,
-                timing=timing._t if timing else None,
+                timing=timing,
                 sense=sense._val if sense else None,
                 bit_order=bit_order,
                 energies=energies,

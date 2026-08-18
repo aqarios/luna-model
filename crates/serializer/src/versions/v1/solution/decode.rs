@@ -11,7 +11,6 @@ use prost::Message;
 use crate::{
     encode::{BytesDecodable, Decodable},
     utils::u8_to_vtype,
-    versionize::Unversionizable,
 };
 
 use super::SerSolution;
@@ -42,7 +41,7 @@ impl SerSolution {
         };
 
         if let Some(t) = self.timing {
-            sol.timing = Some(t.as_slice().unversionize().decode(())?);
+            sol.timing = Some(t.decode(())?);
         }
 
         let mut bv: BitVec<u8, Lsb0> = BitVec::from_vec(self.bins);

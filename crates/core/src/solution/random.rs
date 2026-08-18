@@ -51,7 +51,7 @@ impl Solution {
         sense: Option<Sense>,
         tol: Option<f64>,
     ) -> LunaModelResult<Self> {
-        let timer = Timer::new();
+        let timer = Timer::start();
 
         let env = match &context {
             Either::Right(model) => model.environment.clone(),
@@ -112,7 +112,7 @@ impl Solution {
         }
         let counts = vec![1; n_samples];
 
-        let timing = Some(timer.stop()?);
+        let timing = Some(timer.stop());
 
         let mut sol = Solution {
             samples,
