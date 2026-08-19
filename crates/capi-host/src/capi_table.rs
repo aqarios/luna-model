@@ -539,7 +539,13 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // ///// //
     timer_free: crate::timer::lm_timer_free,
     timer_start: crate::timer::lm_timer_start,
+    timer_record: crate::timer::lm_timer_record,
     timer_stop: crate::timer::lm_timer_stop,
+    // ////////// //
+    // Sub-timer  //
+    // ////////// //
+    subtimer_free: crate::timer::lm_subtimer_free,
+    subtimer_stop: crate::timer::lm_subtimer_stop,
     // ////// //
     // Timing //
     // ////// //
@@ -547,10 +553,13 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     timing_new: crate::timing::lm_timing_new,
     timing_clone: crate::timing::lm_timing_clone,
     timing_eq: crate::timing::lm_timing_eq,
-    timing_total_ns: crate::timing::lm_timing_total_ns,
+    timing_total_seconds: crate::timing::lm_timing_total_seconds,
     timing_start_ns: crate::timing::lm_timing_start_ns,
     timing_end_ns: crate::timing::lm_timing_end_ns,
-    timing_qpu: crate::timing::lm_timing_qpu,
+    timing_get: crate::timing::lm_timing_get,
+    timing_total_for: crate::timing::lm_timing_total_for,
+    timing_set: crate::timing::lm_timing_set,
+    timing_add: crate::timing::lm_timing_add,
     timing_serialize: crate::timing::lm_timing_serialize,
     timing_deserialize: crate::timing::lm_timing_deserialize,
     // ///// //

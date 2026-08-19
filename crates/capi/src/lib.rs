@@ -21,7 +21,7 @@ pub mod plugin;
 /// or to any exported function signature. Consumers must check it after import.
 ///
 /// cbindgen:ignore
-pub const CAPI_ABI_VERSION: u32 = 1;
+pub const CAPI_ABI_VERSION: u32 = 2;
 
 pub use core::{
     LmAssignment, LmBoolMapBuffer, LmBoolMapEntry, LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC,
@@ -30,7 +30,7 @@ pub use core::{
     LmHigherOrderItemBuffer, LmIndexMapItem, LmIndexMapItemBuffer, LmLazyBounds, LmLinear,
     LmLinearItem, LmLinearItemBuffer, LmModel, LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer,
     LmResultView, LmResultViewBuffer, LmSampleView, LmSampleViewBuffer, LmSense, LmSol,
-    LmSolutionLookup, LmSpecs, LmStatus, LmStrBuffer, LmTimer, LmTiming, LmU32Buffer,
+    LmSolutionLookup, LmSpecs, LmStatus, LmStrBuffer, LmSubTimer, LmTimer, LmTiming, LmU32Buffer,
     LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
 };
 

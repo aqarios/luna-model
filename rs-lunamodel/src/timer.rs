@@ -8,7 +8,7 @@
 use lunamodel_capi::LmTimer;
 use rs_lunamodel_derive::RawHandle;
 
-use crate::{Result, Timing, api::api};
+use crate::{Result, SubTimer, Timing, api::api};
 
 /// Owning handle to a LunaModel timer (frees on drop).
 #[derive(RawHandle)]
@@ -29,6 +29,14 @@ impl Timer {
         Self::from_raw((api().timer_start)())
     }
 
+    /// Starts a fine-grained sub-timer under `key`, to be stopped via
+    /// [`SubTimer::stop`].
+    pub fn record(&self, key: &str) -> Result<SubTimer> {
+        out!(timer_record(@self, !key))
+    }
+
+    /// Stops the timer, producing its accumulated [`Timing`]. The timer
+    /// remains valid and reusable after this call.
     pub fn stop(&self) -> Result<Timing> {
         out!(timer_stop(@self))
     }

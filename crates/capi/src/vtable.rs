@@ -12,7 +12,7 @@ pub use super::{
     LmExpr, LmF64Buffer, LmHigherOrder, LmHigherOrderItemBuffer, LmIndexMapItemBuffer,
     LmLazyBounds, LmLinear, LmLinearItemBuffer, LmModel, LmQuadratic, LmQuadraticItemBuffer,
     LmResultView, LmResultViewBuffer, LmSampleView, LmSampleViewBuffer, LmSense, LmSol,
-    LmSolutionLookup, LmSpecs, LmStatus, LmStrBuffer, LmTimer, LmTiming, LmU32Buffer,
+    LmSolutionLookup, LmSpecs, LmStatus, LmStrBuffer, LmSubTimer, LmTimer, LmTiming, LmU32Buffer,
     LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
 };
 
@@ -760,18 +760,29 @@ pub struct LunaModelCApi {
     // ///// //
     pub timer_free: unsafe extern "C" fn(*mut LmTimer),
     pub timer_start: extern "C" fn() -> *mut LmTimer,
+    pub timer_record:
+        unsafe extern "C" fn(*const LmTimer, *const c_char, *mut *mut LmSubTimer) -> LmStatus,
     pub timer_stop: unsafe extern "C" fn(*const LmTimer, *mut *mut LmTiming) -> LmStatus,
+    // ////////// //
+    // Sub-timer  //
+    // ////////// //
+    pub subtimer_free: unsafe extern "C" fn(*mut LmSubTimer),
+    pub subtimer_stop: unsafe extern "C" fn(*mut LmSubTimer, *mut f64) -> LmStatus,
     // ////// //
     // Timing //
     // ////// //
     pub timing_free: unsafe extern "C" fn(*mut LmTiming),
-    pub timing_new: unsafe extern "C" fn(u64, u64, *const f64, *mut *mut LmTiming) -> LmStatus,
+    pub timing_new: unsafe extern "C" fn(f64, *mut *mut LmTiming) -> LmStatus,
     pub timing_clone: unsafe extern "C" fn(*const LmTiming, *mut *mut LmTiming) -> LmStatus,
     pub timing_eq: unsafe extern "C" fn(*const LmTiming, *const LmTiming, *mut bool) -> LmStatus,
-    pub timing_total_ns: unsafe extern "C" fn(*const LmTiming, *mut u64) -> LmStatus,
+    pub timing_total_seconds: unsafe extern "C" fn(*const LmTiming, *mut f64) -> LmStatus,
     pub timing_start_ns: unsafe extern "C" fn(*const LmTiming, *mut u64) -> LmStatus,
     pub timing_end_ns: unsafe extern "C" fn(*const LmTiming, *mut u64) -> LmStatus,
-    pub timing_qpu: unsafe extern "C" fn(*const LmTiming, *mut f64) -> LmStatus,
+    pub timing_get:
+        unsafe extern "C" fn(*const LmTiming, *const c_char, *mut LmF64Buffer) -> LmStatus,
+    pub timing_total_for: unsafe extern "C" fn(*const LmTiming, *const c_char, *mut f64) -> LmStatus,
+    pub timing_set: unsafe extern "C" fn(*mut LmTiming, *const c_char, f64) -> LmStatus,
+    pub timing_add: unsafe extern "C" fn(*mut LmTiming, *const c_char, f64) -> LmStatus,
     pub timing_serialize: unsafe extern "C" fn(*const LmTiming, *mut LmBuffer) -> LmStatus,
     pub timing_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmTiming) -> LmStatus,
     // ///// //

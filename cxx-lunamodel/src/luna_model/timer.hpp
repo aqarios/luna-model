@@ -1,9 +1,12 @@
 #ifndef LUNA_MODEL_TIMER_HPP
 #define LUNA_MODEL_TIMER_HPP
 
+#include <string>
+
 #include <luna_model.h>
 
 #include "luna_model/detail/capi.hpp"
+#include "luna_model/subtimer.hpp"
 #include "luna_model/timing.hpp"
 
 namespace lm {
@@ -34,7 +37,15 @@ class Timer {
     /* Starts a new wall-clock timer. */
     static Timer start() { return Timer(lm_timer_start()); }
 
-    /* Stops the timer, producing a timing record. */
+    /* Starts a fine-grained sub-timer under `key`, to be stopped via `SubTimer::stop`. */
+    SubTimer record(const std::string &key) const {
+        LmSubTimer *out = nullptr;
+        detail::check(lm_timer_record(handle_, key.c_str(), &out));
+        return SubTimer(out);
+    }
+
+    /* Stops the timer, producing a timing record. The timer remains valid and
+     * reusable after this call. */
     Timing stop() const {
         LmTiming *out = nullptr;
         detail::check(lm_timer_stop(handle_, &out));

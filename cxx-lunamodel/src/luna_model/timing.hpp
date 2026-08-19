@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include <luna_model.h>
@@ -17,15 +18,11 @@ class Solution;
 /* Owning handle to a LunaModel timing record (frees on destruction). */
 class Timing {
   public:
-    /* Creates a timing record from explicit timestamps.
-     *
-     * `start_unix_ns` / `end_unix_ns` are nanoseconds since the UNIX epoch;
-     * `qpu` is the optional QPU/device execution time in seconds.
-     */
-    Timing(std::uint64_t start_unix_ns, std::uint64_t end_unix_ns,
-           std::optional<double> qpu = std::nullopt) {
+    /* Creates a timing record with the given total duration in seconds and no
+     * recorded start/end time or sub-timings. */
+    explicit Timing(double total = 0.0) {
         LmTiming *out = nullptr;
-        detail::check(lm_timing_new(start_unix_ns, end_unix_ns, qpu ? &*qpu : nullptr, &out));
+        detail::check(lm_timing_new(total, &out));
         handle_ = out;
     }
 
@@ -49,32 +46,63 @@ class Timing {
     Timing(const Timing &) = delete;
     Timing &operator=(const Timing &) = delete;
 
-    /* Total wall-clock duration in nanoseconds. */
-    std::uint64_t total_ns() const {
-        std::uint64_t out = 0;
-        detail::check(lm_timing_total_ns(handle_, &out));
-        return out;
-    }
-
-    /* Start timestamp, nanoseconds since the UNIX epoch. */
-    std::uint64_t start_ns() const {
-        std::uint64_t out = 0;
-        detail::check(lm_timing_start_ns(handle_, &out));
-        return out;
-    }
-
-    /* End timestamp, nanoseconds since the UNIX epoch. */
-    std::uint64_t end_ns() const {
-        std::uint64_t out = 0;
-        detail::check(lm_timing_end_ns(handle_, &out));
-        return out;
-    }
-
-    /* QPU/device execution time in seconds. */
-    double qpu() const {
+    /* Total wall-clock duration in seconds. */
+    double total() const {
         double out = 0.0;
-        detail::check(lm_timing_qpu(handle_, &out));
+        detail::check(lm_timing_total_seconds(handle_, &out));
         return out;
+    }
+
+    /* Start timestamp, nanoseconds since the UNIX epoch, or `std::nullopt` if unrecorded. */
+    std::optional<std::uint64_t> start_ns() const {
+        std::uint64_t out = 0;
+        LmStatus status = lm_timing_start_ns(handle_, &out);
+        if (status == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(status);
+        return out;
+    }
+
+    /* End timestamp, nanoseconds since the UNIX epoch, or `std::nullopt` if unrecorded. */
+    std::optional<std::uint64_t> end_ns() const {
+        std::uint64_t out = 0;
+        LmStatus status = lm_timing_end_ns(handle_, &out);
+        if (status == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(status);
+        return out;
+    }
+
+    /* The values recorded under `key`, or an empty vector if absent. */
+    std::vector<double> get(const std::string &key) const {
+        LmF64Buffer buf = {nullptr, 0, 0};
+        detail::check(lm_timing_get(handle_, key.c_str(), &buf));
+        std::vector<double> values(buf.data, buf.data + buf.len);
+        lm_f64_buffer_free(buf);
+        return values;
+    }
+
+    /* The sum of the values recorded under `key`, or `std::nullopt` if absent. */
+    std::optional<double> total_for(const std::string &key) const {
+        double out = 0.0;
+        LmStatus status = lm_timing_total_for(handle_, key.c_str(), &out);
+        if (status == LmStatus_Absent) {
+            return std::nullopt;
+        }
+        detail::check(status);
+        return out;
+    }
+
+    /* Overwrites the values recorded under `key` with a single `value`. */
+    void set(const std::string &key, double value) {
+        detail::check(lm_timing_set(handle_, key.c_str(), value));
+    }
+
+    /* Appends `value` to the list recorded under `key`. */
+    void add(const std::string &key, double value) {
+        detail::check(lm_timing_add(handle_, key.c_str(), value));
     }
 
     /* Serializes this timing record to bytes. */

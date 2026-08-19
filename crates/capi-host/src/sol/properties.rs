@@ -213,7 +213,7 @@ pub unsafe extern "C" fn lm_sol_timing(sol: *const LmSol, out: *mut *mut LmTimin
     guard(|| {
         let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-        let timing = sol.timing.ok_or_else(|| {
+        let timing = sol.timing.clone().ok_or_else(|| {
             CapiError::new(LmStatus::Absent, "solution has no timing".to_string())
         })?;
         *out = handle_to_c(timing);

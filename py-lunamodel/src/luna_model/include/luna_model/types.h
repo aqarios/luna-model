@@ -14,7 +14,7 @@
  * Bump this on any breaking change to the layout of the exported table struct
  * or to any exported function signature. Consumers must check it after import.
  */
-#define LUNA_MODEL_CAPI_ABI_VERSION 1
+#define LUNA_MODEL_CAPI_ABI_VERSION 2
 
 /**
  * Status codes returned by every fallible `lm_*` entry point.
@@ -1190,6 +1190,17 @@ typedef struct {
 } LmTimer;
 
 /**
+ * Opaque handle to a LunaModel fine-grained sub-timer reference.
+ *
+ * Created by [`crate::vtable::LunaModelCApi::timer_record`] and consumed by
+ * [`crate::vtable::LunaModelCApi::subtimer_stop`].
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmSubTimer;
+
+/**
  * Stable, versioned table of LunaModel C API entry points.
  *
  * Consumers obtaining this via the capsule must check [`Self::abi_version`]
@@ -1676,15 +1687,21 @@ typedef struct {
     LmStatus (*higher_order_neg)(const LmHigherOrder*, LmHigherOrder**);
     void (*timer_free)(LmTimer*);
     LmTimer *(*timer_start)(void);
+    LmStatus (*timer_record)(const LmTimer*, const char*, LmSubTimer**);
     LmStatus (*timer_stop)(const LmTimer*, LmTiming**);
+    void (*subtimer_free)(LmSubTimer*);
+    LmStatus (*subtimer_stop)(LmSubTimer*, double*);
     void (*timing_free)(LmTiming*);
-    LmStatus (*timing_new)(uint64_t, uint64_t, const double*, LmTiming**);
+    LmStatus (*timing_new)(double, LmTiming**);
     LmStatus (*timing_clone)(const LmTiming*, LmTiming**);
     LmStatus (*timing_eq)(const LmTiming*, const LmTiming*, bool*);
-    LmStatus (*timing_total_ns)(const LmTiming*, uint64_t*);
+    LmStatus (*timing_total_seconds)(const LmTiming*, double*);
     LmStatus (*timing_start_ns)(const LmTiming*, uint64_t*);
     LmStatus (*timing_end_ns)(const LmTiming*, uint64_t*);
-    LmStatus (*timing_qpu)(const LmTiming*, double*);
+    LmStatus (*timing_get)(const LmTiming*, const char*, LmF64Buffer*);
+    LmStatus (*timing_total_for)(const LmTiming*, const char*, double*);
+    LmStatus (*timing_set)(LmTiming*, const char*, double);
+    LmStatus (*timing_add)(LmTiming*, const char*, double);
     LmStatus (*timing_serialize)(const LmTiming*, LmBuffer*);
     LmStatus (*timing_deserialize)(const uint8_t*, uintptr_t, LmTiming**);
     /**

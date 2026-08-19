@@ -10,7 +10,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use lunamodel_capi::LmTiming;
 use rs_lunamodel_derive::RawHandle;
 
-use crate::{Error, Result, Status, TryClone};
+use crate::{Result, TryClone, api::api};
 
 /// Owning handle to a LunaModel timing (frees on drop).
 #[derive(RawHandle)]
@@ -27,24 +27,57 @@ impl Drop for Timing {
 }
 
 impl Timing {
-    pub fn new(start: SystemTime, end: SystemTime, qpu: Option<f64>) -> Result<Self> {
-        out!(timing_new(unix_nanos(start, "start")?, unix_nanos(end, "end")?, ?qpu))
+    /// Creates a timing with the given total duration in seconds and no
+    /// recorded start/end time or sub-timings.
+    pub fn new(total: f64) -> Result<Self> {
+        out!(timing_new(total))
     }
 
-    pub fn total(&self) -> Result<Duration> {
-        Ok(Duration::from_nanos(out!(timing_total_ns(@self))?))
+    /// The total time in seconds an algorithm needed to run.
+    pub fn total(&self) -> Result<f64> {
+        out!(timing_total_seconds(@self))
     }
 
-    pub fn start(&self) -> Result<SystemTime> {
-        Ok(UNIX_EPOCH + Duration::from_nanos(out!(timing_start_ns(@self))?))
+    /// The recorded start time, if any.
+    pub fn start(&self) -> Result<Option<SystemTime>> {
+        out_opt!(timing_start_ns(@self), |ns: u64| Ok(UNIX_EPOCH + Duration::from_nanos(ns)))
     }
 
-    pub fn end(&self) -> Result<SystemTime> {
-        Ok(UNIX_EPOCH + Duration::from_nanos(out!(timing_end_ns(@self))?))
+    /// The recorded end time, if any.
+    pub fn end(&self) -> Result<Option<SystemTime>> {
+        out_opt!(timing_end_ns(@self), |ns: u64| Ok(UNIX_EPOCH + Duration::from_nanos(ns)))
     }
 
-    pub fn qpu(&self) -> Result<Option<f64>> {
-        out_opt!(timing_qpu(@self))
+    /// The values recorded under `key`, or an empty vector if absent.
+    pub fn get(&self, key: &str) -> Result<Vec<f64>> {
+        let key = crate::traits::TryToCString::try_to_cstring(key)?;
+        let mut buffer = std::mem::MaybeUninit::uninit();
+        crate::error::check(unsafe {
+            (api().timing_get)(self.as_ptr(), key.as_ptr(), buffer.as_mut_ptr())
+        })?;
+        let buffer = unsafe { buffer.assume_init() };
+        let values = if buffer.data.is_null() {
+            Vec::new()
+        } else {
+            unsafe { std::slice::from_raw_parts(buffer.data, buffer.len) }.to_vec()
+        };
+        unsafe { (api().f64_buffer_free)(buffer) };
+        Ok(values)
+    }
+
+    /// The sum of the values recorded under `key`, or `None` if absent.
+    pub fn total_for(&self, key: &str) -> Result<Option<f64>> {
+        out_opt!(timing_total_for(@self, !key))
+    }
+
+    /// Overwrites the values recorded under `key` with a single `value`.
+    pub fn set(&mut self, key: &str, value: f64) -> Result<()> {
+        check!(timing_set(@mut self, !key, value))
+    }
+
+    /// Appends `value` to the list recorded under `key`.
+    pub fn add(&mut self, key: &str, value: f64) -> Result<()> {
+        check!(timing_add(@mut self, !key, value))
     }
 }
 
@@ -63,23 +96,9 @@ impl PartialEq for Timing {
 impl std::fmt::Debug for Timing {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Timing")
-            .field("start", &self.start().ok())
-            .field("end", &self.end().ok())
-            .field("qpu", &self.qpu().ok().flatten())
+            .field("total", &self.total().ok())
+            .field("start", &self.start().ok().flatten())
+            .field("end", &self.end().ok().flatten())
             .finish()
     }
-}
-
-fn unix_nanos(time: SystemTime, field: &str) -> Result<u64> {
-    let duration = time.duration_since(UNIX_EPOCH).map_err(|_| Error {
-        status: Status::InvalidArgument,
-        message: format!("{field} must not precede the Unix epoch"),
-        kind: None,
-    })?;
-
-    u64::try_from(duration.as_nanos()).map_err(|_| Error {
-        status: Status::InvalidArgument,
-        message: format!("{field} is too large to represent as Unix nanoseconds"),
-        kind: None,
-    })
 }

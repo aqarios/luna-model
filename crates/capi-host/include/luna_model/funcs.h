@@ -3954,7 +3954,23 @@ void lm_timer_free(LmTimer *timer);
 LmTimer *lm_timer_start(void);
 
 /**
- * Stops a timer.
+ * Starts a fine-grained sub-timer under `key`, to be stopped and recorded
+ * via [`lm_subtimer_stop`].
+ *
+ * Returns a non-null handle that must eventually be released, either by
+ * [`lm_subtimer_stop`] or [`lm_subtimer_free`] (which discards it unrecorded).
+ *
+ * # Safety
+ * `timer` must be a valid timer handle created by this library.
+ * `key` must be a NUL-terminated UTF-8 string.
+ * `out` must point to writable `LmSubTimer *` storage.
+ */
+LmStatus lm_timer_record(const LmTimer *timer, const char *key, LmSubTimer **out);
+
+/**
+ * Stops a timer, producing its accumulated [`LmTiming`].
+ *
+ * The timer handle remains valid and reusable after this call.
  *
  * Returns a non-null handle that must be released with [`lm_timing_free`].
  *
@@ -3965,6 +3981,28 @@ LmTimer *lm_timer_start(void);
 LmStatus lm_timer_stop(const LmTimer *timer, LmTiming **out);
 
 /**
+ * Frees a sub-timer handle without recording its elapsed time.
+ *
+ * Passing null is a no-op.
+ *
+ * # Safety
+ * `subtimer` must originate from this library and must not be used or freed again.
+ */
+void lm_subtimer_free(LmSubTimer *subtimer);
+
+/**
+ * Stops a sub-timer, recording its elapsed time (in seconds) on the parent
+ * timer under the key it was started with, and returns that elapsed time.
+ *
+ * Consumes and frees `subtimer`; it must not be used or freed again.
+ *
+ * # Safety
+ * `subtimer` must be a valid sub-timer handle created by this library.
+ * `out` must point to writable `double` storage.
+ */
+LmStatus lm_subtimer_stop(LmSubTimer *subtimer, double *out);
+
+/**
  * Frees a timing handle. Passing null is a no-op.
  *
  * # Safety
@@ -3973,15 +4011,17 @@ LmStatus lm_timer_stop(const LmTimer *timer, LmTiming **out);
 void lm_timing_free(LmTiming *timing);
 
 /**
- * Returns the total duration in nanoseconds.
+ * Returns the total duration in seconds.
  *
  * # Safety
  * `timing` must be a valid timing handle and `out` must be writable.
  */
-LmStatus lm_timing_total_ns(const LmTiming *timing, uint64_t *out);
+LmStatus lm_timing_total_seconds(const LmTiming *timing, double *out);
 
 /**
  * Returns the start timestamp in Unix nanoseconds.
+ *
+ * Returns `LmStatus::Absent` when the timing has no recorded start time.
  *
  * # Safety
  * `timing` must be a valid timing handle and `out` must be writable.
@@ -3991,35 +4031,63 @@ LmStatus lm_timing_start_ns(const LmTiming *timing, uint64_t *out);
 /**
  * Returns the end timestamp in Unix nanoseconds.
  *
+ * Returns `LmStatus::Absent` when the timing has no recorded end time.
+ *
  * # Safety
  * `timing` must be a valid timing handle and `out` must be writable.
  */
 LmStatus lm_timing_end_ns(const LmTiming *timing, uint64_t *out);
 
 /**
- * Returns the optional QPU duration.
+ * Returns the values recorded under `key`, or an empty buffer if absent.
+ *
+ * The buffer must be released with `lm_f64_buffer_free`.
  *
  * # Safety
- * `timing` must be a valid timing handle and `out` must be writable.
+ * `timing` must be a valid timing handle. `key` must be a NUL-terminated
+ * UTF-8 string. `out` must point to writable `LmF64Buffer` storage.
  */
-LmStatus lm_timing_qpu(const LmTiming *timing, double *out);
+LmStatus lm_timing_get(const LmTiming *timing, const char *key, LmF64Buffer *out);
 
 /**
- * Creates a new timing handle.
+ * Returns the sum of the values recorded under `key`.
  *
- * `start_unix_ns` and `end_unix_ns` are wall-clock timestamps in nanoseconds
- * since the UNIX epoch. `qpu` may be null to indicate no QPU time.
+ * Returns `LmStatus::Absent` when `key` has no recorded values.
+ *
+ * # Safety
+ * `timing` must be a valid timing handle. `key` must be a NUL-terminated
+ * UTF-8 string. `out` must be writable.
+ */
+LmStatus lm_timing_total_for(const LmTiming *timing, const char *key, double *out);
+
+/**
+ * Overwrites the values recorded under `key` with a single `value`.
+ *
+ * # Safety
+ * `timing` must be a valid mutable timing handle. `key` must be a
+ * NUL-terminated UTF-8 string.
+ */
+LmStatus lm_timing_set(LmTiming *timing, const char *key, double value);
+
+/**
+ * Appends `value` to the list recorded under `key`.
+ *
+ * # Safety
+ * `timing` must be a valid mutable timing handle. `key` must be a
+ * NUL-terminated UTF-8 string.
+ */
+LmStatus lm_timing_add(LmTiming *timing, const char *key, double value);
+
+/**
+ * Creates a new timing handle with the given total duration in seconds and
+ * no recorded start/end time or sub-timings.
  *
  * Returns a non-null handle in `out` that must be released with [`lm_timing_free`].
  *
  * # Safety
- * `qpu` must be null or point to readable `double` storage.
  * `out` must point to writable `LmTiming *` storage.
  */
-LmStatus lm_timing_new(uint64_t start_unix_ns,
-                       uint64_t end_unix_ns,
-                       const double *qpu,
-                       LmTiming **out);
+LmStatus lm_timing_new(double total, LmTiming **out);
 
 /**
  * Clones a timing record.

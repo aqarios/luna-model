@@ -14,7 +14,7 @@ pub use lunamodel_capi::{
     LmHigherOrderItemBuffer, LmIndexMapItem, LmIndexMapItemBuffer, LmLazyBounds, LmLinear,
     LmLinearItem, LmLinearItemBuffer, LmModel, LmQuadratic, LmQuadraticItem, LmQuadraticItemBuffer,
     LmResultView, LmResultViewBuffer, LmSampleView, LmSampleViewBuffer, LmSense, LmSol,
-    LmSolutionLookup, LmSpecs, LmStatus, LmStrBuffer, LmTimer, LmTiming, LmU32Buffer,
+    LmSolutionLookup, LmSpecs, LmStatus, LmStrBuffer, LmSubTimer, LmTimer, LmTiming, LmU32Buffer,
     LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
 };
 
@@ -27,7 +27,7 @@ pub use lunamodel_capi::{
 // `LUNA_MODEL_CAPI_ABI_VERSION` macro into the header. The vtable crate's copy
 // (used by downstream Rust consumers) carries `cbindgen:ignore`; the assert keeps
 // the two in lock-step.
-pub const CAPI_ABI_VERSION: u32 = 1;
+pub const CAPI_ABI_VERSION: u32 = 2;
 const _: () = assert!(CAPI_ABI_VERSION == lunamodel_capi::CAPI_ABI_VERSION);
 
 pub mod plugin;

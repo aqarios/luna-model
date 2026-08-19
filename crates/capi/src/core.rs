@@ -571,6 +571,17 @@ pub struct LmTimer {
     _private: [u8; 0],
 }
 
+/// Opaque handle to a LunaModel fine-grained sub-timer reference.
+///
+/// Created by [`crate::vtable::LunaModelCApi::timer_record`] and consumed by
+/// [`crate::vtable::LunaModelCApi::subtimer_stop`].
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmSubTimer {
+    _private: [u8; 0],
+}
+
 /// Opaque handle to a structured LunaModel error. See [`crate::error::RichError`].
 ///
 /// cbindgen:opaque

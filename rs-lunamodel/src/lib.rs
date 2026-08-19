@@ -54,6 +54,7 @@ mod sample_view;
 mod sol;
 mod sol_lookup;
 mod specs;
+mod subtimer;
 mod timer;
 mod timing;
 pub mod types;
@@ -86,6 +87,7 @@ pub use sample_view::{SampleView, SampleViewIdx};
 pub use sol::Solution;
 pub use sol_lookup::SolutionLookup;
 pub use specs::Specs;
+pub use subtimer::SubTimer;
 pub use timer::Timer;
 pub use timing::Timing;
 pub use traits::{
@@ -116,15 +118,16 @@ pub mod core {
     pub use crate::{
         ArcEnv, Assignment, Bound, Bounds, Column, Constraint, ConstraintCollection, Environment,
         Expression, HigherOrder, LazyBounds, Linear, Model, Neighborhood, OneVarTerm, Quadratic,
-        ResultView, SampleView, Solution, Specs, Timer, Timing, TwoVarTerm, VarRef, Variable,
+        ResultView, SampleView, Solution, Specs, SubTimer, Timer, Timing, TwoVarTerm, VarRef,
+        Variable,
     };
 
     pub mod prelude {
         pub use crate::{
             ArcEnv, Bounds, Constraint, ConstraintCollection, ContentEquality, DefaultEditable,
             Editable, Environment, Expression, HigherOrder, LazyBounds, Linear, LmAddAssign,
-            LmMulAssign, LmPow, LmPowAssign, LmSubAssign, Model, Quadratic, Solution, Timer,
-            Timing, VarRef, Variable,
+            LmMulAssign, LmPow, LmPowAssign, LmSubAssign, Model, Quadratic, Solution, SubTimer,
+            Timer, Timing, VarRef, Variable,
         };
     }
 
@@ -158,7 +161,7 @@ pub mod core {
             pub use crate::{SampleView, SampleViewIdx};
         }
         pub mod timing {
-            pub use crate::{Timer, Timing};
+            pub use crate::{SubTimer, Timer, Timing};
         }
     }
     pub mod variable {

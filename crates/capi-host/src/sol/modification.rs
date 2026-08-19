@@ -364,7 +364,7 @@ pub unsafe extern "C" fn lm_sol_set_timing(sol: *mut LmSol, timing: *const LmTim
         sol.timing = if timing.is_null() {
             None
         } else {
-            Some(*unsafe { ref_from_c(timing as *const Timing, "timing") }?)
+            Some(unsafe { ref_from_c(timing as *const Timing, "timing") }?.clone())
         };
         Ok(())
     })

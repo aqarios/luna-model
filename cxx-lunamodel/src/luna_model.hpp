@@ -33,6 +33,7 @@
 #include "luna_model/sol_lookup.hpp"             // IWYU pragma: export
 #include "luna_model/solution.hpp"              // IWYU pragma: export
 #include "luna_model/specs.hpp"                 // IWYU pragma: export
+#include "luna_model/subtimer.hpp"              // IWYU pragma: export
 #include "luna_model/timer.hpp"                 // IWYU pragma: export
 #include "luna_model/timing.hpp"                // IWYU pragma: export
 #include "luna_model/variable.hpp"              // IWYU pragma: export

@@ -1,8 +1,4 @@
-use std::{
-    collections::HashMap,
-    sync::Once,
-    time::{Duration, SystemTime},
-};
+use std::{collections::HashMap, sync::Once};
 
 use indexmap::{IndexMap, indexmap};
 use rs_lunamodel::{
@@ -150,10 +146,11 @@ fn solution_optional_values_buffers_and_owned_views() -> Result<()> {
     assert_eq!(result.counts()?, 2);
     assert_eq!(sample.try_index("x")?, 1.0);
 
-    let start = SystemTime::UNIX_EPOCH + Duration::from_secs(5);
-    let timing = Timing::new(start, start + Duration::from_nanos(20), None)?;
-    assert_eq!(timing.qpu()?, None);
-    assert_eq!(timing.total()?, Duration::from_nanos(20));
+    let mut timing = Timing::new(20.0)?;
+    assert_eq!(timing.total_for("qpu")?, None);
+    assert_eq!(timing.total()?, 20.0);
+    timing.set("qpu", 5.0)?;
+    assert_eq!(timing.total_for("qpu")?, Some(5.0));
     let mut metadata = Solution::with_sense(Sense::Min);
     metadata.set_counts(vec![7])?;
     metadata.set_timing(Some(&timing))?;

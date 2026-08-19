@@ -1,14 +1,15 @@
-use std::time::{Duration, UNIX_EPOCH};
+use std::ffi::c_char;
+use std::time::UNIX_EPOCH;
 
 use lunamodel_core::prelude::Timing;
 use lunamodel_serializer::prelude::*;
 
 use crate::{
-    LmBuffer, LmStatus, LmTiming,
-    buffer::buffer_from_vec,
+    LmBuffer, LmF64Buffer, LmStatus, LmTiming,
+    buffer::{buffer_from_vec, f64_buffer_from_vec},
     error::{CapiError, guard},
     utils::ref_from_c,
-    utils::{drop_from_c, handle_to_c, opt_from_c, out_from_c, slice_from_c},
+    utils::{drop_from_c, handle_to_c, mut_from_c, out_from_c, slice_from_c, str_from_c},
 };
 
 /// Frees a timing handle. Passing null is a no-op.
@@ -28,22 +29,26 @@ fn unix_nanos(time: std::time::SystemTime) -> Result<u64, CapiError> {
     u64::try_from(nanos).map_err(CapiError::errored)
 }
 
-/// Returns the total duration in nanoseconds.
+/// Returns the total duration in seconds.
 ///
 /// # Safety
 /// `timing` must be a valid timing handle and `out` must be writable.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn lm_timing_total_ns(timing: *const LmTiming, out: *mut u64) -> LmStatus {
+pub unsafe extern "C" fn lm_timing_total_seconds(
+    timing: *const LmTiming,
+    out: *mut f64,
+) -> LmStatus {
     guard(|| {
         let timing = unsafe { ref_from_c(timing as *const Timing, "timing") }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = u64::try_from(timing.total().map_err(CapiError::errored)?.as_nanos())
-            .map_err(CapiError::errored)?;
+        *out = timing.total;
         Ok(())
     })
 }
 
 /// Returns the start timestamp in Unix nanoseconds.
+///
+/// Returns `LmStatus::Absent` when the timing has no recorded start time.
 ///
 /// # Safety
 /// `timing` must be a valid timing handle and `out` must be writable.
@@ -52,12 +57,17 @@ pub unsafe extern "C" fn lm_timing_start_ns(timing: *const LmTiming, out: *mut u
     guard(|| {
         let timing = unsafe { ref_from_c(timing as *const Timing, "timing") }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = unix_nanos(timing.start())?;
+        let start = timing
+            .start
+            .ok_or_else(|| CapiError::new(LmStatus::Absent, "timing has no start time"))?;
+        *out = unix_nanos(start)?;
         Ok(())
     })
 }
 
 /// Returns the end timestamp in Unix nanoseconds.
+///
+/// Returns `LmStatus::Absent` when the timing has no recorded end time.
 ///
 /// # Safety
 /// `timing` must be a valid timing handle and `out` must be writable.
@@ -66,51 +76,110 @@ pub unsafe extern "C" fn lm_timing_end_ns(timing: *const LmTiming, out: *mut u64
     guard(|| {
         let timing = unsafe { ref_from_c(timing as *const Timing, "timing") }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = unix_nanos(timing.end())?;
+        let end = timing
+            .end
+            .ok_or_else(|| CapiError::new(LmStatus::Absent, "timing has no end time"))?;
+        *out = unix_nanos(end)?;
         Ok(())
     })
 }
 
-/// Returns the optional QPU duration.
+/// Returns the values recorded under `key`, or an empty buffer if absent.
+///
+/// The buffer must be released with `lm_f64_buffer_free`.
 ///
 /// # Safety
-/// `timing` must be a valid timing handle and `out` must be writable.
+/// `timing` must be a valid timing handle. `key` must be a NUL-terminated
+/// UTF-8 string. `out` must point to writable `LmF64Buffer` storage.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn lm_timing_qpu(timing: *const LmTiming, out: *mut f64) -> LmStatus {
+pub unsafe extern "C" fn lm_timing_get(
+    timing: *const LmTiming,
+    key: *const c_char,
+    out: *mut LmF64Buffer,
+) -> LmStatus {
     guard(|| {
         let timing = unsafe { ref_from_c(timing as *const Timing, "timing") }?;
+        let key = unsafe { str_from_c(key, "key") }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = timing
-            .qpu
-            .ok_or_else(|| CapiError::new(LmStatus::Absent, "timing has no QPU duration"))?;
+        *out = f64_buffer_from_vec(timing.get(key).to_vec());
         Ok(())
     })
 }
 
-/// Creates a new timing handle.
+/// Returns the sum of the values recorded under `key`.
 ///
-/// `start_unix_ns` and `end_unix_ns` are wall-clock timestamps in nanoseconds
-/// since the UNIX epoch. `qpu` may be null to indicate no QPU time.
+/// Returns `LmStatus::Absent` when `key` has no recorded values.
+///
+/// # Safety
+/// `timing` must be a valid timing handle. `key` must be a NUL-terminated
+/// UTF-8 string. `out` must be writable.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_timing_total_for(
+    timing: *const LmTiming,
+    key: *const c_char,
+    out: *mut f64,
+) -> LmStatus {
+    guard(|| {
+        let timing = unsafe { ref_from_c(timing as *const Timing, "timing") }?;
+        let key = unsafe { str_from_c(key, "key") }?;
+        let out = unsafe { out_from_c(out) }?;
+        *out = timing
+            .total_for(key)
+            .ok_or_else(|| CapiError::new(LmStatus::Absent, "timing has no values for key"))?;
+        Ok(())
+    })
+}
+
+/// Overwrites the values recorded under `key` with a single `value`.
+///
+/// # Safety
+/// `timing` must be a valid mutable timing handle. `key` must be a
+/// NUL-terminated UTF-8 string.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_timing_set(
+    timing: *mut LmTiming,
+    key: *const c_char,
+    value: f64,
+) -> LmStatus {
+    guard(|| {
+        let timing = unsafe { mut_from_c(timing as *mut Timing, "timing") }?;
+        let key = unsafe { str_from_c(key, "key") }?;
+        timing.set(key, value);
+        Ok(())
+    })
+}
+
+/// Appends `value` to the list recorded under `key`.
+///
+/// # Safety
+/// `timing` must be a valid mutable timing handle. `key` must be a
+/// NUL-terminated UTF-8 string.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_timing_add(
+    timing: *mut LmTiming,
+    key: *const c_char,
+    value: f64,
+) -> LmStatus {
+    guard(|| {
+        let timing = unsafe { mut_from_c(timing as *mut Timing, "timing") }?;
+        let key = unsafe { str_from_c(key, "key") }?;
+        timing.add(key, value);
+        Ok(())
+    })
+}
+
+/// Creates a new timing handle with the given total duration in seconds and
+/// no recorded start/end time or sub-timings.
 ///
 /// Returns a non-null handle in `out` that must be released with [`lm_timing_free`].
 ///
 /// # Safety
-/// `qpu` must be null or point to readable `double` storage.
 /// `out` must point to writable `LmTiming *` storage.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn lm_timing_new(
-    start_unix_ns: u64,
-    end_unix_ns: u64,
-    qpu: *const f64,
-    out: *mut *mut LmTiming,
-) -> LmStatus {
+pub unsafe extern "C" fn lm_timing_new(total: f64, out: *mut *mut LmTiming) -> LmStatus {
     guard(|| {
         let out = unsafe { out_from_c(out) }?;
-
-        let start = UNIX_EPOCH + Duration::from_nanos(start_unix_ns);
-        let end = UNIX_EPOCH + Duration::from_nanos(end_unix_ns);
-        let qpu = unsafe { opt_from_c(qpu) };
-        *out = handle_to_c(Timing::new(start, end, qpu));
+        *out = handle_to_c(Timing::new(total));
         Ok(())
     })
 }
@@ -126,7 +195,7 @@ pub unsafe extern "C" fn lm_timing_clone(
 ) -> LmStatus {
     guard(|| {
         let timing = unsafe { ref_from_c(timing as *const Timing, "timing") }?;
-        *unsafe { out_from_c(out) }? = handle_to_c(*timing);
+        *unsafe { out_from_c(out) }? = handle_to_c(timing.clone());
         Ok(())
     })
 }

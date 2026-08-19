@@ -230,6 +230,21 @@ pub(crate) unsafe fn drop_from_c<T>(ptr: *mut T) {
     }
 }
 
+/// Reclaims a Rust value previously leaked as a C handle, taking ownership.
+///
+/// Unlike [`drop_from_c`], this returns the value instead of dropping it. The
+/// handle is consumed and must not be used or freed again.
+///
+/// # Safety
+/// `ptr` must originate from [`handle_to_c`] (or an equivalent `Box::into_raw`)
+/// for `T` and must not be used or freed again.
+pub(crate) unsafe fn take_from_c<T>(ptr: *mut T, what: &str) -> Result<T, CapiError> {
+    if ptr.is_null() {
+        return Err(CapiError::null_pointer(what));
+    }
+    Ok(*unsafe { Box::from_raw(ptr) })
+}
+
 /// Borrows a required NUL-terminated UTF-8 C string.
 ///
 /// Fails with `NullPointer` when null and `InvalidArgument` when not UTF-8.
