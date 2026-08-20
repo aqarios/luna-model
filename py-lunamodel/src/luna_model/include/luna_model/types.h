@@ -1704,6 +1704,7 @@ typedef struct {
     LmStatus (*timing_add)(LmTiming*, const char*, double);
     LmStatus (*timing_serialize)(const LmTiming*, LmBuffer*);
     LmStatus (*timing_deserialize)(const uint8_t*, uintptr_t, LmTiming**);
+    LmStatus (*timing_merge)(LmTiming*, const LmTiming*);
     /**
      * Frees an error handle. Passing null is a no-op.
      */

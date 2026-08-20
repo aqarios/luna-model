@@ -467,6 +467,7 @@ static inline int import_luna_model(void) {
 #define lm_timing_add(...) (lunamodel__vtable->timing_add(__VA_ARGS__))
 #define lm_timing_serialize(...) (lunamodel__vtable->timing_serialize(__VA_ARGS__))
 #define lm_timing_deserialize(...) (lunamodel__vtable->timing_deserialize(__VA_ARGS__))
+#define lm_timing_merge(...) (lunamodel__vtable->timing_merge(__VA_ARGS__))
 #define lm_error_free(...) (lunamodel__vtable->error_free(__VA_ARGS__))
 #define lm_error_kind(...) (lunamodel__vtable->error_kind(__VA_ARGS__))
 #define lm_error_message(...) (lunamodel__vtable->error_message(__VA_ARGS__))

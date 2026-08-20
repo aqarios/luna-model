@@ -4126,6 +4126,8 @@ LmStatus lm_timing_serialize(const LmTiming *timing, LmBuffer *out);
  */
 LmStatus lm_timing_deserialize(const uint8_t *data, uintptr_t len, LmTiming **out);
 
+LmStatus lm_timing_merge(LmTiming *timing, const LmTiming *other);
+
 /**
  * Frees a variable handle. Passing null is a no-op.
  *

@@ -266,3 +266,16 @@ pub unsafe extern "C" fn lm_timing_deserialize(
         Ok(())
     })
 }
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_timing_merge(
+    timing: *mut LmTiming,
+    other: *const LmTiming,
+) -> LmStatus {
+    guard(|| {
+        let timing = unsafe { mut_from_c(timing as *mut Timing, "timing") }?;
+        let other = unsafe { ref_from_c(other as *const Timing, "other") }?;
+        timing.merge(other);
+        Ok(())
+    })
+}

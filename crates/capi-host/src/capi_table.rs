@@ -562,6 +562,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     timing_add: crate::timing::lm_timing_add,
     timing_serialize: crate::timing::lm_timing_serialize,
     timing_deserialize: crate::timing::lm_timing_deserialize,
+    timing_merge: crate::timing::lm_timing_merge,
     // ///// //
     // Error //
     // ///// //

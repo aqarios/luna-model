@@ -780,11 +780,13 @@ pub struct LunaModelCApi {
     pub timing_end_ns: unsafe extern "C" fn(*const LmTiming, *mut u64) -> LmStatus,
     pub timing_get:
         unsafe extern "C" fn(*const LmTiming, *const c_char, *mut LmF64Buffer) -> LmStatus,
-    pub timing_total_for: unsafe extern "C" fn(*const LmTiming, *const c_char, *mut f64) -> LmStatus,
+    pub timing_total_for:
+        unsafe extern "C" fn(*const LmTiming, *const c_char, *mut f64) -> LmStatus,
     pub timing_set: unsafe extern "C" fn(*mut LmTiming, *const c_char, f64) -> LmStatus,
     pub timing_add: unsafe extern "C" fn(*mut LmTiming, *const c_char, f64) -> LmStatus,
     pub timing_serialize: unsafe extern "C" fn(*const LmTiming, *mut LmBuffer) -> LmStatus,
     pub timing_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmTiming) -> LmStatus,
+    pub timing_merge: unsafe extern "C" fn(*mut LmTiming, *const LmTiming) -> LmStatus,
     // ///// //
     // Error //
     // ///// //
