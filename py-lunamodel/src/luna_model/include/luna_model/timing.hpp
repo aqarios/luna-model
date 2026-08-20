@@ -9,6 +9,7 @@
 #include <luna_model.h>
 
 #include "luna_model/detail/capi.hpp"
+#include "luna_model/funcs.h"
 
 namespace lm {
 
@@ -104,6 +105,9 @@ class Timing {
     void add(const std::string &key, double value) {
         detail::check(lm_timing_add(handle_, key.c_str(), value));
     }
+
+    /* Merges `other` into this timing. */
+    void merge(Timing other) { detail::check(lm_timing_merge(handle_, other.handle_)); }
 
     /* Serializes this timing record to bytes. */
     std::vector<std::uint8_t> serialize() const {

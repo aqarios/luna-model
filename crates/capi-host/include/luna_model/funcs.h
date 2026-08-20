@@ -4126,6 +4126,13 @@ LmStatus lm_timing_serialize(const LmTiming *timing, LmBuffer *out);
  */
 LmStatus lm_timing_deserialize(const uint8_t *data, uintptr_t len, LmTiming **out);
 
+/**
+ * Merges two timing objects into a single one.
+ *
+ * # Safety
+ * `timing` must be a valid mutable timing handle created by this library.
+ * `other` must be a valid readable timing handle created by this library.
+ */
 LmStatus lm_timing_merge(LmTiming *timing, const LmTiming *other);
 
 /**

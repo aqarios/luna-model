@@ -267,6 +267,11 @@ pub unsafe extern "C" fn lm_timing_deserialize(
     })
 }
 
+/// Merges two timing objects into a single one.
+///
+/// # Safety
+/// `timing` must be a valid mutable timing handle created by this library.
+/// `other` must be a valid readable timing handle created by this library.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_timing_merge(
     timing: *mut LmTiming,
