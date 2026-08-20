@@ -79,6 +79,10 @@ impl Timing {
     pub fn add(&mut self, key: &str, value: f64) -> Result<()> {
         check!(timing_add(@mut self, !key, value))
     }
+
+    pub fn merge(&mut self, other: &Self) -> Result<()> {
+        check!(timing_merge(@mut self, @other))
+    }
 }
 
 impl TryClone for Timing {
