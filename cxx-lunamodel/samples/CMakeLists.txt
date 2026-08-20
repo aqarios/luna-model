@@ -27,3 +27,4 @@ function(add_sample name)
 endfunction()
 
 add_sample(model_roundtrip)
+add_sample(measure_timings)

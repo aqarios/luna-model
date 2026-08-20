@@ -80,6 +80,7 @@ impl Timing {
         check!(timing_add(@mut self, !key, value))
     }
 
+    /// Merges `other` into this timing.
     pub fn merge(&mut self, other: &Self) -> Result<()> {
         check!(timing_merge(@mut self, @other))
     }
