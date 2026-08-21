@@ -1,8 +1,10 @@
 //! Version 1 serializer schemas.
+mod constraint;
 mod environment;
 mod expression;
 mod solution;
 
+pub use constraint::SerConstraintCollection;
 pub use environment::SerEnvironment;
 pub use expression::SerExpression;
 pub use solution::SerSolution;
