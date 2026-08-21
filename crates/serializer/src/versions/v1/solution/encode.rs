@@ -7,7 +7,6 @@ use prost::Message;
 
 use crate::encode::{BytesEncodable, Encodable};
 use crate::utils::vtype_to_u8;
-use crate::versionize::Versionizable;
 
 use super::SerSolution;
 

@@ -122,8 +122,8 @@ def test_qctrl_translator_constructed_with_time():
         assert sol.raw_energies is None
         assert len(sol.counts.tolist()) == num_samples
         assert sol.runtime is not None
-        assert round(sol.runtime.total, 1) == 0.3
-        assert round(sol.runtime.total, 1) == 0.3
+        assert round(sol.runtime.total.total_seconds(), 1) == 0.3
+        assert round(sol.runtime.total_seconds, 1) == 0.3
         assert sol.runtime.qpu is None
 
         for result in sol.results:

@@ -11,7 +11,6 @@ use prost::Message;
 use crate::{
     encode::{BytesDecodable, Decodable},
     utils::u8_to_vtype,
-    versionize::Unversionizable,
 };
 
 use super::SerSolution;
