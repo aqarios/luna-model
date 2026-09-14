@@ -53,7 +53,7 @@ rustc-hash = "2.1.2"
 prost = "0.14.4"
 strum = "0.28.0"
 strum_macros = "0.28.0"
-zstd = "0.13.3"
+zstd = "0.14.0"
 either = "1.16.0"
 regex = "1.12.4"
 time = { version = "0.3.51", features = ["formatting"] }
