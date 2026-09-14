@@ -595,10 +595,9 @@ dependencies = [
 name = "lunamodel-hashing"
 version = "0.6.16-beta.1"
 dependencies = [
- "itertools 0.15.0",
  "lunamodel-core",
  "lunamodel-types",
- "prost",
+ "rustc-hash",
 ]
 
 [[package]]

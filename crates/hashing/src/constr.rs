@@ -1,54 +1,35 @@
-//! Hash encoding for constraints and constraint collections.
+//! Deterministic hashing for constraint collections.
+//!
+//! Constraints are explicitly sorted by name before hashing so the result
+//! does not depend on `ConstraintCollection`'s insertion-order-based
+//! iteration - two models with the same constraints added in a different
+//! order hash identically.
 
-use lunamodel_core::ConstraintCollection;
+use std::hash::Hasher;
+
+use lunamodel_core::{Constraint, ConstraintCollection};
 use lunamodel_types::Comparator;
-use prost::Message;
 
-use crate::expr::HashExpr;
+use crate::expr::hash_expr;
+use crate::util::write_bytes;
 
-/// Representation of encodable constraints based on protocol buffers.
-#[derive(Clone, PartialEq, Message)]
-pub struct HashConstr {
-    /// Representation of the left-hand-sides of all constraints as a vector of byte
-    /// vectors. Each byte vector (`Vec<u8>`) is an encoded expression.
-    #[prost(bytes, repeated, tag = "1")]
-    lhsides: Vec<Vec<u8>>,
-    /// Representation of the right-hand-sides of all constraints as a vector of double
-    /// values (`f64`).
-    #[prost(double, repeated, tag = "2")]
-    rhsides: Vec<f64>,
-    /// Representation of the comparator used for all constraints. The comparator is
-    /// encoded using the minimally possible data type available in this protobuf
-    /// implementation which is a `u32`.
-    #[prost(uint32, repeated, tag = "3")]
-    comparators: Vec<u32>,
-    /// Representation of the constraint names used for all constraints.
-    #[prost(string, repeated, tag = "4")]
-    names: Vec<String>,
-}
+/// Hashes a constraint collection's semantic content into `h`.
+pub fn hash_constr(constr: &ConstraintCollection, h: &mut impl Hasher) {
+    h.write(b"constr");
 
-impl HashConstr {
-    /// Encodes a constraint collection into the hashing representation.
-    pub fn build(constr: &ConstraintCollection) -> Vec<u8> {
-        let mut o = HashConstr {
-            lhsides: Vec::new(),
-            rhsides: Vec::new(),
-            comparators: Vec::new(),
-            names: Vec::new(),
+    let mut entries: Vec<(&String, &Constraint)> = constr.iter().collect();
+    entries.sort_unstable_by_key(|(name, _)| *name);
+
+    h.write_u64(entries.len() as u64);
+    for (name, c) in entries {
+        write_bytes(h, name.as_bytes());
+        hash_expr(&c.lhs, h);
+        h.write_u64(c.rhs.to_bits());
+        let cmp: u32 = match c.comparator {
+            Comparator::Le => 0,
+            Comparator::Eq => 1,
+            Comparator::Ge => 2,
         };
-
-        for (_, c) in constr.iter() {
-            let lhs = HashExpr::build(&c.lhs);
-            let cmp = match c.comparator {
-                Comparator::Le => 0,
-                Comparator::Eq => 1,
-                Comparator::Ge => 2,
-            };
-            o.lhsides.push(lhs);
-            o.rhsides.push(c.rhs);
-            o.comparators.push(cmp);
-            o.names.push(c.name().to_string());
-        }
-        o.encode_to_vec()
+        h.write_u32(cmp);
     }
 }
