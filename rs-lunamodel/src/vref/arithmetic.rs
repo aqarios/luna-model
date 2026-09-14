@@ -512,4 +512,3 @@ impl Mul<&VarRef> for Result<VarRef> {
         out!(vref_mul_vref(@slf, @rhs))
     }
 }
-

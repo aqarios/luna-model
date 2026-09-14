@@ -5,8 +5,8 @@ use std::fmt;
 use lunamodel_capi::{LmBuffer, LmError, LmStatus};
 
 use crate::api::api;
-use crate::traits::TryToString;
 pub use crate::error_kind::ErrorKind;
+use crate::traits::TryToString;
 
 /// Result type returned by fallible C-ABI calls.
 pub type Result<T> = std::result::Result<T, Error>;
