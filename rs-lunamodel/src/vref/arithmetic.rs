@@ -101,6 +101,40 @@ impl Add<usize> for &VarRef {
     }
 }
 
+/* Reverse scalar addition commutes: `scalar + vref == vref + scalar`. */
+
+impl Add<VarRef> for f64 {
+    type Output = Result<Expression>;
+
+    fn add(self, rhs: VarRef) -> Self::Output {
+        rhs + self
+    }
+}
+
+impl Add<&VarRef> for f64 {
+    type Output = Result<Expression>;
+
+    fn add(self, rhs: &VarRef) -> Self::Output {
+        rhs + self
+    }
+}
+
+impl Add<VarRef> for usize {
+    type Output = Result<Expression>;
+
+    fn add(self, rhs: VarRef) -> Self::Output {
+        rhs + self
+    }
+}
+
+impl Add<&VarRef> for usize {
+    type Output = Result<Expression>;
+
+    fn add(self, rhs: &VarRef) -> Self::Output {
+        rhs + self
+    }
+}
+
 // SUB
 
 impl Sub<VarRef> for VarRef {
@@ -297,6 +331,40 @@ impl Mul<usize> for &VarRef {
     }
 }
 
+/* Reverse scalar multiplication commutes: `scalar * vref == vref * scalar`. */
+
+impl Mul<VarRef> for f64 {
+    type Output = Result<Expression>;
+
+    fn mul(self, rhs: VarRef) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl Mul<&VarRef> for f64 {
+    type Output = Result<Expression>;
+
+    fn mul(self, rhs: &VarRef) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl Mul<VarRef> for usize {
+    type Output = Result<Expression>;
+
+    fn mul(self, rhs: VarRef) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl Mul<&VarRef> for usize {
+    type Output = Result<Expression>;
+
+    fn mul(self, rhs: &VarRef) -> Self::Output {
+        rhs * self
+    }
+}
+
 impl Neg for VarRef {
     type Output = Result<Expression>;
 
@@ -444,3 +512,4 @@ impl Mul<&VarRef> for Result<VarRef> {
         out!(vref_mul_vref(@slf, @rhs))
     }
 }
+

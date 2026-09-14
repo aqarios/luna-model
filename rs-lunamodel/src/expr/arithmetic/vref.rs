@@ -75,6 +75,72 @@ impl Add<Result<VarRef>> for &Expression {
     }
 }
 
+/* `vref + expr` commutes to `expr + vref`. */
+
+impl Add<Expression> for VarRef {
+    type Output = Result<Expression>;
+
+    fn add(self, rhs: Expression) -> Self::Output {
+        rhs + self
+    }
+}
+
+impl Add<&Expression> for VarRef {
+    type Output = Result<Expression>;
+
+    fn add(self, rhs: &Expression) -> Self::Output {
+        rhs + self
+    }
+}
+
+impl Add<Expression> for &VarRef {
+    type Output = Result<Expression>;
+
+    fn add(self, rhs: Expression) -> Self::Output {
+        rhs + self
+    }
+}
+
+impl Add<&Expression> for &VarRef {
+    type Output = Result<Expression>;
+
+    fn add(self, rhs: &Expression) -> Self::Output {
+        rhs + self
+    }
+}
+
+impl Add<Result<Expression>> for VarRef {
+    type Output = Result<Expression>;
+
+    fn add(self, rhs: Result<Expression>) -> Self::Output {
+        rhs? + self
+    }
+}
+
+impl Add<Result<Expression>> for &VarRef {
+    type Output = Result<Expression>;
+
+    fn add(self, rhs: Result<Expression>) -> Self::Output {
+        rhs? + self
+    }
+}
+
+impl Add<Expression> for Result<VarRef> {
+    type Output = Result<Expression>;
+
+    fn add(self, rhs: Expression) -> Self::Output {
+        rhs + self?
+    }
+}
+
+impl Add<&Expression> for Result<VarRef> {
+    type Output = Result<Expression>;
+
+    fn add(self, rhs: &Expression) -> Self::Output {
+        rhs + self?
+    }
+}
+
 // Sub (with failable)
 
 impl Sub<VarRef> for Expression {
@@ -145,6 +211,38 @@ impl Sub<Result<VarRef>> for &Expression {
     }
 }
 
+impl Sub<Result<Expression>> for VarRef {
+    type Output = Result<Expression>;
+
+    fn sub(self, rhs: Result<Expression>) -> Self::Output {
+        self.sub(rhs?)
+    }
+}
+
+impl Sub<Result<Expression>> for &VarRef {
+    type Output = Result<Expression>;
+
+    fn sub(self, rhs: Result<Expression>) -> Self::Output {
+        self.sub(rhs?)
+    }
+}
+
+impl Sub<Expression> for Result<VarRef> {
+    type Output = Result<Expression>;
+
+    fn sub(self, rhs: Expression) -> Self::Output {
+        self?.sub(rhs)
+    }
+}
+
+impl Sub<&Expression> for Result<VarRef> {
+    type Output = Result<Expression>;
+
+    fn sub(self, rhs: &Expression) -> Self::Output {
+        self?.sub(rhs)
+    }
+}
+
 // Mul (with failable)
 
 impl Mul<VarRef> for Expression {
@@ -212,6 +310,72 @@ impl Mul<Result<VarRef>> for &Expression {
     fn mul(self, rhs: Result<VarRef>) -> Self::Output {
         let rhs = rhs?;
         out!(expr_mul_vref(@self, @rhs))
+    }
+}
+
+/* `vref * expr` commutes to `expr * vref`. */
+
+impl Mul<Expression> for VarRef {
+    type Output = Result<Expression>;
+
+    fn mul(self, rhs: Expression) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl Mul<&Expression> for VarRef {
+    type Output = Result<Expression>;
+
+    fn mul(self, rhs: &Expression) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl Mul<Expression> for &VarRef {
+    type Output = Result<Expression>;
+
+    fn mul(self, rhs: Expression) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl Mul<&Expression> for &VarRef {
+    type Output = Result<Expression>;
+
+    fn mul(self, rhs: &Expression) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl Mul<Result<Expression>> for VarRef {
+    type Output = Result<Expression>;
+
+    fn mul(self, rhs: Result<Expression>) -> Self::Output {
+        rhs? * self
+    }
+}
+
+impl Mul<Result<Expression>> for &VarRef {
+    type Output = Result<Expression>;
+
+    fn mul(self, rhs: Result<Expression>) -> Self::Output {
+        rhs? * self
+    }
+}
+
+impl Mul<Expression> for Result<VarRef> {
+    type Output = Result<Expression>;
+
+    fn mul(self, rhs: Expression) -> Self::Output {
+        rhs * self?
+    }
+}
+
+impl Mul<&Expression> for Result<VarRef> {
+    type Output = Result<Expression>;
+
+    fn mul(self, rhs: &Expression) -> Self::Output {
+        rhs * self?
     }
 }
 

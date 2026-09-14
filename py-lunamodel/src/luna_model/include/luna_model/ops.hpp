@@ -317,6 +317,12 @@ inline Expression operator-(const Vref &lhs, const Expression &rhs) {
     return Expression(out);
 }
 
+/* vref + expr — addition commutes. */
+inline Expression operator+(const Vref &lhs, const Expression &rhs) { return rhs + lhs; }
+
+/* vref * expr — multiplication commutes. */
+inline Expression operator*(const Vref &lhs, const Expression &rhs) { return rhs * lhs; }
+
 /* scalar - vref. */
 inline Expression operator-(double lhs, const Vref &rhs) {
     LmExpr *out = nullptr;

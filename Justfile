@@ -28,6 +28,22 @@ cpp_test_build    := cpp_dir / "test/build"
 cpp_plugin_test   := cpp_dir / "tests/plugin_ext"
 rs_plugin_test    := "rs-lunamodel/tests/plugin_ext"
 
+# Shared Cargo build cache for the three uv/maturin-driven wheel builds below (test-py,
+# cpp-plugin-test, rs-plugin-test) — all three compile the same luna-model Rust source
+# independently via isolated `uv` build environments. Pointing them at one target dir lets
+# Cargo's incremental cache carry over between them: the first build compiles from scratch,
+# the other two mostly just relink. Deliberately NOT the main workspace's target/ dir — sharing
+# that would reintroduce Cargo's single-process build lock with test-rust/ctest/cpp-test and
+# undo the point of running everything in parallel.
+uv_cargo_target_dir := justfile_directory() / "target" / "uv-wheels"
+
+# pytest-xdist worker count for the three Python-driven suites below. "auto" (default) parallelizes
+# across CPUs; override to run serially or with a specific count, e.g.:
+#   PYTEST_WORKERS=0 just test-py           # serial, single process
+#   PYTEST_WORKERS=4 just test-py           # 4 workers
+#   PYTEST_WORKERS=0 just test              # every pytest suite serial, everything else still parallel
+pytest_workers := env_var_or_default("PYTEST_WORKERS", "auto")
+
 # Absolute paths cmake needs (it is invoked from various build dirs).
 lib_dir_abs     := justfile_directory() / c_dir_out_lib
 include_dir_abs := justfile_directory() / c_dir_out_include
@@ -173,7 +189,7 @@ cpp-plugin-test: wheelheaders
     # Force a rebuild of both packages: plain `uv sync` does not re-detect edits, and the SDK
     # headers just synced into the luna-model wheel (get_include()) only reach the C++ build if
     # luna-model is reinstalled too — otherwise the test silently builds against stale headers.
-    cd {{cpp_plugin_test}} && uv sync --group dev --reinstall-package luna-model --reinstall-package luna-cxx-plugin-ext && uv run pytest pytests/ -v
+    cd {{cpp_plugin_test}} && CARGO_TARGET_DIR={{uv_cargo_target_dir}} uv sync --group dev --reinstall-package luna-model --reinstall-package luna-cxx-plugin-ext && uv run pytest pytests/ -v -n {{pytest_workers}}
 
 # Set up clangd/editor support for the C++ plugin extension: build it, then symlink the generated
 # extension-mode compile_commands.json next to the sources (the .clangd there points clangd at it).
@@ -188,7 +204,7 @@ cpp-plugin-dev: wheelheaders
 # consumes both another plugin's analysis and a built-in luna-model analysis. Reinstalls luna-model
 # so the built-in registrations (+ shared proto tags) are current.
 rs-plugin-test:
-    cd {{rs_plugin_test}} && rm -rf .venv/ && uv sync --group dev && uv sync --reinstall-package luna-plugin-ext && uv run pytest pytests/ -v
+    cd {{rs_plugin_test}} && CARGO_TARGET_DIR={{uv_cargo_target_dir}} uv sync --group dev --reinstall-package luna-model --reinstall-package luna-plugin-ext && uv run pytest pytests/ -v -n {{pytest_workers}}
 
 # Rust tests: the whole main workspace EXCEPT the pyo3/napi crates. Those force pyo3's
 # `extension-module` feature (whose no-libpython-linking breaks a plain `cargo test` binary via
@@ -204,16 +220,23 @@ test-rust:
 
 # The luna-model core Python test suite: uv builds the luna-model wheel, then pytest.
 test-py:
-    cd {{py_dir}} && uv run pytest
+    cd {{py_dir}} && CARGO_TARGET_DIR={{uv_cargo_target_dir}} uv run pytest -n {{pytest_workers}}
 
 # The JS / WASM binding tests (the package's "test" script builds the native addon, then runs bun).
 test-js:
     cd {{js_dir}} && bun run test:all
 
-# Run EVERYTHING: Rust (core + rs-lunamodel SDK) -> C -> C++ -> core Python -> both plugin extensions
-# (C++ and Rust, driven from Python) -> JS bindings. Fails fast on the first failing suite. This is
-# heavy: it builds the C library, the luna-model wheel (a few times), and both plugin extensions.
+# Run EVERYTHING: Rust (core + rs-lunamodel SDK), C, C++, core Python, both plugin extensions
+# (C++ and Rust, driven from Python), and JS bindings — all run concurrently (see [parallel]
+# below), capped at `just --jobs N test` / `JUST_JOBS=N` (default: number of CPUs). Unlike the
+# old sequential version, this does NOT fail fast: every dependency runs to completion and only
+# then does `just` report which one(s) failed.
+# test-rust/ctest/cpp-test share the main workspace's target/ dir and so mostly serialize on
+# Cargo's build lock regardless; the real win is test-py/cpp-plugin-test/rs-plugin-test/test-js,
+# which use separate build systems (uv-isolated maturin builds sharing uv_cargo_target_dir, and
+# bun) and so genuinely overlap.
 
 # Run every test suite in the repo: Rust, C, C++, core Python, both plugin extensions, and JS.
+[parallel]
 test: test-rust ctest cpp-test test-py cpp-plugin-test rs-plugin-test test-js
     @echo "✓ all test suites passed"

@@ -330,6 +330,7 @@ macro_rules! borrowed_scalar_ops {
                 ($to_f64)(*self) * rhs
             }
         }
+
     };
 }
 

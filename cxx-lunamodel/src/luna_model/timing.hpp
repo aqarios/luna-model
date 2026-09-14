@@ -9,7 +9,6 @@
 #include <luna_model.h>
 
 #include "luna_model/detail/capi.hpp"
-#include "luna_model/funcs.h"
 
 namespace lm {
 
