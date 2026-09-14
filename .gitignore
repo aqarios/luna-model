@@ -86,3 +86,5 @@ py-lunamodel/tests/test_core/test_translator/mps_models/*.mps
 py-lunamodel/tmp.py
 
 py-lunamodel/ignore.py
+
+ci/build-all.sh
