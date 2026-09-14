@@ -94,7 +94,7 @@ pub unsafe extern "C" fn lm_sol_merge_many(
         };
         let tol = unsafe { opt_from_c(tol) };
         let merged =
-            Solution::merge_many(&solutions, model.as_deref(), tol).map_err(CapiError::errored)?;
+            Solution::merge_many(&solutions, model.as_deref(), tol).map_err(CapiError::from)?;
         unsafe { new_handle_out_from_c(out, merged) }
     })
 }

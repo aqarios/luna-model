@@ -30,7 +30,7 @@ pub unsafe extern "C" fn lm_model_evaluate_solution(
     guard(|| {
         let model = unsafe { shared_from_c(model, "model") }?.read_arc();
         let sol = unsafe { shared_from_c(solution, "solution") }?.read_arc();
-        let res = model.evaluate_solution(&sol).map_err(CapiError::errored)?;
+        let res = model.evaluate_solution(&sol).map_err(CapiError::from)?;
         unsafe { new_handle_out_from_c(out, res) }
     })
 }
@@ -61,7 +61,7 @@ pub unsafe extern "C" fn lm_model_evaluate_solution_with_tol(
 
         let res = model
             .evaluate_solution_with_tol(&sol, tol)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         unsafe { new_handle_out_from_c(out, res) }
     })
 }
@@ -97,7 +97,7 @@ pub unsafe extern "C" fn lm_model_evaluate_sample(
         };
         let evaluated = model
             .evaluate_solution_with_tol(&row, unsafe { opt_from_c(tol) })
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         let out = unsafe { out_from_c(out) }?;
         *out = handle_to_c(ResultViewHandle {
             sol: new_shared::<LmSol>(evaluated),
@@ -127,7 +127,7 @@ pub unsafe extern "C" fn lm_model_substitute(
         let mut model = unsafe { shared_from_c(model, "model") }?.write_arc();
         model
             .substitute(target, &replacement)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -154,7 +154,7 @@ pub unsafe extern "C" fn lm_model_violated_constraints(
         let tol = unsafe { opt_from_c(tol) };
         let constraints = model
             .violated_constraints(&sample, tol)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         unsafe { storage_out_from_c(out, ConstraintCollectionHandle::new(constraints)) }
     })
 }

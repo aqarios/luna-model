@@ -46,7 +46,7 @@ pub extern "C" fn lm_sol_with_capacity(capacity: usize) -> *mut LmSol {
 pub unsafe extern "C" fn lm_sol_from_env(env: *const LmEnv, out: *mut *mut LmSol) -> LmStatus {
     guard(|| {
         let env = unsafe { storage_from_c(env, "env") }?;
-        let sol: Solution = env.clone().try_into().map_err(CapiError::errored)?;
+        let sol: Solution = env.clone().try_into().map_err(CapiError::from)?;
         unsafe { new_handle_out_from_c(out, sol) }
     })
 }
@@ -86,7 +86,7 @@ pub unsafe extern "C" fn lm_sol_from_random(
         let sense = unsafe { opt_from_c(sense).map(sense_from_c) };
         let tol = unsafe { opt_from_c(tol) };
         let sol = Solution::from_random(n_samples, seed, context, sense, tol)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         unsafe { new_handle_out_from_c(out, sol) }
     })
 }

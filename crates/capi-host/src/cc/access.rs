@@ -167,7 +167,7 @@ pub unsafe extern "C" fn lm_cc_get(
 
         let key = unsafe { str_from_c(key, "key") }?;
 
-        let constr = cc.get(key).map_err(CapiError::errored)?;
+        let constr = cc.get(key).map_err(CapiError::from)?;
         unsafe { new_handle_out_from_c(out, constr.clone()) }
     })
 }

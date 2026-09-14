@@ -23,7 +23,7 @@ pub unsafe extern "C" fn lm_expr_isub_vref(expr: *mut LmExpr, vref: *const LmVre
     guard(|| {
         let mut expr = unsafe { expression_from_c(expr, "expr") }?.write();
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
-        expr.sub_assign(vref).map_err(CapiError::errored)?;
+        expr.sub_assign(vref).map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -36,7 +36,7 @@ pub unsafe extern "C" fn lm_expr_isub_vref(expr: *mut LmExpr, vref: *const LmVre
 pub unsafe extern "C" fn lm_expr_isub_bias(expr: *mut LmExpr, bias: f64) -> LmStatus {
     guard(|| {
         let mut expr = unsafe { expression_from_c(expr, "expr") }?.write();
-        expr.sub_assign(bias).map_err(CapiError::errored)?;
+        expr.sub_assign(bias).map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -51,7 +51,7 @@ pub unsafe extern "C" fn lm_expr_isub_expr(expr: *mut LmExpr, other: *const LmEx
     guard(|| {
         let other = unsafe { expression_from_c(other, "other") }?.read().clone();
         let mut expr = unsafe { expression_from_c(expr, "expr") }?.write();
-        expr.sub_assign(&other).map_err(CapiError::errored)?;
+        expr.sub_assign(&other).map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -75,7 +75,7 @@ pub unsafe extern "C" fn lm_expr_sub_vref(
     guard(|| {
         let expr = unsafe { expression_from_c(expr, "expr") }?.read();
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
-        let result = expr.clone().sub(vref).map_err(CapiError::errored)?;
+        let result = expr.clone().sub(vref).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, result) }
     })
 }
@@ -93,7 +93,7 @@ pub unsafe extern "C" fn lm_expr_sub_bias(
 ) -> LmStatus {
     guard(|| {
         let expr = unsafe { expression_from_c(expr, "expr") }?.read();
-        let result = expr.clone().sub(bias).map_err(CapiError::errored)?;
+        let result = expr.clone().sub(bias).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, result) }
     })
 }
@@ -113,7 +113,7 @@ pub unsafe extern "C" fn lm_expr_sub_expr(
     guard(|| {
         let expr = unsafe { expression_from_c(expr, "expr") }?.read().clone();
         let other = unsafe { expression_from_c(other, "other") }?.read().clone();
-        let result = expr.sub(&other).map_err(CapiError::errored)?;
+        let result = expr.sub(&other).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, result) }
     })
 }
@@ -135,7 +135,7 @@ pub unsafe extern "C" fn lm_expr_rsub_bias(
 ) -> LmStatus {
     guard(|| {
         let expr = unsafe { expression_from_c(expr, "expr") }?.read();
-        let result = (bias - &*expr).map_err(CapiError::errored)?;
+        let result = (bias - &*expr).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, result) }
     })
 }

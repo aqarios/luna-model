@@ -149,7 +149,7 @@ where
         self.get(index).copied().ok_or_else(|| crate::Error {
             status: crate::Status::Absent,
             message: format!("sample has no value for variable '{index}'"),
-            kind: None,
+            kind_tag: None,
         })
     }
 }

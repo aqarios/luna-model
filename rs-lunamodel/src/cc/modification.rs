@@ -94,7 +94,7 @@ fn single_evaluations(
                 .ok_or_else(|| crate::Error {
                     status: crate::Status::InvalidArgument,
                     message: "C API returned an empty constraint evaluation".to_owned(),
-                    kind: None,
+                    kind_tag: None,
                 })
         })
         .collect()

@@ -34,7 +34,7 @@ pub unsafe extern "C" fn lm_expr_separate(
             .collect::<Result<Vec<_>, _>>()?;
         let first = unsafe { out_from_c(first) }?;
         let second = unsafe { out_from_c(second) }?;
-        let (first_expr, second_expr) = expr.separate(&vrefs).map_err(CapiError::errored)?;
+        let (first_expr, second_expr) = expr.separate(&vrefs).map_err(CapiError::from)?;
         *first = expression_to_c(first_expr);
         *second = expression_to_c(second_expr);
         Ok(())

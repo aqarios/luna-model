@@ -48,14 +48,14 @@ impl LmTryFrom<LmAssignment> for Assignment {
                 return Err(Error {
                     status: Status::InvalidArgument,
                     message: "cannot create an assignment for a plain inverted binary".into(),
-                    kind: None,
+                    kind_tag: None,
                 });
             }
         };
         Assignment::try_from_value(vtype, a.value).ok_or_else(|| Error {
             status: Status::InvalidArgument,
             message: "assignment value is incompatible with its variable type".into(),
-            kind: None,
+            kind_tag: None,
         })
     }
 }

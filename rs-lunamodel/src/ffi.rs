@@ -33,7 +33,7 @@ pub unsafe fn adopt<H: OwnedHandle>(handle: *mut H::Raw) -> crate::Result<H> {
         return Err(crate::Error {
             status: crate::Status::NullPointer,
             message: "cannot adopt a null LunaModel handle".to_owned(),
-            kind: None,
+            kind_tag: None,
         });
     }
 

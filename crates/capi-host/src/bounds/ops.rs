@@ -24,7 +24,7 @@ pub unsafe extern "C" fn lm_bounds_eval(
         let bounds = unsafe { ref_from_c(bounds as *const Bounds, "bounds") }?;
         let out = unsafe { out_from_c(out) }?;
         let tol = unsafe { opt_from_c(tol) };
-        *out = (bounds.evaluate(value, tol)).map_err(CapiError::errored)?;
+        *out = (bounds.evaluate(value, tol)).map_err(CapiError::from)?;
         Ok(())
     })
 }

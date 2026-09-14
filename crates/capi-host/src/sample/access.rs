@@ -64,7 +64,7 @@ pub unsafe extern "C" fn lm_sample_view_assignment(
             view.sol
                 .read()
                 .try_assignment(view.index, var)
-                .map_err(CapiError::errored)?,
+                .map_err(CapiError::from)?,
         );
         Ok(())
     })
@@ -87,7 +87,7 @@ pub unsafe extern "C" fn lm_sample_view_assignment_idx(
             view.sol
                 .read()
                 .try_assignment_idx(view.index, var)
-                .map_err(CapiError::errored)?,
+                .map_err(CapiError::from)?,
         );
         Ok(())
     })

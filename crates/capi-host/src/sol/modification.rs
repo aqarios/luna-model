@@ -99,7 +99,7 @@ pub unsafe extern "C" fn lm_sol_add_binary(
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         let tol = unsafe { opt_from_c(tol) };
         sol.add_binary(name.to_owned(), data, tol)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -127,7 +127,7 @@ pub unsafe extern "C" fn lm_sol_add_spin(
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         let tol = unsafe { opt_from_c(tol) };
         sol.add_spin(name.to_owned(), data, tol)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -155,7 +155,7 @@ pub unsafe extern "C" fn lm_sol_add_integer(
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         let tol = unsafe { opt_from_c(tol) };
         sol.add_integer(name.to_owned(), data, tol)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -204,7 +204,7 @@ pub unsafe extern "C" fn lm_sol_add_col(
         let data = unsafe { slice_from_c(data, len, "data") }?.to_vec();
         let tol = unsafe { opt_from_c(tol) };
         sol.add_col(vtype_from_c(vtype), name.to_owned(), data, tol)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -275,7 +275,7 @@ pub unsafe extern "C" fn lm_sol_remove_cols(
 pub unsafe extern "C" fn lm_sol_aggregate(sol: *mut LmSol) -> LmStatus {
     guard(|| {
         let mut sol = unsafe { shared_from_c(sol, "sol") }?.write_arc();
-        sol.aggregate().map_err(CapiError::errored)?;
+        sol.aggregate().map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -294,7 +294,7 @@ pub unsafe extern "C" fn lm_sol_filter_by_mask(
     guard(|| {
         let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let mask = unsafe { slice_from_c(mask, len, "mask") }?;
-        let filtered = sol.filter_by_mask(mask).map_err(CapiError::errored)?;
+        let filtered = sol.filter_by_mask(mask).map_err(CapiError::from)?;
         unsafe { new_handle_out_from_c(out, filtered) }
     })
 }
@@ -327,7 +327,7 @@ pub unsafe extern "C" fn lm_sol_push(
             })
             .collect::<Result<_, CapiError>>()?;
         sol.push(sample, counts, unsafe { opt_from_c(energy) })
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }

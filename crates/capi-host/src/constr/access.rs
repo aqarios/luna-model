@@ -101,7 +101,7 @@ pub unsafe extern "C" fn lm_constr_set_name(
         let name = unsafe { str_from_c(name, "name") }?;
         constr
             .set_name(name.to_owned())
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }

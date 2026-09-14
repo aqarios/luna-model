@@ -33,7 +33,7 @@ pub unsafe extern "C" fn lm_constr_evaluate_sample(
         let out = unsafe { out_from_c(out) }?;
         *out = constr
             .evaluate_sample(&sample, unsafe { opt_from_c(tol) })
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -95,7 +95,7 @@ pub unsafe extern "C" fn lm_constr_substitute(
 
         constr
             .substitute(target, &replacement)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
 
         Ok(())
     })
@@ -163,7 +163,7 @@ pub unsafe extern "C" fn lm_constr_evaluate_sample_quick(
         let out = unsafe { out_from_c(out) }?;
         *out = constr
             .evaluate_sample_quick(lookup, tol)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }

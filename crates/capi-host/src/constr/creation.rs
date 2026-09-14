@@ -48,7 +48,7 @@ pub unsafe extern "C" fn lm_constr_new(
 
         let name = unsafe { opt_str_from_c(name, "name") }?.map(str::to_owned);
 
-        let constr = Constraint::new(lhs, rhs, cmp, name).map_err(CapiError::errored)?;
+        let constr = Constraint::new(lhs, rhs, cmp, name).map_err(CapiError::from)?;
         unsafe { new_handle_out_from_c(out, constr) }
     })
 }

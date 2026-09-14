@@ -26,7 +26,7 @@ pub unsafe extern "C" fn lm_lazy_bounds_concretize(
         let out = unsafe { out_from_c(out) }?;
         let b = bounds
             .concretize(&vtype_from_c(vtype))
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         *out = handle_to_c(b);
         Ok(())
     })

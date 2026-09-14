@@ -6,6 +6,7 @@ use lunamodel_capi::{LmBuffer, LmError, LmStatus};
 
 use crate::api::api;
 use crate::traits::TryToString;
+pub use crate::error_kind::ErrorKind;
 
 /// Result type returned by fallible C-ABI calls.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -43,10 +44,13 @@ pub struct Error {
     pub status: Status,
     /// The associated message, if any.
     pub message: String,
-    /// An open, stable string tag identifying this error's specific origin (e.g.
-    /// `"myplugin::infeasible_subproblem"`), reported as `RichError::kind` in place of the
-    /// generic status-derived tag. `None` falls back to [`Status::as_kind`].
-    pub kind: Option<String>,
+    /// The raw, open string tag identifying this error's specific origin — either a native
+    /// LunaModel error's [`kind_tag`](lunamodel_error::LunaModelError::kind_tag) (e.g.
+    /// `"variable_not_existing"`), a plugin-defined kind (e.g.
+    /// `"myplugin::infeasible_subproblem"`), or a coarse status-derived fallback (e.g.
+    /// `"errored"`) when nothing more specific was reported. `None` only when no structured error
+    /// was available at all. Prefer [`Error::kind`] for a typed, matchable classification.
+    pub kind_tag: Option<String>,
 }
 
 impl Error {
@@ -55,7 +59,7 @@ impl Error {
         Self {
             status,
             message: message.into(),
-            kind: None,
+            kind_tag: None,
         }
     }
 
@@ -72,8 +76,14 @@ impl Error {
     /// Attaches a specific kind tag, reported in place of the generic status-derived one.
     #[must_use]
     pub fn with_kind(mut self, kind: impl Into<String>) -> Self {
-        self.kind = Some(kind.into());
+        self.kind_tag = Some(kind.into());
         self
+    }
+
+    /// This error's domain/business-logic kind, typed and matchable — see [`ErrorKind`] for why
+    /// it's a closed enum with an [`ErrorKind::Other`] fallback rather than the raw tag directly.
+    pub fn kind(&self) -> ErrorKind {
+        ErrorKind::from_tag(self.kind_tag.as_deref().unwrap_or(""))
     }
 }
 
@@ -136,7 +146,7 @@ impl Status {
 /// its status, so the error's message (and, going forward, richer context) crosses the ABI
 /// instead of being silently discarded. Returns the status code the trampoline should return.
 pub(crate) fn report(e: &Error) -> LmStatus {
-    let kind_str = e.kind.as_deref().unwrap_or_else(|| e.status.as_kind());
+    let kind_str = e.kind_tag.as_deref().unwrap_or_else(|| e.status.as_kind());
     let kind = std::ffi::CString::new(kind_str).unwrap_or_default();
     let message = std::ffi::CString::new(e.message.replace('\0', " ")).unwrap_or_default();
     unsafe { (api().set_last_error)(kind.as_ptr(), message.as_ptr(), std::ptr::null_mut()) };
@@ -174,16 +184,16 @@ fn last_error(status: Status) -> Error {
         return Error {
             status,
             message: String::new(),
-            kind: None,
+            kind_tag: None,
         };
     }
     let message = read_buffer(|out| unsafe { (api().error_message)(err, out) }).unwrap_or_default();
-    let kind = read_buffer(|out| unsafe { (api().error_kind)(err, out) });
+    let kind_tag = read_buffer(|out| unsafe { (api().error_kind)(err, out) });
     unsafe { (api().error_free)(err) };
     Error {
         status,
         message,
-        kind,
+        kind_tag,
     }
 }
 

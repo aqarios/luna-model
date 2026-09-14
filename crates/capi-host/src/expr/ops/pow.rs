@@ -14,7 +14,7 @@ use crate::{
 pub unsafe extern "C" fn lm_expr_ipow(expr: *mut LmExpr, n: usize) -> LmStatus {
     guard(|| {
         let mut expr = unsafe { expression_from_c(expr, "expr") }?.write();
-        expr.pow_assign(n).map_err(CapiError::errored)?;
+        expr.pow_assign(n).map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -32,7 +32,7 @@ pub unsafe extern "C" fn lm_expr_pow(
 ) -> LmStatus {
     guard(|| {
         let expr = unsafe { expression_from_c(expr, "expr") }?.read();
-        let result = expr.pow(n).map_err(CapiError::errored)?;
+        let result = expr.pow(n).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, result) }
     })
 }

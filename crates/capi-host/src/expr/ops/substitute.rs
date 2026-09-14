@@ -31,7 +31,7 @@ pub unsafe extern "C" fn lm_expr_substitute(
         let replacement = unsafe { expression_from_c(replacement, "replacement") }?.read();
         let result = expr
             .substitute(target, &replacement)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, result) }
     })
 }

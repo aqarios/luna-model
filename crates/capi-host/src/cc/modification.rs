@@ -43,7 +43,7 @@ pub unsafe extern "C" fn lm_cc_add_constraint(
         let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
         let cname = cc
             .add_constraint(constr, name)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
 
         *out = buffer_from_vec(cname.into_bytes());
         Ok(())
@@ -88,7 +88,7 @@ pub unsafe extern "C" fn lm_cc_add_many_constraints(
         let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
         let assigned = cc
             .add_many_constraints(constrs.into_iter().zip(names))
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         *out = str_buffer_from_vec(assigned);
         Ok(())
     })
@@ -115,7 +115,7 @@ pub unsafe extern "C" fn lm_cc_add_collection(
         let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
         *out = str_buffer_from_vec(
             cc.add_collection(other, prefix)
-                .map_err(CapiError::errored)?,
+                .map_err(CapiError::from)?,
         );
         Ok(())
     })
@@ -141,7 +141,7 @@ pub unsafe extern "C" fn lm_cc_set_constraint(
         let key = unsafe { str_from_c(key, "key") }?;
 
         let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
-        cc.set_constraint(key, constr).map_err(CapiError::errored)?;
+        cc.set_constraint(key, constr).map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -156,7 +156,7 @@ pub unsafe extern "C" fn lm_cc_remove_constraint(cc: *mut LmCC, key: *const c_ch
     guard(|| {
         let key = unsafe { str_from_c(key, "key") }?;
         let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
-        cc.remove_constraint(key).map_err(CapiError::errored)?;
+        cc.remove_constraint(key).map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -181,7 +181,7 @@ pub unsafe extern "C" fn lm_cc_substitute(
         let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
 
         cc.substitute(target, &replacement)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
 
         Ok(())
     })

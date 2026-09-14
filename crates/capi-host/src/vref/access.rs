@@ -57,7 +57,7 @@ pub unsafe extern "C" fn lm_vref_name(vref: *const LmVref, out: *mut LmBuffer) -
 
         let out = unsafe { out_from_c(out) }?;
 
-        let name = vref.name().map_err(CapiError::errored)?;
+        let name = vref.name().map_err(CapiError::from)?;
         *out = buffer_from_vec(name.into_bytes());
         Ok(())
     })
@@ -75,7 +75,7 @@ pub unsafe extern "C" fn lm_vref_vtype(vref: *const LmVref, out: *mut LmVtype) -
 
         let out = unsafe { out_from_c(out) }?;
 
-        let vtype = vref.vtype().map_err(CapiError::errored)?;
+        let vtype = vref.vtype().map_err(CapiError::from)?;
         *out = vtype_to_c(vtype);
 
         Ok(())
@@ -94,7 +94,7 @@ pub unsafe extern "C" fn lm_vref_bounds(vref: *const LmVref, out: *mut *mut LmBo
 
         let out = unsafe { out_from_c(out) }?;
 
-        let bounds = vref.bounds().map_err(CapiError::errored)?;
+        let bounds = vref.bounds().map_err(CapiError::from)?;
         *out = handle_to_c(bounds);
 
         Ok(())
@@ -118,7 +118,7 @@ pub unsafe extern "C" fn lm_vref_inverted(vref: *const LmVref, out: *mut *mut Lm
 
         let out = unsafe { out_from_c(out) }?;
 
-        let companion = vref.inverted().map_err(CapiError::errored)?;
+        let companion = vref.inverted().map_err(CapiError::from)?;
 
         *out = companion.map(handle_to_c).unwrap_or(std::ptr::null_mut());
 
@@ -141,7 +141,7 @@ pub unsafe extern "C" fn lm_vref_hash(vref: *const LmVref, out: *mut u64) -> LmS
 
         let out = unsafe { out_from_c(out) }?;
 
-        *out = vref.hash().map_err(CapiError::errored)?;
+        *out = vref.hash().map_err(CapiError::from)?;
 
         Ok(())
     })

@@ -83,7 +83,7 @@ impl TryFrom<(&Solution, usize)> for ResultView {
         Self::new(solution, index)?.ok_or_else(|| Error {
             status: Status::Absent,
             message: format!("solution has no result row at index {index}"),
-            kind: None,
+            kind_tag: None,
         })
     }
 }

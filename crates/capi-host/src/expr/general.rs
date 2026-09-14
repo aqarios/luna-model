@@ -61,7 +61,7 @@ pub unsafe extern "C" fn lm_expr_deep_clone_many(
             .map(|expr| unsafe { expression_from_c(*expr, "expr") }.map(|expr| expr.read().clone()))
             .collect::<Result<Vec<_>, _>>()?;
         let refs = exprs.iter().collect::<Vec<_>>();
-        let cloned = Expression::deep_clone_many(&refs).map_err(CapiError::errored)?;
+        let cloned = Expression::deep_clone_many(&refs).map_err(CapiError::from)?;
         let out = unsafe { mut_slice_from_c(out, len, "out") }?;
         for (slot, expr) in out.iter_mut().zip(cloned) {
             *slot = expression_to_c(expr);
@@ -88,7 +88,7 @@ pub unsafe extern "C" fn lm_expr_evaluate_sample_quick(
         let out = unsafe { out_from_c(out) }?;
         *out = expr
             .evaluate_sample_quick(lookup)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }

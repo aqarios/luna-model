@@ -131,7 +131,7 @@ pub unsafe extern "C" fn lm_env_lookup(
         let env = unsafe { storage_from_c(env, "env") }?;
         let name = unsafe { str_from_c(name, "name") }?;
         let out = unsafe { out_from_c(out) }?;
-        let var = env.lookup(name).map_err(CapiError::errored)?;
+        let var = env.lookup(name).map_err(CapiError::from)?;
         *out = handle_to_c(var);
         Ok(())
     })
@@ -197,7 +197,7 @@ pub unsafe extern "C" fn lm_env_vtype_of(
         let env = unsafe { storage_from_c(env, "env") }?;
         let name = unsafe { str_from_c(name, "name") }?;
         let out = unsafe { out_from_c(out) }?;
-        let vt = env.vtype_of(name).map_err(CapiError::errored)?;
+        let vt = env.vtype_of(name).map_err(CapiError::from)?;
         *out = vtype_to_c(vt);
         Ok(())
     })

@@ -143,7 +143,7 @@ pub unsafe extern "C" fn lm_sol_assignment(
         let out = unsafe { out_from_c(out) }?;
         let assignment = sol
             .try_assignment(sample, var)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         *out = assignment_to_c(assignment);
         Ok(())
     })
@@ -168,7 +168,7 @@ pub unsafe extern "C" fn lm_sol_assignment_idx(
         let out = unsafe { out_from_c(out) }?;
         let assignment = sol
             .try_assignment_idx(sample, var)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         *out = assignment_to_c(assignment);
         Ok(())
     })

@@ -42,7 +42,7 @@ pub unsafe extern "C" fn lm_sol_lookup_new(
         let env = unsafe { storage_from_c(env, "env") }?;
         let env = env.read_arc();
         let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
-        let lookup = SolutionLookup::new(&env, &sol).map_err(CapiError::errored)?;
+        let lookup = SolutionLookup::new(&env, &sol).map_err(CapiError::from)?;
         *unsafe { out_from_c(out) }? = handle_to_c(lookup);
         Ok(())
     })
@@ -65,7 +65,7 @@ pub unsafe extern "C" fn lm_sol_lookup_update(
             sol: &sol,
             idx: view.index,
         };
-        lookup.update(&sample).map_err(CapiError::errored)?;
+        lookup.update(&sample).map_err(CapiError::from)?;
         Ok(())
     })
 }

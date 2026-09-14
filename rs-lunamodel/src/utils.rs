@@ -11,7 +11,7 @@ fn interior_nul() -> Error {
     Error {
         status: Status::InvalidArgument,
         message: "string contains an interior NUL byte".to_string(),
-        kind: None,
+        kind_tag: None,
     }
 }
 

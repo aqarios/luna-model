@@ -216,7 +216,7 @@ fn interior_nul(field: &str) -> Error {
     Error {
         status: Status::InvalidArgument,
         message: format!("plugin `{field}` contains an interior NUL byte"),
-        kind: None,
+        kind_tag: None,
     }
 }
 

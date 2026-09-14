@@ -19,7 +19,7 @@ impl VarRef {
             false => Err(Error {
                 status: Status::Absent,
                 message: "variable is not live in its environment".to_string(),
-                kind: None,
+                kind_tag: None,
             }),
         }
     }

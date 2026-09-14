@@ -88,7 +88,7 @@ impl TryFrom<(&Solution, usize)> for SampleView {
         Self::new(solution, index)?.ok_or_else(|| Error {
             status: Status::Absent,
             message: format!("solution has no sample row at index {index}"),
-            kind: None,
+            kind_tag: None,
         })
     }
 }

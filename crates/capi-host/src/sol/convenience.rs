@@ -24,7 +24,7 @@ pub unsafe extern "C" fn lm_sol_cvar(
         let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let toggle = unsafe { opt_from_c(toggle) }.map(value_source_from_c);
         let out = unsafe { out_from_c(out) }?;
-        *out = sol.cvar(alpha, toggle).map_err(CapiError::errored)?;
+        *out = sol.cvar(alpha, toggle).map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -44,7 +44,7 @@ pub unsafe extern "C" fn lm_sol_expectation_value(
         let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let toggle = unsafe { opt_from_c(toggle) }.map(value_source_from_c);
         let out = unsafe { out_from_c(out) }?;
-        *out = sol.expectation_value(toggle).map_err(CapiError::errored)?;
+        *out = sol.expectation_value(toggle).map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -67,7 +67,7 @@ pub unsafe extern "C" fn lm_sol_temperature_weighted(
         let out = unsafe { out_from_c(out) }?;
         *out = sol
             .temperature_weighted(beta, toggle)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -82,7 +82,7 @@ pub unsafe extern "C" fn lm_sol_feasibility_ratio(sol: *const LmSol, out: *mut f
     guard(|| {
         let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let out = unsafe { out_from_c(out) }?;
-        *out = sol.feasibility_ratio().map_err(CapiError::errored)?;
+        *out = sol.feasibility_ratio().map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -106,7 +106,7 @@ pub unsafe extern "C" fn lm_sol_highest_constraint_violations(
         let out = unsafe { out_from_c(out) }?;
         match sol
             .highest_constraint_violations()
-            .map_err(CapiError::errored)?
+            .map_err(CapiError::from)?
         {
             Some(name) => {
                 *out = buffer_from_vec(name.into_bytes());

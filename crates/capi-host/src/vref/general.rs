@@ -39,7 +39,7 @@ pub unsafe extern "C" fn lm_vref_to_var(vref: *const LmVref, out: *mut *mut LmVa
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
         let out = unsafe { out_from_c(out) }?;
         let maybe_variable: LunaModelResult<Variable> = vref.try_into();
-        let variable = maybe_variable.map_err(CapiError::errored)?;
+        let variable = maybe_variable.map_err(CapiError::from)?;
         *out = handle_to_c(variable);
         Ok(())
     })

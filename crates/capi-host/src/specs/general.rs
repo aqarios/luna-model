@@ -57,7 +57,7 @@ pub unsafe extern "C" fn lm_specs_diff(
         let specs = unsafe { ref_from_c(specs as *const Specs, "specs") }?;
         let other = unsafe { ref_from_c(other as *const Specs, "other") }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = buffer_from_vec(specs.diff(other).map_err(CapiError::errored)?.into_bytes());
+        *out = buffer_from_vec(specs.diff(other).map_err(CapiError::from)?.into_bytes());
         Ok(())
     })
 }

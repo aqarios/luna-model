@@ -65,7 +65,7 @@ pub unsafe extern "C" fn lm_timer_stop(timer: *const LmTimer, out: *mut *mut LmT
     guard(|| {
         let timer = unsafe { ref_from_c(timer as *const Timer, "timer") }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(timer.clone().stop().map_err(CapiError::errored)?);
+        *out = handle_to_c(timer.clone().stop().map_err(CapiError::from)?);
         Ok(())
     })
 }
@@ -94,7 +94,7 @@ pub unsafe extern "C" fn lm_subtimer_stop(subtimer: *mut LmSubTimer, out: *mut f
     guard(|| {
         let subtimer = unsafe { take_from_c(subtimer as *mut SubTimer, "subtimer") }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = subtimer.stop().map_err(CapiError::errored)?;
+        *out = subtimer.stop().map_err(CapiError::from)?;
         Ok(())
     })
 }

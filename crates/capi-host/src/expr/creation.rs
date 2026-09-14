@@ -49,7 +49,7 @@ pub unsafe extern "C" fn lm_expr_from_dense_quadratic(
             unsafe { opt_from_c(offset) },
             env.clone(),
         )
-        .map_err(CapiError::errored)?;
+        .map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, expression) }
     })
 }

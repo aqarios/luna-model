@@ -71,7 +71,7 @@ impl TryIndex<(usize, &str)> for Solution {
         self.value(row, name)?.ok_or_else(|| crate::Error {
             status: crate::Status::Absent,
             message: format!("solution has no value at row {row} for variable '{name}'"),
-            kind: None,
+            kind_tag: None,
         })
     }
 }

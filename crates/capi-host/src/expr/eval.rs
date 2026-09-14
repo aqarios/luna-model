@@ -31,7 +31,7 @@ pub unsafe extern "C" fn lm_expr_evaluate_sample(
         let expr = unsafe { expression_from_c(expr, "expr") }?.read();
         let sample = unsafe { NameSample::from_c(names, values, len) }?;
         let out = unsafe { out_from_c(out) }?;
-        *out = expr.evaluate_sample(&sample).map_err(CapiError::errored)?;
+        *out = expr.evaluate_sample(&sample).map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -53,7 +53,7 @@ pub unsafe extern "C" fn lm_expr_evaluate(
         let sol = unsafe { shared_from_c(sol, "sol") }?.read();
         let values = expr
             .evaluate_sampleset(sol.samples())
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         let out = unsafe { out_from_c(out) }?;
         *out = f64_buffer_from_vec(values);
         Ok(())

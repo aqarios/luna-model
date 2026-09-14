@@ -39,7 +39,7 @@ pub unsafe extern "C" fn lm_var_new(
         };
         let out = unsafe { out_from_c(out) }?;
         *out = handle_to_c(
-            Variable::new(name, vtype_from_c(vtype), bounds).map_err(CapiError::errored)?,
+            Variable::new(name, vtype_from_c(vtype), bounds).map_err(CapiError::from)?,
         );
         Ok(())
     })

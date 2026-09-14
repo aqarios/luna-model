@@ -250,7 +250,7 @@ pub unsafe extern "C" fn lm_col_push(column: *mut LmColumn, assignment: LmAssign
         let column = unsafe { mut_from_c(column as *mut Column, "column") }?;
         column
             .push(assignment_from_c(assignment)?)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -269,7 +269,7 @@ pub unsafe extern "C" fn lm_col_try_push(
         let column = unsafe { mut_from_c(column as *mut Column, "column") }?;
         column
             .try_push(value, unsafe { opt_from_c(tol) })
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }

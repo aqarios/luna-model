@@ -30,7 +30,7 @@ pub unsafe extern "C" fn lm_cc_evaluate_sample(
         let sample = unsafe { NameSample::from_c(names, values, len) }?;
         let values = cc
             .evaluate_sample(&sample, unsafe { opt_from_c(tol) })
-            .map_err(CapiError::errored)?
+            .map_err(CapiError::from)?
             .into_iter()
             .map(|(name, value)| (name, vec![value]))
             .collect();
@@ -132,7 +132,7 @@ pub unsafe extern "C" fn lm_cc_evaluate_sample_quick(
         let out = unsafe { out_from_c(out) }?;
         let values = cc
             .evaluate_sample_quick(lookup, tol)
-            .map_err(CapiError::errored)?
+            .map_err(CapiError::from)?
             .into_iter()
             .map(|(name, value)| (name, vec![value]))
             .collect();

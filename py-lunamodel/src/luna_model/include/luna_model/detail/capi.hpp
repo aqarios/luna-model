@@ -18,13 +18,19 @@ namespace detail {
         throw Error(status, std::string("unknown LunaModel error"));
     }
     std::string message("unknown LunaModel error");
-    LmBuffer buf = {nullptr, 0, 0};
-    if (lm_error_message(err, &buf) == LmStatus_Ok) {
-        message.assign(reinterpret_cast<const char *>(buf.data), buf.len);
-        lm_buffer_free(buf);
+    LmBuffer msg_buf = {nullptr, 0, 0};
+    if (lm_error_message(err, &msg_buf) == LmStatus_Ok) {
+        message.assign(reinterpret_cast<const char *>(msg_buf.data), msg_buf.len);
+        lm_buffer_free(msg_buf);
+    }
+    std::string kind_tag;
+    LmBuffer kind_buf = {nullptr, 0, 0};
+    if (lm_error_kind(err, &kind_buf) == LmStatus_Ok) {
+        kind_tag.assign(reinterpret_cast<const char *>(kind_buf.data), kind_buf.len);
+        lm_buffer_free(kind_buf);
     }
     lm_error_free(err);
-    throw Error(status, message);
+    throw Error(status, message, kind_tag);
 }
 
 inline void check(LmStatus status) {
@@ -64,7 +70,11 @@ inline LmStatus report_exception() {
     try {
         throw;
     } catch (const lm::Error &e) {
-        lm_set_last_error(status_kind(e.status()), e.what(), nullptr);
+        // Prefer the caught error's own kind tag (e.g. one round-tripped from a nested host
+        // call) over the generic status-derived fallback, so re-throwing an lm::Error doesn't
+        // discard its original identity.
+        const char *kind = e.kind_tag().empty() ? status_kind(e.status()) : e.kind_tag().c_str();
+        lm_set_last_error(kind, e.what(), nullptr);
         return e.status() == LmStatus_Ok ? LmStatus_Errored : e.status();
     } catch (const std::exception &e) {
         lm_set_last_error("errored", e.what(), nullptr);

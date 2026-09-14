@@ -22,7 +22,7 @@ pub unsafe extern "C" fn lm_vref_mul_vref(
     guard(|| {
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
         let other = unsafe { ref_from_c(other as *const VarRef, "other") }?;
-        let expr = (vref * other).map_err(CapiError::errored)?;
+        let expr = (vref * other).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, expr) }
     })
 }
@@ -40,7 +40,7 @@ pub unsafe extern "C" fn lm_vref_mul_bias(
 ) -> LmStatus {
     guard(|| {
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
-        let expr = (vref * other).map_err(CapiError::errored)?;
+        let expr = (vref * other).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, expr) }
     })
 }
@@ -60,7 +60,7 @@ pub unsafe extern "C" fn lm_vref_add_vref(
     guard(|| {
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
         let other = unsafe { ref_from_c(other as *const VarRef, "other") }?;
-        let expr = (vref + other).map_err(CapiError::errored)?;
+        let expr = (vref + other).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, expr) }
     })
 }
@@ -78,7 +78,7 @@ pub unsafe extern "C" fn lm_vref_add_bias(
 ) -> LmStatus {
     guard(|| {
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
-        let expr = (vref + other).map_err(CapiError::errored)?;
+        let expr = (vref + other).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, expr) }
     })
 }
@@ -98,7 +98,7 @@ pub unsafe extern "C" fn lm_vref_sub_vref(
     guard(|| {
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
         let other = unsafe { ref_from_c(other as *const VarRef, "other") }?;
-        let expr = (vref - other).map_err(CapiError::errored)?;
+        let expr = (vref - other).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, expr) }
     })
 }
@@ -118,7 +118,7 @@ pub unsafe extern "C" fn lm_vref_sub_expr(
     guard(|| {
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
         let other = unsafe { expression_from_c(expr, "other") }?.read();
-        let expr = (vref - &*other).map_err(CapiError::errored)?;
+        let expr = (vref - &*other).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, expr) }
     })
 }
@@ -136,7 +136,7 @@ pub unsafe extern "C" fn lm_vref_sub_bias(
 ) -> LmStatus {
     guard(|| {
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
-        let expr = (vref - other).map_err(CapiError::errored)?;
+        let expr = (vref - other).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, expr) }
     })
 }
@@ -155,7 +155,7 @@ pub unsafe extern "C" fn lm_vref_rsub_bias(
 ) -> LmStatus {
     guard(|| {
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
-        let expr = (other - vref.clone()).map_err(CapiError::errored)?;
+        let expr = (other - vref.clone()).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, expr) }
     })
 }
@@ -169,7 +169,7 @@ pub unsafe extern "C" fn lm_vref_rsub_bias(
 pub unsafe extern "C" fn lm_vref_neg(vref: *const LmVref, out: *mut *mut LmExpr) -> LmStatus {
     guard(|| {
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
-        let expr = (-vref).map_err(CapiError::errored)?;
+        let expr = (-vref).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, expr) }
     })
 }
@@ -184,7 +184,7 @@ pub unsafe extern "C" fn lm_vref_not(vref: *const LmVref, out: *mut *mut LmVref)
     guard(|| {
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
         let out = unsafe { out_from_c(out) }?;
-        let vref = (!vref).map_err(CapiError::errored)?;
+        let vref = (!vref).map_err(CapiError::from)?;
         *out = handle_to_c(vref);
         Ok(())
     })
@@ -203,7 +203,7 @@ pub unsafe extern "C" fn lm_vref_pow(
 ) -> LmStatus {
     guard(|| {
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
-        let expr = (vref.pow(n)).map_err(CapiError::errored)?;
+        let expr = (vref.pow(n)).map_err(CapiError::from)?;
         unsafe { expression_out_from_c(out, expr) }
     })
 }
@@ -224,7 +224,7 @@ pub unsafe extern "C" fn lm_vref_eval(
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
         let out = unsafe { out_from_c(out) }?;
         let tol = unsafe { opt_from_c(tol) };
-        *out = (vref.evaluate(value, tol)).map_err(CapiError::errored)?;
+        *out = (vref.evaluate(value, tol)).map_err(CapiError::from)?;
         Ok(())
     })
 }

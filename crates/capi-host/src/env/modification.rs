@@ -36,7 +36,7 @@ pub unsafe extern "C" fn lm_env_insert(
         let out = unsafe { out_from_c(out) }?;
         let var = env
             .insert(name, vtype, bounds)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         *out = handle_to_c(var);
         Ok(())
     })
@@ -76,7 +76,7 @@ pub unsafe extern "C" fn lm_env_insert_with_fallback(
         let out = unsafe { out_from_c(out) }?;
         let var = env
             .insert_with_fallback(name, vtype, bounds, enc)
-            .map_err(CapiError::errored)?;
+            .map_err(CapiError::from)?;
         *out = handle_to_c(var);
         Ok(())
     })
@@ -99,7 +99,7 @@ pub unsafe extern "C" fn lm_env_set_inverted(
         env.env
             .write()
             .get_mut(index)
-            .map_err(CapiError::errored)?
+            .map_err(CapiError::from)?
             .inverted = present.then_some(inverted);
         Ok(())
     })
@@ -121,7 +121,7 @@ pub unsafe extern "C" fn lm_env_insert_inverted(
         let mut env = unsafe { storage_from_c(env, "env") }?.clone();
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
         let out = unsafe { out_from_c(out) }?;
-        let var = env.insert_inverted(vref).map_err(CapiError::errored)?;
+        let var = env.insert_inverted(vref).map_err(CapiError::from)?;
         *out = handle_to_c(var);
         Ok(())
     })
