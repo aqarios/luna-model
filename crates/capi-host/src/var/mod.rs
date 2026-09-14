@@ -38,9 +38,8 @@ pub unsafe extern "C" fn lm_var_new(
             Some(*unsafe { ref_from_c(bounds as *const LazyBounds, "bounds") }?)
         };
         let out = unsafe { out_from_c(out) }?;
-        *out = handle_to_c(
-            Variable::new(name, vtype_from_c(vtype), bounds).map_err(CapiError::from)?,
-        );
+        *out =
+            handle_to_c(Variable::new(name, vtype_from_c(vtype), bounds).map_err(CapiError::from)?);
         Ok(())
     })
 }

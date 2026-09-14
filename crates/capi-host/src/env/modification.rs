@@ -34,9 +34,7 @@ pub unsafe extern "C" fn lm_env_insert(
             Some(*bounds)
         };
         let out = unsafe { out_from_c(out) }?;
-        let var = env
-            .insert(name, vtype, bounds)
-            .map_err(CapiError::from)?;
+        let var = env.insert(name, vtype, bounds).map_err(CapiError::from)?;
         *out = handle_to_c(var);
         Ok(())
     })

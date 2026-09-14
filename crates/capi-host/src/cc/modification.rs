@@ -41,9 +41,7 @@ pub unsafe extern "C" fn lm_cc_add_constraint(
         let name = unsafe { opt_str_from_c(name, "name") }?.map(str::to_owned);
 
         let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
-        let cname = cc
-            .add_constraint(constr, name)
-            .map_err(CapiError::from)?;
+        let cname = cc.add_constraint(constr, name).map_err(CapiError::from)?;
 
         *out = buffer_from_vec(cname.into_bytes());
         Ok(())
@@ -113,10 +111,7 @@ pub unsafe extern "C" fn lm_cc_add_collection(
         let prefix = unsafe { opt_str_from_c(prefix, "prefix") }?.map(str::to_owned);
         let out = unsafe { out_from_c(out) }?;
         let mut cc = unsafe { collection_from_c(cc, "cc") }?.write();
-        *out = str_buffer_from_vec(
-            cc.add_collection(other, prefix)
-                .map_err(CapiError::from)?,
-        );
+        *out = str_buffer_from_vec(cc.add_collection(other, prefix).map_err(CapiError::from)?);
         Ok(())
     })
 }

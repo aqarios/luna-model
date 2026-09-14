@@ -141,9 +141,7 @@ pub unsafe extern "C" fn lm_sol_assignment(
         let sol = unsafe { shared_from_c(sol, "sol") }?.read_arc();
         let var = unsafe { str_from_c(var, "var") }?;
         let out = unsafe { out_from_c(out) }?;
-        let assignment = sol
-            .try_assignment(sample, var)
-            .map_err(CapiError::from)?;
+        let assignment = sol.try_assignment(sample, var).map_err(CapiError::from)?;
         *out = assignment_to_c(assignment);
         Ok(())
     })

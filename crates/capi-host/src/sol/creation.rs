@@ -85,8 +85,8 @@ pub unsafe extern "C" fn lm_sol_from_random(
         let seed = unsafe { opt_from_c(seed) };
         let sense = unsafe { opt_from_c(sense).map(sense_from_c) };
         let tol = unsafe { opt_from_c(tol) };
-        let sol = Solution::from_random(n_samples, seed, context, sense, tol)
-            .map_err(CapiError::from)?;
+        let sol =
+            Solution::from_random(n_samples, seed, context, sense, tol).map_err(CapiError::from)?;
         unsafe { new_handle_out_from_c(out, sol) }
     })
 }
