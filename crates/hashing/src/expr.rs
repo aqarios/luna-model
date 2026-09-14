@@ -1,141 +1,58 @@
-//! Hash encoding for expressions.
+//! Deterministic hashing for expressions.
+//!
+//! Only an expression's actual nonzero terms are hashed - never a buffer
+//! sized to the model's variable-ID space - so cost is proportional to the
+//! number of nonzero terms, not to how large a variable id happens to be.
+//! Every term list is explicitly sorted by a stable key before hashing, so
+//! the result does not depend on the internal storage's iteration order
+//! (linear/quadratic storage already happens to iterate in sorted order
+//! today, but higher-order storage is a `HashMap` with no ordering
+//! guarantee at all - sorting defensively here means this code keeps working
+//! if any of those internal representations change).
 
-use prost::Message;
+use std::hash::Hasher;
 
 use lunamodel_core::Expression;
 
-/// Representation of a bytes encodable/decodable Expression
-/// to compute the hash from.
-#[derive(Clone, PartialEq, Message)]
-pub struct HashExpr {
-    /// The number of variables in the expression.
-    #[prost(uint32, tag = "1")]
-    pub num_variables: u32,
-    /// A vector of booleans indicating which variables are active in the expression
-    /// and which are not.
-    #[prost(bool, repeated, tag = "2")]
-    pub active: Vec<bool>,
-    /// The constant offset of the expression.
-    #[prost(double, tag = "3")]
-    pub offset: f64,
-    /// The linear term of the expression.
-    #[prost(double, repeated, tag = "4")]
-    pub linear: Vec<f64>,
-    /// The size of the quadratic term. This is either 0 or equal to the number of
-    /// variables in the expression.
-    #[prost(uint32, tag = "5")]
-    pub quad_size: u32,
-    /// The variable indices with a non-empty neighborhood, i.e., the variable indices
-    /// which have at least one quadratic interaction.
-    #[prost(uint32, repeated, tag = "6")]
-    pub quad_neighborhood_indices: Vec<u32>,
-    /// The indices of all variables in any neighborhood as a single concatenated vector.
-    #[prost(uint32, repeated, tag = "7")]
-    pub quad_neighborhoods: Vec<u32>,
-    /// The biases for all quadratic interactions as a single concatenated vector.
-    /// This vector's length is equal to the length og the `quad_neighborhoods` vector.
-    #[prost(double, repeated, tag = "8")]
-    pub quad_neighborhoods_values: Vec<f64>,
-    /// The size of the neighborhood for each variable in the `quad_neighborhood_indices`
-    /// vector. Required to recover the neighborhoods for all variables during decoding.
-    #[prost(uint32, repeated, tag = "9")]
-    pub quad_neighborhoods_len: Vec<u32>,
-    /// The size of the higher order term, i.e., how many elements the higher order
-    /// term consists of. This is especially useful during decoding, as the appropriate
-    /// sized HashMap can be created improving write performances significantly.
-    #[prost(uint32, tag = "10")]
-    pub ho_size: u32,
-    /// All biases in the higher order term concatenated to a single vector.
-    #[prost(double, repeated, tag = "11")]
-    pub ho_values: Vec<f64>,
-    /// All variable inidices of all higher order interactions stored in the higher
-    /// order term represented as a single concatenated vector.
-    #[prost(uint32, repeated, tag = "12")]
-    pub ho_indices: Vec<u32>,
-    /// The number of elements in each of the higher order terms as a single concatenated
-    /// vector. The length of this vector is equal to the `ho_size` variable. This vector
-    /// is required to recover the correct higher order term during decoding. Each value
-    /// indicates how many variables interact for each element in the term. The sum of
-    /// all elements has to be equal to the length of the ho_indices vector.
-    #[prost(uint32, repeated, tag = "13")]
-    pub ho_lens: Vec<u32>,
-}
+/// Hashes an expression's semantic content into `h`.
+pub fn hash_expr(expr: &Expression, h: &mut impl Hasher) {
+    h.write(b"expr");
+    h.write_u64(expr.offset.to_bits());
 
-impl HashExpr {
-    /// Encodes an expression into the hashing representation.
-    ///
-    /// The representation is sparse where practical, but it still records enough
-    /// structural information to distinguish linear, quadratic, and higher-order
-    /// contributions deterministically.
-    pub fn build(expr: &Expression) -> Vec<u8> {
-        let maxidx = *expr.vars().map(|v| v.id()).max().get_or_insert(0) as usize;
-        let num_vars = match expr.num_vars() {
-            0 => 0,
-            _ => maxidx + 1,
-        };
+    let mut linear: Vec<(u32, f64)> = expr.raw_linear_items().collect();
+    linear.sort_unstable_by_key(|(id, _)| *id);
+    h.write_u64(linear.len() as u64);
+    for (id, bias) in linear {
+        h.write_u32(id);
+        h.write_u64(bias.to_bits());
+    }
 
-        let mut linear = vec![0.0; num_vars];
-        let mut active = vec![false; num_vars];
+    let mut quad: Vec<(u32, u32, f64)> = expr
+        .raw_quadratic_items()
+        .map(|(u, v, bias)| if u <= v { (u, v, bias) } else { (v, u, bias) })
+        .collect();
+    quad.sort_unstable_by_key(|(lo, hi, _)| (*lo, *hi));
+    h.write_u64(quad.len() as u64);
+    for (lo, hi, bias) in quad {
+        h.write_u32(lo);
+        h.write_u32(hi);
+        h.write_u64(bias.to_bits());
+    }
 
-        let mut quad_size = 0;
-        let mut quad_neighborhood_indices = Vec::new();
-        let mut quad_neighborhoods = Vec::new();
-        let mut quad_neighborhoods_values = Vec::new();
-        let mut quad_neighborhoods_len = Vec::new();
-
-        let mut ho_size = 0;
-        let mut ho_values = Vec::new();
-        let mut ho_indices = Vec::new();
-        let mut ho_lens = Vec::new();
-
-        for (u, bias) in expr.linear_items() {
-            active[u.id() as usize] = true;
-            linear[u.id() as usize] = bias;
+    let mut higher_order: Vec<(Vec<u32>, f64)> = expr
+        .raw_higher_order_items()
+        .map(|(mut ids, bias)| {
+            ids.sort_unstable();
+            (ids, bias)
+        })
+        .collect();
+    higher_order.sort_unstable_by(|(a, _), (b, _)| a.cmp(b));
+    h.write_u64(higher_order.len() as u64);
+    for (ids, bias) in higher_order {
+        h.write_u64(ids.len() as u64);
+        for id in ids {
+            h.write_u32(id);
         }
-
-        if let Some(quad) = &expr.quadratic {
-            quad_size = active.len() as u32;
-            for (vidx, neigborhood) in quad.iter() {
-                if !neigborhood.is_empty() {
-                    active[vidx as usize] = true;
-                    quad_neighborhood_indices.push(vidx);
-                    quad_neighborhoods_len.push(neigborhood.len() as u32);
-                    for (uidx, bias) in neigborhood.iter() {
-                        active[uidx as usize] = true;
-                        quad_neighborhoods.push(uidx);
-                        quad_neighborhoods_values.push(bias);
-                    }
-                }
-            }
-        }
-
-        if let Some(ho) = &expr.higher_order {
-            ho_size = ho.len() as u32;
-            for (ids, bias) in ho.iter_contrib() {
-                ho_lens.push(ids.len() as u32);
-                ho_values.push(bias);
-                for &id in ids.iter() {
-                    active[id as usize] = true;
-                    ho_indices.push(id);
-                }
-            }
-        }
-
-        let o = HashExpr {
-            num_variables: expr.num_vars() as u32,
-            active,
-            offset: expr.offset,
-            linear,
-            quad_size,
-            quad_neighborhood_indices,
-            quad_neighborhoods,
-            quad_neighborhoods_values,
-            quad_neighborhoods_len,
-            ho_size,
-            ho_values,
-            ho_indices,
-            ho_lens,
-        };
-        o.encode_to_vec()
+        h.write_u64(bias.to_bits());
     }
 }
