@@ -1,15 +1,21 @@
 //! Miscellaneous expression helper functions exposed to Python.
 
+use std::sync::Arc;
+
 use indexmap::IndexMap;
 use lunamodel_core::{TryIndex, prelude::VarRef, solution::sample::SampleView};
 use lunamodel_error::LunaModelError;
 use lunamodel_types::Bias;
 use lunamodel_unwind::*;
 use numpy::{PyArray1, ToPyArray};
-use pyo3::{Bound, FromPyObject, PyResult, Python, pymethods};
+use pyo3::{
+    Bound, FromPyObject, IntoPyObjectExt, PyAny, PyResult, Python, exceptions::PyTypeError,
+    pymethods, types::PyAnyMethods,
+};
 
 use super::PyExpression;
 use crate::{
+    PyConstant, PyHigherOrder, PyLinear, PyQuadratic, PyVariable,
     args::{PyExprArg, PySolArg, PyVarArg},
     sol::sample::PySampleView,
     utils::VarKey,
@@ -93,5 +99,50 @@ impl PyExpression {
             Replacement::Expr(e) => &(e.0.expr.into()),
         };
         Ok(self.read_with(|e| e.substitute(&target.v, r))?.into())
+    }
+
+    fn filter<'py>(&self, py: Python<'py>, cond: Bound<'py, PyAny>) -> PyResult<PyExpression> {
+        if !cond.is_callable() {
+            return Err(PyTypeError::new_err(
+                "The parameter 'cond' must be a callable",
+            ));
+        }
+
+        Ok(self
+            .read_with(|e| {
+                e.filter(|vars, bias| {
+                    let pyvars: Vec<PyVariable> =
+                        vars.iter().map(|v| PyVariable::new(v.clone())).collect();
+                    let pyitem = match &pyvars[..] {
+                        [] => PyConstant().into_py_any(py),
+                        [a] => PyLinear(a.clone()).into_py_any(py),
+                        [a, b] => PyQuadratic((a.clone(), b.clone())).into_py_any(py),
+                        _ => PyHigherOrder(pyvars.to_vec()).into_py_any(py),
+                    }
+                    .map_err(|e| {
+                        LunaModelError::WithCause(
+                            Box::new(LunaModelError::Computation(e.to_string().into())),
+                            Arc::new(e),
+                        )
+                    })?;
+                    let r: bool = cond
+                        .call1((pyitem, bias))
+                        .map_err(|e| {
+                            LunaModelError::WithCause(
+                                Box::new(LunaModelError::Computation(e.to_string().into())),
+                                Arc::new(e),
+                            )
+                        })?
+                        .extract::<bool>()
+                        .map_err(|e| {
+                            LunaModelError::WithCause(
+                                Box::new(LunaModelError::Computation(e.to_string().into())),
+                                Arc::new(e),
+                            )
+                        })?;
+                    Ok(r)
+                })
+            })?
+            .into())
     }
 }
