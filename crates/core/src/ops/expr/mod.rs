@@ -11,5 +11,6 @@ mod pow;
 mod sub;
 
 mod eval;
+mod filter;
 mod separate;
 mod substitute;
