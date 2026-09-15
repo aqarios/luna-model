@@ -10,6 +10,7 @@ use pyo3::{Bound, FromPyObject, PyResult, Python, pymethods};
 
 use super::PyExpression;
 use crate::{
+    PyVariable,
     args::{PyExprArg, PySolArg, PyVarArg},
     sol::sample::PySampleView,
     utils::VarKey,
@@ -93,5 +94,13 @@ impl PyExpression {
             Replacement::Expr(e) => &(e.0.expr.into()),
         };
         Ok(self.read_with(|e| e.substitute(&target.v, r))?.into())
+    }
+
+    fn derivative(&self, var: PyVarArg) -> PyExpression {
+        self.read_with(|e| e.derivative(&var.v)).into()
+    }
+
+    fn neighborhood(&self, var: PyVarArg) -> Vec<PyVariable> {
+        self.read_with(|e| e.derivative(&var.v).vars().map(|v| v.into()).collect())
     }
 }
