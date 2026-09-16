@@ -1,5 +1,8 @@
 //! Addition implementations for expressions.
 
+use std::ops::Mul;
+
+use itertools::Itertools;
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
 
@@ -52,6 +55,37 @@ impl LmAddAssign<&Expression> for Expression {
             (Some(lh), Some(rh)) => *lh += rh,
             (None, Some(rh)) => self.higher_order = Some(rh.clone()),
             (Some(_), None) | (None, None) => (),
+        }
+        Ok(())
+    }
+}
+
+impl LmAddAssign<(&[VarRef], Bias)> for Expression {
+    fn add_assign(&mut self, rhs: (&[VarRef], Bias)) -> LunaModelResult<()> {
+        let (vars, bias) = rhs;
+        match vars {
+            [] => self.add_assign(bias)?,
+            [u] => self.add_assign(u.mul(bias)?)?,
+            [u, v] => {
+                if let Some(q) = self.quadratic.as_mut() {
+                    *q += (u.id, v.id, bias);
+                } else {
+                    let mut q = Quadratic::default();
+                    q += (u.id, v.id, bias);
+                    self.quadratic = Some(q);
+                }
+            }
+            vs => {
+                let vidxs = vs.iter().map(|v| v.id).collect_vec();
+
+                if let Some(h) = self.higher_order.as_mut() {
+                    *h += (vidxs.as_slice(), bias);
+                } else {
+                    let mut h = HigherOrder::default();
+                    h += (vidxs.as_slice(), bias);
+                    self.higher_order = Some(h);
+                }
+            }
         }
         Ok(())
     }
@@ -235,5 +269,57 @@ mod tests {
         let mut e = Expression::empty(env);
         e.add_assign(&v).unwrap();
         e.add_assign(v).unwrap();
+    }
+
+    #[test]
+    fn add_assign_term_empty_slice_adds_bias() {
+        let env = ArcEnv::default();
+        let mut e = Expression::empty(env);
+
+        e.add_assign((&[][..], 3.5)).unwrap();
+
+        assert_eq!(e.offset, 3.5);
+    }
+
+    #[test]
+    fn add_assign_term_single_var_adds_linear() {
+        let mut env = ArcEnv::default();
+        let a: VarRef = env.insert("a", Vtype::Binary, None).unwrap();
+        let mut e = Expression::empty(env);
+
+        e.add_assign((&[a.clone()][..], 2.0)).unwrap();
+
+        assert_eq!(e.linear(a.id()), 2.0);
+    }
+
+    #[test]
+    fn add_assign_term_two_vars_adds_quadratic() {
+        let mut env = ArcEnv::default();
+        let a: VarRef = env.insert("a", Vtype::Binary, None).unwrap();
+        let b: VarRef = env.insert("b", Vtype::Binary, None).unwrap();
+        let mut e = Expression::empty(env);
+
+        e.add_assign((&[a.clone(), b.clone()][..], 4.0)).unwrap();
+        // Adding a second term for the same pair should accumulate rather than overwrite.
+        e.add_assign((&[a.clone(), b.clone()][..], 1.0)).unwrap();
+
+        assert_eq!(e.quadratic(a.id(), b.id()), 5.0);
+    }
+
+    #[test]
+    fn add_assign_term_many_vars_adds_higher_order() {
+        let mut env = ArcEnv::default();
+        let a: VarRef = env.insert("a", Vtype::Binary, None).unwrap();
+        let b: VarRef = env.insert("b", Vtype::Binary, None).unwrap();
+        let c: VarRef = env.insert("c", Vtype::Binary, None).unwrap();
+        let mut e = Expression::empty(env);
+
+        e.add_assign((&[a.clone(), b.clone(), c.clone()][..], 6.0))
+            .unwrap();
+        // Adding a second term for the same tuple should accumulate rather than overwrite.
+        e.add_assign((&[a.clone(), b.clone(), c.clone()][..], 1.0))
+            .unwrap();
+
+        assert_eq!(e.higher_order(&[a.id(), b.id(), c.id()]), 7.0);
     }
 }
