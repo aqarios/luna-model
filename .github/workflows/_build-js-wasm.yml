@@ -118,5 +118,6 @@ jobs:
             ${{ inputs.working-directory }}/artifacts/*.cjs
             ${{ inputs.working-directory }}/artifacts/*.js
             ${{ inputs.working-directory }}/artifacts/*.mjs
+            ${{ inputs.working-directory }}/artifacts/*.d.cts
           if-no-files-found: error
           retention-days: 7
