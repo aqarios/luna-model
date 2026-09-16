@@ -261,6 +261,67 @@ class Expression:
         """
         return self._expr.degree()
 
+    def derivative(self, var: Variable) -> Expression:
+        """Compute the partial derivative of the expression with respect to a variable.
+
+        Parameters
+        ----------
+        var : Variable
+            The variable to differentiate with respect to.
+
+        Returns
+        -------
+        Expression
+            The partial derivative of this expression with respect to ``var``.
+            Terms not involving ``var`` do not appear in the result.
+
+        Examples
+        --------
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     z = Variable("z")
+        >>> expr = 3 * x + 2 * x * y + 4 * x * y * z
+        >>> print(expr.derivative(x))
+        4 y z + 2 y + 3
+        >>> print(expr.derivative(y))
+        4 x z + 2 x
+        >>> print(expr.derivative(z))
+        4 x y
+        """
+        return self._from_pyexpr(self._expr.derivative(var._v))
+
+    def neighborhood(self, var: Variable) -> set[Variable]:
+        """Get the variables that co-occur with a variable in some term.
+
+        A variable ``u`` is in the neighborhood of ``var`` if they appear together in at least one quadratic or
+        higher-order term of this expression. ``var`` itself is not included, and terms where ``var`` appears
+        alone (constant or linear) contribute no neighbors.
+
+        Parameters
+        ----------
+        var : Variable
+            The variable to get the neighborhood for.
+
+        Returns
+        -------
+        set[Variable]
+            The distinct variables appearing alongside ``var`` in some term, in no particular order.
+
+        Examples
+        --------
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     z = Variable("z")
+        >>> expr = x * y + x * y * z + x
+        >>> sorted(v.name for v in expr.neighborhood(x))
+        ['y', 'z']
+        """
+        return {wrap_var(v) for v in self._expr.neighborhood(var)}
+
     def linear_items(self) -> list[tuple[Variable, float]]:
         """Get all linear terms in the expression.
 

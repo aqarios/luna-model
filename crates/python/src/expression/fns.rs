@@ -101,6 +101,14 @@ impl PyExpression {
         Ok(self.read_with(|e| e.substitute(&target.v, r))?.into())
     }
 
+    fn derivative(&self, var: PyVarArg) -> PyExpression {
+        self.read_with(|e| e.derivative(&var.v)).into()
+    }
+
+    fn neighborhood(&self, var: PyVarArg) -> Vec<PyVariable> {
+        self.read_with(|e| e.derivative(&var.v).vars().map(|v| v.into()).collect())
+    }
+
     fn filter<'py>(&self, py: Python<'py>, cond: Bound<'py, PyAny>) -> PyResult<PyExpression> {
         if !cond.is_callable() {
             return Err(PyTypeError::new_err(
