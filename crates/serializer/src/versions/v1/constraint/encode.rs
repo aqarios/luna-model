@@ -1,4 +1,4 @@
-//! Version 0 encoding for constraints.
+//! Version 1 encoding for constraints.
 
 use lunamodel_core::prelude::ConstraintCollection;
 use lunamodel_types::Comparator;
@@ -7,7 +7,7 @@ use prost::Message;
 use crate::encode::{BytesEncodable, Encodable};
 use crate::versionize::Versionizable;
 
-use super::SerConstraintCollection;
+use super::{SerConstraint, SerConstraintCollection};
 
 impl BytesEncodable for SerConstraintCollection {
     /// Encodes the protobuf structure into raw bytes.
@@ -26,10 +26,13 @@ impl SerConstraintCollection {
                 Comparator::Eq => 1,
                 Comparator::Ge => 2,
             };
-            self.lhsides.push(lhs_bytes);
-            self.rhsides.push(c.rhs);
-            self.comparators.push(cmp);
-            self.names.push(c.name().to_string());
+            let msg = SerConstraint {
+                lhs: lhs_bytes,
+                rhs: c.rhs,
+                cmp,
+                name: c.name().to_owned(),
+            };
+            self.elements.push(msg);
         }
         self
     }
