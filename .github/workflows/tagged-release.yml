@@ -146,6 +146,12 @@ jobs:
           bunx napi create-npm-dirs --config-path napi.wasm.json --npm-dir ./npm
 
       - name: Assemble per-target npm packages
+        # Each run also drops a copy of its artifacts in the package root and
+        # prunes the ones its own config doesn't list. That churn is harmless:
+        # the main package ships no binaries (see the optionalDependencies step
+        # below), and `files` excludes them. The one root file that does get
+        # published is index.js, which both runs leave at whatever the wasm
+        # build generated — the only copy stamped with the release version.
         run: |
           bunx napi artifacts --config-path napi.json \
             --output-dir ./artifacts-native --npm-dir ./npm
@@ -205,6 +211,97 @@ jobs:
               if (!pkg.exports?.["."]?.require) throw new Error(`${path} is missing the CommonJS export`);
             '
           done
+
+      - name: Declare native packages as optionalDependencies
+        # The main package carries no binaries; it resolves them at install time
+        # through optionalDependencies, which is what the generated index.js
+        # loader expects (`require("@aqarios/luna-model-<target>")`). npm skips
+        # the entries whose cpu/os/libc don't match the host, so an install
+        # pulls exactly one of them.
+        #
+        # The wasm package is published but deliberately NOT declared here. It
+        # is platform-neutral by design, so npm would install it everywhere —
+        # 3.7MB per install once @emnapi/@tybys/@napi-rs/tslib are pulled in,
+        # for a fallback that a Node consumer on any of the eight native targets
+        # never reaches. Consumers who want it (browsers, bundlers, platforms
+        # outside the eight) depend on @aqarios/luna-model-wasm32-wasi directly;
+        # the loader picks it up from node_modules either way. This is what
+        # rolldown and oxc-parser do with their own wasm32-wasi bindings.
+        #
+        # Generated here rather than committed so the version never has to be
+        # kept in lockstep: ci/tools/check-versions.sh guards exactly two
+        # version statements, and this would otherwise be a third.
+        run: |
+          # shellcheck disable=SC2016 # ${...} below are JS template literals
+          node -e '
+            const fs = require("node:fs");
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            const optionalDependencies = {};
+            const optedOut = [];
+
+            for (const dir of fs.readdirSync("npm").sort()) {
+              const target = JSON.parse(fs.readFileSync(`npm/${dir}/package.json`, "utf8"));
+              if (target.version !== pkg.version) {
+                throw new Error(`npm/${dir} is ${target.version}, main package is ${pkg.version}`);
+              }
+              if (dir.includes("wasm")) {
+                optedOut.push(target.name);
+                continue;
+              }
+              optionalDependencies[target.name] = target.version;
+            }
+
+            const names = Object.keys(optionalDependencies);
+            if (names.length === 0) throw new Error("no native packages found under npm/");
+
+            pkg.optionalDependencies = optionalDependencies;
+            fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
+            console.log(`optionalDependencies @ ${pkg.version}:\n  ${names.join("\n  ")}`);
+            console.log(`published but opt-in:\n  ${optedOut.join("\n  ") || "(none)"}`);
+          '
+
+      - name: Verify main package resolves its native bindings
+        # A main package that bundles nothing and declares nothing installs
+        # cleanly and then throws `Cannot find native binding` on first require
+        # — see v0.6.16-beta.3. Assert both halves before anything is published.
+        run: |
+          npm pack --dry-run --json > /tmp/pack.json
+          # shellcheck disable=SC2016 # ${...} below are JS template literals
+          node -e '
+            const fs = require("node:fs");
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            const optional = pkg.optionalDependencies || {};
+            const native = JSON.parse(fs.readFileSync("napi.json", "utf8")).targets.length;
+            const wasm = JSON.parse(fs.readFileSync("napi.wasm.json", "utf8")).targets.length;
+
+            const dirs = fs.readdirSync("npm");
+            if (dirs.length !== native + wasm) {
+              throw new Error(`built ${dirs.length} per-target packages, expected ${native + wasm}`);
+            }
+            for (const dir of dirs) {
+              const { name } = JSON.parse(fs.readFileSync(`npm/${dir}/package.json`, "utf8"));
+              const declared = optional[name];
+              if (dir.includes("wasm")) {
+                if (declared) {
+                  throw new Error(`${name} is opt-in and must not be an optionalDependency`);
+                }
+              } else if (declared !== pkg.version) {
+                throw new Error(`${name} is not an optionalDependency at ${pkg.version}`);
+              }
+            }
+            if (Object.keys(optional).length !== native) {
+              throw new Error(`declared ${Object.keys(optional).length} optionalDependencies, expected ${native}`);
+            }
+
+            const strays = JSON.parse(fs.readFileSync("/tmp/pack.json", "utf8"))[0]
+              .files.map((f) => f.path)
+              .filter((p) => p.endsWith(".node") || p.endsWith(".wasm"));
+            if (strays.length > 0) {
+              throw new Error(`main package should bundle no binaries, got: ${strays.join(", ")}`);
+            }
+
+            console.log(`main package declares all ${native} native packages and bundles none`);
+          '
 
       - name: Publish packages
         # Per-target packages first, the main package last, so the main
