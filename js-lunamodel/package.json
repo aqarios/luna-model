@@ -24,7 +24,6 @@
   "files": [
     "index.js",
     "index.d.ts",
-    "*.node",
     "THIRD_PARTY_LICENSES.txt"
   ],
   "scripts": {
