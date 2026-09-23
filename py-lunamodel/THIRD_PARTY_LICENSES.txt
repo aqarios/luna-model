@@ -2088,7 +2088,7 @@ Applies to the following dependencies:
   * serde_core 1.0.228
   * serde_json 1.0.150
   * syn 2.0.119
-  * syn 3.0.5
+  * syn 3.0.6
   * thiserror-impl 2.0.18
   * thiserror 2.0.18
   * unicode-ident 1.0.24
