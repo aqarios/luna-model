@@ -20,9 +20,19 @@ pub struct Linear {
 impl Editable for Linear {}
 
 impl Linear {
-    /// Returns the number of explicitly stored variables.
+    /// Returns the number of non-zero variable contributions.
+    ///
+    /// This counts exactly what [`iter`](Self::iter) yields. Positional logic
+    /// must use [`storage_len`](Self::storage_len) instead.
     pub fn len(&self) -> usize {
         self.biases.len()
+    }
+
+    /// Returns the number of entries in the backing storage, zero biases included.
+    ///
+    /// This is the bound that `find` positions are relative to.
+    fn storage_len(&self) -> usize {
+        self.biases.storage_len()
     }
 
     /// Returns `true` if all stored biases sum to zero.
@@ -30,7 +40,9 @@ impl Linear {
         self.biases.is_zero()
     }
 
-    /// Returns `true` if the storage contains no explicit terms.
+    /// Returns `true` if there is no non-zero variable contribution.
+    ///
+    /// This agrees with [`iter`](Self::iter).
     pub fn is_empty(&self) -> bool {
         self.biases.is_empty()
     }
@@ -93,7 +105,7 @@ impl AddAssign<(VarIdx, Bias)> for Linear {
             return;
         }
         let pos = self.biases.find(u).unwrap_or_else(|l| l);
-        if pos == self.len() {
+        if pos == self.storage_len() {
             self.push_back(u, b);
         } else if self.biases[pos].idx != u {
             self.insert(pos, u, b);
@@ -156,7 +168,7 @@ impl IndexMut<VarIdx> for Linear {
     /// Returns mutable access to the bias for a variable, inserting zero when absent.
     fn index_mut(&mut self, index: VarIdx) -> &mut Self::Output {
         let pos = self.biases.find(index).unwrap_or_else(|l| l);
-        if pos == self.len() {
+        if pos == self.storage_len() {
             self.push_back(index, Bias::default());
         } else if self.biases[pos].idx != index {
             self.insert(pos, index, Bias::default());
@@ -168,7 +180,7 @@ impl IndexMut<VarIdx> for Linear {
 impl PartialEq for Linear {
     /// Compares the explicit sparse storage directly.
     fn eq(&self, other: &Self) -> bool {
-        self.len() == other.len() && self.biases == other.biases
+        self.storage_len() == other.storage_len() && self.biases == other.biases
     }
 }
 

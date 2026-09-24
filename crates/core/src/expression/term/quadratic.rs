@@ -27,8 +27,18 @@ pub struct Quadratic {
 impl Editable for Quadratic {}
 
 impl Quadratic {
-    /// Returns the number of outer adjacency entries.
+    /// Returns the number of outer entries carrying a non-zero neighborhood.
+    ///
+    /// This counts exactly what [`iter`](Self::iter) yields. Positional logic
+    /// must use [`storage_len`](Self::storage_len) instead.
     pub fn len(&self) -> usize {
+        self.iter().count()
+    }
+
+    /// Returns the number of outer adjacency entries in the backing storage.
+    ///
+    /// This is the bound that [`find`](Self::find) positions are relative to.
+    fn storage_len(&self) -> usize {
         self.adj.len()
     }
 
@@ -140,7 +150,7 @@ impl IndexMut<VarIdx> for Quadratic {
     /// Returns mutable access to the neighborhood for an outer variable.
     fn index_mut(&mut self, index: VarIdx) -> &mut Self::Output {
         let pos = Self::find(&self.adj, index).unwrap_or_else(|l| l);
-        if pos == self.len() {
+        if pos == self.storage_len() {
             self.push_back_empty(index);
         } else if self.adj[pos].idx != index {
             self.insert_empty(pos, index);
@@ -174,7 +184,7 @@ impl IndexMut<(VarIdx, VarIdx)> for Quadratic {
         let (outer, inner) = get_indices(index.0, index.1);
         let nei = &mut self[outer];
         let pos = nei.find(inner).unwrap_or_else(|l| l);
-        if pos == nei.len() {
+        if pos == nei.storage_len() {
             nei.push_back_empty(inner);
         } else if nei[pos].idx != inner {
             nei.insert_empty(pos, inner);
