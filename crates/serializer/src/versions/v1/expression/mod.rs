@@ -76,3 +76,42 @@ impl Creatable<Expression> for SerExpression {
         Self::default().fill(value)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::encode::{BytesDecodable, BytesEncodable};
+    use lunamodel_core::prelude::{ArcEnv, Quadratic};
+    use lunamodel_types::Vtype;
+
+    /// Builds an environment holding `n` binary variables.
+    fn env(n: usize) -> ArcEnv {
+        let mut env = ArcEnv::default();
+        for i in 0..n {
+            env.insert(&format!("x_{i}"), Vtype::Binary, None).unwrap();
+        }
+        env
+    }
+
+    /// Explicitly stored zero biases must not desynchronize the flattened
+    /// neighborhood vectors from the per-variable lengths written next to them.
+    #[test]
+    fn roundtrip_quadratic_with_cancelled_term() {
+        let mut quad = Quadratic::default();
+        quad += (0, 1, 1.0);
+        quad += (0, 2, 3.0);
+        // cancels out and leaves an explicitly stored zero bias behind
+        quad += (0, 1, -1.0);
+        quad += (3, 4, 2.0);
+
+        let mut expr = Expression::empty(env(5));
+        expr.quadratic = Some(quad);
+
+        let bytes = SerExpression::new(&expr).encode_to_bytes();
+        let decoded = SerExpression::decode_from_bytes(&bytes, env(5)).unwrap();
+
+        let mut items: Vec<_> = decoded.quadratic.as_ref().unwrap().iter_flat().collect();
+        items.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        assert_eq!(items, vec![(0, 2, 3.0), (3, 4, 2.0)]);
+    }
+}

@@ -15,14 +15,16 @@ pub enum Version {
 /// Utility methods for working on the version enum.
 impl Version {
     /// Helper function to recover the version as an Enum based on a u32.
-    pub fn from(u: u32) -> Self {
+    pub fn from(u: u32) -> Option<Self> {
         match u {
-            0 => Version::V0,
-            1 => Version::V1,
-            _ => panic!("unkown version"),
+            0 => Some(Version::V0),
+            1 => Some(Version::V1),
+            _ => None,
         }
     }
 }
+
+const NESTED_MARKER: u8 = 0xFE;
 
 /// A serializable version structure defining the data layout for protocol buffer
 /// based encoding and decoding. Used internally to implement the encoding and decoding
@@ -97,6 +99,12 @@ where
     fn versionize(self, version: Version) -> Vec<u8> {
         SerVersioned::new(version, self.to_vec()).encode_to_vec()
     }
+
+    fn versionize_nested(self, version: Version) -> Vec<u8> {
+        let mut out = vec![NESTED_MARKER];
+        out.extend(self.versionize(version));
+        out
+    }
 }
 
 /// This trait defines the required methods for an object to be unversionizable, i.e.,
@@ -108,13 +116,22 @@ where
     /// Extract self to a `Versioned` struct with the date being expressed as a vector
     /// of bytes.
     fn unversionize(&self) -> Versioned<Vec<u8>> {
-        let result = SerVersioned::decode(self.as_slice());
-        match result {
-            Ok(versioned) => Versioned::new(Version::from(versioned.version), versioned.data),
+        match SerVersioned::decode(self.as_slice()) {
+            Ok(versioned) => match Version::from(versioned.version) {
+                Some(version) => Versioned::new(version, versioned.data),
+                None => Versioned::unknown(self.as_slice().to_vec()),
+            },
             Err(_) => {
                 // Unversioned data...
                 Versioned::unknown(self.as_slice().to_vec())
             }
+        }
+    }
+
+    fn unversionize_nested(&self) -> Versioned<Vec<u8>> {
+        match self.as_slice().split_first() {
+            Some((&NESTED_MARKER, rest)) => rest.unversionize(),
+            _ => Versioned::unknown(self.as_slice().to_vec()),
         }
     }
 }

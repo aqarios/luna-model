@@ -41,7 +41,7 @@ pub use sol::PySolution;
 /// Python model specification wrapper.
 pub use specs::PyModelSpecs;
 /// Python timer/timing wrappers.
-pub use timer::{PyTimer, PyTiming};
+pub use timer::{PySubTimer, PyTimer, PyTiming};
 /// Python variable wrapper.
 pub use variable::PyVariable;
 

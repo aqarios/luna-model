@@ -167,8 +167,8 @@ def test_ibm_solution_translator():
     assert sol.counts.tolist() == truth_counts
     assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None
-    assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds)
-    assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds())
+    assert np.isclose(sol.runtime.total, timing.total)
+    assert np.isclose(sol.runtime.total, timing.total)
     assert sol.runtime.qpu is None
     assert sol.obj_values is None
 

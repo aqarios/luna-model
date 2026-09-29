@@ -3,6 +3,7 @@
 use crate::encode::{Decodable, Decoder, Encodable};
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerConstraintCollection as SerConstrCollV0;
+use crate::versions::v1::SerConstraintCollection as SerConstrCollV1;
 
 use lunamodel_core::{ArcEnv, ConstraintCollection};
 use lunamodel_error::LunaModelResult;
@@ -11,14 +12,16 @@ use lunamodel_error::LunaModelResult;
 /// of [ConstraintCollection]. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
-type SerConstrLatest = SerConstrCollV0;
+type SerConstrLatest = SerConstrCollV1;
 
 /// Makes a [ConstraintCollection] encodable.
-impl Encodable<SerConstrCollV0> for ConstraintCollection {
+impl Encodable<SerConstrCollV1> for ConstraintCollection {
     fn version(&self) -> Version {
-        Version::V0
+        Version::V1
     }
 }
+
+impl Decoder<ConstraintCollection, ArcEnv> for SerConstrCollV0 {}
 
 /// Makes a raw byte vector decodable into a [`ConstraintCollection`].
 ///
@@ -39,7 +42,8 @@ impl Decodable<ConstraintCollection> for Versioned<Vec<u8>> {
     fn decode(&self, payload: Self::Payload) -> LunaModelResult<ConstraintCollection> {
         match self.version {
             Some(Version::V0) => SerConstrCollV0::decoder(self.data.as_slice(), payload),
-            _ => SerConstrLatest::decoder(self.data.as_slice(), payload),
+            Some(Version::V1) => SerConstrCollV1::decoder(self.data.as_slice(), payload),
+            _ => SerConstrCollV0::decoder(self.data.as_slice(), payload),
         }
     }
 }

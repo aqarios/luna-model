@@ -92,5 +92,5 @@ def test_v0_v1_equality_sol_eval_timing(
         assert np.all(reconstructed.raw_energies == sol.raw_energies)
         assert reconstructed.runtime is not None
         assert reconstructed.runtime.qpu == sol.runtime.qpu
-        total_seconds = reconstructed.runtime.total_seconds
+        total_seconds = reconstructed.runtime.total
         assert total_seconds > 1.23 and total_seconds < 1.231

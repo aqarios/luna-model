@@ -33,7 +33,7 @@ impl PySolution {
     // The set runtime is defined here [super::access::PySolution::get_raw_energies]
     #[setter]
     fn set_runtime<'py>(&mut self, timing: PyTiming) {
-        self.s.write_arc().timing = Some(*timing)
+        self.s.write_arc().timing = Some(timing.into())
     }
 
     #[setter]
