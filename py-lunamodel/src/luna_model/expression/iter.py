@@ -181,6 +181,23 @@ class HigherOrder:
         return self._h.__str__()
 
 
+def wrap_expr_item(
+    item: PyConstant | PyLinear | PyQuadratic | PyHigherOrder,
+) -> Constant | Linear | Quadratic | HigherOrder:
+    """Wrap an expression in it's corresponding python type."""
+    match item:
+        case PyLinear(_):
+            return Linear._from_pyl(item)
+        case PyQuadratic(_):
+            return Quadratic._from_pyq(item)
+        case PyHigherOrder(_):
+            return HigherOrder._from_pyh(item)
+        case PyConstant():
+            return item
+    msg = f"unknown element type: '{type(item)}'"
+    raise RuntimeError(msg)
+
+
 class ExprIter:
     """Iterator over terms in an expression.
 
@@ -226,17 +243,7 @@ class ExprIter:
             When there are no more terms.
         """
         nxt, b = self._i.__next__()
-        match nxt:
-            case PyLinear(_):
-                return Linear._from_pyl(nxt), b
-            case PyQuadratic(_):
-                return Quadratic._from_pyq(nxt), b
-            case PyHigherOrder(_):
-                return HigherOrder._from_pyh(nxt), b
-            case PyConstant():
-                return nxt, b
-        msg = f"unknown element type: '{type(nxt)}'"
-        raise RuntimeError(msg)
+        return wrap_expr_item(nxt), b
 
     def __iter__(self) -> ExprIter:
         """Return the iterator object itself."""

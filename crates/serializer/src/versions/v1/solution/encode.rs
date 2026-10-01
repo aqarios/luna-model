@@ -28,7 +28,7 @@ impl SerSolution {
         self.timing = sol
             .timing
             .clone()
-            .map(|t| t.serialize().versionize(t.version()));
+            .map(|t| t.serialize().versionize_nested(t.version()));
         self.counts = sol.counts.iter().map(|&c| c as u64).collect();
         self.obj_values = sol.obj_values.clone().unwrap_or_default();
         self.raw_energies = sol.raw_energies.clone().unwrap_or_default();

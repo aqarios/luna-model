@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Self
 from luna_model._lm import PyExpression
 from luna_model._utils import wrap_c, wrap_env, wrap_var
 from luna_model.environment.env import Environment
-from luna_model.expression.iter import ExprIter
+from luna_model.expression.iter import ExprIter, wrap_expr_item
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
     from luna_model.constraint import Constraint
+    from luna_model.expression.iter import Constant, HigherOrder, Linear, Quadratic
     from luna_model.solution.sample import Sample
     from luna_model.solution.sol import Solution
     from luna_model.variable.var import Variable
@@ -260,6 +261,67 @@ class Expression:
         """
         return self._expr.degree()
 
+    def derivative(self, var: Variable) -> Expression:
+        """Compute the partial derivative of the expression with respect to a variable.
+
+        Parameters
+        ----------
+        var : Variable
+            The variable to differentiate with respect to.
+
+        Returns
+        -------
+        Expression
+            The partial derivative of this expression with respect to ``var``.
+            Terms not involving ``var`` do not appear in the result.
+
+        Examples
+        --------
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     z = Variable("z")
+        >>> expr = 3 * x + 2 * x * y + 4 * x * y * z
+        >>> print(expr.derivative(x))
+        4 y z + 2 y + 3
+        >>> print(expr.derivative(y))
+        4 x z + 2 x
+        >>> print(expr.derivative(z))
+        4 x y
+        """
+        return self._from_pyexpr(self._expr.derivative(var._v))
+
+    def neighborhood(self, var: Variable) -> set[Variable]:
+        """Get the variables that co-occur with a variable in some term.
+
+        A variable ``u`` is in the neighborhood of ``var`` if they appear together in at least one quadratic or
+        higher-order term of this expression. ``var`` itself is not included, and terms where ``var`` appears
+        alone (constant or linear) contribute no neighbors.
+
+        Parameters
+        ----------
+        var : Variable
+            The variable to get the neighborhood for.
+
+        Returns
+        -------
+        set[Variable]
+            The distinct variables appearing alongside ``var`` in some term, in no particular order.
+
+        Examples
+        --------
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     z = Variable("z")
+        >>> expr = x * y + x * y * z + x
+        >>> sorted(v.name for v in expr.neighborhood(x))
+        ['y', 'z']
+        """
+        return {wrap_var(v) for v in self._expr.neighborhood(var)}
+
     def linear_items(self) -> list[tuple[Variable, float]]:
         """Get all linear terms in the expression.
 
@@ -399,6 +461,34 @@ class Expression:
         3 y + 2 z + 2
         """
         return self._from_pyexpr(self._expr.substitute(target, replacement))
+
+    def filter(self, cond: Callable[[Constant | Linear | Quadratic | HigherOrder, float], bool]) -> Expression:
+        """Filter an expression based on the condition.
+
+        Parameters
+        ----------
+        cond : Callable[[Constant | Linear | Quadratic | HigherOrder, float], bool]
+            The condition for which the expression is filtered.
+
+        Returns
+        -------
+        Expression
+            New expression containing only the terms for which ``cond`` returned ``True``.
+
+        Examples
+        --------
+        >>> from luna_model import Variable, Environment, Linear
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        >>> expr = 3 * x + 2 * x * y + 5
+        >>> print(expr)
+        2 x y + 3 x + 5
+        >>> linear_only = expr.filter(lambda term, coeff: isinstance(term, Linear))
+        >>> print(linear_only)
+        3 x
+        """
+        return self._from_pyexpr(self._expr.filter(lambda item, bias: cond(wrap_expr_item(item), bias)))
 
     def evaluate(self, solution: Solution) -> NDArray:
         """Evaluate the expression using variable values from a solution.

@@ -29,9 +29,13 @@ impl HigherOrder {
         }
     }
 
-    /// Returns the number of explicitly stored contributions.
+    /// Returns the number of non-zero contributions.
+    ///
+    /// This counts exactly what [`iter`](Self::iter) and
+    /// [`iter_contrib`](Self::iter_contrib) yield; contributions that cancelled
+    /// out are still stored but are not counted.
     pub fn len(&self) -> usize {
-        self.entries.len()
+        self.iter().count()
     }
 
     /// Returns `true` if all stored contributions sum to zero.
@@ -40,8 +44,10 @@ impl HigherOrder {
     }
 
     /// Returns `true` if no effective higher-order contribution is present.
+    ///
+    /// This agrees with [`len`](Self::len) and [`iter`](Self::iter).
     pub fn is_empty(&self) -> bool {
-        self.entries.is_empty() || self.is_zero()
+        self.iter().next().is_none()
     }
 
     /// Iterates over the canonical contribution keys and their biases.

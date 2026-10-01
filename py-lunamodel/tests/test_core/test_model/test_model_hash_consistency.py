@@ -3,63 +3,63 @@ from luna_model import Bounds, Model, Unbounded, Variable, Vtype
 
 def test_hash_consistent_empty():
     model = Model()
-    assert hash(model) == -6764926841706024324
+    assert hash(model) == -5361123191640090060
 
 
 def test_hash_consistent_single_binary_var():
     model = Model()
     with model.environment:
         _ = Variable("binary_var", vtype=Vtype.BINARY)
-    assert hash(model) == -95788649977900538
+    assert hash(model) == -629307757926968461
 
 
 def test_hash_consistent_single_spin_var():
     model = Model()
     with model.environment:
         _ = Variable("spin_var", vtype=Vtype.SPIN)
-    assert hash(model) == 6343577891125936620
+    assert hash(model) == -8450188572072835349
 
 
 def test_hash_consistent_single_int_var():
     model = Model()
     with model.environment:
         _ = Variable("int_var", vtype=Vtype.INTEGER)
-    assert hash(model) == -8958269881730674195
+    assert hash(model) == 7283351642322674764
 
 
 def test_hash_consistent_single_int_var_lower_bounded():
     model = Model()
     with model.environment:
         _ = Variable("int_var", vtype=Vtype.INTEGER, bounds=Bounds(lower=10.0))
-    assert hash(model) == 4573959890164509998
+    assert hash(model) == 7283351642337752140
 
 
 def test_hash_consistent_single_int_var_upper_bounded():
     model = Model()
     with model.environment:
         _ = Variable("int_var", vtype=Vtype.INTEGER, bounds=Bounds(upper=10.0))
-    assert hash(model) == -4228195939864877612
+    assert hash(model) == -3771551934397769660
 
 
 def test_hash_consistent_single_int_var_lower_unbounded():
     model = Model()
     with model.environment:
         _ = Variable("int_var", vtype=Vtype.INTEGER, bounds=Bounds(lower=Unbounded))
-    assert hash(model) == 5838737170991716031
+    assert hash(model) == -2713218688521556423
 
 
 def test_hash_consistent_single_int_var_upper_unbounded():
     model = Model()
     with model.environment:
         _ = Variable("int_var", vtype=Vtype.INTEGER, bounds=Bounds(upper=Unbounded))
-    assert hash(model) == -8958269881730674195
+    assert hash(model) == 7283351642322674764
 
 
 def test_hash_consistent_single_int_var_lower_and_upper_bounded():
     model = Model()
     with model.environment:
         _ = Variable("int_var", vtype=Vtype.INTEGER, bounds=Bounds(lower=-10.0, upper=10.0))
-    assert hash(model) == -4436694255535605608
+    assert hash(model) == -3771551934404433852
 
 
 def test_hash_consistent_single_int_var_lower_and_upper_unbounded():
@@ -70,49 +70,49 @@ def test_hash_consistent_single_int_var_lower_and_upper_unbounded():
             vtype=Vtype.INTEGER,
             bounds=Bounds(lower=Unbounded, upper=Unbounded),
         )
-    assert hash(model) == 5838737170991716031
+    assert hash(model) == -2713218688521556423
 
 
 def test_hash_consistent_single_real_var():
     model = Model()
     with model.environment:
         _ = Variable("real_var", vtype=Vtype.REAL)
-    assert hash(model) == 7742942394472570092
+    assert hash(model) == 4938488210834836303
 
 
 def test_hash_consistent_single_real_var_lower_bounded():
     model = Model()
     with model.environment:
         _ = Variable("real_var", vtype=Vtype.REAL, bounds=Bounds(lower=10.0))
-    assert hash(model) == 6841056513532777972
+    assert hash(model) == 4938488210849913679
 
 
 def test_hash_consistent_single_real_var_upper_bounded():
     model = Model()
     with model.environment:
         _ = Variable("real_var", vtype=Vtype.REAL, bounds=Bounds(upper=10.0))
-    assert hash(model) == 8450503522538091119
+    assert hash(model) == 8239708645170389570
 
 
 def test_hash_consistent_single_real_var_lower_unbounded():
     model = Model()
     with model.environment:
         _ = Variable("real_var", vtype=Vtype.REAL, bounds=Bounds(lower=Unbounded))
-    assert hash(model) == -3447754871946809282
+    assert hash(model) == 4037386132776070660
 
 
 def test_hash_consistent_single_real_var_upper_unbounded():
     model = Model()
     with model.environment:
         _ = Variable("real_var", vtype=Vtype.REAL, bounds=Bounds(upper=Unbounded))
-    assert hash(model) == 7742942394472570092
+    assert hash(model) == 4938488210834836303
 
 
 def test_hash_consistent_single_real_var_lower_and_upper_bounded():
     model = Model()
     with model.environment:
         _ = Variable("real_var", vtype=Vtype.REAL, bounds=Bounds(lower=-10.0, upper=10.0))
-    assert hash(model) == 9015731630494461160
+    assert hash(model) == 8239708645230834242
 
 
 def test_hash_consistent_single_real_var_lower_and_upper_unbounded():
@@ -123,7 +123,7 @@ def test_hash_consistent_single_real_var_lower_and_upper_unbounded():
             vtype=Vtype.REAL,
             bounds=Bounds(lower=Unbounded, upper=Unbounded),
         )
-    assert hash(model) == -3447754871946809282
+    assert hash(model) == 4037386132776070660
 
 
 def test_hash_consistent_all_vars():
@@ -133,7 +133,7 @@ def test_hash_consistent_all_vars():
         _ = Variable("spin_var", vtype=Vtype.SPIN)
         _ = Variable("int_var", vtype=Vtype.INTEGER)
         _ = Variable("real_var", vtype=Vtype.REAL)
-    assert hash(model) == -3164785540861143317
+    assert hash(model) == 5499398583564757907
 
 
 def test_hash_consistent_all_vars_2():
@@ -163,13 +163,13 @@ def test_hash_consistent_all_vars_2():
             vtype=Vtype.REAL,
             bounds=Bounds(lower=Unbounded, upper=Unbounded),
         )
-    assert hash(model) == 4557796912099728127
+    assert hash(model) == 3342111566919985180
 
 
 def test_hash_consistent_objective_offset():
     model = Model()
     model.objective += 1
-    assert hash(model) == 3483826857191946563
+    assert hash(model) == -5361123191606027724
 
 
 def test_hash_consistent_objective_linear():
@@ -180,7 +180,7 @@ def test_hash_consistent_objective_linear():
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b + s + i + r
-    assert hash(model) == 6363289082320142358
+    assert hash(model) == 6615781558633943880
 
 
 def test_hash_consistent_objective_linear_and_offset():
@@ -191,7 +191,7 @@ def test_hash_consistent_objective_linear_and_offset():
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b * s + i * r + 2
-    assert hash(model) == 5608975169706928584
+    assert hash(model) == 5837237755279088318
 
 
 def test_hash_consistent_objective_quadratic():
@@ -202,7 +202,7 @@ def test_hash_consistent_objective_quadratic():
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b * s + i * r
-    assert hash(model) == 433363269166188437
+    assert hash(model) == 5837237755329419966
 
 
 def test_hash_consistent_objective_quadratic_and_offset():
@@ -213,7 +213,7 @@ def test_hash_consistent_objective_quadratic_and_offset():
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b * s + i * r + 0.3
-    assert hash(model) == 4544268381992336264
+    assert hash(model) == -3663462329736437569
 
 
 def test_hash_consistent_objective_quadratic_and_linear():
@@ -224,7 +224,7 @@ def test_hash_consistent_objective_quadratic_and_linear():
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b + s + b * s + i * r
-    assert hash(model) == 5364119472507982273
+    assert hash(model) == -5154785984214303133
 
 
 def test_hash_consistent_objective_quadratic_and_linear_and_offset():
@@ -235,7 +235,7 @@ def test_hash_consistent_objective_quadratic_and_linear_and_offset():
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b + s + b * s + i * r + 5
-    assert hash(model) == -32155725510190987
+    assert hash(model) == -5154785984179810717
 
 
 def test_hash_consistent_objective_higher_order():
@@ -246,7 +246,7 @@ def test_hash_consistent_objective_higher_order():
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b * s * i * r
-    assert hash(model) == -4191112908358922148
+    assert hash(model) == 5657157430976191603
 
 
 def test_hash_consistent_objective_higher_order_and_offset():
@@ -257,7 +257,7 @@ def test_hash_consistent_objective_higher_order_and_offset():
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b * s * i * r + b + r + 3
-    assert hash(model) == 8249320863959553314
+    assert hash(model) == -2561585827113835511
 
 
 def test_hash_consistent_objective_higher_order_and_linear():
@@ -268,7 +268,7 @@ def test_hash_consistent_objective_higher_order_and_linear():
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b * s * i * r + b + r
-    assert hash(model) == 8308547375585881025
+    assert hash(model) == -2561585827070589943
 
 
 def test_hash_consistent_objective_higher_order_and_linear_and_offset():
@@ -279,7 +279,7 @@ def test_hash_consistent_objective_higher_order_and_linear_and_offset():
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b * s * i * r + b + r - 2.2
-    assert hash(model) == -2744868664427448763
+    assert hash(model) == 5999301889912940931
 
 
 def test_hash_consistent_objective_higher_order_and_quadratic():
@@ -290,7 +290,7 @@ def test_hash_consistent_objective_higher_order_and_quadratic():
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b * s * i * r + b * r
-    assert hash(model) == -5780463137948665038
+    assert hash(model) == -2035595686005907023
 
 
 def test_hash_consistent_objective_higher_order_and_quadratic_and_offset():
@@ -301,7 +301,7 @@ def test_hash_consistent_objective_higher_order_and_quadratic_and_offset():
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b * s * i * r + b * r + 2.2
-    assert hash(model) == -8850221839304271589
+    assert hash(model) == 1394189610978789407
 
 
 def test_hash_consistent_objective_higher_order_and_linear_and_quadratic_and_offset():
@@ -312,7 +312,7 @@ def test_hash_consistent_objective_higher_order_and_linear_and_quadratic_and_off
         i = Variable("int_var", vtype=Vtype.INTEGER)
         r = Variable("real_var", vtype=Vtype.REAL)
     model.objective += b * s * i * r + b * r + 2.2 + s
-    assert hash(model) == 6909893265384172710
+    assert hash(model) == 7583378794129815625
 
 
 def test_hash_consistent_full_old():
@@ -340,4 +340,4 @@ def test_hash_consistent_full():
     model.constraints += b * s <= 3, "constraint named"
     model.constraints += s * i >= 2
     model.constraints += b - r + i == 2
-    assert hash(model) == -6467512093433223330
+    assert hash(model) == -2882223103470356936

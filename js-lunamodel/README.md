@@ -22,10 +22,20 @@ npm install @aqarios/luna-model
 bun add @aqarios/luna-model
 ```
 
-The default package ships a native Node addon with prebuilt binaries for Linux, macOS, and
-Windows on `x86_64` and `aarch64`. A WebAssembly variant,
-`@aqarios/luna-model-wasm32-wasi`, is also available for sandboxed runtimes and the browser,
-where a native addon cannot be loaded.
+Prebuilt native addons are published for Linux, macOS, and Windows on `x86_64` and
+`aarch64`. They are declared as optional dependencies, so your package manager downloads
+only the one matching the host.
+
+A WebAssembly variant, `@aqarios/luna-model-wasm32-wasi`, is published for sandboxed
+runtimes and the browser, where a native addon cannot be loaded. It is not installed by
+default:
+
+```sh
+npm install @aqarios/luna-model-wasm32-wasi
+```
+
+Once installed it is picked up automatically: `@aqarios/luna-model` falls back to it when
+no native addon can be loaded.
 
 ## Usage
 

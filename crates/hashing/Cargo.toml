@@ -13,5 +13,4 @@ repository.workspace = true
 lunamodel-core = { workspace = true }
 lunamodel-types = { workspace = true }
 
-prost = { workspace = true }
-itertools = { workspace = true }
+rustc-hash = { workspace = true }

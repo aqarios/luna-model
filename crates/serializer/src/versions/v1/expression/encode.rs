@@ -60,15 +60,21 @@ impl SerExpression {
         if let Some(q) = &expr.quadratic {
             *qs = q.len() as u32;
             for (u, n) in q.iter() {
-                if n.is_empty() {
-                    continue;
-                }
-                qni.push(u);
-                qnl.push(n.len() as u32);
+                // Deriving the emitted length from what was actually pushed keeps
+                // `qnl` in lockstep with `qn`/`qnv` no matter how the neighborhood
+                // counts explicitly stored zero biases. Decoding walks `qn` using
+                // these lengths, so any drift here panics on the decode side.
+                let before = qn.len();
                 for (v, b) in n.iter() {
                     qn.push(v);
                     qnv.push(b);
                 }
+                let len = qn.len() - before;
+                if len == 0 {
+                    continue;
+                }
+                qni.push(u);
+                qnl.push(len as u32);
             }
         }
     }

@@ -10,6 +10,8 @@ mod neg;
 mod pow;
 mod sub;
 
+mod derivative;
 mod eval;
+mod filter;
 mod separate;
 mod substitute;

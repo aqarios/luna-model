@@ -5,6 +5,7 @@ use lunamodel_types::Comparator;
 use prost::Message;
 
 use crate::encode::{BytesEncodable, Encodable};
+use crate::versionize::Versionizable;
 
 use super::SerConstraintCollection;
 
@@ -19,7 +20,7 @@ impl SerConstraintCollection {
     /// Fills the protobuf structure from the runtime constraint collection.
     pub fn fill(mut self, cc: &ConstraintCollection) -> Self {
         for (_, c) in cc.iter() {
-            let lhs_bytes = c.lhs.serialize();
+            let lhs_bytes = c.lhs.serialize().versionize_nested(c.lhs.version());
             let cmp = match c.comparator {
                 Comparator::Le => 0,
                 Comparator::Eq => 1,

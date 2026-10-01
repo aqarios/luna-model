@@ -1,41 +1,28 @@
-//! Hash encoding for models.
+//! Deterministic hashing for models.
+
+use std::hash::Hasher;
 
 use lunamodel_core::Model;
-use prost::Message;
+use lunamodel_types::Sense;
 
-use super::constr::HashConstr;
-use super::env::HashEnv;
-use super::expr::HashExpr;
+use crate::constr::hash_constr;
+use crate::env::hash_env;
+use crate::expr::hash_expr;
+use crate::util::write_bytes;
 
-#[derive(Clone, PartialEq, Message)]
-pub struct HashModel {
-    /// Representation of the objective as a byte vector, i.e. an encoded Expression.
-    #[prost(bytes, tag = "1")]
-    pub objective: Vec<u8>,
-    /// Representation of the constraints as a byte vector, i.e. an encoded Constraints.
-    #[prost(bytes, tag = "2")]
-    pub constraints: Vec<u8>,
-    /// Representation of the environment as a byte vector, i.e., an encoded Environment.
-    #[prost(bytes, tag = "3")]
-    pub environment: Vec<u8>,
-    /// The name of the model.
-    #[prost(string, tag = "4")]
-    pub name: String,
-    /// The sense of the model.
-    #[prost(string, tag = "5")]
-    pub sense: String,
-}
+/// Hashes a model's semantic content into `h`.
+pub fn hash_model(model: &Model, h: &mut impl Hasher) {
+    h.write(b"model");
 
-impl HashModel {
-    /// Encodes a model into the hashing representation.
-    pub fn build(model: &Model) -> Vec<u8> {
-        let m = HashModel {
-            objective: HashExpr::build(&model.objective),
-            constraints: HashConstr::build(&model.constraints),
-            environment: HashEnv::build(&model.environment),
-            sense: model.sense.to_string(),
-            name: model.name.clone(),
-        };
-        m.encode_to_vec()
-    }
+    write_bytes(h, model.name.as_bytes());
+
+    let sense_tag: u8 = match model.sense {
+        Sense::Min => 0,
+        Sense::Max => 1,
+    };
+    h.write_u8(sense_tag);
+
+    hash_expr(&model.objective, h);
+    hash_constr(&model.constraints, h);
+    hash_env(&model.environment, h);
 }

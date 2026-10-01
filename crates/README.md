@@ -33,5 +33,5 @@ keep the workspace layout concise.
 | `lunamodel-unwind` | Converts Rust panics into LunaModel errors across the FFI boundary. |
 | `lunamodel-utils` | Shared utility helpers. |
 
-The Python integration is provided through [`rs-lunamodel`](../pyo3-lunamodel/), which
+The Python integration is provided through [`rs-lunamodel`](../rs-lunamodel/), which
 implements the FFI between these crates and the LunaModel Python library.

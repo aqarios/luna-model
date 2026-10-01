@@ -33,7 +33,7 @@ impl Decodable<Model> for Versioned<Vec<u8>> {
     fn decode(&self, payload: Self::Payload) -> LunaModelResult<Model> {
         match self.version {
             Some(Version::V0) => SerModelV0::decoder(self.data.as_slice(), payload),
-            _ => SerModelLatest::decoder(self.data.as_slice(), payload),
+            _ => SerModelV0::decoder(self.data.as_slice(), payload),
         }
     }
 }
