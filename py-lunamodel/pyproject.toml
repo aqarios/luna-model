@@ -107,6 +107,8 @@ dev = [
     "auditwheel>=6.8.0",
     "gurobipy>=13.0.2",
     "jupyter>=1.1.1",
+    "jupyterlab>=4.6.2",
+    "notebook>=7.6.3",
     "pytest-xdist>=3.8.0",
 ]
 docs = [
