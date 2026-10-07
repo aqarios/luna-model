@@ -19,6 +19,7 @@ from luna_model.translator.model import (
     MpsTranslator,
     QiskitOptMapperTranslator,
     QuboTranslator,
+    SparseObservableTranslator,
 )
 from luna_model.translator.model.qubo import Qubo
 from luna_model.translator.solution import (
@@ -43,5 +44,6 @@ __all__ = [
     "QiskitOptMapperTranslator",
     "Qubo",
     "QuboTranslator",
+    "SparseObservableTranslator",
     "ZibTranslator",
 ]

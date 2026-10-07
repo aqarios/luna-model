@@ -575,6 +575,7 @@ dependencies = [
  "parking_lot 0.12.5",
  "pyo3",
  "rand",
+ "smallvec",
  "sqids",
  "strum",
  "strum_macros",

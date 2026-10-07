@@ -17,4 +17,6 @@ pub enum TranslationTarget {
     Cqm,
     /// Qiskit OptimizationProblem representation.
     OptMapper,
+    /// Qiskit SparseObservable representation.
+    SparseObservable,
 }

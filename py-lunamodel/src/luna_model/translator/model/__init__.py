@@ -18,6 +18,7 @@ from luna_model.translator.model.lp import LpTranslator
 from luna_model.translator.model.mps import MpsTranslator
 from luna_model.translator.model.optmapper import QiskitOptMapperTranslator
 from luna_model.translator.model.qubo import QuboTranslator
+from luna_model.translator.model.sparse_observable import SparseObservableTranslator
 
 __all__ = [
     "BqmTranslator",
@@ -26,4 +27,5 @@ __all__ = [
     "MpsTranslator",
     "QiskitOptMapperTranslator",
     "QuboTranslator",
+    "SparseObservableTranslator",
 ]
