@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from qiskit.quantum_info import SparseObservable
 
-from luna_model import Model, Sense, Vtype
+from luna_model import Model, Sense, TranslationTarget, Vtype
 from luna_model.errors import (
     ModelNotUnconstrainedError,
     ModelSenseNotMinimizeError,
@@ -141,3 +141,9 @@ def test_from_lm_dense_quadratic(n: int) -> None:
         s = np.array([1 - 2 * ((basis >> i) & 1) for i in range(n)])
         value = h @ s + sum(j[a, b] * s[a] * s[b] for a, b in itertools.combinations(range(n), 2))
         assert np.isclose(diag[basis], value)
+
+
+def test_model_to_sparse_observable(model: Model) -> None:
+    obs = model.to(TranslationTarget.SPARSE_OBSERVABLE)
+    assert isinstance(obs, SparseObservable)
+    assert (obs - SparseObservableTranslator.from_lm(model)).simplify().num_terms == 0

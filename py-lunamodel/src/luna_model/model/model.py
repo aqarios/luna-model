@@ -36,6 +36,7 @@ if TYPE_CHECKING:
 
     from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel
     from numpy.typing import NDArray
+    from qiskit.quantum_info import SparseObservable
     from qiskit_addon_opt_mapper import OptimizationProblem
 
     from luna_model.constraint.collection import ConstraintCollection
@@ -1148,16 +1149,18 @@ class Model:
     @overload
     def to(self, target: Literal[TranslationTarget.OPT_MAPPER]) -> OptimizationProblem: ...
     @overload
+    def to(self, target: Literal[TranslationTarget.SPARSE_OBSERVABLE]) -> SparseObservable: ...
+    @overload
     def to(self, target: Literal[TranslationTarget.CQM]) -> ConstrainedQuadraticModel: ...
     @overload
     def to(self, target: Literal[TranslationTarget.BQM]) -> BinaryQuadraticModel: ...
     @overload
     def to(self, target: Literal[TranslationTarget.QUBO]) -> Qubo: ...
-    def to(
+    def to(  # noqa: PLR0911
         self,
         target: TranslationTarget,
         filepath: Path | None = None,
-    ) -> Qubo | str | BinaryQuadraticModel | ConstrainedQuadraticModel | None:
+    ) -> Qubo | str | BinaryQuadraticModel | ConstrainedQuadraticModel | OptimizationProblem | SparseObservable | None:
         """Translate model to target."""
         if target not in (TranslationTarget.LP, TranslationTarget.MPS) and filepath is not None:
             msg = "filepath can only be used with target 'LP' and 'MPS'"
@@ -1187,6 +1190,10 @@ class Model:
                 from luna_model.translator.model.optmapper import QiskitOptMapperTranslator  # noqa: PLC0415
 
                 return QiskitOptMapperTranslator.from_lm(self)
+            case TranslationTarget.SPARSE_OBSERVABLE:
+                from luna_model.translator.model.sparse_observable import SparseObservableTranslator  # noqa: PLC0415
+
+                return SparseObservableTranslator.from_lm(self)
 
     def equal_contents(self, other: Model) -> bool:
         """Check whether two models have equal *contents*.
