@@ -124,7 +124,7 @@ impl Expression {
     /// Iterates over higher-order contributions.
     pub fn higher_order_items(&self) -> impl Iterator<Item = (Vec<VarRef>, Bias)> {
         self.higher_order.iter().flat_map(|q| {
-            q.iter_contrib().map(|(vars, b)| {
+            q.iter().map(|(vars, b)| {
                 (
                     vars.iter()
                         .map(|&u| VarRef::new(u, self.env.clone()))
@@ -136,8 +136,8 @@ impl Expression {
     }
 
     /// Iterates over raw higher-order storage without wrapping variable indices.
-    pub fn raw_higher_order_items(&self) -> impl Iterator<Item = (Vec<u32>, Bias)> {
-        self.higher_order.iter().flat_map(|q| q.iter_contrib())
+    pub fn raw_higher_order_items(&self) -> impl Iterator<Item = (&[u32], Bias)> {
+        self.higher_order.iter().flat_map(|q| q.iter())
     }
 
     /// Returns the algebraic degree of the expression.
