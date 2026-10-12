@@ -115,7 +115,8 @@ mod tests {
         // Interning must hand out the same pointer for repeated lookups so the
         // name outlives every capsule and is never leaked more than once.
         let base = c"builtins.capsule.PyBounds";
-        assert_eq!(capsule_name(base), base);
+        let expected = versioned_name(CAPSULE_ABI, base);
+        assert_eq!(capsule_name(base), expected.as_deref().unwrap_or(base));
         assert!(std::ptr::eq(capsule_name(base), capsule_name(base)));
     }
 }
