@@ -1601,11 +1601,11 @@ MIT License (MIT)
 ================================================================================
 
 Applies to the following dependencies:
-  * napi-build 2.5.0
+  * napi-build 2.6.0
   * napi-derive-backend 6.1.4
-  * napi-derive 3.6.9
+  * napi-derive 3.6.10
   * napi-sys 3.3.2
-  * napi 3.12.7
+  * napi 3.13.0
   * r-efi 5.3.0
   * r-efi 6.0.0
   * winapi-i686-pc-windows-gnu 0.4.0
