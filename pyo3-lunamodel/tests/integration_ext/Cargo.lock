@@ -13,9 +13,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.102"
+version = "1.0.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
+checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "autocfg"
@@ -128,7 +128,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "strsim",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -141,7 +141,7 @@ dependencies = [
  "ident_case",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -152,7 +152,7 @@ checksum = "fc34b93ccb385b40dc71c6fceac4b2ad23662c7eeb248cf10d529b7e055b6ead"
 dependencies = [
  "darling_core 0.20.11",
  "quote",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -163,7 +163,7 @@ checksum = "d38308df82d1080de0afee5d069fa14b0326a88c14f15c5ccda35b4a6c414c81"
 dependencies = [
  "darling_core 0.21.3",
  "quote",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -190,7 +190,7 @@ dependencies = [
  "darling 0.20.11",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -200,7 +200,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab63b0e2bf4d5928aff72e83a7dace85d7bba5fe12dcc3c5a572d78caffd3f3c"
 dependencies = [
  "derive_builder_core",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -221,7 +221,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rustc_version",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -248,7 +248,7 @@ dependencies = [
  "darling 0.21.3",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -441,7 +441,7 @@ dependencies = [
 
 [[package]]
 name = "luna-model"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "lunamodel-core",
  "lunamodel-error",
@@ -454,7 +454,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-core"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "bitvec",
  "derive_more",
@@ -470,6 +470,7 @@ dependencies = [
  "parking_lot 0.12.5",
  "pyo3",
  "rand",
+ "smallvec",
  "sqids",
  "strum",
  "strum_macros",
@@ -478,7 +479,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-error"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "prost",
  "pyo3",
@@ -488,17 +489,16 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-hashing"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
- "itertools 0.15.0",
  "lunamodel-core",
  "lunamodel-types",
- "prost",
+ "rustc-hash",
 ]
 
 [[package]]
 name = "lunamodel-io"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "indexmap",
  "lunamodel-core",
@@ -514,7 +514,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-python"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "derive_more",
  "indexmap",
@@ -539,16 +539,16 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-python-macros"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 3.0.8",
 ]
 
 [[package]]
 name = "lunamodel-serializer"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "bitvec",
  "indexmap",
@@ -565,8 +565,9 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transform"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
+ "anyhow",
  "derive_more",
  "lunamodel-core",
  "lunamodel-error",
@@ -584,7 +585,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-translate"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "indexmap",
  "lunamodel-core",
@@ -597,8 +598,9 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
+ "anyhow",
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-transpiler-macros",
@@ -607,16 +609,16 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler-macros"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 3.0.8",
 ]
 
 [[package]]
 name = "lunamodel-types"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "derive_more",
  "enumset",
@@ -629,7 +631,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwind"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "lunamodel-unwindable",
  "lunamodel-unwinder",
@@ -637,16 +639,16 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwindable"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 3.0.8",
 ]
 
 [[package]]
 name = "lunamodel-unwinder"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "lunamodel-error",
  "pyo3",
@@ -654,7 +656,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "lunamodel-error",
  "num",
@@ -911,7 +913,7 @@ dependencies = [
  "itertools 0.14.0",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -951,7 +953,7 @@ dependencies = [
 
 [[package]]
 name = "pyo3-lunamodel"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "derive_more",
  "luna-model",
@@ -976,7 +978,7 @@ dependencies = [
  "proc-macro2",
  "pyo3-macros-backend",
  "quote",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -988,7 +990,7 @@ dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -1147,7 +1149,7 @@ checksum = "d540f220d3187173da220f885ab66608367b6574e925011a9353e4badda91d79"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -1177,9 +1179,9 @@ checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 
 [[package]]
 name = "smallvec"
-version = "1.15.1"
+version = "1.16.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
+checksum = "5b3dc8af474f516a851ff4bd12db780f948b9250ad37211e4eec0bccea54e01b"
 
 [[package]]
 name = "sqids"
@@ -1214,7 +1216,7 @@ dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -1222,6 +1224,17 @@ name = "syn"
 version = "2.0.117"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e665b8803e7b1d2a727f4023456bbbbe74da67099c585258af0ad9c5013b9b99"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
+]
+
+[[package]]
+name = "syn"
+version = "3.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01016da373cd8f7ef12624f796309f5c31ba8d646dd08856c02cd741d823c622"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1257,7 +1270,7 @@ checksum = "ebc4ee7f67670e9b64d05fa4253e753e016c6c95ff35b89b7941d6b856dec1d5"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -1354,7 +1367,7 @@ dependencies = [
  "bumpalo",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.117",
  "wasm-bindgen-shared",
 ]
 
@@ -1418,27 +1431,27 @@ checksum = "b8848ee67ecc8aedbaf3e4122217aff892639231befc6a1b58d29fff4c2cabaa"
 
 [[package]]
 name = "zstd"
-version = "0.13.3"
+version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e91ee311a569c327171651566e07972200e76fcfe2242a4fa446149a3881c08a"
+checksum = "057cfd910cfac363a0ada849592624b4c9ff2e10bef504c3433810d78ed96f93"
 dependencies = [
  "zstd-safe",
 ]
 
 [[package]]
 name = "zstd-safe"
-version = "7.2.4"
+version = "8.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f49c4d5f0abb602a93fb8736af2a4f4dd9512e36f7f570d66e65ff867ed3b9d"
+checksum = "bdd44c6a7284e91f3717755b24315a302edd9153a01f753c3cba3d765e8eafac"
 dependencies = [
  "zstd-sys",
 ]
 
 [[package]]
 name = "zstd-sys"
-version = "2.0.16+zstd.1.5.7"
+version = "2.1.1+zstd.1.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91e19ebc2adc8f83e43039e79776e3fda8ca919132d68a1fed6a5faca2683748"
+checksum = "aeec9eaf2dffbbd09201e23bd0ffcbaa33bb8e9266a10734fd7ed90a85eca078"
 dependencies = [
  "cc",
  "pkg-config",

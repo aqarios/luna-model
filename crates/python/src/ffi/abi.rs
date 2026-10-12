@@ -37,7 +37,7 @@ use std::sync::{LazyLock, Mutex};
 ///
 /// See the [module documentation](self) for the meaning of this number and the
 /// rule for when to bump it.
-pub const CAPSULE_ABI: u32 = 1;
+pub const CAPSULE_ABI: u32 = 2;
 
 /// Resolves the stable per-type capsule base name to the `'static` name used on
 /// the wire for the current [`CAPSULE_ABI`].
