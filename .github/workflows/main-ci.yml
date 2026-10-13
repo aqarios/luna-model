@@ -97,7 +97,7 @@ jobs:
       contents: write
     steps:
       - name: Download wheels
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           path: dist
           pattern: wheel-*
