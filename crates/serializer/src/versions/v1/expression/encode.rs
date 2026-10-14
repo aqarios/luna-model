@@ -89,10 +89,10 @@ impl SerExpression {
     ) {
         if let Some(h) = &expr.higher_order {
             *hs = h.len() as u32;
-            for (mut vs, b) in h.iter_contrib() {
+            for (vs, b) in h.iter() {
                 hv.push(b);
                 hl.push(vs.len() as u32);
-                hi.append(&mut vs);
+                hi.extend_from_slice(vs);
             }
         }
     }

@@ -19,17 +19,26 @@ Run all commands from `pyo3-lunamodel/tests/`.
 
 ## Run tests against the local `py-lunamodel`
 
-Uses an editable install of `../../py-lunamodel`:
+This is the default (`default-groups = ["local"]`). It builds and installs
+`../../py-lunamodel`:
 
 ```bash
-uv run --group local pytest integration_ext/pytests
+uv run pytest integration_ext/pytests
 ```
 
 ## Run tests against the published `lunamodel` on PyPI
 
 ```bash
-uv run --group pypi pytest integration_ext/pytests
+uv run --no-default-groups --group pypi pytest integration_ext/pytests
 ```
+
+`--no-default-groups` is required: `local` is enabled by default and conflicts
+with `pypi`.
+
+The extension itself is always compiled from the local Rust crates
+(`integration_ext/Cargo.toml` uses path dependencies); the group only selects
+which `luna_model` host it runs against. That is what makes this a check of
+whether the published host is compatible with the current extension code.
 
 The minimum version is pinned in `pyproject.toml` under
 `[dependency-groups] pypi`. Bump it there when a new release should be
@@ -38,7 +47,7 @@ exercised.
 ## Pinning the Python version
 
 ```bash
-uv run -p 3.14 --group local pytest integration_ext/pytests
+uv run -p 3.14 pytest integration_ext/pytests
 ```
 
 ## Forcing a rebuild of the extension
@@ -47,10 +56,12 @@ After Rust changes in `pyo3-lunamodel/` or `integration_ext/`, uv may reuse
 the cached wheel. Force a rebuild with:
 
 ```bash
-uv sync --group local --reinstall-package pyo3-lunamodel-integration-ext
+uv sync --reinstall-package pyo3-lunamodel-integration-ext
 ```
 
-(Swap `--group pypi` as needed.)
+`py-lunamodel` is installed non-editable, so after changes there add
+`--reinstall-package luna-model` as well. (Use `--no-default-groups --group pypi`
+for the PyPI variant.)
 
 ## How it's wired
 
@@ -58,7 +69,13 @@ uv sync --group local --reinstall-package pyo3-lunamodel-integration-ext
   publishable distribution.
 - `conflicts = [[{group = "local"}, {group = "pypi"}]]` — uv refuses to
   resolve both groups together, keeping the lockfile coherent.
-- `[tool.uv.sources]` maps `lunamodel` to the local path **only** under
-  `--group local`; otherwise it resolves from PyPI.
+- `default-groups = ["local"]` makes the local host the default.
+- `[tool.uv.sources]` maps `luna-model` to the local path **only** under
+  the `local` group; otherwise it resolves from PyPI. `integration_ext` must
+  not declare its own source for `luna-model`, or it would override the group
+  selection.
+- `pytests/test_layout.py` reads and computes on host objects in Rust. The
+  `roundtrip_*` tests only pass the `Arc` back and cannot detect layout
+  mismatches.
 - `pyo3-lunamodel-integration-ext` is a path source built via PEP 517
   (maturin) on `uv sync` / `uv run`.

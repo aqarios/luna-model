@@ -3,21 +3,26 @@
 use std::ops::{AddAssign, Index, IndexMut, Mul, MulAssign, Neg};
 
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
+use smallvec::SmallVec;
 use std::collections::HashMap;
 
 use crate::traits::Editable;
 
-static SEP: &str = "-";
+/// Canonical (sorted) variable tuple of a higher-order contribution.
+///
+/// Up to four indices are stored inline, so typical HUBO terms need no heap
+/// allocation for their key.
+type Key = SmallVec<[VarIdx; 4]>;
 
 /// Sparse storage for higher-order expression contributions.
 ///
-/// Contributions are keyed by a canonicalized string representation of the
-/// participating variable indices. This is less specialized than the linear and
-/// quadratic storage, but it keeps arbitrary-degree terms straightforward to
-/// insert, combine, and serialize.
+/// Contributions are keyed by the sorted tuple of participating variable
+/// indices. This is less specialized than the linear and quadratic storage,
+/// but it keeps arbitrary-degree terms straightforward to insert, combine, and
+/// serialize.
 #[derive(Default, Debug, Clone)]
 pub struct HigherOrder {
-    entries: HashMap<String, Bias>,
+    entries: HashMap<Key, Bias>,
 }
 impl Editable for HigherOrder {}
 
@@ -50,29 +55,31 @@ impl HigherOrder {
         self.iter().next().is_none()
     }
 
-    /// Iterates over the canonical contribution keys and their biases.
-    pub fn iter(&self) -> impl Iterator<Item = (&String, Bias)> {
+    /// Iterates over the sorted variable tuples and their biases.
+    pub fn iter(&self) -> impl Iterator<Item = (&[VarIdx], Bias)> {
         self.entries
             .iter()
             .filter_map(|(k, b)| match *b != Bias::default() {
-                true => Some((k, *b)),
+                true => Some((k.as_slice(), *b)),
                 false => None,
             })
     }
 
-    /// Iterates mutably over the canonical contribution keys and their biases.
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = (&String, &mut Bias)> {
+    /// Iterates mutably over the sorted variable tuples and their biases.
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (&[VarIdx], &mut Bias)> {
         self.entries
             .iter_mut()
             .filter_map(|(k, b)| match *b != Bias::default() {
-                true => Some((k, b)),
+                true => Some((k.as_slice(), b)),
                 false => None,
             })
     }
 
-    /// Iterates over decoded variable tuples and their biases.
+    /// Iterates over owned variable tuples and their biases.
+    ///
+    /// Prefer [`iter`](Self::iter) when the tuple does not need to be modified.
     pub fn iter_contrib(&self) -> impl Iterator<Item = (Vec<VarIdx>, Bias)> {
-        self.iter().map(|(k, b)| (contribs(k), b))
+        self.iter().map(|(k, b)| (k.to_vec(), b))
     }
 
     /// Removes explicitly stored zero contributions.
@@ -82,7 +89,7 @@ impl HigherOrder {
 
     /// Returns the maximum contribution arity.
     pub fn degree(&self) -> usize {
-        self.iter_contrib().map(|(k, _)| k.len()).max().unwrap()
+        self.iter().map(|(k, _)| k.len()).max().unwrap()
     }
 }
 
@@ -114,33 +121,18 @@ impl Index<&[VarIdx]> for HigherOrder {
 
     /// Looks up a contribution by variable tuple, defaulting to zero when absent.
     fn index(&self, index: &[VarIdx]) -> &Self::Output {
-        &self[&key(index.to_vec())]
+        let found = match index.is_sorted() {
+            true => self.entries.get(index),
+            false => self.entries.get(key(index).as_slice()),
+        };
+        found.unwrap_or(&DEFAULT_BIAS)
     }
 }
 
 impl IndexMut<&[VarIdx]> for HigherOrder {
     /// Returns mutable access to a contribution by variable tuple.
     fn index_mut(&mut self, index: &[VarIdx]) -> &mut Self::Output {
-        &mut self[&key(index.to_vec())]
-    }
-}
-
-impl Index<&String> for HigherOrder {
-    type Output = Bias;
-
-    /// Looks up a contribution by canonical string key.
-    fn index(&self, index: &String) -> &Self::Output {
-        self.entries.get(index).unwrap_or_else(|| &DEFAULT_BIAS)
-    }
-}
-
-impl IndexMut<&String> for HigherOrder {
-    /// Returns mutable access to a contribution by canonical string key.
-    fn index_mut(&mut self, index: &String) -> &mut Self::Output {
-        if !self.entries.contains_key(index) {
-            self.entries.insert(index.clone(), Bias::default());
-        }
-        self.entries.get_mut(index).unwrap()
+        self.entries.entry(key(index)).or_default()
     }
 }
 
@@ -158,32 +150,16 @@ impl Neg for HigherOrder {
 impl PartialEq for HigherOrder {
     /// Compares storages while treating implicit and explicit zeros equally.
     fn eq(&self, other: &Self) -> bool {
-        let mut all: Vec<_> = self.entries.keys().collect();
-        all.append(&mut other.entries.keys().collect());
-        for &k in all.iter() {
-            if self[k] != other[k] {
-                return false;
-            }
-        }
-        true
+        self.entries.iter().all(|(k, b)| *b == other[k.as_slice()])
+            && other.entries.iter().all(|(k, b)| *b == self[k.as_slice()])
     }
 }
 
-/// Decodes the canonical string key back into variable indices.
-fn contribs(str: &str) -> Vec<VarIdx> {
-    str.split(SEP)
-        .map(|s| s.parse::<VarIdx>().unwrap())
-        .collect()
-}
-
 /// Canonicalizes a variable tuple into the internal key representation.
-fn key(mut indices: Vec<VarIdx>) -> String {
-    indices.sort();
-    indices
-        .into_iter()
-        .map(|i| i.to_string())
-        .collect::<Vec<String>>()
-        .join(SEP)
+fn key(indices: &[VarIdx]) -> Key {
+    let mut key = Key::from_slice(indices);
+    key.sort_unstable();
+    key
 }
 
 impl AddAssign<&HigherOrder> for HigherOrder {

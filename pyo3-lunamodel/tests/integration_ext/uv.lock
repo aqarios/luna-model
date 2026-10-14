@@ -33,8 +33,8 @@ requires-dist = [
     { name = "dimod", marker = "extra == 'dimod'", specifier = ">=0.12.22" },
     { name = "numpy", specifier = ">=1.21.0" },
     { name = "pyscipopt", marker = "extra == 'scip'", specifier = ">=6.2.1" },
-    { name = "qiskit", marker = "extra == 'qiskit'", specifier = ">=2.1.2" },
-    { name = "qiskit-optimization", marker = "extra == 'qiskit'", specifier = ">=0.6.1" },
+    { name = "qiskit", marker = "extra == 'qiskit'", specifier = ">=2.5.2" },
+    { name = "qiskit-addon-opt-mapper", marker = "extra == 'qiskit'", specifier = ">=0.1.0" },
     { name = "typing-extensions", marker = "python_full_version < '3.13'", specifier = ">=4.15.0" },
 ]
 provides-extras = ["dimod", "qiskit", "scip"]
@@ -42,32 +42,35 @@ provides-extras = ["dimod", "qiskit", "scip"]
 [package.metadata.requires-dev]
 build = [{ name = "maturin", extras = ["zig"], specifier = ">=1.14.1" }]
 dev = [
-    { name = "auditwheel", specifier = ">=6.7.0" },
+    { name = "auditwheel", specifier = ">=6.8.0" },
     { name = "dimod", specifier = ">=0.12.22" },
     { name = "docplex", specifier = ">=2.30.251" },
     { name = "gurobipy", specifier = ">=13.0.2" },
     { name = "gurobipy", marker = "python_full_version < '3.14'", specifier = ">=13.0.0" },
-    { name = "ipython", specifier = ">=9.14.1" },
+    { name = "ipython", specifier = ">=9.16.1" },
     { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "mypy", specifier = ">=2.1.0" },
+    { name = "jupyterlab", specifier = ">=4.6.2" },
+    { name = "mypy", specifier = ">=2.3.0" },
+    { name = "notebook", specifier = ">=7.6.3" },
     { name = "numpy", specifier = ">=2.4.6" },
-    { name = "pre-commit", specifier = ">=4.5.0" },
+    { name = "pre-commit", specifier = ">=4.6.2" },
     { name = "pyscipopt", specifier = ">=6.2.1" },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-xdist", specifier = ">=3.8.0" },
-    { name = "qiskit", specifier = ">=2.1.2" },
+    { name = "qiskit", specifier = ">=2.5.2" },
+    { name = "qiskit-addon-opt-mapper", specifier = ">=0.1.0" },
     { name = "qiskit-aer", marker = "python_full_version < '3.14'", specifier = ">=0.17.1" },
-    { name = "qiskit-ibm-runtime", specifier = ">=0.47.0" },
+    { name = "qiskit-ibm-runtime", specifier = ">=0.49.0" },
     { name = "qiskit-optimization", specifier = ">=0.6.1" },
     { name = "rich", specifier = ">=14.2.0" },
-    { name = "ruff", specifier = ">=0.15.16" },
+    { name = "ruff", specifier = ">=0.16.3" },
     { name = "scipy", specifier = ">=1.16.3" },
 ]
 docs = [
     { name = "mkdocs-jupyter", specifier = ">=0.24.1" },
     { name = "mkdocs-macros-plugin", specifier = ">=1.5.0" },
-    { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0.4" },
-    { name = "zensical", specifier = ">=0.0.45" },
+    { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0.6" },
+    { name = "zensical", specifier = ">=0.0.54" },
 ]
 
 [[package]]

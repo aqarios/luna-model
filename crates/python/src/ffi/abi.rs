@@ -37,7 +37,7 @@ use std::sync::{LazyLock, Mutex};
 ///
 /// See the [module documentation](self) for the meaning of this number and the
 /// rule for when to bump it.
-pub const CAPSULE_ABI: u32 = 1;
+pub const CAPSULE_ABI: u32 = 2;
 
 /// Resolves the stable per-type capsule base name to the `'static` name used on
 /// the wire for the current [`CAPSULE_ABI`].
@@ -115,7 +115,8 @@ mod tests {
         // Interning must hand out the same pointer for repeated lookups so the
         // name outlives every capsule and is never leaked more than once.
         let base = c"builtins.capsule.PyBounds";
-        assert_eq!(capsule_name(base), base);
+        let expected = versioned_name(CAPSULE_ABI, base);
+        assert_eq!(capsule_name(base), expected.as_deref().unwrap_or(base));
         assert!(std::ptr::eq(capsule_name(base), capsule_name(base)));
     }
 }
