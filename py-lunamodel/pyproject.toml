@@ -16,7 +16,7 @@ authors = [
     { name = "Maximilian Janetschek", email = "maximilian.janetschek@aqarios.com" },
 ]
 license-files = ["LICENSE", "THIRD_PARTY_LICENSES.txt"]
-requires-python = ">=3.11,<3.15"
+requires-python = ">=3.11,<3.16"
 dependencies = [
     "numpy>=1.21.0",
     "typing-extensions>=4.15.0; python_version < '3.13'",
@@ -35,6 +35,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Operating System :: OS Independent",
   "Topic :: Scientific/Engineering",
 ]
@@ -87,7 +88,6 @@ cache-keys = [
 
 [dependency-groups]
 dev = [
-    "dimod>=0.12.22",
     "docplex>=2.30.251",
     "ipython>=9.16.1",
     "numpy>=2.4.6",
@@ -102,14 +102,14 @@ dev = [
     "rich>=14.2.0",
     "ruff>=0.16.3",
     "mypy>=2.3.0",
-    "gurobipy>=13.0.0; python_version < '3.14'",
-    "qiskit-aer>=0.17.1; python_version < '3.14'",
     "auditwheel>=6.8.0",
-    "gurobipy>=13.0.2",
     "jupyter>=1.1.1",
     "jupyterlab>=4.6.2",
     "notebook>=7.6.3",
     "pytest-xdist>=3.8.0",
+    "dimod>=0.12.22",
+    "gurobipy>=13.0.2; python_version < '3.15'",
+    "qiskit-aer>=0.17.1; python_version < '3.14'",
 ]
 docs = [
     "zensical>=0.0.54",
