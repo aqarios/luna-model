@@ -104,7 +104,7 @@ jobs:
         uses: actions/checkout@v7.0.1
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v10.2.0
+        uses: astral-sh/setup-uv@v10.3.0
         with:
           python-version: ${{ matrix.py }}
           activate-environment: false
@@ -153,7 +153,7 @@ jobs:
         run: sh ci/build-wheel.sh
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: wheel-${{ matrix.target }}-${{ matrix.py }}
           path: build/*.whl
