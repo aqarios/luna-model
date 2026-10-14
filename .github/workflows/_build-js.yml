@@ -158,7 +158,7 @@ jobs:
             --output-dir ./artifacts
 
       - name: Upload .node artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: js-native-${{ matrix.target }}
           path: ${{ inputs.working-directory }}/artifacts/*.node
