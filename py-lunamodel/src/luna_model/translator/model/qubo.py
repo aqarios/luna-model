@@ -266,8 +266,8 @@ class QuboTranslator:
         Raises
         ------
         TranslationError
-            If the model has constraints, non-binary variables, or
-            higher-order terms.
+            If the model has constraints, non-binary variables, higher-order
+            terms, or is not a minimization model (``ModelSenseNotMinimizeError``).
 
         Examples
         --------
