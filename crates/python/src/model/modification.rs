@@ -15,7 +15,7 @@ use crate::{
     PyExpression, PyVariable,
     args::PyCArg,
     bounds::BoundValue,
-    constraint::utils::{ConstraintsIn, NameIn, add_many_constraint},
+    constraint::utils::{ConstraintsIn, NameIn, constraints_from_input},
     types::{PySense, PyVtype},
     utils::OpsOther,
 };
@@ -128,7 +128,6 @@ impl PyModel {
         _ = self
             .m
             .write_arc()
-            .constraints
             .add_constraint(constraint.c.read_arc().clone(), name)?;
         Ok(())
     }
@@ -139,12 +138,8 @@ impl PyModel {
         constraints: ConstraintsIn,
         name: Option<NameIn>,
     ) -> PyResult<Vec<String>> {
-        Ok(add_many_constraint(
-            py,
-            &mut self.m.write_arc().constraints,
-            constraints,
-            name,
-        )?)
+        let constrs = constraints_from_input(py, constraints, name)?;
+        Ok(self.m.write_arc().add_many_constraints(constrs)?)
     }
 
     #[pyo3(name = "set_objective", signature=(expression, sense=None))]
@@ -160,12 +155,12 @@ impl PyModel {
         };
         self.m
             .write_arc()
-            .set_objective(new_obj, sense.map(|s| s.into()));
+            .set_objective(new_obj, sense.map(|s| s.into()))?;
         Ok(())
     }
 
     fn add_objective(&mut self, expression: PyExpression) -> PyResult<()> {
         let expr: Expression = expression.into();
-        Ok(self.m.write_arc().objective.add_assign(expr)?)
+        Ok(self.m.write_arc().objective_mut().add_assign(expr)?)
     }
 }

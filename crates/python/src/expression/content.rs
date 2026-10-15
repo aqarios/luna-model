@@ -43,7 +43,7 @@ impl From<PyExprContent> for Expression {
     fn from(val: PyExprContent) -> Self {
         match val {
             PyExprContent::Expr(e) => e.read_arc().clone(),
-            PyExprContent::Model(m) => m.read_arc().objective.clone(),
+            PyExprContent::Model(m) => m.read_arc().objective().clone(),
         }
     }
 }
@@ -84,7 +84,10 @@ impl PyExprContent {
     where
         Expression: LmAddAssign<T>,
     {
-        self.write_with(|e| e.add_assign(other))
+        match self {
+            Self::Expr(expr) => expr.write_arc().add_assign(other),
+            Self::Model(model) => model.write_arc().objective_mut().add_assign(other),
+        }
     }
 
     /// Mutate the wrapped expression in place by subtracting `other`.
@@ -92,7 +95,10 @@ impl PyExprContent {
     where
         Expression: LmSubAssign<T>,
     {
-        self.write_with(|e| e.sub_assign(other))
+        match self {
+            Self::Expr(expr) => expr.write_arc().sub_assign(other),
+            Self::Model(model) => model.write_arc().objective_mut().sub_assign(other),
+        }
     }
 
     /// Mutate the wrapped expression in place by multiplying by `other`.
@@ -100,12 +106,18 @@ impl PyExprContent {
     where
         Expression: LmMulAssign<T>,
     {
-        self.write_with(|e| e.mul_assign(other))
+        match self {
+            Self::Expr(expr) => expr.write_arc().mul_assign(other),
+            Self::Model(model) => model.write_arc().objective_mut().mul_assign(other),
+        }
     }
 
     /// Mutate the wrapped expression in place by repeated multiplication.
     pub fn pow_assign(&mut self, v: usize) -> LunaModelResult<()> {
-        self.write_with(|e| e.pow_assign(v))
+        match self {
+            Self::Expr(expr) => expr.write_arc().pow_assign(v),
+            Self::Model(model) => model.write_arc().objective_mut().pow_assign(v),
+        }
     }
 
     /// Substitute one variable reference with another expression.

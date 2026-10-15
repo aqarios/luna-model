@@ -22,7 +22,7 @@ pub fn hash_model(model: &Model, h: &mut impl Hasher) {
     };
     h.write_u8(sense_tag);
 
-    hash_expr(&model.objective, h);
-    hash_constr(&model.constraints, h);
+    hash_expr(model.objective(), h);
+    hash_constr(model.constraints(), h);
     hash_env(&model.environment, h);
 }

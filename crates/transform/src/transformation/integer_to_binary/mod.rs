@@ -33,7 +33,7 @@ mod tests {
                 Some(Bound::Bounded(2.0)),
             )),
         )?;
-        model.objective.add_assign((&x * 1.0)?)?;
+        model.objective_mut().add_assign((&x * 1.0)?)?;
 
         let pm = PassManager::default().add_transform(IntegerToBinaryPass);
         let output = pm.run(model)?;

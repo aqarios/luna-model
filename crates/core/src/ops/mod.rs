@@ -32,6 +32,7 @@ mod term;
 mod traits;
 mod vref;
 
-pub use traits::{LmAddAssign, LmMulAssign, LmPow, LmPowAssign, LmSubAssign};
+pub(crate) use utils::{EnvIdexable, check_constr_env, foreign_env_error};
 
+pub use traits::{LmAddAssign, LmMulAssign, LmPow, LmPowAssign, LmSubAssign};
 pub use utils::{Lookup, SolutionLookup};

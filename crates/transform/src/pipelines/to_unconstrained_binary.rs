@@ -86,16 +86,16 @@ mod tests {
                 Some(Bound::Bounded(12.)),
             )),
         )?;
-        model.objective.add_assign(((&x + &y)? + &z)?)?;
-        model.constraints.add_constraint(
+        model.objective_mut().add_assign(((&x + &y)? + &z)?)?;
+        model.add_constraint(
             Constraint::new(((&x + &y)? + &z)?, 3.0, Comparator::Le, None)?,
             None,
         )?;
-        model.constraints.add_constraint(
+        model.add_constraint(
             Constraint::new(((&x - &y)? - &z)?, 0.0, Comparator::Ge, None)?,
             None,
         )?;
-        model.constraints.add_constraint(
+        model.add_constraint(
             Constraint::new((&x + &y)?, 2.0, Comparator::Eq, None)?,
             None,
         )?;

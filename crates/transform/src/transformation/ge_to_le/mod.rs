@@ -26,8 +26,8 @@ mod tests {
         let mut model = Model::default();
         let x = model.add_var("i0", Vtype::Integer, None)?;
         let y = model.add_var("i1", Vtype::Integer, None)?;
-        model.objective.add_assign((&x * &y)?)?;
-        model.constraints.add_constraint(
+        model.objective_mut().add_assign((&x * &y)?)?;
+        model.add_constraint(
             Constraint::new((&x + &y)?, 2.0, Comparator::Ge, Some("c0".to_string()))?,
             None,
         )?;

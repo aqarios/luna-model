@@ -2,7 +2,7 @@
 
 use std::ops::Mul;
 
-use lunamodel_core::Expression;
+use lunamodel_core::{ConstraintCollection, Expression};
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
@@ -29,13 +29,15 @@ impl PyModel {
             OpsOther::Var(v) => (&v.v).mul(1.0)?,
             OpsOther::Num(n) => Expression::constant(self.m.read_arc().environment.clone(), n),
         };
-        self.m.write_arc().objective = new_obj;
+        self.m.write_arc().set_objective(new_obj, None)?;
         Ok(())
     }
 
     #[setter]
-    fn set_constraints(&mut self, coll: PyColArg) {
-        self.m.write_arc().constraints = (&coll.0).into();
+    fn set_constraints(&mut self, coll: PyColArg) -> PyResult<()> {
+        let col: ConstraintCollection = (&coll.0).into();
+        self.m.write_arc().set_constraints(col)?;
+        Ok(())
     }
 
     #[pyo3(name = "set_sense")]

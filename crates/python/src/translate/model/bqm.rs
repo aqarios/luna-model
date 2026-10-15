@@ -42,12 +42,12 @@ impl PyBqmTranslator {
             .map(|vname| model.add_var(vname, vtype.into(), None))
             .collect::<LunaModelResult<_>>()?;
 
-        model.objective.add_assign(offset)?;
+        model.objective_mut().add_assign(offset)?;
         let linear_indices: &[u64] = linear_indices.as_slice()?;
         let linears: &[Bias] = linears.as_slice()?;
         for (&i, &bias) in linear_indices.iter().zip(linears) {
             let var = &vars[i as usize];
-            model.objective.add_assign((var * bias)?)?;
+            model.objective_mut().add_assign((var * bias)?)?;
         }
         let quads: &[Bias] = quads.as_slice()?;
         let quads_rows: &[u64] = quads_rows.as_slice()?;
@@ -55,7 +55,9 @@ impl PyBqmTranslator {
         for ((&u, &v), &bias) in quads_rows.iter().zip(quads_cols).zip(quads) {
             let u_var = &vars[u as usize];
             let v_var = &vars[v as usize];
-            model.objective.add_assign(((u_var * v_var)? * bias)?)?
+            model
+                .objective_mut()
+                .add_assign(((u_var * v_var)? * bias)?)?
         }
         Ok(model.into())
     }
@@ -80,10 +82,10 @@ impl PyBqmTranslator {
         // type, no constraints, and a quadratic objective. We validate those
         // invariants explicitly before unpacking coefficients.
         let model: &Model = &model.m.read_arc();
-        if model.objective.has_higher_order() {
+        if model.objective().has_higher_order() {
             return Err(LunaModelError::ModelNotQuadratic)?;
         }
-        if !model.constraints.is_empty() {
+        if !model.constraints().is_empty() {
             return Err(LunaModelError::ModelNotUnconstrained)?;
         }
         if !model.sense.is_min() {
@@ -120,7 +122,7 @@ impl PyBqmTranslator {
         let mut quad_rows = Vec::new();
         let mut quad_cols = Vec::new();
 
-        for (vars, bias) in model.objective.items() {
+        for (vars, bias) in model.objective().items() {
             match &vars[..] {
                 [] => offset = bias,
                 [u] => lin[varidx_lookup[&u.name()?]] = bias,

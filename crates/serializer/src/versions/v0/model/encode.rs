@@ -17,13 +17,13 @@ impl BytesEncodable for SerModel {
 impl SerModel {
     pub fn fill(mut self, m: &Model) -> Self {
         self.objective = m
-            .objective
+            .objective()
             .serialize()
-            .versionize_nested(m.objective.version());
+            .versionize_nested(m.objective().version());
         self.constraints = m
-            .constraints
+            .constraints()
             .serialize()
-            .versionize_nested(m.constraints.version());
+            .versionize_nested(m.constraints().version());
         let env = m.environment.read_arc();
         self.environment = env.serialize().versionize_nested(env.version());
         self.name = m.name.clone();
