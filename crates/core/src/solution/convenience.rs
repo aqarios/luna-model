@@ -2,7 +2,6 @@
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
-use std::collections::HashMap;
 
 use crate::ValueSource;
 
@@ -107,23 +106,17 @@ impl Solution {
         }
     }
 
-    /// Returns the name of the most frequently violated constraint, if available.
+    /// Returns the name of the most frequently violated constraint.
+    ///
+    /// Returns `None` if no sample violates any constraint or the solution has no
+    /// constraint information. Ties go to the alphabetically first name.
     pub fn highest_constraint_violations(&self) -> LunaModelResult<Option<String>> {
-        if !self.constraints.is_empty() {
-            let n_violations: HashMap<String, usize> = self
-                .constraints
-                .iter()
-                .map(|(cname, vs)| (cname.clone(), vs.iter().map(|e| (!*e) as usize).sum()))
-                .collect();
-
-            Ok(n_violations
-                .iter()
-                .max_by_key(|(_, c)| **c)
-                .map(|(key, _)| key.clone()))
-        } else {
-            Err(LunaModelError::Computation(
-                "constraints is not set.".to_string().into(),
-            ))
-        }
+        Ok(self
+            .constraints
+            .iter()
+            .map(|(cname, vs)| (cname, vs.iter().filter(|ok| !**ok).count()))
+            .filter(|(_, n_violations)| *n_violations > 0)
+            .max_by(|(a, na), (b, nb)| na.cmp(nb).then_with(|| b.cmp(a)))
+            .map(|(cname, _)| cname.clone()))
     }
 }
