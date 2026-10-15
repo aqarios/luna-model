@@ -5,7 +5,9 @@ use lunamodel_types::{Bias, VarIdx, Vtype};
 use lunamodel_utils::unique;
 use std::iter::once;
 
-use crate::variable::VarRef;
+use lunamodel_error::LunaModelResult;
+
+use crate::{ops::removed_variable_error, variable::VarRef};
 
 use super::Expression;
 
@@ -48,7 +50,45 @@ impl Expression {
                 ),
         )
         .map(|id| VarRef::new(id, self.env.clone()))
-        .filter(|v| v.vtype().unwrap() != Vtype::InvertedBinary)
+        .filter(|v| match v.vtype() {
+            // Inverted binaries are internal helpers and are not listed.
+            Ok(vtype) => vtype != Vtype::InvertedBinary,
+            // The variable was removed (e.g. by `Model::substitute`), so it has no
+            // type anymore. The expression still uses it, so it is listed.
+            Err(_) => true,
+        })
+    }
+
+    /// Fails if the expression uses a variable that no longer exists in its
+    /// environment, e.g. because [Model::substitute](crate::Model::substitute)
+    /// removed it.
+    pub fn check_living(&self) -> LunaModelResult<()> {
+        let env = self.env.env.read_arc();
+        // Ids are never reused, so an environment that never lost a variable
+        // cannot contain a removed one.
+        if env.len() as u64 == env.next_idx() as u64 {
+            return Ok(());
+        }
+        // Walk the raw ids (no dedup, no VarRef): one map lookup per term.
+        let dead = self
+            .linear
+            .iter()
+            .map(|(idx, _)| idx)
+            .chain(
+                self.quadratic
+                    .iter()
+                    .flat_map(|q| q.iter_flat().flat_map(|(u, v, _)| once(u).chain(once(v)))),
+            )
+            .chain(
+                self.higher_order
+                    .iter()
+                    .flat_map(|h| h.iter_contrib().flat_map(|(c, _)| c.into_iter())),
+            )
+            .find(|&id| env.get(id).is_err());
+        match dead {
+            Some(id) => Err(removed_variable_error(id)),
+            None => Ok(()),
+        }
     }
 
     /// Iterates over the distinct variables referenced by the expression.
