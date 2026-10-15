@@ -12,7 +12,7 @@ pub mod utils;
 use std::sync::Arc;
 
 use lunamodel_core::{ConstraintCollection, Model};
-use parking_lot::{MappedRwLockReadGuard, MappedRwLockWriteGuard, RwLock};
+use parking_lot::{MappedRwLockReadGuard, RwLock};
 use pyo3::pyclass;
 
 pub use content::PyConstraintCollectionContent;
@@ -29,6 +29,11 @@ impl PyConstraintCollection {
     /// Returns the internal content handle.
     pub fn inner(&self) -> &PyConstraintCollectionContent {
         &self.c
+    }
+
+    /// Returns the internal content handle for modification.
+    pub fn inner_mut(&mut self) -> &mut PyConstraintCollectionContent {
+        &mut self.c
     }
 
     /// Creates a collection wrapper bound to the constraints of a model.
@@ -73,18 +78,8 @@ impl PyConstraintCollection {
         self.c.read()
     }
 
-    /// Borrows the underlying collection for mutable access.
-    pub fn write(&mut self) -> MappedRwLockWriteGuard<'_, ConstraintCollection> {
-        self.c.write()
-    }
-
     /// Runs a closure against an immutable view of the collection.
     pub fn read_with<R>(&self, f: impl FnOnce(&ConstraintCollection) -> R) -> R {
         self.c.read_with(f)
-    }
-
-    /// Runs a closure against a mutable view of the collection.
-    pub fn write_with<R>(&mut self, f: impl FnOnce(&mut ConstraintCollection) -> R) -> R {
-        self.c.write_with(f)
     }
 }

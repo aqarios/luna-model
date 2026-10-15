@@ -49,7 +49,7 @@ impl MpsTranslator {
         out.push_str("ROWS\n");
         out.push_str(" N  OBJ\n");
 
-        for (idx, (_key, constraint)) in model.constraints.iter().enumerate() {
+        for (idx, (_key, constraint)) in model.constraints().iter().enumerate() {
             let row_type = match constraint.comparator {
                 Comparator::Le => "L",
                 Comparator::Ge => "G",
@@ -91,7 +91,7 @@ impl MpsTranslator {
 
         // Collect objective coefficients (linear and quadratic separately)
         let mut quadratic_obj_terms = Vec::new();
-        for (vars, coef) in model.objective.items() {
+        for (vars, coef) in model.objective().items() {
             if vars.len() > 2 {
                 return Err(LunaModelError::Translation(
                     "MPS files cannot contain higher-order objective terms".into(),
@@ -114,7 +114,7 @@ impl MpsTranslator {
         // Collect constraint coefficients (linear and quadratic separately)
         let mut quadratic_constraint_terms: BTreeMap<String, Vec<(String, String, Bias)>> =
             BTreeMap::new();
-        for (idx, (_key, constraint)) in model.constraints.iter().enumerate() {
+        for (idx, (_key, constraint)) in model.constraints().iter().enumerate() {
             let cname_raw = constraint.name();
             let cname = if cname_raw.is_empty() {
                 format!("C{}", idx)
@@ -183,7 +183,7 @@ impl MpsTranslator {
 
         // Step 4: RHS section
         out.push_str("RHS\n");
-        for (idx, (_key, constraint)) in model.constraints.iter().enumerate() {
+        for (idx, (_key, constraint)) in model.constraints().iter().enumerate() {
             let cname_raw = constraint.name();
             let cname = if cname_raw.is_empty() {
                 format!("C{}", idx)
@@ -196,10 +196,10 @@ impl MpsTranslator {
                 format_number(constraint.rhs)
             ));
         }
-        if model.objective.offset != 0.0 {
+        if model.objective().offset != 0.0 {
             out.push_str(&format!(
                 "    RHS1      OBJ  {}\n",
-                format_number(-model.objective.offset)
+                format_number(-model.objective().offset)
             ));
         }
 
@@ -389,8 +389,8 @@ mod tests {
             Constraint::new(lhs, 10.0, Comparator::Le, Some("C1".to_string())).unwrap();
 
         let mut model1 = Model::with_env(Some("CREATED".to_string()), Some(Sense::Min), env);
-        model1.objective = objective;
-        model1.constraints.add_constraint(constraint, None).unwrap();
+        model1.set_objective(objective, None).unwrap();
+        model1.add_constraint(constraint, None).unwrap();
 
         // Back-translate to MPS
         let mps_output = MpsTranslator::back_translate(&model1, None)
@@ -440,8 +440,8 @@ mod tests {
             Constraint::new(lhs, 1.0, Comparator::Eq, Some("SELECT".to_string())).unwrap();
 
         let mut model1 = Model::with_env(Some("BINARY".to_string()), Some(Sense::Max), env);
-        model1.objective = objective;
-        model1.constraints.add_constraint(constraint, None).unwrap();
+        model1.set_objective(objective, None).unwrap();
+        model1.add_constraint(constraint, None).unwrap();
 
         // Back-translate to MPS
         let mps_output = MpsTranslator::back_translate(&model1, None)
@@ -496,8 +496,8 @@ mod tests {
             Constraint::new(lhs, 5.0, Comparator::Ge, Some("MIN_SUM".to_string())).unwrap();
 
         let mut model1 = Model::with_env(Some("INTEGER".to_string()), Some(Sense::Min), env);
-        model1.objective = objective;
-        model1.constraints.add_constraint(constraint, None).unwrap();
+        model1.set_objective(objective, None).unwrap();
+        model1.add_constraint(constraint, None).unwrap();
 
         // Back-translate to MPS
         let mps_output = MpsTranslator::back_translate(&model1, None)
@@ -574,15 +574,9 @@ mod tests {
             Constraint::new(lhs2, 2.0, Comparator::Ge, Some("C2".to_string())).unwrap();
 
         let mut model1 = Model::with_env(Some("MIXED".to_string()), Some(Sense::Min), env);
-        model1.objective = objective;
-        model1
-            .constraints
-            .add_constraint(constraint1, None)
-            .unwrap();
-        model1
-            .constraints
-            .add_constraint(constraint2, None)
-            .unwrap();
+        model1.set_objective(objective, None).unwrap();
+        model1.add_constraint(constraint1, None).unwrap();
+        model1.add_constraint(constraint2, None).unwrap();
 
         // Back-translate to MPS
         let mps_output = MpsTranslator::back_translate(&model1, None)
@@ -656,10 +650,10 @@ mod tests {
         let c3 = Constraint::new(lhs3, 7.0, Comparator::Eq, Some("EQ_CONSTR".to_string())).unwrap();
 
         let mut model1 = Model::with_env(Some("MULTI".to_string()), Some(Sense::Min), env);
-        model1.objective = objective;
-        model1.constraints.add_constraint(c1, None).unwrap();
-        model1.constraints.add_constraint(c2, None).unwrap();
-        model1.constraints.add_constraint(c3, None).unwrap();
+        model1.set_objective(objective, None).unwrap();
+        model1.add_constraint(c1, None).unwrap();
+        model1.add_constraint(c2, None).unwrap();
+        model1.add_constraint(c3, None).unwrap();
 
         // Back-translate to MPS
         let mps_output = MpsTranslator::back_translate(&model1, None)
@@ -718,8 +712,8 @@ mod tests {
             Constraint::new(lhs, 10.0, Comparator::Le, Some("C1".to_string())).unwrap();
 
         let mut model1 = Model::with_env(Some("QUADOBJ".to_string()), Some(Sense::Min), env);
-        model1.objective = objective;
-        model1.constraints.add_constraint(constraint, None).unwrap();
+        model1.set_objective(objective, None).unwrap();
+        model1.add_constraint(constraint, None).unwrap();
 
         // Back-translate to MPS
         let mps_output = MpsTranslator::back_translate(&model1, None)
@@ -776,8 +770,8 @@ mod tests {
             Constraint::new(lhs, 25.0, Comparator::Le, Some("CIRCLE".to_string())).unwrap();
 
         let mut model1 = Model::with_env(Some("QUADCON".to_string()), Some(Sense::Min), env);
-        model1.objective = objective;
-        model1.constraints.add_constraint(constraint, None).unwrap();
+        model1.set_objective(objective, None).unwrap();
+        model1.add_constraint(constraint, None).unwrap();
 
         // Back-translate to MPS
         let mps_output = MpsTranslator::back_translate(&model1, None)

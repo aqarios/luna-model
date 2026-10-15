@@ -60,6 +60,8 @@ impl Display for ErrString {
 pub enum LunaModelError {
     /// Operands came from different environments.
     DifferentEnvironments,
+    /// Operands came from different environments, with a description of the offending item.
+    DifferentEnvironmentsIn(ErrString),
     /// A variable name collided with an existing variable.
     VariableExists(ErrString),
     /// A requested variable was not present.
@@ -165,6 +167,9 @@ impl Display for LunaModelError {
             Decoding(msg) => write!(f, "decoding failed: {}", msg),
             Formatter(msg) => write!(f, "formatting failed: {}", msg),
             DifferentEnvironments => write!(f, "different environments encountered"),
+            DifferentEnvironmentsIn(msg) => {
+                write!(f, "different environments encountered: {}", msg)
+            }
             UnsupportedOperation(msg) => write!(f, "unsupported operation: {}", msg),
             Internal(msg) => write!(f, "internal LunaModel error: '{}'", msg),
             Dtype(msg) => write!(f, "invalid data type: {}", msg),

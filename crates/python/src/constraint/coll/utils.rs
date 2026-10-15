@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use lunamodel_core::{Constraint, ConstraintCollection};
+use lunamodel_core::Constraint;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use numpy::{PyArray1, PyArrayMethods};
 use pyo3::{FromPyObject, Py, PyAny, PyErr, Python};
@@ -50,53 +50,60 @@ pub enum NameIn {
     SV(Vec<String>),
 }
 
-pub fn add_many_constraint(
+/// Converts the accepted Python inputs into `(constraint, name)` pairs.
+///
+/// Only parses the input; adding the constraints is up to the caller.
+pub fn constraints_from_input(
     py: Python,
-    cc: &mut ConstraintCollection,
     ccin: ConstraintsIn,
     nin: Option<NameIn>,
-) -> LunaModelResult<Vec<String>> {
+) -> LunaModelResult<Vec<(Constraint, Option<String>)>> {
     use ConstraintsIn::*;
     use NameIn::*;
 
     match (ccin, nin) {
         // NDArray
-        (Ca(arr), None) => add_nparr(py, cc, arr, None),
-        (Ca(arr), Some(S(name))) => add_nparr(py, cc, arr, Some(name)),
-        (Ca(arr), Some(SV(names))) => add_nparr_many_named(py, cc, arr, names),
+        (Ca(arr), None) => from_nparr(py, arr, None),
+        (Ca(arr), Some(S(name))) => from_nparr(py, arr, Some(name)),
+        (Ca(arr), Some(SV(names))) => from_nparr_many_named(py, arr, names),
         // ConstraintCollection
-        (Cc(col), None) => cc.add_collection(col.read().clone(), None),
-        (Cc(col), Some(S(name))) => cc.add_collection(col.read().clone(), Some(name)),
-        // [Constraint]
-        (Cv(seq), None) => {
-            cc.add_many_constraints(seq.into_iter().map(|e| (e.c.read_arc().clone(), None)))
+        (Cc(col), prefix) => {
+            let prefix = match prefix {
+                None => String::new(),
+                Some(S(p)) => p,
+                Some(SV(_)) => return Err(names_sequence_not_allowed()),
+            };
+            Ok(col
+                .read()
+                .clone()
+                .into_iter()
+                .map(|(name, constr)| (constr, Some(format!("{prefix}{name}"))))
+                .collect())
         }
-        (Cv(seq), Some(S(name))) => cc.add_many_constraints(
-            seq.into_iter()
-                .enumerate()
-                .map(|(i, e)| (e.c.read_arc().clone(), Some(format!("{name}_{i}")))),
-        ),
+        // [Constraint]
+        (Cv(seq), None) => Ok(seq
+            .into_iter()
+            .map(|e| (e.c.read_arc().clone(), None))
+            .collect()),
+        (Cv(seq), Some(S(name))) => Ok(seq
+            .into_iter()
+            .enumerate()
+            .map(|(i, e)| (e.c.read_arc().clone(), Some(format!("{name}_{i}"))))
+            .collect()),
         (Cv(seq), Some(SV(names))) => {
-            if seq.len() != names.len() {
-                return Err(LunaModelError::Internal(
-                    format!(
-                        "names and constraints must have the same length (got {}, expected {})",
-                        names.len(),
-                        seq.len()
-                    )
-                    .into(),
-                ));
-            }
-            cc.add_many_constraints(
-                seq.into_iter()
-                    .zip(names)
-                    .map(|(e, name)| (e.c.read_arc().clone(), Some(name))),
-            )
+            check_names_len(names.len(), seq.len())?;
+            Ok(seq
+                .into_iter()
+                .zip(names)
+                .map(|(e, name)| (e.c.read_arc().clone(), Some(name)))
+                .collect())
         }
         // [(String, Constraint) | (Constraint, String) | Constraint]
-        (Ncv(tup), None) => cc.add_many_constraints(tup.to_iter()),
-        (Ncv(tup), Some(S(base))) => {
-            cc.add_many_constraints(tup.to_iter().enumerate().map(|(i, (e, n))| {
+        (Ncv(tup), None) => Ok(tup.to_iter().collect()),
+        (Ncv(tup), Some(S(base))) => Ok(tup
+            .to_iter()
+            .enumerate()
+            .map(|(i, (e, n))| {
                 (
                     e,
                     Some(match n {
@@ -104,62 +111,57 @@ pub fn add_many_constraint(
                         None => format!("{base}_{i}"),
                     }),
                 )
-            }))
-        }
-
-        // not ok
-        (Cc(_), Some(SV(_))) | (Ncv(_), Some(SV(_))) => {
-            Err(LunaModelError::Internal("names sequence is not allowed when constraints are provided as ConstraintCollection or as a sequence of (name, constraint)/(constraint, name) 
-items".into()))
-        }
+            })
+            .collect()),
+        (Ncv(_), Some(SV(_))) => Err(names_sequence_not_allowed()),
     }
 }
 
-fn add_nparr(
-    py: Python,
-    c: &mut ConstraintCollection,
-    arr: Py<PyArray1<Py<PyAny>>>,
-    base_name: Option<String>,
-) -> LunaModelResult<Vec<String>> {
-    let arr = arr.bind(py);
-    let readonly = arr.readonly();
-    let iter = readonly.as_array().into_iter();
-    let data = match base_name {
-        Some(name) => iter
-            .enumerate()
-            .map(|(i, e)| make_element(py, e, Some(format!("{name}_{i}"))))
-            .collect::<LunaModelResult<Vec<_>>>()?,
-        None => iter
-            .map(|e| make_element(py, e, None))
-            .collect::<LunaModelResult<Vec<_>>>()?,
-    };
-    c.add_many_constraints(data.into_iter())
+fn names_sequence_not_allowed() -> LunaModelError {
+    LunaModelError::Internal("names sequence is not allowed when constraints are provided as ConstraintCollection or as a sequence of (name, constraint)/(constraint, name) items".into())
 }
 
-fn add_nparr_many_named(
-    py: Python,
-    c: &mut ConstraintCollection,
-    arr: Py<PyArray1<Py<PyAny>>>,
-    names: Vec<String>,
-) -> LunaModelResult<Vec<String>> {
-    let arr = arr.bind(py);
-    let readonly = arr.readonly();
-    let iter = readonly.as_array().into_iter();
-    if iter.len() != names.len() {
+fn check_names_len(names: usize, constraints: usize) -> LunaModelResult<()> {
+    if names != constraints {
         return Err(LunaModelError::Internal(
             format!(
-                "names and constraints must have the same length (got {}, expected {})",
-                names.len(),
-                iter.len()
+                "names and constraints must have the same length (got {names}, expected {constraints})"
             )
             .into(),
         ));
     }
-    let data = iter
-        .zip(names)
+    Ok(())
+}
+
+fn from_nparr(
+    py: Python,
+    arr: Py<PyArray1<Py<PyAny>>>,
+    base_name: Option<String>,
+) -> LunaModelResult<Vec<(Constraint, Option<String>)>> {
+    let arr = arr.bind(py);
+    let readonly = arr.readonly();
+    let iter = readonly.as_array().into_iter();
+    match base_name {
+        Some(name) => iter
+            .enumerate()
+            .map(|(i, e)| make_element(py, e, Some(format!("{name}_{i}"))))
+            .collect(),
+        None => iter.map(|e| make_element(py, e, None)).collect(),
+    }
+}
+
+fn from_nparr_many_named(
+    py: Python,
+    arr: Py<PyArray1<Py<PyAny>>>,
+    names: Vec<String>,
+) -> LunaModelResult<Vec<(Constraint, Option<String>)>> {
+    let arr = arr.bind(py);
+    let readonly = arr.readonly();
+    let iter = readonly.as_array().into_iter();
+    check_names_len(names.len(), iter.len())?;
+    iter.zip(names)
         .map(|(e, name)| make_element(py, e, Some(name)))
-        .collect::<LunaModelResult<Vec<_>>>()?;
-    c.add_many_constraints(data.into_iter())
+        .collect()
 }
 
 fn make_element(

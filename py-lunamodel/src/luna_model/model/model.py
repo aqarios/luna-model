@@ -249,6 +249,12 @@ class Model:
         Expression
             The objective function expression.
 
+        Raises
+        ------
+        DifferentEnvsError
+            When setting an objective that uses variables from a different
+            environment than the model.
+
         Examples
         --------
         >>> model = Model()
@@ -272,6 +278,12 @@ class Model:
         -------
         ConstraintCollection
             The collection of constraints in the model.
+
+        Raises
+        ------
+        DifferentEnvsError
+            When adding or setting constraints that use variables from a
+            different environment than the model.
 
         Examples
         --------
@@ -585,6 +597,9 @@ class Model:
             strings and must start with an alphabetical character. Additionally,
             constraint names cannot start with ``inf`` or ``nan`` due to
             limitations of other modeling software.
+        DifferentEnvsError
+            If the constraint uses variables from a different environment than
+            the model.
 
         Examples
         --------
@@ -656,11 +671,18 @@ class Model:
             strings and must start with an alphabetical character. Additionally,
             constraint names cannot start with ``inf`` or ``nan`` due to
             limitations of other modeling software.
+        DifferentEnvsError
+            If any constraint uses variables from a different environment than
+            the model.
         LunaModelError
             If ``name`` is a sequence and its length does not match the number of
             constraints. Also raised for unsupported combinations when runtime type
             checks are bypassed (for example, ``ConstraintCollection`` with
             ``Sequence[str]`` names).
+
+        Notes
+        -----
+        Either all constraints are added or, if any of them raises, none are.
 
         Examples
         --------
@@ -690,6 +712,12 @@ class Model:
         sense : Sense, optional
             The optimization sense. If provided, also updates the model's sense.
             If None, the model's current sense is used.
+
+        Raises
+        ------
+        DifferentEnvsError
+            If the expression uses variables from a different environment than
+            the model. Neither the objective nor the sense is changed.
 
         Examples
         --------
@@ -819,8 +847,9 @@ class Model:
         ------
         TypeError
             If replacement is neither an Expression nor a Variable.
-        DifferentEnvironmentsError
-            If the replacement is from a different environment.
+        DifferentEnvsError
+            If the target or the replacement is from a different environment
+            than the model. The model is left unchanged.
 
         Examples
         --------

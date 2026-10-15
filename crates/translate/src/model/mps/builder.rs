@@ -19,8 +19,8 @@ pub fn build_model(prob: MpsProblem) -> LunaModelResult<Model> {
     let constraints = build_constraints(&env, prob.constraints, &prob.constraint_quadratic)?;
 
     let mut model = Model::with_env(prob.name, Some(prob.sense), env);
-    model.objective = objective;
-    model.constraints = constraints;
+    model.set_objective(objective, None)?;
+    model.set_constraints(constraints)?;
 
     Ok(model)
 }

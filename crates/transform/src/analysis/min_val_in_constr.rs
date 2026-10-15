@@ -33,7 +33,7 @@ impl AnalysisPass for MinValueForConstraintAnalysis {
 
     fn run(&self, model: &Model, _ctx: &PassContext) -> TranspileKindResult<Self::Result> {
         let mut minvalues = HashMap::new();
-        for (name, constr) in model.constraints.iter() {
+        for (name, constr) in model.constraints().iter() {
             if constr.lhs.has_quadratic() {
                 return Err(TransformError::Analysis {
                     name: self.name().to_owned(),
