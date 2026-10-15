@@ -57,6 +57,22 @@ impl Mul<usize> for &VarRef {
     }
 }
 
+impl Mul<&VarRef> for Bias {
+    type Output = LunaModelResult<Expression>;
+
+    fn mul(self, rhs: &VarRef) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl Mul<&VarRef> for usize {
+    type Output = LunaModelResult<Expression>;
+
+    fn mul(self, rhs: &VarRef) -> Self::Output {
+        rhs * self
+    }
+}
+
 impl PrvMul<Bias> for VarRef {
     type Output = Linear;
 
