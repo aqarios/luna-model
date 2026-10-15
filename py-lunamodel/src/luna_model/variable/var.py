@@ -55,7 +55,9 @@ class Variable:
         variable instead (``~x`` or ``x.inv()``).
 
     bounds : Bounds, optional
-        The bounds constraining the variable's value.
+        The bounds constraining the variable's value. ``-inf`` / ``+inf`` are the same
+        as ``Unbounded``, a ``NaN`` bound raises ``VariableCreationError``. Other
+        bounds are passed to the solver as given, see ``Model.add_variable``.
 
     env : Environment, optional
         The environment managing this variable. If ``None``, requires an
