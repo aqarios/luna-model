@@ -102,10 +102,17 @@ impl PySolution {
 
         let pyenv: PyResult<PyEnvironment> = env.try_into();
         let sample_vars: Vec<_> = if let Ok(e) = &pyenv {
+            // Only the variables the samples assign, in environment order.
+            let assigned: HashSet<String> = samples[0]
+                .keys()
+                .map(|v| v.name())
+                .collect::<LunaModelResult<_>>()?;
             e.env
                 .vars()
                 .iter()
-                .map(|v| VarKey::Str(v.name().unwrap()))
+                .map(|v| v.name().unwrap())
+                .filter(|name| assigned.contains(name))
+                .map(VarKey::Str)
                 .collect()
         } else {
             samples[0].keys().cloned().collect()
@@ -160,6 +167,13 @@ impl PySolution {
             }
         }
 
+        if let Some(f) = &feasible
+            && f.len() != samples.len()
+        {
+            return Err(PyValueError::new_err(
+                "feasible length does not match number of samples.",
+            ));
+        }
         sol.feasible = feasible;
 
         if let Some(constraints) = constraints {
@@ -227,11 +241,7 @@ impl PySolution {
             }));
             sol.timing = timing.map(|t| t.into());
             sol.counts.push(counts.unwrap_or(1));
-            if let Some(e) = energy
-                && let Some(ens) = sol.raw_energies.as_mut()
-            {
-                ens.push(e)
-            }
+            sol.raw_energies = energy.map(|e| vec![e]);
 
             let sample_vars: HashSet<String> = data
                 .keys()
@@ -320,6 +330,8 @@ impl PySolution {
                 return Ok(sol);
             }
 
+            check_per_sample("counts", counts.as_ref().map(Vec::len), data.len())?;
+            check_per_sample("energies", energies.as_ref().map(Vec::len), data.len())?;
             sol.counts
                 .append(&mut counts.unwrap_or_else(|| vec![1; data.len()]));
             if let Some(es) = energies {
@@ -424,8 +436,11 @@ impl PySolution {
                     .unwrap_or_default()
             }));
             sol.timing = timing.map(|t| t.into());
+            let n_samples = data.shape()[0];
+            check_per_sample("counts", counts.as_ref().map(Vec::len), n_samples)?;
+            check_per_sample("energies", energies.as_ref().map(Vec::len), n_samples)?;
             sol.counts
-                .append(&mut counts.unwrap_or_else(|| vec![1; data.shape()[0]]));
+                .append(&mut counts.unwrap_or_else(|| vec![1; n_samples]));
             if let Some(es) = energies {
                 sol.raw_energies = Some(es)
             }
@@ -442,17 +457,32 @@ impl PySolution {
                     .collect::<LunaModelResult<_>>()?,
             };
 
-            environment.vars().iter().for_each(|v| {
+            if data.shape()[1] != variables.len() {
+                return Err(LunaModelError::SampleIncorrectLength(
+                    format!(
+                        "expected {} columns (one per variable), is {}",
+                        variables.len(),
+                        data.shape()[1]
+                    )
+                    .into(),
+                ));
+            }
+
+            // Only the variables the array assigns, in environment order.
+            let assigned: HashSet<&String> = variables.iter().collect();
+            for v in environment.vars().iter() {
                 let vname = v.name().unwrap();
-                let vtype = v.vtype().unwrap();
-                match vtype {
+                if !assigned.contains(&vname) {
+                    continue;
+                }
+                match v.vtype().unwrap() {
                     Vtype::Binary => sol.add_empty_binary(vname),
                     Vtype::Spin => sol.add_empty_spin(vname),
                     Vtype::Integer => sol.add_empty_integer(vname),
                     Vtype::Real => sol.add_empty_real(vname),
-                    Vtype::InvertedBinary => unreachable!(),
+                    Vtype::InvertedBinary => return Err(LunaModelError::SampleUnexpectedVariable(format!("cannot set values for inverted binary variables directly. Value is determined based on it's counterpart '{vname}'").into())),
                 }
-            });
+            }
 
             for (col, varname) in data.as_array().axis_iter(Axis(1)).zip(variables) {
                 let solcol = sol
@@ -528,6 +558,7 @@ impl PySolution {
                     .unwrap_or_default()
             }));
             sol.timing = timing.map(|t| t.into());
+            check_per_sample("energies", energies.as_ref().map(Vec::len), data.len())?;
             if let Some(es) = energies {
                 sol.raw_energies = Some(es)
             }
@@ -680,5 +711,15 @@ fn check_sense_or_model(sense: &Option<Sense>, model: &Option<PyModelArg>) -> Py
         ))
     } else {
         Ok(())
+    }
+}
+
+/// Checks that an optional per-sample list (counts, energies, ...) has one entry per sample.
+fn check_per_sample(what: &str, len: Option<usize>, n_samples: usize) -> LunaModelResult<()> {
+    match len {
+        Some(len) if len != n_samples => Err(LunaModelError::SampleIncorrectLength(
+            format!("{what} has {len} entries, expected one per sample ({n_samples})").into(),
+        )),
+        _ => Ok(()),
     }
 }
