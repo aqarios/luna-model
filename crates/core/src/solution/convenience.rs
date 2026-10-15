@@ -1,7 +1,7 @@
 //! Convenience statistics and helper queries for solutions.
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_types::Bias;
+use lunamodel_types::{Bias, Sense};
 
 use crate::ValueSource;
 
@@ -23,7 +23,9 @@ impl Solution {
     /// Computes the conditional value at risk (CVaR) of the selected value series.
     ///
     /// The implementation follows the discrete empirical definition used for a
-    /// finite set of sampled outcomes.
+    /// finite set of sampled outcomes: the mean of the best `ceil(alpha * n)` of
+    /// the `n` samples, where best means lowest for `Sense::Min` and highest for
+    /// `Sense::Max`, and a sample with count `c` is counted `c` times.
     pub fn cvar(&self, alpha: Bias, toggle: Option<ValueSource>) -> LunaModelResult<Bias> {
         // Implementation based on definition of CVaR in https://arxiv.org/pdf/1907.04769
         // alpha has to be in (0.0, 1.0]
@@ -34,15 +36,36 @@ impl Solution {
         }
 
         let objs = self.get_value(toggle.unwrap_or(ValueSource::Obj))?;
-        let k = objs.len();
-        let m = (alpha * k as f64).ceil() as usize;
-        let factor: f64 = 1.0 / m as f64;
+        let n: usize = self.counts.iter().sum();
+        if n == 0 {
+            return Err(LunaModelError::Computation(
+                "cannot compute CVaR of an empty solution".into(),
+            ));
+        }
+        let m = (alpha * n as f64).ceil() as usize;
 
-        let mut objs = objs.to_vec();
-        objs.select_nth_unstable_by(m - 1, |a, b| a.total_cmp(b));
-        let sum: f64 = objs[..m].iter().copied().sum();
+        let mut weighted: Vec<(Bias, usize)> = objs
+            .iter()
+            .copied()
+            .zip(self.counts.iter().copied())
+            .collect();
+        match self.sense {
+            Sense::Min => weighted.sort_unstable_by(|(a, _), (b, _)| a.total_cmp(b)),
+            Sense::Max => weighted.sort_unstable_by(|(a, _), (b, _)| b.total_cmp(a)),
+        }
 
-        Ok(factor * sum)
+        let mut remaining = m;
+        let mut sum: Bias = 0.0;
+        for (value, count) in weighted {
+            let taken = count.min(remaining);
+            sum += value * taken as f64;
+            remaining -= taken;
+            if remaining == 0 {
+                break;
+            }
+        }
+
+        Ok(sum / m as f64)
     }
 
     /// Computes the count-weighted expectation value of the selected series.
