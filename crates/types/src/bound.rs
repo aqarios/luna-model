@@ -5,7 +5,7 @@ use std::fmt::Display;
 /// One side of a variable bound interval.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Bound {
-    /// A finite inclusive bound value.
+    /// An inclusive bound value.
     Bounded(f64),
     /// No bound on this side of the interval.
     Unbounded,

@@ -41,15 +41,13 @@ fn build_vars(env: &mut ArcEnv, prob: &LpProblem) -> LunaModelResult<()> {
             // all fine, so we can add this binary variable to the environment.
             env.write_arc().insert(varname, Vtype::Binary, None)?;
         } else if prob.generals.contains(varname) {
-            // we need to make sure that the variable (if contained in the bounds)
-            // does not have unexpected bounds. Expected bounds are lb = int, ub = int.
-            let bounds = check_integer_bounds(prob.bounds.get(varname), varname)?;
-            // all fine, so we can add this binary variable to the environment.
+            // Bounds are passed through as given, the solver handles fractional ones.
+            let bounds = extract_bounds(prob.bounds.get(varname));
             env.write_arc()
                 .insert(varname, Vtype::Integer, Some(bounds))?;
         } else {
             // We have a continuous/real variable.
-            let bounds = extract_real_bounds(prob.bounds.get(varname));
+            let bounds = extract_bounds(prob.bounds.get(varname));
             env.write_arc().insert(varname, Vtype::Real, Some(bounds))?;
         }
     }
@@ -57,8 +55,8 @@ fn build_vars(env: &mut ArcEnv, prob: &LpProblem) -> LunaModelResult<()> {
     Ok(())
 }
 
-/// Converts parsed real bounds into LunaModel lazy bounds.
-fn extract_real_bounds(bounds: Option<&(Option<f64>, Option<f64>)>) -> LazyBounds {
+/// Converts parsed integer or real bounds into LunaModel lazy bounds.
+fn extract_bounds(bounds: Option<&(Option<f64>, Option<f64>)>) -> LazyBounds {
     match bounds {
         Some((lb, ub)) => {
             let lb = match lb {
@@ -72,39 +70,6 @@ fn extract_real_bounds(bounds: Option<&(Option<f64>, Option<f64>)>) -> LazyBound
             LazyBounds::new(Some(lb), Some(ub))
         }
         None => LazyBounds::new(Some(Bound::Bounded(0.0)), Some(Bound::Unbounded)),
-    }
-}
-
-/// Validates integer bounds from the LP input and converts them into lazy bounds.
-fn check_integer_bounds(
-    bounds: Option<&(Option<f64>, Option<f64>)>,
-    varname: &str,
-) -> LunaModelResult<LazyBounds> {
-    match bounds {
-        Some((lb, ub)) => {
-            let lb = check_int_bound(lb, varname)?.unwrap_or(Bound::Bounded(0.0));
-            let ub = check_int_bound(ub, varname)?.unwrap_or(Bound::Unbounded);
-            Ok(LazyBounds::new(Some(lb), Some(ub)))
-        }
-        None => Ok(LazyBounds::new(
-            Some(Bound::Bounded(0.0)),
-            Some(Bound::Unbounded),
-        )),
-    }
-}
-
-/// Validates that a parsed bound endpoint is integral.
-fn check_int_bound(bound: &Option<f64>, varname: &str) -> LunaModelResult<Option<Bound>> {
-    if let Some(l) = bound {
-        // TODO(team): Maybe use the near integral fun.
-        if l.fract() >= 0.0 + f64::EPSILON {
-            return Err(LunaModelError::Translation(
-                format!("Invalid bound for variable '{varname}'. Is {l}, expected integer").into(),
-            ));
-        }
-        Ok(Some(Bound::Bounded(*l)))
-    } else {
-        Ok(None)
     }
 }
 

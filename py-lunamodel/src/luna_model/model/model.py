@@ -417,8 +417,11 @@ class Model:
             The type of the variable (BINARY, SPIN, INTEGER, or REAL).
         lower : float or Unbounded, optional
             The lower bound for the variable. Only applicable for INTEGER and REAL types.
+            ``None`` uses the type's default (``0``), ``-inf`` is the same as ``Unbounded``.
         upper : float or Unbounded, optional
             The upper bound for the variable. Only applicable for INTEGER and REAL types.
+            ``None`` uses the type's default (``Unbounded``), ``+inf`` is the same as
+            ``Unbounded``.
         with_fallback : bool, default=False
             If True and the name exists, a unique fallback name is generated.
 
@@ -433,11 +436,16 @@ class Model:
             If a variable with the same name already exists and `with_fallback=False`.
         VariableNameInvalidError
             If the variable name is invalid.
-        InvalidBoundsError
-            If bounds are invalid or incompatible with the variable type.
         VariableCreationError
-            If ``vtype`` is ``Vtype.INVERTED_BINARY``. Inverted binaries are created by
-            inverting a binary variable (``~x`` or ``x.inv()``).
+            If ``vtype`` is ``Vtype.INVERTED_BINARY`` (inverted binaries are created by
+            inverting a binary variable, ``~x`` or ``x.inv()``), if bounds are given for
+            a BINARY or SPIN variable, or if a bound is ``NaN``.
+
+        Notes
+        -----
+        Bounds are model data and passed to the solver as given. ``lower > upper`` and
+        fractional bounds on INTEGER variables are accepted; solvers typically report
+        the former as infeasible and round the latter inward.
 
         Examples
         --------
@@ -478,9 +486,12 @@ class Model:
         vtype : Vtype, default=Vtype.BINARY
             The type of the variables (BINARY, SPIN, INTEGER, or REAL).
         lower : float or Unbounded, optional
-            The lower bound for the variablse. Only applicable for INTEGER and REAL types.
+            The lower bound for the variables. Only applicable for INTEGER and REAL types.
+            ``None`` uses the type's default (``0``), ``-inf`` is the same as ``Unbounded``.
         upper : float or Unbounded, optional
             The upper bound for the variables. Only applicable for INTEGER and REAL types.
+            ``None`` uses the type's default (``Unbounded``), ``+inf`` is the same as
+            ``Unbounded``.
         with_fallback : bool, default=False
             If True and the name exists, a unique fallback base name is generated.
         delimiter : str, optional
@@ -497,11 +508,16 @@ class Model:
             If a variable with the same name already exists and `with_fallback=False`.
         VariableNameInvalidError
             If the variable name is invalid.
-        InvalidBoundsError
-            If bounds are invalid or incompatible with the variable type.
         VariableCreationError
-            If ``vtype`` is ``Vtype.INVERTED_BINARY``. Inverted binaries are created by
-            inverting a binary variable (``~x`` or ``x.inv()``).
+            If ``vtype`` is ``Vtype.INVERTED_BINARY`` (inverted binaries are created by
+            inverting a binary variable, ``~x`` or ``x.inv()``), if bounds are given for
+            a BINARY or SPIN variable, or if a bound is ``NaN``.
+
+        Notes
+        -----
+        Bounds are model data and passed to the solver as given. ``lower > upper`` and
+        fractional bounds on INTEGER variables are accepted; solvers typically report
+        the former as infeasible and round the latter inward.
 
         Examples
         --------

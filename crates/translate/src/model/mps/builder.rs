@@ -42,8 +42,7 @@ fn build_vars(env: &mut ArcEnv, prob: &MpsProblem) -> LunaModelResult<()> {
                 .bounds
                 .get(var_name)
                 .and_then(|opt| opt.as_ref().copied());
-            let is_binary_bounds = check_integer_bounds(bounds, var_name)?;
-            if is_binary_bounds {
+            if is_binary_bounds(bounds) {
                 env.write_arc().insert(var_name, Vtype::Binary, None)?;
             } else {
                 env.write_arc().insert(var_name, Vtype::Integer, bounds)?;
@@ -60,39 +59,15 @@ fn build_vars(env: &mut ArcEnv, prob: &MpsProblem) -> LunaModelResult<()> {
     Ok(())
 }
 
-fn check_integer_bounds(bounds: Option<LazyBounds>, var_name: &str) -> LunaModelResult<bool> {
-    if let Some(LazyBounds { lower, upper }) = bounds {
-        check_int_bound(lower, var_name)?;
-        check_int_bound(upper, var_name)?;
-        if let Some(Bound::Bounded(l)) = lower
-            && let Some(Bound::Bounded(u)) = upper
-            && l == 0.0
-            && u == 1.0
-        {
-            Ok(true)
-        } else {
-            Ok(false)
-        }
-    } else {
-        Ok(false)
-    }
-}
-
-fn check_int_bound(bound: Option<Bound>, var_name: &str) -> LunaModelResult<()> {
-    if let Some(Bound::Bounded(val)) = bound {
-        if val.fract().abs() >= f64::EPSILON {
-            return Err(LunaModelError::Translation(
-                format!(
-                    "Invalid bound for integer variable '{}'. Is {}, expected integer",
-                    var_name, val
-                )
-                .into(),
-            ));
-        }
-        Ok(())
-    } else {
-        Ok(())
-    }
+/// Whether integer bounds are exactly `0 <= x <= 1`, i.e. the variable is binary.
+fn is_binary_bounds(bounds: Option<LazyBounds>) -> bool {
+    matches!(
+        bounds,
+        Some(LazyBounds {
+            lower: Some(Bound::Bounded(0.0)),
+            upper: Some(Bound::Bounded(1.0)),
+        })
+    )
 }
 
 fn check_binary_bounds(bounds: Option<LazyBounds>, var_name: &str) -> LunaModelResult<()> {
