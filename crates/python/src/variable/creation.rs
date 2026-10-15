@@ -27,9 +27,7 @@ impl PyVariable {
         upper: BoundValue,
     ) -> PyResult<Self> {
         if vtype == PyVtype::InvertedBinary {
-            return Err(LunaModelError::UnsupportedOperation(
-                "cannot create an inverted binary variable directly. Use the '.inv` method or the '~' operator.".into(),
-            ))?;
+            return Err(LunaModelError::InvertedBinaryCreation)?;
         };
 
         let bounds = match (bounds, lower, upper) {

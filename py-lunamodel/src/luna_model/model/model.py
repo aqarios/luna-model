@@ -435,6 +435,9 @@ class Model:
             If the variable name is invalid.
         InvalidBoundsError
             If bounds are invalid or incompatible with the variable type.
+        VariableCreationError
+            If ``vtype`` is ``Vtype.INVERTED_BINARY``. Inverted binaries are created by
+            inverting a binary variable (``~x`` or ``x.inv()``).
 
         Examples
         --------
@@ -496,6 +499,9 @@ class Model:
             If the variable name is invalid.
         InvalidBoundsError
             If bounds are invalid or incompatible with the variable type.
+        VariableCreationError
+            If ``vtype`` is ``Vtype.INVERTED_BINARY``. Inverted binaries are created by
+            inverting a binary variable (``~x`` or ``x.inv()``).
 
         Examples
         --------

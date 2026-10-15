@@ -74,6 +74,8 @@ pub enum LunaModelError {
     InvalidBounds(ErrString),
     /// A variable inversion request was invalid.
     InvalidInversion(ErrString),
+    /// A variable was created with the inverted-binary type directly.
+    InvertedBinaryCreation,
     /// Compression or decompression failed.
     Compression(ErrString),
     /// Serialized data could not be decoded.
@@ -163,6 +165,10 @@ impl Display for LunaModelError {
             ConstraintNameInvalid(msg) => write!(f, "constraint name invalid: {}", msg),
             InvalidBounds(msg) => write!(f, "invalid bounds: {}", msg),
             InvalidInversion(msg) => write!(f, "invalid inversion: {}", msg),
+            InvertedBinaryCreation => write!(
+                f,
+                "cannot create a variable of type InvertedBinary: invert a binary variable instead (e.g. `~x` or `x.inv()`)"
+            ),
             Compression(msg) => write!(f, "compression failed: {}", msg),
             Decoding(msg) => write!(f, "decoding failed: {}", msg),
             Formatter(msg) => write!(f, "formatting failed: {}", msg),
