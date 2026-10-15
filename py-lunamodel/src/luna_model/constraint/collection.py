@@ -298,14 +298,19 @@ class ConstraintCollection:
         Parameters
         ----------
         other : SingleConstraint | ManyConstraint | ConstraintCollection | tuple[ConstraintCollection, str]
-            Either a Constraint, a (Constraint, name) tuple, a ConstraintCollection,
-            a (ConstraintCollection, prefix) tuple, a sequence of either Constraint or
-            (Constraint, str) or a (Sequence[Constraint], base_name) tuple.
+            One of:
 
-            The constraint names of the added Constraint, ConstraintCollection or Sequence have to be different from
-            this collection's constraint names. Otherwise the DuplicateConstraintNameError is
+            - ``Constraint``: added under its own name, or a generated one.
+            - ``(Constraint, name)``: added as ``name``.
+            - ``ConstraintCollection``: all constraints, keeping their names.
+            - ``(ConstraintCollection, prefix)``: all constraints, named ``{prefix}_{name}``.
+            - a sequence or array of ``Constraint`` / ``(Constraint, name)`` /
+              ``(name, Constraint)``: each element as above.
+            - ``(Sequence[Constraint], base_name)``: named ``{base_name}_{i}``.
+
+            The names of the added constraints have to be different from this
+            collection's constraint names. Otherwise DuplicateConstraintNameError is
             raised.
-
 
         Returns
         -------
@@ -324,13 +329,16 @@ class ConstraintCollection:
             If an added constraint uses variables from a different environment than
             the constraints already in this collection (or, for a model's
             constraints, than the model).
+        TypeError
+            If ``other`` is none of the supported forms.
 
         Notes
         -----
         When several constraints are added at once, either all of them are added or,
         if any of them raises, none are.
         """
-        self._cc.__iadd__(other)
+        if self._cc.__iadd__(other) is NotImplemented:
+            return NotImplemented
         return self
 
     def __getitem__(self, key: str) -> Constraint:

@@ -7,9 +7,7 @@ use lunamodel_error::{LunaModelError, LunaModelResult};
 use numpy::{PyArray1, PyArrayMethods};
 use pyo3::{FromPyObject, Py, PyAny, PyErr, Python};
 
-use crate::args::PyCArg;
-
-use super::PyConstraintCollection;
+use crate::args::{PyCArg, PyColArg};
 
 #[derive(FromPyObject, Debug)]
 pub enum MaybeNamedVariants {
@@ -37,7 +35,7 @@ pub enum ConstraintsIn {
     // NDArray
     Ca(Py<PyArray1<Py<PyAny>>>),
     // ConstraintCollection
-    Cc(PyConstraintCollection),
+    Cc(PyColArg),
     // [Constraint]
     Cv(Vec<PyCArg>),
     // [(String, Constraint) | (Constraint, String) | Constraint]
@@ -69,15 +67,21 @@ pub fn constraints_from_input(
         // ConstraintCollection
         (Cc(col), prefix) => {
             let prefix = match prefix {
-                None => String::new(),
-                Some(S(p)) => p,
+                None => None,
+                Some(S(p)) => Some(p),
                 Some(SV(_)) => return Err(names_sequence_not_allowed()),
             };
             Ok(col
                 .read()
                 .clone()
                 .into_iter()
-                .map(|(name, constr)| (constr, Some(format!("{prefix}{name}"))))
+                .map(|(name, constr)| {
+                    let name = match &prefix {
+                        Some(p) => format!("{p}_{name}"),
+                        None => name,
+                    };
+                    (constr, Some(name))
+                })
                 .collect())
         }
         // [Constraint]
