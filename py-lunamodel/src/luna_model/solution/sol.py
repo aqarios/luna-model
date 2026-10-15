@@ -271,8 +271,9 @@ class Solution:
 
         Raises
         ------
-        ValueError
-            If alpha is not in the range (0, 1].
+        ComputationError
+            If alpha is not in the range (0, 1], if the selected values were not
+            evaluated, or if the solution has no samples.
         """
         return self._s.cvar(alpha, value_toggle._val)
 
