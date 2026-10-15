@@ -1,7 +1,7 @@
 //! Formatting helpers for expressions.
 
 use indexmap::IndexMap;
-use lunamodel_core::Expression;
+use lunamodel_core::{Expression, prelude::VarRef};
 use lunamodel_types::Bias;
 use regex::Regex;
 
@@ -16,6 +16,12 @@ impl CustomFormat<FormatOpt> for Expression {
         write!(fmt, "{:?}", self)
     }
 }
+/// Name of a variable, or a placeholder if it was removed from its environment.
+fn var_label(v: &VarRef) -> String {
+    v.name()
+        .unwrap_or_else(|_| format!("<removed variable {}>", v.id()))
+}
+
 fn expr_string(expr: &Expression) -> String {
     let mut const_str = String::new();
     let mut lins = Vec::new();
@@ -37,15 +43,15 @@ fn expr_string(expr: &Expression) -> String {
             }
             [v] => {
                 if lins.is_empty() {
-                    lins.push(format!("{bstr}{}", v.name().unwrap()));
+                    lins.push(format!("{bstr}{}", var_label(v)));
                 } else {
-                    lins.push(format!("+{bstr}{}", v.name().unwrap()).replace("+-", "-"));
+                    lins.push(format!("+{bstr}{}", var_label(v)).replace("+-", "-"));
                 }
             }
             [u, v] => {
                 let vstr = match u.id() == v.id() {
-                    true => format!("{}^2", u.name().unwrap()),
-                    false => format!("{} {}", u.name().unwrap(), v.name().unwrap()),
+                    true => format!("{}^2", var_label(u)),
+                    false => format!("{} {}", var_label(u), var_label(v)),
                 };
                 if quads.is_empty() {
                     quads.push(format!("{bstr}{}", vstr));
@@ -54,10 +60,7 @@ fn expr_string(expr: &Expression) -> String {
                 }
             }
             vars => {
-                let vs = vars
-                    .iter()
-                    .map(|v| v.name().unwrap())
-                    .collect::<Vec<String>>();
+                let vs = vars.iter().map(var_label).collect::<Vec<String>>();
                 // .join(" ");
                 let mut varwithcount: IndexMap<String, usize> = IndexMap::new();
                 for v in vs {

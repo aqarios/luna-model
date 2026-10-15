@@ -48,6 +48,7 @@ impl Model {
         if expr.env_id() != self.env_id() {
             return Err(foreign_env_error("objective", &expr));
         }
+        expr.check_living()?;
         if let Some(s) = sense {
             self.sense = s;
         }
@@ -128,6 +129,7 @@ impl Model {
                     foreign_env_error(&format!("constraint '{name}'"), &updated.lhs).into(),
                 );
             }
+            updated.lhs.check_living()?;
             *constr = updated;
         }
         Ok(())
