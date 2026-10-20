@@ -30,7 +30,7 @@ impl AnalysisPass for MaxBiasAnalysis {
     }
 
     fn run(&self, model: &Model, _ctx: &PassContext) -> TranspileKindResult<Self::Result> {
-        let obj = &model.objective;
+        let obj = model.objective();
         let mut max_val = 0.0;
 
         let max_linear = obj.linear.iter().map(|(_, v)| abs(v)).fold(0.0, f64::max);

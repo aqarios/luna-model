@@ -26,7 +26,7 @@ fn build_model(num_vars: usize, shuffle_constraints: bool) -> Model {
     // Objective touches only one variable despite the huge variable-id space.
     let mut objective = Expression::empty(env.clone());
     objective.linear = Linear::for_var(idx[0], 1.0);
-    model.objective = objective;
+    model.set_objective(objective, None).expect("objective");
 
     // One constraint per adjacent variable pair (i, i+1) - each constraint
     // references only 2 of the `num_vars` global variable ids, mirroring a
@@ -44,10 +44,7 @@ fn build_model(num_vars: usize, shuffle_constraints: bool) -> Model {
         // not what this test is trying to isolate.
         let c = Constraint::new(lhs, 1.0, Comparator::Le, Some(format!("pair_{i}")))
             .expect("constraint");
-        model
-            .constraints
-            .add_constraint(c, None)
-            .expect("add_constraint");
+        model.add_constraint(c, None).expect("add_constraint");
     }
 
     model

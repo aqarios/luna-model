@@ -236,7 +236,7 @@ def test_model():
 
 @pytest.mark.parametrize("variables", [20], indirect=True)
 def test_expression_repr(variables: tuple[Variable, ...]):
-    m = Model(name="MyModel")
+    m = Model(name="MyModel", env=variables[0].environment)
     m.objective = variables[0] * 1
     for v in variables[1:]:
         m.objective += v * 2

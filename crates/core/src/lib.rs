@@ -30,7 +30,7 @@ mod variable;
 pub use constraint::{Constraint, ConstraintCollection};
 pub use environment::{ArcEnv, Environment};
 pub use expression::Expression;
-pub use model::Model;
+pub use model::{Model, ObjectiveMut};
 pub use solution::{Solution, ValueSource};
 
 pub use timer::{SubTimer, Timer, Timing};

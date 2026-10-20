@@ -2,8 +2,8 @@
 
 use lunamodel_core::{Model, Solution, ops::LmSubAssign, prelude::LazyBounds};
 use lunamodel_transpiler::{
-    AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult,
-    transformation,
+    AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, TranspileErrorKind,
+    TranspileKindResult, transformation,
 };
 use lunamodel_types::{Bound, Comparator, Vtype};
 
@@ -42,7 +42,7 @@ impl TransformationPass for LeToEqConstraintsPass {
         let minvaldata: &MinConstraintValues =
             ctx.require_analysis(&MinValueForConstraintAnalysis::key())?;
 
-        for (name, constr) in model.constraints.iter_mut() {
+        model.update_constraints(|env, name, constr| {
             if constr.comparator == Comparator::Le {
                 let minval =
                     *minvaldata
@@ -52,7 +52,7 @@ impl TransformationPass for LeToEqConstraintsPass {
                             name: self.name().to_owned(),
                             msg: format!("cache does not contain an entry for constraint '{name}'"),
                         })?;
-                let slack_var = model.environment.insert_with_fallback(
+                let slack_var = env.insert_with_fallback(
                     &format!("slack_{}", name),
                     Vtype::Integer,
                     Some(LazyBounds::new(
@@ -68,7 +68,8 @@ impl TransformationPass for LeToEqConstraintsPass {
 
                 artifact.slackvars.push(slack_var.name()?);
             }
-        }
+            Ok::<_, TranspileErrorKind>(())
+        })?;
 
         Ok(artifact)
     }

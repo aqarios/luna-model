@@ -50,7 +50,7 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
             max_bias.val
         };
 
-        let constrs = model.constraints.clone();
+        let constrs = model.constraints().clone();
 
         for (name, constr) in constrs.iter() {
             if constr.comparator != Comparator::Eq {
@@ -62,9 +62,9 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
             let mut expr = (&constr.lhs - constr.rhs)?;
             expr.pow_assign(2)?;
             model
-                .objective
+                .objective_mut()
                 .add_assign((self.penalty_scaling * max_bias * expr)?)?;
-            model.constraints.remove_constraint(name)?;
+            model.remove_constraint(name)?;
         }
 
         Ok(Self::Artifact {})

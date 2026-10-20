@@ -4,11 +4,21 @@ use lunamodel_error::LunaModelResult;
 use lunamodel_types::Vtype;
 use lunamodel_utils::{unique, unique_by};
 
-use crate::{ConstraintCollection, prelude::VarRef, solution::sample::SampleView};
+use crate::{ConstraintCollection, Expression, prelude::VarRef, solution::sample::SampleView};
 
 use super::Model;
 
 impl Model {
+    /// Read-only view of the model's objective.
+    pub fn objective(&self) -> &Expression {
+        &self.objective
+    }
+
+    /// Read-only view of the model's constraints.
+    pub fn constraints(&self) -> &ConstraintCollection {
+        &self.constraints
+    }
+
     /// Returns the distinct variable types used by the model.
     ///
     /// This is derived from both the objective and all constraints, so it

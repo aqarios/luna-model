@@ -43,7 +43,7 @@ impl TransformationPass for ChangeSensePass {
         match model.sense == self.sense {
             true => Ok(ChangeSensePassArtifact { did_change: false }),
             false => {
-                model.objective.mul_assign(-1.0)?;
+                model.objective_mut().mul_assign(-1.0)?;
                 model.sense = self.sense;
                 Ok(ChangeSensePassArtifact { did_change: true })
             }

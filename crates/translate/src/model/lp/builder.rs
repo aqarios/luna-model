@@ -20,8 +20,8 @@ pub fn build_model(prob: LpProblem) -> LunaModelResult<Model> {
     let expr = build_expr(&env, prob.objective)?;
     let constrs = build_constraints(&env, prob.constraints)?;
     let mut model = Model::with_env(prob.name, Some(prob.sense), env);
-    model.objective = expr;
-    model.constraints = constrs;
+    model.set_objective(expr, None)?;
+    model.set_constraints(constrs)?;
     Ok(model)
 }
 

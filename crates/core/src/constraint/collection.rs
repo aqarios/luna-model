@@ -1,6 +1,9 @@
 //! Ordered storage for named constraints.
 
-use crate::{Expression, environment::ArcEnv, traits::ContentEquality, variable::VarRef};
+use crate::{
+    Expression, environment::ArcEnv, ops::check_constr_env, traits::ContentEquality,
+    variable::VarRef,
+};
 use indexmap::IndexMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Comparator, Vtype};
@@ -66,6 +69,11 @@ impl ConstraintCollection {
         )
     }
 
+    /// Get the first constraint in the collection, if one exists.
+    pub fn first_constraint(&self) -> Option<&Constraint> {
+        self.data.first().map(|(_, c)| c)
+    }
+
     /// Iterates over `(name, constraint)` pairs in insertion order.
     pub fn iter(&self) -> impl Iterator<Item = (&String, &Constraint)> {
         self.data.iter()
@@ -92,7 +100,69 @@ impl ConstraintCollection {
     /// existing explicit name or synthesizes a fallback name for auto-named
     /// constraints. The inserted constraint is renamed to the final collection
     /// key so the two stay in sync.
+    ///
+    /// Fails if the constraint belongs to a different environment than the
+    /// constraints already in the collection.
     pub fn add_constraint(
+        &mut self,
+        constr: Constraint,
+        name: Option<String>,
+    ) -> LunaModelResult<String> {
+        if let Some(first) = self.first_constraint() {
+            check_constr_env(first, &constr, name.as_deref())?;
+        }
+        self.insert(constr, name)
+    }
+
+    /// Inserts many constraints and returns the final assigned names.
+    ///
+    /// Either all constraints are inserted or, on error, none are.
+    pub fn add_many_constraints(
+        &mut self,
+        other: impl Iterator<Item = (Constraint, Option<String>)>,
+    ) -> LunaModelResult<Vec<String>> {
+        let constrs: Vec<_> = other.collect();
+        if let Some(reference) = self.first_constraint().or(constrs.first().map(|(c, _)| c)) {
+            for (c, name) in &constrs {
+                check_constr_env(reference, c, name.as_deref())?;
+            }
+        }
+        self.insert_many(constrs)
+    }
+
+    /// Inserts another collection, optionally prefixing all incoming names.
+    ///
+    /// Either all constraints are inserted or, on error, none are.
+    pub fn add_collection(
+        &mut self,
+        other: ConstraintCollection,
+        prefix: Option<String>,
+    ) -> LunaModelResult<Vec<String>> {
+        self.add_many_constraints(other.into_iter().map(|(name, constr)| {
+            let name = match prefix.as_ref() {
+                Some(p) => format!("{p}{name}"),
+                None => name,
+            };
+            (constr, Some(name))
+        }))
+    }
+
+    /// Replaces an existing constraint while keeping its collection key stable.
+    ///
+    /// Fails if the new constraint belongs to a different environment than the
+    /// other constraints in the collection.
+    pub fn set_constraint(&mut self, key: &str, constr: Constraint) -> LunaModelResult<()> {
+        if !self.data.contains_key(key) {
+            return Err(LunaModelError::NoConstraintForKey(key.to_string().into()));
+        }
+        if let Some((_, other)) = self.data.iter().find(|(k, _)| k.as_str() != key) {
+            check_constr_env(other, &constr, Some(key))?;
+        }
+        self.replace(key, constr)
+    }
+
+    /// Inserts a constraint without checking its environment.
+    pub(crate) fn insert(
         &mut self,
         mut constr: Constraint,
         name: Option<String>,
@@ -111,35 +181,27 @@ impl ConstraintCollection {
         }
     }
 
-    /// Inserts many constraints and returns the final assigned names.
-    pub fn add_many_constraints(
+    /// Inserts many constraints without checking their environments.
+    ///
+    /// Either all constraints are inserted or, on error, none are.
+    pub(crate) fn insert_many(
         &mut self,
-        other: impl Iterator<Item = (Constraint, Option<String>)>,
+        constrs: Vec<(Constraint, Option<String>)>,
     ) -> LunaModelResult<Vec<String>> {
-        other
-            .map(|(constr, name)| self.add_constraint(constr, name))
-            .collect::<LunaModelResult<_>>()
-    }
-
-    /// Inserts another collection, optionally prefixing all incoming names.
-    pub fn add_collection(
-        &mut self,
-        other: ConstraintCollection,
-        prefix: Option<String>,
-    ) -> LunaModelResult<Vec<String>> {
-        other
+        let len = self.data.len();
+        let res = constrs
             .into_iter()
-            .map(|(mut name, constr)| {
-                if let Some(p) = prefix.as_ref() {
-                    name = format!("{}{}", p, name)
-                }
-                self.add_constraint(constr, Some(name))
-            })
-            .collect::<LunaModelResult<_>>()
+            .map(|(constr, name)| self.insert(constr, name))
+            .collect::<LunaModelResult<_>>();
+        if res.is_err() {
+            // Insertions only ever append, so truncating restores the previous state.
+            self.data.truncate(len);
+        }
+        res
     }
 
-    /// Replaces an existing constraint while keeping its collection key stable.
-    pub fn set_constraint(&mut self, key: &str, constr: Constraint) -> LunaModelResult<()> {
+    /// Replaces an existing constraint without checking its environment.
+    pub(crate) fn replace(&mut self, key: &str, constr: Constraint) -> LunaModelResult<()> {
         if let Some(c) = self.data.get_mut(key) {
             *c = constr;
             Ok(())

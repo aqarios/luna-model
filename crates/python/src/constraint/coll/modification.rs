@@ -7,7 +7,7 @@ use pyo3::{FromPyObject, PyResult, Python, pymethods};
 use super::PyConstraintCollection;
 use crate::{
     args::PyCArg,
-    constraint::utils::{ConstraintsIn, NameIn, add_many_constraint},
+    constraint::utils::{ConstraintsIn, NameIn, constraints_from_input},
 };
 
 #[derive(FromPyObject, Debug)]
@@ -27,15 +27,15 @@ impl PyConstraintCollection {
         let _: () = match other {
             Other::Constr(constr) => {
                 _ = self
-                    .write()
+                    .inner_mut()
                     .add_constraint(constr.c.read_arc().clone(), None)?
             }
             Other::Tuple((constr, name)) => {
                 _ = self
-                    .write()
+                    .inner_mut()
                     .add_constraint(constr.c.read_arc().clone(), Some(name))?
             }
-            Other::Multi(o) => _ = self.add_many_py(py, o, None),
+            Other::Multi(o) => _ = self.add_many_py(py, o, None)?,
         };
         Ok(())
     }
@@ -43,7 +43,7 @@ impl PyConstraintCollection {
     /// Add a constraint to the collection.
     fn add_constraint(&mut self, constr: PyCArg, name: Option<String>) -> PyResult<String> {
         Ok(self
-            .write()
+            .inner_mut()
             .add_constraint(constr.c.read_arc().clone(), name)?)
     }
 
@@ -58,12 +58,12 @@ impl PyConstraintCollection {
 
     fn __setitem__(&mut self, key: String, constr: PyCArg) -> PyResult<()> {
         Ok(self
-            .write()
+            .inner_mut()
             .set_constraint(&key, constr.c.read_arc().clone())?)
     }
 
     fn remove(&mut self, key: String) -> PyResult<()> {
-        Ok(self.write().remove_constraint(&key)?)
+        Ok(self.inner_mut().remove_constraint(&key)?)
     }
 }
 
@@ -74,6 +74,7 @@ impl PyConstraintCollection {
         ccin: ConstraintsIn,
         nin: Option<NameIn>,
     ) -> LunaModelResult<Vec<String>> {
-        add_many_constraint(py, &mut self.write(), ccin, nin)
+        let constrs = constraints_from_input(py, ccin, nin)?;
+        self.inner_mut().add_many_constraints(constrs)
     }
 }
