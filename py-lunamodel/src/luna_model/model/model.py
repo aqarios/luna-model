@@ -863,8 +863,12 @@ class Model:
 
         Notes
         -----
-        This operation modifies the model in place. The target variable remains
-        in the model's environment but is no longer used.
+        This operation modifies the model in place. If the replacement does not
+        use the target variable, the target is removed from the model's
+        environment. Expressions created before the substitution that still use
+        it can be printed, but using them in the model afterwards raises
+        ``VariableNotExistingError``. ``Expression.substitute`` never removes
+        variables.
         """
         self._m.substitute(target, replacement)  # type: ignore[attribute]
 
