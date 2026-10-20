@@ -15,6 +15,8 @@ enum Other {
     // SINGLE
     Constr(PyCArg),
     Tuple((PyCArg, String)),
+    // MULTIPLE, with a name prefix: `(constraints, name)`
+    Prefixed((ConstraintsIn, String)),
     // MULTIPLE
     Multi(ConstraintsIn),
 }
@@ -35,6 +37,7 @@ impl PyConstraintCollection {
                     .inner_mut()
                     .add_constraint(constr.c.read_arc().clone(), Some(name))?
             }
+            Other::Prefixed((o, name)) => _ = self.add_many_py(py, o, Some(NameIn::S(name)))?,
             Other::Multi(o) => _ = self.add_many_py(py, o, None)?,
         };
         Ok(())
