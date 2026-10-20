@@ -49,3 +49,19 @@ impl Add<usize> for &VarRef {
         self.add(rhs as Bias)
     }
 }
+
+impl Add<&VarRef> for Bias {
+    type Output = LunaModelResult<Expression>;
+
+    fn add(self, rhs: &VarRef) -> Self::Output {
+        rhs + self
+    }
+}
+
+impl Add<&VarRef> for usize {
+    type Output = LunaModelResult<Expression>;
+
+    fn add(self, rhs: &VarRef) -> Self::Output {
+        rhs + self
+    }
+}
