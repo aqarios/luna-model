@@ -51,7 +51,8 @@ class Variable:
         - ``Vtype.INTEGER``: Variable can be any integer
         - ``Vtype.REAL``: Variable can be any real number
 
-        If Vtype.INVERTED_BINARY is used an error is raised.
+        ``Vtype.INVERTED_BINARY`` raises ``VariableCreationError``; invert a binary
+        variable instead (``~x`` or ``x.inv()``).
 
     bounds : Bounds, optional
         The bounds constraining the variable's value.

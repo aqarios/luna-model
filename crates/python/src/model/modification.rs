@@ -3,12 +3,13 @@
 use std::ops::Mul;
 
 use lunamodel_core::{Expression, ops::LmAddAssign, prelude::LazyBounds};
+use lunamodel_error::py::PyLunaModelError;
 use lunamodel_unwind::*;
 use numpy::{
     IxDyn, ToPyArray,
     ndarray::{ArrayD, Dimension},
 };
-use pyo3::{Bound, FromPyObject, IntoPyObjectExt, Py, PyAny, PyResult, Python, pymethods};
+use pyo3::{Bound, FromPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pymethods};
 
 use super::PyModel;
 use crate::{
@@ -81,25 +82,26 @@ impl PyModel {
             true => Self::add_variable_with_fallback,
             false => Self::add_variable,
         };
-        let arr: ArrayD<Py<PyAny>> = ArrayD::from_shape_fn(IxDyn(&shape), |idx| {
+        let names: ArrayD<String> = ArrayD::from_shape_fn(IxDyn(&shape), |idx| {
             let mut indices = Vec::new();
             for i in 0..idx.ndim() {
                 indices.push(idx[i]);
             }
-
-            let n = format!(
+            format!(
                 "{name}{}",
                 indices
                     .iter()
                     .map(|i| i.to_string())
                     .collect::<Vec<_>>()
                     .join(&delimiter)
-            );
-            adder(self, n, vtype, lower, upper)
-                .expect("cannot create variable")
-                .into_py_any(py)
-                .expect("cannot convert to Any")
+            )
         });
+        let vars = names
+            .iter()
+            .map(|n| adder(self, n.clone(), vtype, lower, upper)?.into_py_any(py))
+            .collect::<PyResult<Vec<_>>>()?;
+        let arr = ArrayD::from_shape_vec(names.raw_dim(), vars)
+            .map_err(|e| PyLunaModelError::new_err(e.to_string()))?;
 
         Ok(arr.to_pyarray(py).into_any())
     }

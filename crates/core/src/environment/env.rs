@@ -103,6 +103,11 @@ impl Environment {
         vtype: Vtype,
         bounds: Option<LazyBounds>,
     ) -> LunaModelResult<VarIdx> {
+        // Inverted binaries only exist as the inversion of a binary variable
+        // and are created through `insert_inverted`, never directly.
+        if vtype == Vtype::InvertedBinary {
+            return Err(LunaModelError::InvertedBinaryCreation);
+        }
         ensure_name_valid(name)?;
         ensure_unused(&self.lookup, name)?;
         let var = Variable::new(name, vtype, bounds)?; //, self.id)?;
