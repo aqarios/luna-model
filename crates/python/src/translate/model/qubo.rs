@@ -5,7 +5,7 @@ use lunamodel_unwind::*;
 use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::{Bound, FromPyObject, PyResult, Python, pyclass, pymethods};
 
-use crate::{PyModel, args::PyModelArg, types::PyVtype};
+use crate::{PyModel, PySense, args::PyModelArg, types::PyVtype};
 
 #[derive(FromPyObject)]
 enum QuboType<'py> {
@@ -107,5 +107,11 @@ impl PyQubo {
     #[getter]
     fn vtype(&self) -> PyVtype {
         self.0.vtype.into()
+    }
+
+    /// Return the optimization sense of the QUBO.
+    #[getter]
+    fn sense(&self) -> PySense {
+        self.0.sense.into()
     }
 }
