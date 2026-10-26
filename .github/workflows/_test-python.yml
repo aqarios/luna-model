@@ -45,10 +45,10 @@ jobs:
           toolchain: ${{ steps.toolchain.outputs.channel }}
 
       - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2.9.2
+        uses: Swatinem/rust-cache@v2.9.3
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v10.3.0
+        uses: astral-sh/setup-uv@v10.3.2
         with:
           python-version: ${{ matrix.py }}
           activate-environment: false
