@@ -37,7 +37,7 @@ impl AnalysisPass for CheckModelSpecsAnalysis {
 
     fn run(&self, model: &Model, _ctx: &PassContext) -> TranspileKindResult<Self::Result> {
         if !model.specs().satisfies(&self.specs) {
-            return Err(TransformError::Analysis {
+            Err(TransformError::Analysis {
                 name: self.name().to_string(),
                 msg: format!(
                     "model specs do not match the requirements:\n{}",

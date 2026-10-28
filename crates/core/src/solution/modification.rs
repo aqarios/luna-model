@@ -171,13 +171,13 @@ impl Solution {
             let base = *to_rm.get(&rmi).unwrap();
             self.counts[base] += self.counts[rmi];
             self.counts.remove(rmi);
-            for (_, c) in self.samples.iter_mut() {
+            for c in self.samples.values_mut() {
                 c.remove(rmi);
             }
-            for (_, c) in self.constraints.iter_mut() {
+            for c in self.constraints.values_mut() {
                 c.remove(rmi);
             }
-            for (_, c) in self.variable_bounds.iter_mut() {
+            for c in self.variable_bounds.values_mut() {
                 c.remove(rmi);
             }
             if let Some(v) = self.raw_energies.as_mut() {

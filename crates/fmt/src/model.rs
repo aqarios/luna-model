@@ -235,7 +235,7 @@ mod pymodelio {
                     .space()
                     .write(&format!("- {}", &bias_string[1..]));
             } else {
-                self.writer.space().write(&format!("+ {}", &bias_string));
+                self.writer.space().write(&format!("+ {}", bias_string));
             }
             self
         }
@@ -253,11 +253,7 @@ mod pymodelio {
                     format!("- {} * ", &bias_string[1..])
                 }
             } else {
-                format!(
-                    "{}{} * ",
-                    if self.is_first { "" } else { "+ " },
-                    &bias.to_string()
-                )
+                format!("{}{} * ", if self.is_first { "" } else { "+ " }, bias)
             }
         }
 

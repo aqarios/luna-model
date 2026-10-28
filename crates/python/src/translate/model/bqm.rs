@@ -81,23 +81,23 @@ impl PyBqmTranslator {
         // invariants explicitly before unpacking coefficients.
         let model: &Model = &model.m.read_arc();
         if model.objective.has_higher_order() {
-            return Err(LunaModelError::ModelNotQuadratic)?;
+            Err(LunaModelError::ModelNotQuadratic)?;
         }
         if !model.constraints.is_empty() {
-            return Err(LunaModelError::ModelNotUnconstrained)?;
+            Err(LunaModelError::ModelNotUnconstrained)?;
         }
         if !model.sense.is_min() {
-            return Err(LunaModelError::ModelSenseNotMinimize)?;
+            Err(LunaModelError::ModelSenseNotMinimize)?;
         }
         let vtypes: Vec<Vtype> = model.vtypes().collect();
         if vtypes.len() != 1 {
-            return Err(LunaModelError::Vtype(
+            Err(LunaModelError::Vtype(
                 "variables have different vtypes".into(),
             ))?;
         }
         let vtype = vtypes[0];
         if !(vtype == Vtype::Binary || vtype == Vtype::Spin) {
-            return Err(LunaModelError::Vtype(
+            Err(LunaModelError::Vtype(
                 "vtype is not Vtype.BINARY or Vtype.SPIN".into(),
             ))?;
         }

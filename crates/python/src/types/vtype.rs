@@ -1,5 +1,8 @@
 //! Python wrapper for variable-type enums.
 
+// pyo3's `from_py_object` derive emits `.clone()` on these `Copy` types.
+#![allow(clippy::clone_on_copy)]
+
 use lunamodel_types::Vtype;
 use pyo3::pyclass;
 

@@ -39,7 +39,7 @@ impl AnalysisPass for MinValueForConstraintAnalysis {
         let mut minvalues = HashMap::new();
         for (name, constr) in model.constraints.iter() {
             if constr.lhs.has_quadratic() {
-                return Err(TransformError::Analysis {
+                Err(TransformError::Analysis {
                     name: self.name().to_owned(),
                     msg: format!(
                         "constraint '{name}' contains quadratic terms. This is not supported, constraints must be linear."
@@ -48,7 +48,7 @@ impl AnalysisPass for MinValueForConstraintAnalysis {
             }
 
             if constr.lhs.has_higher_order() {
-                return Err(TransformError::Analysis {
+                Err(TransformError::Analysis {
                     name: self.name().to_owned(),
                     msg: format!(
                         "constraint '{name}' contains higher-order terms. This is not supported, constraints must be linear."

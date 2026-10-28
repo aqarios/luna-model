@@ -54,7 +54,7 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
 
         for (name, constr) in constrs.iter() {
             if constr.comparator != Comparator::Eq {
-                return Err(TransformError::Transformation {
+                Err(TransformError::Transformation {
                     name: self.name().to_owned(),
                     msg: "cannot move inequality constraints to objective. Transform inequality constraints to equality constraints first.".into(),
                 })?;

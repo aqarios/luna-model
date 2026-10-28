@@ -1,5 +1,8 @@
 //! Python wrapper for model translation targets.
 
+// pyo3's `from_py_object` derive emits `.clone()` on these `Copy` types.
+#![allow(clippy::clone_on_copy)]
+
 use lunamodel_translate::TranslationTarget;
 use pyo3::pyclass;
 use strum_macros::Display;
