@@ -34,10 +34,29 @@ namespace detail {
 /// Shared caster body for a luna-model wrapper `Wrapper`, delegating to the capsule transport in
 /// `lm::python`. Uses optional storage rather than `NB_TYPE_CASTER` so it also works for wrappers
 /// that are not default-constructible (Constraint, Variable, Bounds, ModelSpecs).
+/// The Python type of each wrapper, as nanobind shows it in signatures and stubs.
+template <typename Wrapper>
+struct luna_model_type_name;
+#define LUNA_MODEL_NB_TYPE_NAME(Wrapper, PyName)                                            \
+    template <>                                                                             \
+    struct luna_model_type_name<Wrapper> {                                                  \
+        static constexpr auto name = const_name(PyName);                                    \
+    };
+LUNA_MODEL_NB_TYPE_NAME(lm::Model, "luna_model.Model")
+LUNA_MODEL_NB_TYPE_NAME(lm::Solution, "luna_model.Solution")
+LUNA_MODEL_NB_TYPE_NAME(lm::Env, "luna_model.Environment")
+LUNA_MODEL_NB_TYPE_NAME(lm::Expression, "luna_model.Expression")
+LUNA_MODEL_NB_TYPE_NAME(lm::Constraint, "luna_model.Constraint")
+LUNA_MODEL_NB_TYPE_NAME(lm::ConstraintCollection, "luna_model.ConstraintCollection")
+LUNA_MODEL_NB_TYPE_NAME(lm::Vref, "luna_model.Variable")
+LUNA_MODEL_NB_TYPE_NAME(lm::LazyBounds, "luna_model.Bounds")
+LUNA_MODEL_NB_TYPE_NAME(lm::Specs, "luna_model.ModelSpecs")
+#undef LUNA_MODEL_NB_TYPE_NAME
+
 template <typename Wrapper>
 struct luna_model_caster {
     using Value = Wrapper;
-    static constexpr auto Name = const_name("luna_model object");
+    static constexpr auto Name = luna_model_type_name<Wrapper>::name;
     template <typename T_>
     using Cast = movable_cast_t<T_>;
     template <typename T_>
