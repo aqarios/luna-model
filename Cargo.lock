@@ -494,7 +494,7 @@ dependencies = [
 
 [[package]]
 name = "js-lunamodel"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "luna-model",
  "napi",
@@ -550,7 +550,7 @@ dependencies = [
 
 [[package]]
 name = "luna-model"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "lunamodel-core",
  "lunamodel-error",
@@ -568,7 +568,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-core"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "bitvec",
  "derive_more",
@@ -593,7 +593,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-error"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "prost",
  "pyo3",
@@ -603,7 +603,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-hashing"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "lunamodel-core",
  "lunamodel-types",
@@ -612,7 +612,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-io"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "indexmap",
  "lunamodel-core",
@@ -628,7 +628,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-python"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "derive_more",
  "indexmap",
@@ -653,7 +653,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-python-macros"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -662,7 +662,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-serializer"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "bitvec",
  "indexmap",
@@ -679,7 +679,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transform"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "anyhow",
  "derive_more",
@@ -700,7 +700,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-translate"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "indexmap",
  "lunamodel-core",
@@ -713,7 +713,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "anyhow",
  "lunamodel-core",
@@ -724,7 +724,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler-macros"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -733,7 +733,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-types"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "derive_more",
  "enumset",
@@ -746,7 +746,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwind"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "lunamodel-unwindable",
  "lunamodel-unwinder",
@@ -754,7 +754,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwindable"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -763,7 +763,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwinder"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "lunamodel-error",
  "pyo3",
@@ -771,7 +771,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "lunamodel-error",
  "num",
@@ -1096,7 +1096,7 @@ dependencies = [
 
 [[package]]
 name = "pylm"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "lunamodel-python",
  "pyo3",
@@ -1139,7 +1139,7 @@ dependencies = [
 
 [[package]]
 name = "pyo3-lunamodel"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "derive_more",
  "luna-model",
