@@ -3,7 +3,10 @@
 //! (`Artifact` + `Reversible` + `TransformationPass`). The SDK generates every `unsafe extern "C"`
 //! trampoline, the descriptor, and the reversal registration; the core runs and reverses the pass.
 
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::{
+    Mutex, MutexGuard,
+    atomic::{AtomicBool, AtomicUsize, Ordering},
+};
 
 use lunamodel_capi_host::capi_table::LUNA_MODEL_C_API;
 use lunamodel_capi_host::plugin::CPluginTransformPass;
@@ -16,6 +19,15 @@ const NEW_NAME: &str = "renamed-by-rust-plugin";
 
 static BACKWARD_CALLS: AtomicUsize = AtomicUsize::new(0);
 static BACKWARD_PREV_OK: AtomicBool = AtomicBool::new(false);
+
+/// Both tests reverse through `RenamePass`, which bumps the counters above, so they must not run
+/// concurrently or the forward/backward test sees the other test's call.
+static SERIAL: Mutex<()> = Mutex::new(());
+
+fn serial() -> MutexGuard<'static, ()> {
+    // A failed test poisons the lock; the other test should still run.
+    SERIAL.lock().unwrap_or_else(|e| e.into_inner())
+}
 
 /// Typed inverse-transformation artifact — exactly as a native pass would define one.
 #[derive(Message)]
@@ -68,6 +80,10 @@ impl TransformationPass for RenamePass {
 
 #[test]
 fn rust_plugin_forward_and_backward() {
+    let _serial = serial();
+    BACKWARD_CALLS.store(0, Ordering::SeqCst);
+    BACKWARD_PREV_OK.store(false, Ordering::SeqCst);
+
     // Driver bootstrap: install the host C-API table (the one unavoidable `unsafe`, host-side).
     match unsafe { rs_lunamodel::init(&LUNA_MODEL_C_API as *const _) } {
         Ok(()) | Err(rs_lunamodel::InitError::AlreadyInitialized) => {}
@@ -105,6 +121,7 @@ fn rust_plugin_forward_and_backward() {
 fn rust_plugin_mixed_with_builtin() {
     use lunamodel_transform::transformation::ChangeSensePass;
 
+    let _serial = serial();
     match unsafe { rs_lunamodel::init(&LUNA_MODEL_C_API as *const _) } {
         Ok(()) | Err(rs_lunamodel::InitError::AlreadyInitialized) => {}
         Err(e) => panic!("rs_lunamodel init failed: {e}"),
