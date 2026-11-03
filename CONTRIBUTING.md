@@ -131,10 +131,10 @@ pull request. When an issue or discussion exists, include its id in the branch n
 
 ## Releases
 
-Releases are handled by the maintainers. LunaModel follows semantic versioning — `vX.Y.Z` for
-stable releases, with `rcN`, `bN`, or `aN` suffixes for pre-releases. Please do not bump the
-version or create release tags in a pull request unless a maintainer has explicitly asked you
-to.
+Maintainers prepare releases with the `release-prep` workflow. LunaModel follows semantic
+versioning: `vX.Y.Z` for stable releases and `vX.Y.Z-alpha.N`, `vX.Y.Z-beta.N`, or
+`vX.Y.Z-rc.N` for pre-releases. Pull requests do not bump the version or create release tags
+unless a maintainer asks for it.
 
 ## License
 
