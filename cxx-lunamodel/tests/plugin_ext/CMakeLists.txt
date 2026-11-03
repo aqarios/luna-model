@@ -28,7 +28,12 @@ if(BREW_EXECUTABLE)
     endif()
   endforeach()
 endif()
-find_package(Protobuf CONFIG REQUIRED)
+# Prefer protobuf's own CMake package (Homebrew, vcpkg, source builds). Distro packages such as
+# Ubuntu's libprotobuf-dev ship none, so fall back to CMake's FindProtobuf module.
+find_package(Protobuf CONFIG QUIET)
+if(NOT Protobuf_FOUND)
+  find_package(Protobuf REQUIRED)
+endif()
 
 # Discover the luna_model wheel's bundled artifacts the way a real plugin author does.
 #   get_include() -> the C ABI + C++ SDK headers
@@ -53,6 +58,8 @@ message(STATUS "luna_model protos:  ${LUNA_MODEL_PROTO}")
 nanobind_add_module(luna_cxx_plugin_ext src/plugin.cpp)
 
 set(_proto_gen "${CMAKE_CURRENT_BINARY_DIR}/proto_gen")
+# FindProtobuf's protobuf_generate does not create PROTOC_OUT_DIR itself.
+file(MAKE_DIRECTORY "${_proto_gen}")
 
 # This plugin's own artifact/result messages.
 protobuf_generate(
