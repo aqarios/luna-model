@@ -21,7 +21,7 @@ pub mod plugin;
 /// or to any exported function signature. Consumers must check it after import.
 ///
 /// cbindgen:ignore
-pub const CAPI_ABI_VERSION: u32 = 2;
+pub const CAPI_ABI_VERSION: u32 = 1;
 
 pub use core::{
     LmAssignment, LmBoolMapBuffer, LmBoolMapEntry, LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC,
