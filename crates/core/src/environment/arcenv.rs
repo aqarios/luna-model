@@ -75,6 +75,22 @@ impl ArcEnv {
         ))
     }
 
+    /// Inserts a new variable directly before `anchor` in the variable order.
+    pub fn insert_before(
+        &mut self,
+        anchor: &VarRef,
+        name: &str,
+        vtype: Vtype,
+        bounds: Option<LazyBounds>,
+    ) -> LunaModelResult<VarRef> {
+        Ok(VarRef::new(
+            self.env
+                .write_arc()
+                .insert_before(anchor.id(), name, vtype, bounds)?,
+            self.clone(),
+        ))
+    }
+
     /// Inserts a variable, deriving a fallback name when necessary.
     pub fn insert_with_fallback(
         &mut self,

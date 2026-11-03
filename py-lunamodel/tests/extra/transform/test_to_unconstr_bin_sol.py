@@ -64,4 +64,5 @@ def test_very_simple_model_mixed():
     sol = model.evaluate(output.record.backward(unconstr_bin_sol))
     assert sol.obj_values is not None
     assert [1.0, 13.0, 3.0] == sol.obj_values.tolist()
-    assert [[0, 0, 1], [0, 12, 1], [1, 1, 1]] == sol.samples.tolist()
+    assert ["x", "y", "z"] == sol.variable_names
+    assert [[0, 1, 0], [0, 1, 12], [1, 1, 1]] == sol.samples.tolist()

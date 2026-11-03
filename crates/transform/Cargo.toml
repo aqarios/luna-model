@@ -25,3 +25,4 @@ derive_more = { workspace = true }
 pad = { workspace = true }
 rand = { workspace = true }
 anyhow = { workspace = true }
+indexmap = { workspace = true }

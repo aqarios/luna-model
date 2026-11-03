@@ -1,14 +1,13 @@
 //! Artifact types for binary-to-spin conversion.
 
-use std::collections::HashMap;
-
+use indexmap::IndexMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
 use lunamodel_transpiler::{Artifact, TranspileErrorKind, TranspileKindResult};
 use lunamodel_types::Vtype;
 
 pub struct BinarySpinPassArtifact {
-    pub(super) map: HashMap<String, String>,
+    pub(super) map: IndexMap<String, String>,
     pub(super) old_vtype: Vtype,
     pub(super) new_vtype: Vtype,
 }
@@ -17,12 +16,12 @@ impl BinarySpinPassArtifact {
     pub(super) fn try_new(vtype: Vtype) -> LunaModelResult<Self> {
         match vtype {
             Vtype::Spin => Ok(Self {
-                map: HashMap::new(),
+                map: IndexMap::new(),
                 old_vtype: Vtype::Binary,
                 new_vtype: Vtype::Spin,
             }),
             Vtype::Binary => Ok(Self {
-                map: HashMap::new(),
+                map: IndexMap::new(),
                 old_vtype: Vtype::Spin,
                 new_vtype: Vtype::Binary,
             }),
@@ -32,7 +31,7 @@ impl BinarySpinPassArtifact {
         }
     }
 
-    pub fn map(&self) -> &HashMap<String, String> {
+    pub fn map(&self) -> &IndexMap<String, String> {
         &self.map
     }
 
