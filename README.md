@@ -21,6 +21,8 @@
   ·
   <a href="#quick-example">Example</a>
   ·
+  <a href="#extensions">Extensions</a>
+  ·
   <a href="https://docs.aqarios.com/luna-model/intro">Documentation</a>
   ·
   <a href="./CONTRIBUTING.md">Contributing</a>
@@ -47,6 +49,10 @@ your problems on the [Luna Platform](https://aqarios.com/platform).
 - **Serialization** — built-in, portable serialization for models and solutions.
 - **Python-first** — an ergonomic Python API backed by a fast Rust core.
 - **Rust crates** — use the workspace crates directly when embedding LunaModel in Rust.
+- **C API** — a versioned C ABI with a header-only C++ wrapper and a Rust SDK, for native
+  Python extensions and for using LunaModel outside Python.
+- **Plugins** — transformation and analysis passes written in Python, Rust, or C++ run
+  together in one pass manager.
 
 ## Installation
 
@@ -137,12 +143,40 @@ Variables are `BINARY` by default and can also be `SPIN`, `INTEGER`, or `REAL`. 
 | **LunaModel.transformation** | A compilation and transpilation stack to transform a model (source) into a target representation (target). |
 | **LunaModel.utils**          | Utility functions for expression and model creation.                                                       |
 | **LunaModel.errors**         | All error types that can be raised within LunaModel.                                                        |
+| **LunaModel.capi**           | Paths to the bundled C API headers and protobuf schemas for building native extensions.                    |
+
+## Extensions
+
+LunaModel exposes its core through a C API, so native code works with the same models,
+expressions, and solutions as the Python package.
+
+| Directory          | Description                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------ |
+| `crates/capi-host` | `liblunamodel`: the C API (`lm_*` functions over opaque handles) and its headers.                |
+| `cxx-lunamodel`    | Header-only C++ wrapper: RAII handles, exceptions, and nanobind casters for Python extensions.   |
+| `rs-lunamodel`     | Rust SDK that mirrors the native Rust API over the C API, with pyo3 types for Python extensions. |
+| `proto`            | Protobuf schemas of the built-in analysis results that plugins consume.                          |
+
+Python extensions written in C, C++, or Rust build against an installed `luna-model`: the wheel
+ships the C/C++ headers and the `.proto` schemas (`luna_model.capi.get_include()`,
+`luna_model.capi.get_proto()`) and exports the C API to extensions at runtime, so an extension
+does not link its own copy of the core. Standalone C and C++ programs link `liblunamodel`, which
+`just c` builds into `dist/c`.
+
+Transformation, analysis, meta-analysis, composite, and control-flow passes can be written in
+Python, Rust, or C++ and combined in one `PassManager`. Register an extension's passes with
+`luna_model.register(module)` before using them.
 
 ## Development
 
-This repository is a Rust workspace with the Python package in `py-lunamodel`.
+This repository is a Rust workspace with the Python package in `py-lunamodel`, the C++
+wrapper in `cxx-lunamodel`, the Rust SDK in `rs-lunamodel`, and the JavaScript package in
+`js-lunamodel`.
 
 **Prerequisites:** Rust and Cargo, [uv](https://docs.astral.sh/uv/), and Python 3.11 or newer.
+The C, C++, and extension test suites additionally need [just](https://github.com/casey/just),
+CMake, a C++20 compiler, and protobuf (`protoc`), and the JavaScript tests need
+[Bun](https://bun.sh). `just doctor` checks for the native toolchain.
 
 ```bash
 git clone https://github.com/aqarios/luna-model.git
@@ -168,6 +202,9 @@ cargo fmt --all
 # build the Python wheel (from py-lunamodel)
 uv build
 ```
+
+From the repository root, `just test` runs every test suite (Rust, C, C++, Python, the
+extensions, and JavaScript) in parallel, and `just --list` shows the individual recipes.
 
 To build the Rust API documentation locally:
 
