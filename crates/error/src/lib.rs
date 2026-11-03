@@ -61,6 +61,8 @@ impl Display for ErrString {
 pub enum LunaModelError {
     /// Operands came from different environments.
     DifferentEnvironments,
+    /// Operands came from different environments, with a description of the offending item.
+    DifferentEnvironmentsIn(ErrString),
     /// A variable name collided with an existing variable.
     VariableExists(ErrString),
     /// A requested variable was not present.
@@ -73,6 +75,8 @@ pub enum LunaModelError {
     InvalidBounds(ErrString),
     /// A variable inversion request was invalid.
     InvalidInversion(ErrString),
+    /// A variable was created with the inverted-binary type directly.
+    InvertedBinaryCreation,
     /// Compression or decompression failed.
     Compression(ErrString),
     /// Serialized data could not be decoded.
@@ -171,10 +175,17 @@ impl Display for LunaModelError {
             ConstraintNameInvalid(msg) => write!(f, "constraint name invalid: {}", msg),
             InvalidBounds(msg) => write!(f, "invalid bounds: {}", msg),
             InvalidInversion(msg) => write!(f, "invalid inversion: {}", msg),
+            InvertedBinaryCreation => write!(
+                f,
+                "cannot create a variable of type InvertedBinary: invert a binary variable instead (e.g. `~x` or `x.inv()`)"
+            ),
             Compression(msg) => write!(f, "compression failed: {}", msg),
             Decoding(msg) => write!(f, "decoding failed: {}", msg),
             Formatter(msg) => write!(f, "formatting failed: {}", msg),
             DifferentEnvironments => write!(f, "different environments encountered"),
+            DifferentEnvironmentsIn(msg) => {
+                write!(f, "different environments encountered: {}", msg)
+            }
             UnsupportedOperation(msg) => write!(f, "unsupported operation: {}", msg),
             Internal(msg) => write!(f, "internal LunaModel error: '{}'", msg),
             Dtype(msg) => write!(f, "invalid data type: {}", msg),
@@ -256,13 +267,16 @@ impl LunaModelError {
     pub fn kind_tag(&self) -> Cow<'static, str> {
         use LunaModelError::*;
         match self {
-            DifferentEnvironments => Cow::Borrowed("different_environments"),
+            DifferentEnvironments | DifferentEnvironmentsIn(_) => {
+                Cow::Borrowed("different_environments")
+            }
             VariableExists(_) => Cow::Borrowed("variable_exists"),
             VariableNotExisting(_) => Cow::Borrowed("variable_not_existing"),
             VariableNameInvalid(_, _) => Cow::Borrowed("variable_name_invalid"),
             ConstraintNameInvalid(_) => Cow::Borrowed("constraint_name_invalid"),
             InvalidBounds(_) => Cow::Borrowed("invalid_bounds"),
             InvalidInversion(_) => Cow::Borrowed("invalid_inversion"),
+            InvertedBinaryCreation => Cow::Borrowed("inverted_binary_creation"),
             Compression(_) => Cow::Borrowed("compression"),
             Decoding(_) => Cow::Borrowed("decoding"),
             Formatter(_) => Cow::Borrowed("formatter"),

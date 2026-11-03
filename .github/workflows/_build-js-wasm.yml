@@ -40,7 +40,7 @@ jobs:
           targets: wasm32-wasip1-threads
 
       - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2.9.2
+        uses: Swatinem/rust-cache@v2.9.3
         with:
           key: wasm32-wasip1-threads
 
@@ -110,7 +110,7 @@ jobs:
           NODE
 
       - name: Upload WASM artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: js-wasm32-wasi
           path: |

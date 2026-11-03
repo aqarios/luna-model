@@ -12,7 +12,7 @@ mod ops;
 mod ser;
 
 use lunamodel_core::prelude::{Expression, Model};
-use parking_lot::{MappedRwLockReadGuard, MappedRwLockWriteGuard, RwLock};
+use parking_lot::{MappedRwLockReadGuard, RwLock};
 use pyo3::pyclass;
 use std::sync::Arc;
 
@@ -77,18 +77,8 @@ impl PyExpression {
         self.expr.read()
     }
 
-    /// Borrows the underlying expression for mutable access.
-    pub fn write(&mut self) -> MappedRwLockWriteGuard<'_, Expression> {
-        self.expr.write()
-    }
-
     /// Runs a closure against an immutable view of the expression.
     pub fn read_with<R>(&self, f: impl FnOnce(&Expression) -> R) -> R {
         self.expr.read_with(f)
-    }
-
-    /// Runs a closure against a mutable view of the expression.
-    pub fn write_with<R>(&mut self, f: impl FnOnce(&mut Expression) -> R) -> R {
-        self.expr.write_with(f)
     }
 }

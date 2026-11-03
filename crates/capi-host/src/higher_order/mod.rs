@@ -2,6 +2,7 @@ mod access;
 mod creation;
 mod general;
 mod modification;
+mod utils;
 
 pub use access::{
     lm_higher_order_degree, lm_higher_order_index, lm_higher_order_index_key,

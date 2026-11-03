@@ -32,8 +32,9 @@ impl QuboTranslator {
                 .environment
                 .insert(vname, vtype.unwrap_or(Vtype::Binary), None)?;
         }
-        model.objective =
+        let objective =
             Expression::from_dense_quadratic(dense, num_vars, offset, model.environment.clone())?;
+        model.set_objective(objective, None)?;
         Ok(model)
     }
 }

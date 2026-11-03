@@ -17,6 +17,7 @@ pub enum PyTranslationTarget {
     Bqm,
     Cqm,
     OptMapper,
+    SparseObservable,
 }
 
 impl From<TranslationTarget> for PyTranslationTarget {
@@ -29,6 +30,7 @@ impl From<TranslationTarget> for PyTranslationTarget {
             TranslationTarget::Bqm => Self::Bqm,
             TranslationTarget::Cqm => Self::Cqm,
             TranslationTarget::OptMapper => Self::OptMapper,
+            TranslationTarget::SparseObservable => Self::SparseObservable,
         }
     }
 }
@@ -43,6 +45,7 @@ impl From<PyTranslationTarget> for TranslationTarget {
             PyTranslationTarget::Bqm => TranslationTarget::Bqm,
             PyTranslationTarget::Cqm => TranslationTarget::Cqm,
             PyTranslationTarget::OptMapper => TranslationTarget::OptMapper,
+            PyTranslationTarget::SparseObservable => TranslationTarget::SparseObservable,
         }
     }
 }

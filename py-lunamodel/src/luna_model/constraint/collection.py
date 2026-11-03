@@ -103,6 +103,13 @@ class ConstraintCollection:
             Name for the constraint. If None, uses constraint's own name if it has one
             that is not auto-generated, otherwise generates a name following the pattern
             ``c{i}`` where i is the constraint's index in the collection (starting from 0).
+
+        Raises
+        ------
+        DifferentEnvsError
+            If the constraint uses variables from a different environment than
+            the constraints already in the collection (or, for a model's
+            constraints, than the model).
         """
         self._cc.add_constraint(constraint, name)
 
@@ -167,11 +174,19 @@ class ConstraintCollection:
             strings and must start with an alphabetical character. Additionally,
             constraint names cannot start with ``inf`` or ``nan`` due to
             limitations of other modeling software.
+        DifferentEnvsError
+            If the constraints do not all share one environment, or (for a
+            model's constraints) if any of them uses a different environment
+            than the model.
         LunaModelError
             If ``name`` is a sequence and its length does not match the number of
             constraints. Also raised for unsupported combinations when runtime type
             checks are bypassed (for example, ``ConstraintCollection`` with
             ``Sequence[str]`` names).
+
+        Notes
+        -----
+        Either all constraints are added or, if any of them raises, none are.
         """
         return self._cc.add_constraints(constraints, name)
 
@@ -283,14 +298,19 @@ class ConstraintCollection:
         Parameters
         ----------
         other : SingleConstraint | ManyConstraint | ConstraintCollection | tuple[ConstraintCollection, str]
-            Either a Constraint, a (Constraint, name) tuple, a ConstraintCollection,
-            a (ConstraintCollection, prefix) tuple, a sequence of either Constraint or
-            (Constraint, str) or a (Sequence[Constraint], base_name) tuple.
+            One of:
 
-            The constraint names of the added Constraint, ConstraintCollection or Sequence have to be different from
-            this collection's constraint names. Otherwise the DuplicateConstraintNameError is
+            - ``Constraint``: added under its own name, or a generated one.
+            - ``(Constraint, name)``: added as ``name``.
+            - ``ConstraintCollection``: all constraints, keeping their names.
+            - ``(ConstraintCollection, prefix)``: all constraints, named ``{prefix}_{name}``.
+            - a sequence or array of ``Constraint`` / ``(Constraint, name)`` /
+              ``(name, Constraint)``: each element as above.
+            - ``(Sequence[Constraint], base_name)``: named ``{base_name}_{i}``.
+
+            The names of the added constraints have to be different from this
+            collection's constraint names. Otherwise DuplicateConstraintNameError is
             raised.
-
 
         Returns
         -------
@@ -305,8 +325,20 @@ class ConstraintCollection:
             already in this collection.
             Or if a Sequence is added containing a constraint with a name that is
             already in this collection.
+        DifferentEnvsError
+            If an added constraint uses variables from a different environment than
+            the constraints already in this collection (or, for a model's
+            constraints, than the model).
+        TypeError
+            If ``other`` is none of the supported forms.
+
+        Notes
+        -----
+        When several constraints are added at once, either all of them are added or,
+        if any of them raises, none are.
         """
-        self._cc.__iadd__(other)
+        if self._cc.__iadd__(other) is NotImplemented:
+            return NotImplemented
         return self
 
     def __getitem__(self, key: str) -> Constraint:
@@ -333,6 +365,15 @@ class ConstraintCollection:
             The constraint name.
         value : Constraint
             The constraint to store.
+
+        Raises
+        ------
+        NoConstraintForKeyError
+            If no constraint is stored under ``key``.
+        DifferentEnvsError
+            If the constraint uses variables from a different environment than the
+            other constraints in this collection (or, for a model's constraints, than
+            the model).
         """
         return self._cc.__setitem__(key, value)
 

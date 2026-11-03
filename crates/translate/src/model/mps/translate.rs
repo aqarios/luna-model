@@ -49,8 +49,8 @@ ENDATA
         let model = MpsTranslator::translate(mps_content.to_string()).unwrap();
         assert_eq!(model.sense, Sense::Min);
         assert_eq!(model.environment.vars().len(), 3);
-        assert_eq!(model.constraints.len(), 3);
-        assert_eq!(model.objective.linear.len(), 3);
+        assert_eq!(model.constraints().len(), 3);
+        assert_eq!(model.objective().linear.len(), 3);
     }
 
     #[test]
@@ -76,7 +76,7 @@ ENDATA
         let model = MpsTranslator::translate(mps_content.to_string()).unwrap();
         assert_eq!(model.sense, Sense::Min);
         assert_eq!(model.environment.vars().len(), 2);
-        assert_eq!(model.constraints.len(), 1);
+        assert_eq!(model.constraints().len(), 1);
     }
 
     #[test]
@@ -100,7 +100,7 @@ ENDATA
         let model = MpsTranslator::translate(mps_content.to_string()).unwrap();
         assert_eq!(model.sense, Sense::Min);
         assert_eq!(model.environment.vars().len(), 2);
-        assert_eq!(model.constraints.len(), 1);
+        assert_eq!(model.constraints().len(), 1);
     }
 
     #[test]
@@ -325,10 +325,10 @@ ENDATA
         let model = MpsTranslator::translate(mps_content.to_string()).unwrap();
         assert_eq!(model.sense, Sense::Min);
         assert_eq!(model.environment.vars().len(), 2);
-        assert_eq!(model.constraints.len(), 1);
+        assert_eq!(model.constraints().len(), 1);
         // Check that objective has quadratic terms
-        assert!(model.objective.quadratic.is_some());
-        assert!(!model.objective.quadratic.as_ref().unwrap().is_empty());
+        assert!(model.objective().quadratic.is_some());
+        assert!(!model.objective().quadratic.as_ref().unwrap().is_empty());
     }
 
     #[test]
@@ -351,9 +351,9 @@ ENDATA
 
         let model = MpsTranslator::translate(mps_content.to_string()).unwrap();
         assert_eq!(model.environment.vars().len(), 2);
-        assert_eq!(model.constraints.len(), 1);
+        assert_eq!(model.constraints().len(), 1);
         // Check that constraint has quadratic terms
-        let (_, constraint) = model.constraints.iter().next().unwrap();
+        let (_, constraint) = model.constraints().iter().next().unwrap();
         assert!(constraint.lhs.quadratic.is_some());
         assert!(!constraint.lhs.quadratic.as_ref().unwrap().is_empty());
     }

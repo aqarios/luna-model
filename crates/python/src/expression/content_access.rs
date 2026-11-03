@@ -4,9 +4,7 @@
 //! because they avoid leaking concrete lock-guard types into generic call sites.
 
 use lunamodel_core::prelude::Expression;
-use parking_lot::{
-    MappedRwLockReadGuard, MappedRwLockWriteGuard, RwLockReadGuard, RwLockWriteGuard,
-};
+use parking_lot::{MappedRwLockReadGuard, RwLockReadGuard};
 
 use super::PyExprContent;
 
@@ -18,17 +16,7 @@ impl PyExprContent {
     pub fn read(&self) -> MappedRwLockReadGuard<'_, Expression> {
         match self {
             Self::Expr(expr) => RwLockReadGuard::map(expr.read(), |expr| expr),
-            Self::Model(model) => RwLockReadGuard::map(model.read(), |model| &model.objective),
-        }
-    }
-
-    /// Borrow the wrapped expression as a mapped write guard.
-    pub fn write(&mut self) -> MappedRwLockWriteGuard<'_, Expression> {
-        match self {
-            Self::Expr(expr) => RwLockWriteGuard::map(expr.write(), |expr| expr),
-            Self::Model(model) => {
-                RwLockWriteGuard::map(model.write(), |model| &mut model.objective)
-            }
+            Self::Model(model) => RwLockReadGuard::map(model.read(), |model| model.objective()),
         }
     }
 
@@ -39,15 +27,7 @@ impl PyExprContent {
     pub fn read_with<R>(&self, f: impl FnOnce(&Expression) -> R) -> R {
         match self {
             Self::Expr(expr) => f(&expr.read_arc()),
-            Self::Model(model) => f(&model.read_arc().objective),
-        }
-    }
-
-    /// Run a closure with mutable access to the wrapped expression.
-    pub fn write_with<R>(&mut self, f: impl FnOnce(&mut Expression) -> R) -> R {
-        match self {
-            Self::Expr(expr) => f(&mut expr.write_arc()),
-            Self::Model(model) => f(&mut model.write_arc().objective),
+            Self::Model(model) => f(model.read_arc().objective()),
         }
     }
 }

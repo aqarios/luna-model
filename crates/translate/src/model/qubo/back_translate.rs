@@ -10,10 +10,10 @@ use super::{Qubo, QuboTranslator};
 
 impl QuboTranslator {
     pub fn back_translate(model: &Model) -> LunaModelResult<Qubo> {
-        if model.objective.has_higher_order() {
+        if model.objective().has_higher_order() {
             return Err(LunaModelError::ModelNotQuadratic);
         }
-        if !model.constraints.is_empty() {
+        if !model.constraints().is_empty() {
             return Err(LunaModelError::ModelNotUnconstrained);
         }
         if !model.sense.is_min() {
@@ -52,7 +52,7 @@ impl QuboTranslator {
 
         let mut dense = Vec::new();
         dense.resize(vars.len() * vars.len(), Bias::default());
-        for (vs, bias) in model.objective.items() {
+        for (vs, bias) in model.objective().items() {
             match &vs[..] {
                 [v] => dense[idx_map[&v.id()] * (vars.len() + 1)] = bias,
                 [u, v] => {
@@ -69,7 +69,7 @@ impl QuboTranslator {
             vtype: vtype.unwrap_or(Vtype::Binary),
             matrix_flat: dense,
             num_variables: vars.len(),
-            offset: model.objective.offset,
+            offset: model.objective().offset,
             variable_names: vars,
         })
     }

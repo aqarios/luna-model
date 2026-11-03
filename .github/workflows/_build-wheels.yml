@@ -14,7 +14,7 @@ on:
       python-versions:
         required: false
         type: string
-        default: '["3.11", "3.12", "3.13", "3.14"]'
+        default: '["3.11", "3.12", "3.13", "3.14", "3.15"]'
       version-override:
         required: false
         type: string
@@ -104,7 +104,7 @@ jobs:
         uses: actions/checkout@v7.0.1
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v10.2.0
+        uses: astral-sh/setup-uv@v10.3.2
         with:
           python-version: ${{ matrix.py }}
           activate-environment: false
@@ -126,7 +126,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2.9.2
+        uses: Swatinem/rust-cache@v2.9.3
         with:
           key: ${{ matrix.target }}
 
@@ -153,7 +153,7 @@ jobs:
         run: sh ci/build-wheel.sh
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: wheel-${{ matrix.target }}-${{ matrix.py }}
           path: build/*.whl

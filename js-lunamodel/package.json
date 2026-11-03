@@ -1,6 +1,6 @@
 {
   "name": "@aqarios/luna-model",
-  "version": "0.7.0",
+  "version": "0.7.4",
   "description": "JavaScript and TypeScript bindings for LunaModel",
   "license": "Apache-2.0",
   "author": "Aqarios GmbH <pypi@aqarios.com>",
@@ -40,10 +40,10 @@
     "test:all": "bun run check && bun run test:rust && bun run test"
   },
   "devDependencies": {
-    "@emnapi/core": "2.0.0-alpha.5",
-    "@emnapi/runtime": "2.0.0-alpha.5",
+    "@emnapi/core": "2.0.0-beta.2",
+    "@emnapi/runtime": "2.0.0-beta.2",
     "@napi-rs/cli": "^3.8.6",
     "@napi-rs/wasm-runtime": "^1.2.3",
-    "emnapi": "2.0.0-alpha.5"
+    "emnapi": "2.0.0-beta.2"
   }
 }

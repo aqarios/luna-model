@@ -36,6 +36,8 @@ pub enum ErrorKind {
     InvalidBounds,
     /// A variable inversion request was invalid.
     InvalidInversion,
+    /// A variable was created with the inverted-binary type directly.
+    InvertedBinaryCreation,
     /// Compression or decompression failed.
     Compression,
     /// Serialized data could not be decoded.
@@ -112,6 +114,7 @@ impl ErrorKind {
             "constraint_name_invalid" => ConstraintNameInvalid,
             "invalid_bounds" => InvalidBounds,
             "invalid_inversion" => InvalidInversion,
+            "inverted_binary_creation" => InvertedBinaryCreation,
             "compression" => Compression,
             "decoding" => Decoding,
             "formatter" => Formatter,
@@ -157,6 +160,7 @@ impl ErrorKind {
             ConstraintNameInvalid => "constraint_name_invalid",
             InvalidBounds => "invalid_bounds",
             InvalidInversion => "invalid_inversion",
+            InvertedBinaryCreation => "inverted_binary_creation",
             Compression => "compression",
             Decoding => "decoding",
             Formatter => "formatter",

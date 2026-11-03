@@ -2,7 +2,7 @@ use std::ffi::c_char;
 
 use crate::{
     LmCC, LmExpr, LmModel, LmSense, LmStatus,
-    error::guard,
+    error::{CapiError, guard},
     utils::sense_from_c,
     utils::{opt_from_c, shared_from_c, storage_from_c, str_from_c},
 };
@@ -52,7 +52,9 @@ pub unsafe extern "C" fn lm_model_set_objective(
     guard(|| {
         let expr = unsafe { storage_from_c(expr, "expr") }?.read().clone();
         let mut model = unsafe { shared_from_c(model, "model") }?.write_arc();
-        model.set_objective(expr, unsafe { opt_from_c(sense) }.map(sense_from_c));
+        model
+            .set_objective(expr, unsafe { opt_from_c(sense) }.map(sense_from_c))
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -70,7 +72,7 @@ pub unsafe extern "C" fn lm_model_set_constraints(
     guard(|| {
         let cc = unsafe { storage_from_c(cc, "cc") }?.read().clone();
         let mut model = unsafe { shared_from_c(model, "model") }?.write_arc();
-        model.constraints = cc;
+        model.set_constraints(cc).map_err(CapiError::from)?;
         Ok(())
     })
 }

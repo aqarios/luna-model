@@ -153,7 +153,7 @@ impl ExpressionHandle {
             Self::Expression(value) => ExpressionReadGuard::Expression(value.read()),
             Self::Model(model) => {
                 ExpressionReadGuard::Model(RwLockReadGuard::map(model.read(), |model| {
-                    &model.objective
+                    model.objective()
                 }))
             }
         }
@@ -164,7 +164,7 @@ impl ExpressionHandle {
             Self::Expression(value) => ExpressionWriteGuard::Expression(value.write()),
             Self::Model(model) => {
                 ExpressionWriteGuard::Model(RwLockWriteGuard::map(model.write(), |model| {
-                    &mut model.objective
+                    model.objective_mut_unchecked()
                 }))
             }
         }
@@ -237,7 +237,7 @@ impl ConstraintCollectionHandle {
             Self::Collection(value) => ConstraintCollectionReadGuard::Collection(value.read()),
             Self::Model(model) => {
                 ConstraintCollectionReadGuard::Model(RwLockReadGuard::map(model.read(), |model| {
-                    &model.constraints
+                    model.constraints()
                 }))
             }
         }
@@ -248,7 +248,7 @@ impl ConstraintCollectionHandle {
             Self::Collection(value) => ConstraintCollectionWriteGuard::Collection(value.write()),
             Self::Model(model) => ConstraintCollectionWriteGuard::Model(RwLockWriteGuard::map(
                 model.write(),
-                |model| &mut model.constraints,
+                |model| model.constraints_mut_unchecked(),
             )),
         }
     }

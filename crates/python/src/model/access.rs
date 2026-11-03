@@ -35,7 +35,7 @@ impl PyModel {
 
     #[getter]
     fn num_constraints(&self) -> usize {
-        self.m.read_arc().constraints.len()
+        self.m.read_arc().constraints().len()
     }
 
     #[getter]

@@ -30,7 +30,7 @@ fn model_with_vars(n: usize) -> lunamodel_core::Model {
             .add_var(&format!("x{i}"), Vtype::Binary, None)
             .expect("add variable");
         model
-            .objective
+            .objective_mut()
             .add_assign(&var)
             .expect("add variable to objective");
     }

@@ -6,6 +6,7 @@ mod deepclone;
 mod equality;
 mod evaluation;
 mod modification;
+pub use modification::ObjectiveMut;
 mod specs;
 mod substitution;
 
@@ -30,9 +31,9 @@ pub struct Model {
     pub environment: ArcEnv,
     /// The objective of the model describing some optimization problem. The objective
     /// is an expression that can be linear, quadratic or higher order.
-    pub objective: Expression,
+    pub(crate) objective: Expression,
     /// The constraints of the model describing the restrictions on the model.
-    pub constraints: ConstraintCollection,
+    pub(crate) constraints: ConstraintCollection,
     /// The sense of the model, i.e., the direction to be optimized at.
     /// By default is set to [Sense::Min].
     pub sense: Sense,

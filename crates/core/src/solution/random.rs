@@ -89,7 +89,7 @@ impl Solution {
                     );
                 }
                 Vtype::Integer => {
-                    let (lb, ub) = get_bounds::<i64>(&v.bounds()?)?;
+                    let (lb, ub) = get_bounds::<i64>(&v.bounds()?.integer_domain())?;
                     let integer_distr = Uniform::new_inclusive(lb, ub)?;
                     let data: Vec<i64> = integer_distr
                         .sample_iter(&mut rng)

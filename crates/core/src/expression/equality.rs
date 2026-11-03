@@ -59,7 +59,7 @@ impl ContentEquality for Expression {
                     }
                 }
                 [u] => {
-                    let othervar = other.env.lookup(&u.name().unwrap()).ok();
+                    let othervar = u.name().ok().and_then(|n| other.env.lookup(&n).ok());
                     match othervar {
                         Some(o) => {
                             if bias != other.linear(o.id) {
@@ -70,8 +70,8 @@ impl ContentEquality for Expression {
                     }
                 }
                 [u, v] => {
-                    let othervar_u = other.env.lookup(&u.name().unwrap()).ok();
-                    let othervar_v = other.env.lookup(&v.name().unwrap()).ok();
+                    let othervar_u = u.name().ok().and_then(|n| other.env.lookup(&n).ok());
+                    let othervar_v = v.name().ok().and_then(|n| other.env.lookup(&n).ok());
                     match (othervar_u, othervar_v) {
                         (Some(ou), Some(ov)) => {
                             if bias != other.quadratic(ou.id, ov.id) {
@@ -84,7 +84,7 @@ impl ContentEquality for Expression {
                 vars => {
                     let mut others = Vec::new();
                     for v in vars.iter() {
-                        let ov = other.env.lookup(&v.name().unwrap()).ok();
+                        let ov = v.name().ok().and_then(|n| other.env.lookup(&n).ok());
                         match ov {
                             Some(o) => others.push(o.id),
                             None => return false,

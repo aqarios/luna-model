@@ -1,13 +1,16 @@
 //! In-place setters for Python models.
 
-use std::ops::Mul;
+use std::{ops::Mul, sync::Arc};
 
-use lunamodel_core::Expression;
+use lunamodel_core::{ConstraintCollection, Expression};
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PyModel;
-use crate::{PyModelMetadata, args::PyColArg, types::PySense, utils::OpsOther};
+use crate::{
+    PyExprContent, PyModelMetadata, args::PyColArg, constraint::PyConstraintCollectionContent,
+    types::PySense, utils::OpsOther,
+};
 
 #[unwindable]
 #[pymethods]
@@ -24,18 +27,37 @@ impl PyModel {
 
     #[setter]
     fn set_objective(&mut self, obj: OpsOther) -> PyResult<()> {
+        // `model.objective += ...` modifies the model through the getter's view
+        // and then assigns that same view back. Copying it would be a no-op that
+        // costs O(size of the objective) on every `+=`.
+        if let OpsOther::Expr(e) = &obj
+            && let PyExprContent::Model(m) = &e.0.expr
+            && Arc::ptr_eq(m, &self.m)
+        {
+            return Ok(());
+        }
         let new_obj = match obj {
             OpsOther::Expr(e) => e.into(),
             OpsOther::Var(v) => (&v.v).mul(1.0)?,
             OpsOther::Num(n) => Expression::constant(self.m.read_arc().environment.clone(), n),
         };
-        self.m.write_arc().objective = new_obj;
+        self.m.write_arc().set_objective(new_obj, None)?;
         Ok(())
     }
 
     #[setter]
-    fn set_constraints(&mut self, coll: PyColArg) {
-        self.m.write_arc().constraints = (&coll.0).into();
+    fn set_constraints(&mut self, coll: PyColArg) -> PyResult<()> {
+        // `model.constraints += ...` modifies the model through the getter's view
+        // and then assigns that same view back. Copying it would be a no-op that
+        // costs O(n) on every `+=`.
+        if let PyConstraintCollectionContent::Model(m) = coll.0.inner()
+            && Arc::ptr_eq(m, &self.m)
+        {
+            return Ok(());
+        }
+        let col: ConstraintCollection = (&coll.0).into();
+        self.m.write_arc().set_constraints(col)?;
+        Ok(())
     }
 
     #[pyo3(name = "set_sense")]

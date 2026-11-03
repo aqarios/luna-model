@@ -11,6 +11,8 @@ use crate::{
     utils::{handle_to_c, mut_from_c, opt_slice_from_c, out_from_c, ref_from_c, str_from_c},
 };
 
+use super::utils::key_from_str;
+
 /// Adds a new entry with its bias to the higher_order term.
 ///
 /// # Safety
@@ -135,8 +137,8 @@ pub unsafe extern "C" fn lm_higher_order_set_bias_key(
 ) -> LmStatus {
     guard(|| {
         let higher_order = unsafe { mut_from_c(higher_order as *mut HigherOrder, "higher_order") }?;
-        let key = unsafe { str_from_c(key, "key") }?.to_owned();
-        higher_order[&key] = bias;
+        let key = key_from_str(unsafe { str_from_c(key, "key") }?)?;
+        higher_order[key.as_slice()] = bias;
         Ok(())
     })
 }

@@ -39,18 +39,13 @@ pub fn hash_expr(expr: &Expression, h: &mut impl Hasher) {
         h.write_u64(bias.to_bits());
     }
 
-    let mut higher_order: Vec<(Vec<u32>, f64)> = expr
-        .raw_higher_order_items()
-        .map(|(mut ids, bias)| {
-            ids.sort_unstable();
-            (ids, bias)
-        })
-        .collect();
-    higher_order.sort_unstable_by(|(a, _), (b, _)| a.cmp(b));
+    // Variable tuples are stored sorted, only the term order needs fixing.
+    let mut higher_order: Vec<(&[u32], f64)> = expr.raw_higher_order_items().collect();
+    higher_order.sort_unstable_by_key(|(ids, _)| *ids);
     h.write_u64(higher_order.len() as u64);
     for (ids, bias) in higher_order {
         h.write_u64(ids.len() as u64);
-        for id in ids {
+        for &id in ids {
             h.write_u32(id);
         }
         h.write_u64(bias.to_bits());

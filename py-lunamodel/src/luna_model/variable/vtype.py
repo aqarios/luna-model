@@ -30,8 +30,10 @@ class Vtype(Enum):
     BINARY : str
         Binary variable that can be 0 or 1. Used for yes/no decisions.
     INVERTED_BINARY : str
-        Inverted binary variable. Created by inverting a BINARY variable.
-        Creating a variable with ``vtype=Vtype.INVERTED_BINARY`` will raise an error.
+        Inverted binary variable. Only exists as the inversion of a BINARY variable
+        (``~x`` or ``x.inv()``) and can be read from such a variable's ``vtype``.
+        Creating a variable with ``vtype=Vtype.INVERTED_BINARY`` raises
+        ``VariableCreationError``.
     SPIN : str
         Spin variable that can be -1 or +1. Common in quantum computing formulations.
     INTEGER : str

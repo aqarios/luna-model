@@ -8,7 +8,7 @@ use lunamodel_transpiler::{
     AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult,
     transformation,
 };
-use lunamodel_types::Comparator;
+use lunamodel_types::{Comparator, Sense};
 
 use crate::{
     analysis::{MaxBias, MaxBiasAnalysis},
@@ -50,7 +50,13 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
             max_bias.val
         };
 
-        let constrs = model.constraints.clone();
+        // The penalty must make violations worse: added when minimizing,
+        // subtracted when maximizing.
+        let sign = match model.sense {
+            Sense::Min => 1.0,
+            Sense::Max => -1.0,
+        };
+        let constrs = model.constraints().clone();
 
         for (name, constr) in constrs.iter() {
             if constr.comparator != Comparator::Eq {
@@ -62,9 +68,9 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
             let mut expr = (&constr.lhs - constr.rhs)?;
             expr.pow_assign(2)?;
             model
-                .objective
-                .add_assign((self.penalty_scaling * max_bias * expr)?)?;
-            model.constraints.remove_constraint(name)?;
+                .objective_mut()
+                .add_assign((sign * self.penalty_scaling * max_bias * expr)?)?;
+            model.remove_constraint(name)?;
         }
 
         Ok(Self::Artifact {})

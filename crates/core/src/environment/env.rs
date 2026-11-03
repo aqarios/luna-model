@@ -103,6 +103,11 @@ impl Environment {
         vtype: Vtype,
         bounds: Option<LazyBounds>,
     ) -> LunaModelResult<VarIdx> {
+        // Inverted binaries only exist as the inversion of a binary variable
+        // and are created through `insert_inverted`, never directly.
+        if vtype == Vtype::InvertedBinary {
+            return Err(LunaModelError::InvertedBinaryCreation);
+        }
         ensure_name_valid(name)?;
         ensure_unused(&self.lookup, name)?;
         let var = Variable::new(name, vtype, bounds)?; //, self.id)?;
@@ -110,6 +115,27 @@ impl Environment {
         self.variables.insert(idx, var);
         self.lookup.insert(name.into(), idx);
         self.next_idx += 1;
+        Ok(idx)
+    }
+
+    /// Inserts a new variable directly before `anchor` in the variable order.
+    ///
+    /// Works like [`Environment::insert`], but instead of appending, the new
+    /// variable is placed at `anchor`'s position, shifting `anchor` and all
+    /// following variables back by one. Variable indices are not affected.
+    pub fn insert_before(
+        &mut self,
+        anchor: VarIdx,
+        name: &str,
+        vtype: Vtype,
+        bounds: Option<LazyBounds>,
+    ) -> LunaModelResult<VarIdx> {
+        let pos = self
+            .variables
+            .get_index_of(&anchor)
+            .ok_or_else(|| LunaModelError::VariableNotExisting(anchor.to_string().into()))?;
+        let idx = self.insert(name, vtype, bounds)?;
+        self.variables.move_index(self.variables.len() - 1, pos);
         Ok(idx)
     }
 
@@ -223,5 +249,35 @@ impl IndexMut<VarIdx> for Environment {
     /// Mutably indexes by variable index and panics on missing variables.
     fn index_mut(&mut self, index: VarIdx) -> &mut Self::Output {
         self.get_mut(index).unwrap()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn names(env: &Environment) -> Vec<String> {
+        env.vars().map(|v| env[v].name.0.to_string()).collect()
+    }
+
+    #[test]
+    fn insert_before_places_variable_at_anchor_position() -> LunaModelResult<()> {
+        let mut env = Environment::default();
+        env.insert("a", Vtype::Binary, None)?;
+        let b = env.insert("b", Vtype::Binary, None)?;
+        env.insert("c", Vtype::Binary, None)?;
+
+        let n = env.insert_before(b, "n", Vtype::Spin, None)?;
+        assert_eq!(names(&env), ["a", "n", "b", "c"]);
+        assert_eq!(env.lookup("n")?, n);
+        assert_eq!(env[n].vtype, Vtype::Spin);
+        Ok(())
+    }
+
+    #[test]
+    fn insert_before_missing_anchor_inserts_nothing() {
+        let mut env = Environment::default();
+        assert!(env.insert_before(42, "n", Vtype::Spin, None).is_err());
+        assert!(env.is_empty());
     }
 }

@@ -36,6 +36,9 @@ class EqualityConstraintsToQuadraticPenaltyPass(
     Converts the model by moving all equality constraints to the objective as quadratic penalties.
     Requires the `MaxBiasAnalysis` pass to be executed before this pass.
 
+    The penalty always makes violating a constraint worse: it is added to the objective of a
+    minimization model and subtracted from the objective of a maximization model.
+
     Less-equal (`<=`) or greater-equal (`>=`) constraints are not respected by this transformation
     and have to be handled before this pass using, e.g., the `GeToLeConstraintsPass` and the
     `LeToEqConstraintsPass`.
@@ -68,7 +71,7 @@ class EqualityConstraintsToQuadraticPenaltyPass(
     ... )
     >>> output = pm.run(model)
     >>> print(output.model.objective)
-    41 x y + 21 x + 18 y
+    -39 x y - 19 x - 22 y
     """
 
     def __new__(cls, penalty_scaling: float = 10.0) -> Self:

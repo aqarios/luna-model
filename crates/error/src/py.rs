@@ -344,12 +344,14 @@ create_exception!(
 impl From<Lme> for PyErr {
     fn from(lme: Lme) -> Self {
         let err = match lme {
-            Lme::DifferentEnvironments => PyDifferentEnvsError::new_err,
+            Lme::DifferentEnvironments | Lme::DifferentEnvironmentsIn(_) => {
+                PyDifferentEnvsError::new_err
+            }
             Lme::VariableExists(_) => PyVariableExistsError::new_err,
             Lme::VariableNotExisting(_) => PyVariableNotExistingError::new_err,
             Lme::VariableNameInvalid(_, _) => PyVariableNamesError::new_err,
             Lme::ConstraintNameInvalid(_) => PyIllegalConstraintNameError::new_err,
-            Lme::InvalidBounds(_) => PyVariableCreationError::new_err,
+            Lme::InvalidBounds(_) | Lme::InvertedBinaryCreation => PyVariableCreationError::new_err,
             Lme::InvalidInversion(_) => PyUnsupportedOperationError::new_err,
             Lme::Compression(_) => PyCompressionError::new_err,
             Lme::Decoding(_) => PyDecodeError::new_err,

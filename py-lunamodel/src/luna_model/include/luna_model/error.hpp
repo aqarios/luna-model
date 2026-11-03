@@ -31,6 +31,7 @@ enum class ErrorKind {
     ConstraintNameInvalid,
     InvalidBounds,
     InvalidInversion,
+    InvertedBinaryCreation,
     Compression,
     Decoding,
     Formatter,
@@ -76,6 +77,7 @@ inline ErrorKind error_kind_from_tag(std::string_view tag) {
     if (tag == "constraint_name_invalid") return ErrorKind::ConstraintNameInvalid;
     if (tag == "invalid_bounds") return ErrorKind::InvalidBounds;
     if (tag == "invalid_inversion") return ErrorKind::InvalidInversion;
+    if (tag == "inverted_binary_creation") return ErrorKind::InvertedBinaryCreation;
     if (tag == "compression") return ErrorKind::Compression;
     if (tag == "decoding") return ErrorKind::Decoding;
     if (tag == "formatter") return ErrorKind::Formatter;

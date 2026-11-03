@@ -29,7 +29,7 @@ impl AnalysisPass for CheckInfeasibleConstraintsAnalysis {
     }
 
     fn run(&self, model: &Model, _: &PassContext) -> TranspileKindResult<Self::Result> {
-        for (name, constr) in model.constraints.iter() {
+        for (name, constr) in model.constraints().iter() {
             let infeasible = match constr.comparator {
                 // lhs <= rhs : lower is important; infeasible if lower > rhs
                 Comparator::Le => match compute_minvalue(constr.lhs.linear_items())? {

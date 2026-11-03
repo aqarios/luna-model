@@ -11,6 +11,7 @@ pub enum TranslationTarget {
     Bqm,
     Cqm,
     OptMapper,
+    SparseObservable,
 }
 
 #[repr(transparent)]
@@ -28,5 +29,6 @@ python_enum_wrapper! {
         TranslationTarget::Bqm => ("BQM", "Bqm"),
         TranslationTarget::Cqm => ("CQM", "Cqm"),
         TranslationTarget::OptMapper => ("OPT_MAPPER", "OptMapper"),
+        TranslationTarget::SparseObservable => ("SPARSE_OBSERVABLE", "SparseObservable"),
     },
 }

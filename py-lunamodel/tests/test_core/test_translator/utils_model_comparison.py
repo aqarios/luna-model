@@ -21,6 +21,7 @@ except ImportError as _:
         file=sys.stdout,
     )
     NOT_RUN_SCIP = True
+    ScipModel = None
 
 NOT_RUN_GUROBI = False
 try:
@@ -31,6 +32,7 @@ except ImportError as _:
         file=sys.stdout,
     )
     NOT_RUN_GUROBI = True
+    gp = None
 
 
 MPS_DIR = Path(__file__).parent / "mps_models"

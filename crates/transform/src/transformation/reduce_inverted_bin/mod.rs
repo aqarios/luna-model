@@ -22,7 +22,7 @@ mod tests {
         let mut model = Model::default();
         let x = model.add_var("b0", Vtype::Binary, None)?;
         let y = model.add_var("b1", Vtype::Binary, None)?;
-        model.objective.add_assign(((&x * &y)? + (!&x)?)?)?;
+        model.objective_mut().add_assign(((&x * &y)? + (!&x)?)?)?;
         model.sense = Sense::Min;
 
         let pm = PassManager::default().add_transform(ReduceInvertedBinaryPass::default());

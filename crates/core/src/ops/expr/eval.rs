@@ -49,9 +49,7 @@ impl Expression {
             val += lu[u as usize] * lu[v as usize] * bias;
         }
         for (vs, bias) in self.raw_higher_order_items() {
-            let varval: LunaModelResult<f64> =
-                vs.iter().try_fold(bias, |b, v| Ok(b * lu[*v as usize]));
-            val += varval?;
+            val += vs.iter().fold(bias, |b, v| b * lu[*v as usize]);
         }
         Ok(val)
     }

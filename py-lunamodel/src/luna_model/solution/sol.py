@@ -271,8 +271,9 @@ class Solution:
 
         Raises
         ------
-        ValueError
-            If alpha is not in the range (0, 1].
+        ComputationError
+            If alpha is not in the range (0, 1], if the selected values were not
+            evaluated, or if the solution has no samples.
         """
         return self._s.cvar(alpha, value_toggle._val)
 
@@ -715,6 +716,12 @@ class Solution:
         -------
         Solution
             Solution containing multiple samples.
+
+        Raises
+        ------
+        SampleIncorrectLengthError
+            If the samples assign different numbers of variables, or ``counts`` or
+            ``energies`` does not have one entry per sample.
         """
         return cls._from_pys(
             PySolution.from_dicts(
@@ -749,7 +756,9 @@ class Solution:
         data : NDArray
             2D array where rows are samples and columns are variables.
         variables : Sequence[Variable or str], optional
-            Variable names/objects corresponding to columns. Inferred from env or model if not provided.
+            Variable names/objects corresponding to columns. If not provided, the columns
+            are all variables of the env or model, in order. Pass a subset to create a
+            solution for only those variables.
         env : Environment, optional
             Environment containing the variables.
         model : Model, optional
@@ -779,6 +788,12 @@ class Solution:
         -------
         Solution
             Solution created from array data.
+
+        Raises
+        ------
+        SampleIncorrectLengthError
+            If the number of columns does not match the number of variables, or
+            ``counts`` or ``energies`` does not have one entry per sample.
         """
         return cls._from_pys(
             PySolution.from_arrays(
@@ -840,6 +855,12 @@ class Solution:
         -------
         Solution
             Solution created from counts data.
+
+        Raises
+        ------
+        SampleIncorrectLengthError
+            If a bitstring's length does not match the number of variables, or
+            ``energies`` does not have one entry per bitstring.
         """
         return cls._from_pys(
             PySolution.from_counts(

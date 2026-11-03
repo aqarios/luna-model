@@ -3,19 +3,20 @@
 use std::ops::Mul;
 
 use lunamodel_core::{Expression, ops::LmAddAssign, prelude::LazyBounds};
+use lunamodel_error::py::PyLunaModelError;
 use lunamodel_unwind::*;
 use numpy::{
     IxDyn, ToPyArray,
     ndarray::{ArrayD, Dimension},
 };
-use pyo3::{Bound, FromPyObject, IntoPyObjectExt, Py, PyAny, PyResult, Python, pymethods};
+use pyo3::{Bound, FromPyObject, IntoPyObjectExt, PyAny, PyResult, Python, pymethods};
 
 use super::PyModel;
 use crate::{
     PyExpression, PyVariable,
     args::PyCArg,
     bounds::BoundValue,
-    constraint::utils::{ConstraintsIn, NameIn, add_many_constraint},
+    constraint::utils::{ConstraintsIn, NameIn, constraints_from_input},
     types::{PySense, PyVtype},
     utils::OpsOther,
 };
@@ -81,25 +82,26 @@ impl PyModel {
             true => Self::add_variable_with_fallback,
             false => Self::add_variable,
         };
-        let arr: ArrayD<Py<PyAny>> = ArrayD::from_shape_fn(IxDyn(&shape), |idx| {
+        let names: ArrayD<String> = ArrayD::from_shape_fn(IxDyn(&shape), |idx| {
             let mut indices = Vec::new();
             for i in 0..idx.ndim() {
                 indices.push(idx[i]);
             }
-
-            let n = format!(
+            format!(
                 "{name}{}",
                 indices
                     .iter()
                     .map(|i| i.to_string())
                     .collect::<Vec<_>>()
                     .join(&delimiter)
-            );
-            adder(self, n, vtype, lower, upper)
-                .expect("cannot create variable")
-                .into_py_any(py)
-                .expect("cannot convert to Any")
+            )
         });
+        let vars = names
+            .iter()
+            .map(|n| adder(self, n.clone(), vtype, lower, upper)?.into_py_any(py))
+            .collect::<PyResult<Vec<_>>>()?;
+        let arr = ArrayD::from_shape_vec(names.raw_dim(), vars)
+            .map_err(|e| PyLunaModelError::new_err(e.to_string()))?;
 
         Ok(arr.to_pyarray(py).into_any())
     }
@@ -128,7 +130,6 @@ impl PyModel {
         _ = self
             .m
             .write_arc()
-            .constraints
             .add_constraint(constraint.c.read_arc().clone(), name)?;
         Ok(())
     }
@@ -139,12 +140,8 @@ impl PyModel {
         constraints: ConstraintsIn,
         name: Option<NameIn>,
     ) -> PyResult<Vec<String>> {
-        Ok(add_many_constraint(
-            py,
-            &mut self.m.write_arc().constraints,
-            constraints,
-            name,
-        )?)
+        let constrs = constraints_from_input(py, constraints, name)?;
+        Ok(self.m.write_arc().add_many_constraints(constrs)?)
     }
 
     #[pyo3(name = "set_objective", signature=(expression, sense=None))]
@@ -160,12 +157,12 @@ impl PyModel {
         };
         self.m
             .write_arc()
-            .set_objective(new_obj, sense.map(|s| s.into()));
+            .set_objective(new_obj, sense.map(|s| s.into()))?;
         Ok(())
     }
 
     fn add_objective(&mut self, expression: PyExpression) -> PyResult<()> {
         let expr: Expression = expression.into();
-        Ok(self.m.write_arc().objective.add_assign(expr)?)
+        Ok(self.m.write_arc().objective_mut().add_assign(expr)?)
     }
 }

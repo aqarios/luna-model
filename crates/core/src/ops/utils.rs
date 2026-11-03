@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use std::ops::Mul;
 
 use crate::{
-    Environment, Expression, Solution, TryIndex,
+    Constraint, Environment, Expression, Model, Solution, TryIndex,
     prelude::{HigherOrder, Linear, Quadratic, VarRef},
     solution::{Column, sample::SampleView},
     traits::DefaultEditable,
@@ -16,6 +16,11 @@ use lunamodel_types::{Bias, EnvIdx, VarIdx, Vtype, Vtype::*};
 pub(crate) trait EnvIdexable {
     /// Returns the identity of the environment the value belongs to.
     fn env_id(&self) -> EnvIdx;
+
+    /// Fails if the value uses a variable that was removed from its environment.
+    fn check_living(&self) -> LunaModelResult<()> {
+        Ok(())
+    }
 }
 
 /// Verifies that two operands belong to the same environment.
@@ -29,21 +34,85 @@ where
     B: EnvIdexable + Debug,
 {
     if a.env_id() != b.env_id() {
-        Err(LunaModelError::DifferentEnvironments)
-    } else {
-        Ok(())
+        return Err(LunaModelError::DifferentEnvironments);
     }
+    // Only the incoming operand is checked: `a` is the value being built up,
+    // and checking it on every operation would make repeated `+=` quadratic.
+    b.check_living()
+}
+
+/// Error for a variable that no longer exists in its environment.
+pub(crate) fn removed_variable_error(id: VarIdx) -> LunaModelError {
+    LunaModelError::VariableNotExisting(
+        format!("id {id} (it was removed from its environment)").into(),
+    )
+}
+
+/// Fails if `constr` does not share the environment of `expected`, or uses a
+/// variable that was removed from it.
+///
+/// `name` is the name the constraint is added under, if any; it is used to
+/// describe the constraint in the error message.
+pub(crate) fn check_constr_env<A: EnvIdexable>(
+    expected: &A,
+    constr: &Constraint,
+    name: Option<&str>,
+) -> LunaModelResult<()> {
+    if expected.env_id() == constr.env_id() {
+        return constr.check_living();
+    }
+    let what = match (name, constr.auto_name) {
+        (Some(n), _) => format!("constraint '{n}'"),
+        (None, false) => format!("constraint '{}'", constr.name()),
+        (None, true) => "an unnamed constraint".to_string(),
+    };
+    Err(foreign_env_error(&what, &constr.lhs))
+}
+
+/// Builds a [LunaModelError::DifferentEnvironmentsIn] naming `what` and, if
+/// possible, one of the foreign variables used in `expr`.
+pub(crate) fn foreign_env_error(what: &str, expr: &Expression) -> LunaModelError {
+    let msg = match expr.vars().next().and_then(|v| v.name().ok()) {
+        Some(var) => format!("{what} uses variable '{var}' from a different environment"),
+        None => format!("{what} belongs to a different environment"),
+    };
+    LunaModelError::DifferentEnvironmentsIn(msg.into())
 }
 
 impl EnvIdexable for Expression {
     fn env_id(&self) -> EnvIdx {
         self.env.id()
     }
+
+    fn check_living(&self) -> LunaModelResult<()> {
+        Expression::check_living(self)
+    }
+}
+
+impl EnvIdexable for Model {
+    fn env_id(&self) -> EnvIdx {
+        self.environment.id()
+    }
+}
+
+impl EnvIdexable for Constraint {
+    fn env_id(&self) -> EnvIdx {
+        self.lhs.env_id()
+    }
+
+    fn check_living(&self) -> LunaModelResult<()> {
+        self.lhs.check_living()
+    }
 }
 
 impl EnvIdexable for VarRef {
     fn env_id(&self) -> EnvIdx {
         self.env.id()
+    }
+
+    fn check_living(&self) -> LunaModelResult<()> {
+        self.check_living()
+            .map_err(|_| removed_variable_error(self.id()))
     }
 }
 

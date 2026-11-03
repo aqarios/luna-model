@@ -89,22 +89,27 @@ impl TransformationPass for BinarySpinPass {
             return Ok(artifact);
         }
 
-        for (s, t) in artifact.map.iter() {
-            let v = model
-                .environment
-                .lookup(s)
-                .map_err(|e| TransformError::Transformation {
-                    name: self.name().to_owned(),
-                    msg: format!("binary-spin lookup ('{s}'): {e}"),
-                })?;
+        // Create all new variables first, each at its old variable's position, so
+        // the transformed model keeps the variable order of the input model.
+        let old_vars = model.environment.read_arc().vars().collect::<Vec<_>>();
+        let mut replacements = Vec::with_capacity(artifact.map.len());
+        for x in old_vars {
+            let v = model.environment.get(x);
+            let Some(t) = artifact.map.get(&v.name()?) else {
+                continue;
+            };
             let var = model
                 .environment
-                .insert(t, artifact.new_vtype, None)
+                .insert_before(&v, t, artifact.new_vtype, None)
                 .map_err(|e| TransformError::Transformation {
                     name: self.name().to_owned(),
                     msg: format!("binary-spin insert ('{t}'): {e}"),
                 })?;
+            replacements.push((v, var));
+        }
 
+        // Then substitute the old variables with the existing new ones.
+        for (v, var) in replacements {
             let expr = match artifact.new_vtype {
                 Vtype::Spin => (&var).mul(-0.5)?.add(0.5)?,
                 Vtype::Binary => (&var).mul(-2.0)?.add(1.0)?,
@@ -137,28 +142,21 @@ impl Reversible for BinarySpinPass {
         }
 
         for (old_name, new_name) in artifact.map.iter() {
-            match artifact.old_vtype {
-                Vtype::Spin => {
-                    if let Some(Column::Binary(inner)) = solution.samples.get(new_name) {
-                        solution.samples.insert(
-                            old_name.clone(),
-                            Column::spin(
-                                inner.iter().map(|x| (1 - 2 * (x as i8)) as f64).collect(),
-                            ),
-                        );
-                    }
-                }
-                Vtype::Binary => {
-                    if let Some(Column::Spin(inner)) = solution.samples.get(new_name) {
-                        solution.samples.insert(
-                            old_name.clone(),
-                            Column::binary(
-                                inner.iter().map(|x| ((1 - x) as u8 / 2) as f64).collect(),
-                            ),
-                        );
-                    }
-                }
+            let old_col = match (artifact.old_vtype, solution.samples.get(new_name)) {
+                (Vtype::Spin, Some(Column::Binary(inner))) => Some(Column::spin(
+                    inner.iter().map(|x| (1 - 2 * (x as i8)) as f64).collect(),
+                )),
+                (Vtype::Binary, Some(Column::Spin(inner))) => Some(Column::binary(
+                    inner.iter().map(|x| ((1 - x) as u8 / 2) as f64).collect(),
+                )),
+                (Vtype::Spin | Vtype::Binary, _) => None,
                 _ => unreachable!("unexpected vtype"),
+            };
+            // Put the restored column at the position of the column it replaces.
+            if let Some(col) = old_col
+                && let Some(pos) = solution.samples.get_index_of(new_name)
+            {
+                solution.samples.shift_insert(pos, old_name.clone(), col);
             }
             solution.remove_col(new_name);
         }

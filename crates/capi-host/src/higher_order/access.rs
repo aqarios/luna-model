@@ -6,6 +6,8 @@ use crate::{
     error::guard,
     utils::{opt_slice_from_c, out_from_c, ref_from_c, str_from_c},
 };
+
+use super::utils::{key_from_str, key_to_string};
 use std::ffi::c_char;
 
 /// Returns the number of explicitly stored entries of the higher_order term.
@@ -124,8 +126,12 @@ pub unsafe extern "C" fn lm_higher_order_keys(
     guard(|| {
         let higher_order =
             unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
-        *unsafe { out_from_c(out) }? =
-            str_buffer_from_vec(higher_order.iter().map(|(key, _)| key.clone()).collect());
+        *unsafe { out_from_c(out) }? = str_buffer_from_vec(
+            higher_order
+                .iter()
+                .map(|(key, _)| key_to_string(key))
+                .collect(),
+        );
         Ok(())
     })
 }
@@ -167,8 +173,8 @@ pub unsafe extern "C" fn lm_higher_order_index_key(
     guard(|| {
         let higher_order =
             unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?;
-        let key = unsafe { str_from_c(key, "key") }?.to_owned();
-        *unsafe { out_from_c(out) }? = higher_order[&key];
+        let key = key_from_str(unsafe { str_from_c(key, "key") }?)?;
+        *unsafe { out_from_c(out) }? = higher_order[key.as_slice()];
         Ok(())
     })
 }

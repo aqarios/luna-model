@@ -2,7 +2,8 @@
 
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
 use lunamodel_transpiler::{
-    PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult, transformation,
+    PassContext, PipelineStep, Reversible, TransformationPass, TranspileErrorKind,
+    TranspileKindResult, transformation,
 };
 use lunamodel_types::Comparator;
 
@@ -22,13 +23,14 @@ impl TransformationPass for GeToLeConstraintsPass {
         model: &mut Model,
         _ctx: &PassContext,
     ) -> TranspileKindResult<Self::Artifact> {
-        for (_, constraint) in model.constraints.iter_mut() {
+        model.update_constraints(|_, _, constraint| {
             if constraint.comparator == Comparator::Ge {
                 constraint.lhs.mul_assign(-1.0)?;
                 constraint.rhs *= -1.0;
                 constraint.comparator = Comparator::Le;
             }
-        }
+            Ok::<_, TranspileErrorKind>(())
+        })?;
         Ok(Self::Artifact {})
     }
 }

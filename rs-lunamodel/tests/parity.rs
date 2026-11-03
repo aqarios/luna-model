@@ -171,13 +171,16 @@ fn model_children_are_live_parent_retaining_views() -> Result<()> {
     objective.try_add_assign(2.0)?;
     assert_eq!(model.objective()?.offset()?, 2.0);
 
-    model.set_objective(rs_lunamodel::Expression::from_f64(7.0)?, Some(Sense::Max))?;
+    model.set_objective(
+        rs_lunamodel::Expression::constant(model.env()?, 7.0)?,
+        Some(Sense::Max),
+    )?;
     assert_eq!(objective.offset()?, 7.0);
     assert_eq!(model.sense()?, Sense::Max);
 
     let mut constraints = model.constraints()?;
     let constraint = Constraint::new(
-        rs_lunamodel::Expression::from_f64(0.0)?,
+        rs_lunamodel::Expression::constant(model.env()?, 0.0)?,
         1.0,
         Comparator::Le,
         Some("first".into()),

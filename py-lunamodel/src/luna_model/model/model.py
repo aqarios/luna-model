@@ -36,6 +36,7 @@ if TYPE_CHECKING:
 
     from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel
     from numpy.typing import NDArray
+    from qiskit.quantum_info import SparseObservable
     from qiskit_addon_opt_mapper import OptimizationProblem
 
     from luna_model.constraint.collection import ConstraintCollection
@@ -248,6 +249,12 @@ class Model:
         Expression
             The objective function expression.
 
+        Raises
+        ------
+        DifferentEnvsError
+            When setting an objective that uses variables from a different
+            environment than the model.
+
         Examples
         --------
         >>> model = Model()
@@ -271,6 +278,12 @@ class Model:
         -------
         ConstraintCollection
             The collection of constraints in the model.
+
+        Raises
+        ------
+        DifferentEnvsError
+            When adding or setting constraints that use variables from a
+            different environment than the model.
 
         Examples
         --------
@@ -404,8 +417,11 @@ class Model:
             The type of the variable (BINARY, SPIN, INTEGER, or REAL).
         lower : float or Unbounded, optional
             The lower bound for the variable. Only applicable for INTEGER and REAL types.
+            ``None`` uses the type's default (``0``), ``-inf`` is the same as ``Unbounded``.
         upper : float or Unbounded, optional
             The upper bound for the variable. Only applicable for INTEGER and REAL types.
+            ``None`` uses the type's default (``Unbounded``), ``+inf`` is the same as
+            ``Unbounded``.
         with_fallback : bool, default=False
             If True and the name exists, a unique fallback name is generated.
 
@@ -420,8 +436,16 @@ class Model:
             If a variable with the same name already exists and `with_fallback=False`.
         VariableNameInvalidError
             If the variable name is invalid.
-        InvalidBoundsError
-            If bounds are invalid or incompatible with the variable type.
+        VariableCreationError
+            If ``vtype`` is ``Vtype.INVERTED_BINARY`` (inverted binaries are created by
+            inverting a binary variable, ``~x`` or ``x.inv()``), if bounds are given for
+            a BINARY or SPIN variable, or if a bound is ``NaN``.
+
+        Notes
+        -----
+        Bounds are model data and passed to the solver as given. ``lower > upper`` and
+        fractional bounds on INTEGER variables are accepted; solvers typically report
+        the former as infeasible and round the latter inward.
 
         Examples
         --------
@@ -462,9 +486,12 @@ class Model:
         vtype : Vtype, default=Vtype.BINARY
             The type of the variables (BINARY, SPIN, INTEGER, or REAL).
         lower : float or Unbounded, optional
-            The lower bound for the variablse. Only applicable for INTEGER and REAL types.
+            The lower bound for the variables. Only applicable for INTEGER and REAL types.
+            ``None`` uses the type's default (``0``), ``-inf`` is the same as ``Unbounded``.
         upper : float or Unbounded, optional
             The upper bound for the variables. Only applicable for INTEGER and REAL types.
+            ``None`` uses the type's default (``Unbounded``), ``+inf`` is the same as
+            ``Unbounded``.
         with_fallback : bool, default=False
             If True and the name exists, a unique fallback base name is generated.
         delimiter : str, optional
@@ -481,8 +508,16 @@ class Model:
             If a variable with the same name already exists and `with_fallback=False`.
         VariableNameInvalidError
             If the variable name is invalid.
-        InvalidBoundsError
-            If bounds are invalid or incompatible with the variable type.
+        VariableCreationError
+            If ``vtype`` is ``Vtype.INVERTED_BINARY`` (inverted binaries are created by
+            inverting a binary variable, ``~x`` or ``x.inv()``), if bounds are given for
+            a BINARY or SPIN variable, or if a bound is ``NaN``.
+
+        Notes
+        -----
+        Bounds are model data and passed to the solver as given. ``lower > upper`` and
+        fractional bounds on INTEGER variables are accepted; solvers typically report
+        the former as infeasible and round the latter inward.
 
         Examples
         --------
@@ -584,6 +619,9 @@ class Model:
             strings and must start with an alphabetical character. Additionally,
             constraint names cannot start with ``inf`` or ``nan`` due to
             limitations of other modeling software.
+        DifferentEnvsError
+            If the constraint uses variables from a different environment than
+            the model.
 
         Examples
         --------
@@ -655,11 +693,18 @@ class Model:
             strings and must start with an alphabetical character. Additionally,
             constraint names cannot start with ``inf`` or ``nan`` due to
             limitations of other modeling software.
+        DifferentEnvsError
+            If any constraint uses variables from a different environment than
+            the model.
         LunaModelError
             If ``name`` is a sequence and its length does not match the number of
             constraints. Also raised for unsupported combinations when runtime type
             checks are bypassed (for example, ``ConstraintCollection`` with
             ``Sequence[str]`` names).
+
+        Notes
+        -----
+        Either all constraints are added or, if any of them raises, none are.
 
         Examples
         --------
@@ -689,6 +734,12 @@ class Model:
         sense : Sense, optional
             The optimization sense. If provided, also updates the model's sense.
             If None, the model's current sense is used.
+
+        Raises
+        ------
+        DifferentEnvsError
+            If the expression uses variables from a different environment than
+            the model. Neither the objective nor the sense is changed.
 
         Examples
         --------
@@ -818,8 +869,9 @@ class Model:
         ------
         TypeError
             If replacement is neither an Expression nor a Variable.
-        DifferentEnvironmentsError
-            If the replacement is from a different environment.
+        DifferentEnvsError
+            If the target or the replacement is from a different environment
+            than the model. The model is left unchanged.
 
         Examples
         --------
@@ -833,8 +885,12 @@ class Model:
 
         Notes
         -----
-        This operation modifies the model in place. The target variable remains
-        in the model's environment but is no longer used.
+        This operation modifies the model in place. If the replacement does not
+        use the target variable, the target is removed from the model's
+        environment. Expressions created before the substitution that still use
+        it can be printed, but using them in the model afterwards raises
+        ``VariableNotExistingError``. ``Expression.substitute`` never removes
+        variables.
         """
         self._m.substitute(target, replacement)  # type: ignore[attribute]
 
@@ -1148,16 +1204,18 @@ class Model:
     @overload
     def to(self, target: Literal[TranslationTarget.OPT_MAPPER]) -> OptimizationProblem: ...
     @overload
+    def to(self, target: Literal[TranslationTarget.SPARSE_OBSERVABLE]) -> SparseObservable: ...
+    @overload
     def to(self, target: Literal[TranslationTarget.CQM]) -> ConstrainedQuadraticModel: ...
     @overload
     def to(self, target: Literal[TranslationTarget.BQM]) -> BinaryQuadraticModel: ...
     @overload
     def to(self, target: Literal[TranslationTarget.QUBO]) -> Qubo: ...
-    def to(
+    def to(  # noqa: PLR0911
         self,
         target: TranslationTarget,
         filepath: Path | None = None,
-    ) -> Qubo | str | BinaryQuadraticModel | ConstrainedQuadraticModel | None:
+    ) -> Qubo | str | BinaryQuadraticModel | ConstrainedQuadraticModel | OptimizationProblem | SparseObservable | None:
         """Translate model to target."""
         if target not in (TranslationTarget.LP, TranslationTarget.MPS) and filepath is not None:
             msg = "filepath can only be used with target 'LP' and 'MPS'"
@@ -1187,6 +1245,10 @@ class Model:
                 from luna_model.translator.model.optmapper import QiskitOptMapperTranslator  # noqa: PLC0415
 
                 return QiskitOptMapperTranslator.from_lm(self)
+            case TranslationTarget.SPARSE_OBSERVABLE:
+                from luna_model.translator.model.sparse_observable import SparseObservableTranslator  # noqa: PLC0415
+
+                return SparseObservableTranslator.from_lm(self)
 
     def equal_contents(self, other: Model) -> bool:
         """Check whether two models have equal *contents*.

@@ -271,6 +271,40 @@ fn roundtrip_vtype(value: PyVtype) -> PyVtype {
     value
 }
 
+/// Reads the higher-order storage in Rust, so the host's data is actually
+/// interpreted by the extension (a plain roundtrip only moves the handle).
+#[pyfunction]
+fn expression_higher_order_items(
+    py: Python<'_>,
+    value: PyExpression,
+) -> PyResult<Vec<(Vec<u32>, f64)>> {
+    let mut items = py
+        .detach(|| value.raw_higher_order_items())
+        .map_err(lm_error)?;
+    items.sort_by(|a, b| a.0.cmp(&b.0));
+    Ok(items)
+}
+
+/// Looks up a higher-order bias by key, exercising the host map's hashing.
+#[pyfunction]
+fn expression_higher_order_bias(py: Python<'_>, value: PyExpression, vars: Vec<u32>) -> PyResult<f64> {
+    py.detach(|| value.higher_order(&vars)).map_err(lm_error)
+}
+
+/// Computes a new expression in Rust from the host's expression.
+#[pyfunction]
+fn expression_scaled_higher_order_items(
+    py: Python<'_>,
+    value: PyExpression,
+    factor: f64,
+) -> PyResult<Vec<(Vec<u32>, f64)>> {
+    let mut items = py
+        .detach(|| (value.inner() * factor)?.raw_higher_order_items())
+        .map_err(lm_error)?;
+    items.sort_by(|a, b| a.0.cmp(&b.0));
+    Ok(items)
+}
+
 #[pymodule]
 fn rs_lunamodel_integration_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(roundtrip_bounds, m)?)?;
@@ -295,6 +329,9 @@ fn rs_lunamodel_integration_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(roundtrip_value_source, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_variable, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_vtype, m)?)?;
+    m.add_function(wrap_pyfunction!(expression_higher_order_items, m)?)?;
+    m.add_function(wrap_pyfunction!(expression_higher_order_bias, m)?)?;
+    m.add_function(wrap_pyfunction!(expression_scaled_higher_order_items, m)?)?;
 
     m.add_class::<HeldModel>()?;
     m.add_class::<HeldSolution>()?;

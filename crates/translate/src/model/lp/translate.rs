@@ -40,8 +40,8 @@ End
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.sense, Sense::Min);
         assert_eq!(model.environment.vars().len(), 2);
-        assert_eq!(model.constraints.len(), 1);
-        assert_eq!(model.objective.linear.len(), 2);
+        assert_eq!(model.constraints().len(), 1);
+        assert_eq!(model.objective().linear.len(), 2);
     }
 
     #[test]
@@ -60,8 +60,8 @@ End
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.sense, Sense::Min);
         assert_eq!(model.environment.vars().len(), 2);
-        assert_eq!(model.constraints.len(), 1);
-        assert_eq!(model.objective.linear.len(), 2);
+        assert_eq!(model.constraints().len(), 1);
+        assert_eq!(model.objective().linear.len(), 2);
     }
 
     #[test]
@@ -80,8 +80,8 @@ End
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.sense, Sense::Min);
         assert_eq!(model.environment.vars().len(), 2);
-        assert_eq!(model.constraints.len(), 1);
-        assert_eq!(model.objective.linear.len(), 2);
+        assert_eq!(model.constraints().len(), 1);
+        assert_eq!(model.objective().linear.len(), 2);
     }
 
     #[test]
@@ -100,7 +100,7 @@ End
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.sense, Sense::Max);
         assert_eq!(model.environment.vars().len(), 2);
-        assert!(model.objective.quadratic.is_some());
+        assert!(model.objective().quadratic.is_some());
     }
 
     #[test]
@@ -145,7 +145,7 @@ End
 "#;
 
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
-        assert_eq!(model.objective.linear.len(), 3);
+        assert_eq!(model.objective().linear.len(), 3);
     }
 
     #[test]
@@ -176,7 +176,7 @@ End
 "#;
 
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
-        assert_eq!(model.constraints.len(), 3);
+        assert_eq!(model.constraints().len(), 3);
     }
 
     #[test]
@@ -190,7 +190,7 @@ End
 "#;
 
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
-        assert!(model.objective.quadratic.is_some());
+        assert!(model.objective().quadratic.is_some());
     }
 
     #[test]
@@ -211,7 +211,7 @@ End
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.sense, Sense::Min);
         assert_eq!(model.environment.vars().len(), 2);
-        assert_eq!(model.constraints.len(), 2);
+        assert_eq!(model.constraints().len(), 2);
     }
 
     #[test]
@@ -231,7 +231,7 @@ End
 
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.sense, Sense::Max);
-        assert_eq!(model.constraints.len(), 2);
+        assert_eq!(model.constraints().len(), 2);
     }
 
     #[test]
@@ -354,7 +354,7 @@ End
 
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.environment.vars().len(), 3);
-        assert_eq!(model.constraints.len(), 2);
+        assert_eq!(model.constraints().len(), 2);
 
         // All variables should be binary
         for var_name in &["x1", "x2", "x3"] {
@@ -379,14 +379,14 @@ End
 
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.environment.vars().len(), 3);
-        assert_eq!(model.constraints.len(), 0);
-        assert!(model.objective.quadratic.is_some());
+        assert_eq!(model.constraints().len(), 0);
+        assert!(model.objective().quadratic.is_some());
 
         // Check that we have linear terms
-        assert!(!model.objective.linear.is_empty());
+        assert!(!model.objective().linear.is_empty());
 
         // Check constant term
-        assert_eq!(model.objective.offset, 4.0);
+        assert_eq!(model.objective().offset, 4.0);
 
         // All variables should be binary
         for var_name in &["x0", "x1", "x2"] {
@@ -395,7 +395,7 @@ End
         }
 
         // Check quadratic coefficients are divided by 2
-        let quad = model.objective.quadratic.as_ref().unwrap();
+        let quad = model.objective().quadratic.as_ref().unwrap();
         // The term [x0 * x1 + 4 x1 * x2] / 2 should give us:
         // 0.5 * x0 * x1 + 2.0 * x1 * x2
         // Note: Due to internal representation, just check we have quadratic terms
@@ -426,13 +426,13 @@ End
 
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.environment.vars().len(), 3);
-        assert_eq!(model.constraints.len(), 2);
+        assert_eq!(model.constraints().len(), 2);
 
         // Check that all variables in constraints were parsed
-        let c1 = model.constraints.get("c1").unwrap();
+        let c1 = model.constraints().get("c1").unwrap();
         assert_eq!(c1.lhs.linear.len(), 3);
 
-        let c2 = model.constraints.get("c2").unwrap();
+        let c2 = model.constraints().get("c2").unwrap();
         assert_eq!(c2.lhs.linear.len(), 3);
     }
 
@@ -457,11 +457,11 @@ End
 
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.environment.vars().len(), 4);
-        assert!(model.objective.quadratic.is_some());
-        assert_eq!(model.objective.linear.len(), 4);
+        assert!(model.objective().quadratic.is_some());
+        assert_eq!(model.objective().linear.len(), 4);
 
         // Check that quadratic terms were divided by 2
-        let quad = model.objective.quadratic.as_ref().unwrap();
+        let quad = model.objective().quadratic.as_ref().unwrap();
         assert_eq!(quad.len(), 2);
     }
 
@@ -487,14 +487,14 @@ End
 
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.environment.vars().len(), 14); // x_0 through x_13
-        assert_eq!(model.constraints.len(), 1);
+        assert_eq!(model.constraints().len(), 1);
 
         // Check the constraint has all variables
-        let capacity = model.constraints.get("capacity").unwrap();
+        let capacity = model.constraints().get("capacity").unwrap();
         assert_eq!(capacity.lhs.linear.len(), 14);
 
         // Check objective has all variables
-        assert_eq!(model.objective.linear.len(), 14);
+        assert_eq!(model.objective().linear.len(), 14);
     }
 
     #[test]
@@ -520,14 +520,14 @@ End
 
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.environment.vars().len(), 15); // x_0 through x_14
-        assert_eq!(model.constraints.len(), 1);
+        assert_eq!(model.constraints().len(), 1);
 
         // Check the constraint has all variables
-        let capacity = model.constraints.get("capacity").unwrap();
+        let capacity = model.constraints().get("capacity").unwrap();
         assert_eq!(capacity.lhs.linear.len(), 15);
 
         // Check objective has all variables
-        assert_eq!(model.objective.linear.len(), 15);
+        assert_eq!(model.objective().linear.len(), 15);
     }
 
     #[test]
@@ -582,15 +582,15 @@ End
 
         let model = LpTranslator::translate(lp_content.to_string()).unwrap();
         assert_eq!(model.environment.vars().len(), 3);
-        assert_eq!(model.constraints.len(), 1);
+        assert_eq!(model.constraints().len(), 1);
 
         // Check the constraint has all variables
-        let capacity = model.constraints.get("capacity").unwrap();
+        let capacity = model.constraints().get("capacity").unwrap();
         assert_eq!(capacity.lhs.linear.len(), 3);
         assert_eq!(capacity.comparator, Comparator::Le);
         assert_eq!(capacity.rhs, 25.0);
 
         // Check objective has all variables
-        assert_eq!(model.objective.offset, 0.0);
+        assert_eq!(model.objective().offset, 0.0);
     }
 }

@@ -97,6 +97,10 @@ class Constraint:
     @classmethod
     def _from_pyc(cls, py_c: PyConstraint) -> Constraint:
         """Construct Constraint from FFI PyConstraint object."""
+        if py_c is NotImplemented:
+            # Comparison bindings return NotImplemented for unsupported operands;
+            # pass it on so Python raises TypeError instead of wrapping it.
+            return NotImplemented
         c = cls.__new__(cls)
         c._c = py_c
         return c

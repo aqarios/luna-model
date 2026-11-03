@@ -117,6 +117,10 @@ class Expression:
     @classmethod
     def _from_pyexpr(cls, py_expr: PyExpression) -> Expression:
         """Construct Expression from internal PyExpression object."""
+        if py_expr is NotImplemented:
+            # Operator bindings return NotImplemented for unsupported operands;
+            # pass it on so Python raises TypeError instead of wrapping it.
+            return NotImplemented
         expr = cls.__new__(cls)
         expr._expr = py_expr
         return expr
@@ -757,7 +761,8 @@ class Expression:
         >>> print(expr)
         x + y
         """
-        self._expr.__iadd__(other)
+        if self._expr.__iadd__(other) is NotImplemented:
+            return NotImplemented
         return self
 
     def __isub__(self, other: Expression | Variable | float) -> Self:
@@ -785,7 +790,8 @@ class Expression:
         >>> print(expr)
         -x - y
         """
-        self._expr.__isub__(other)
+        if self._expr.__isub__(other) is NotImplemented:
+            return NotImplemented
         return self
 
     def __imul__(self, other: Expression | Variable | float) -> Self:
@@ -813,7 +819,8 @@ class Expression:
         >>> print(expr)
         42 x y
         """
-        self._expr.__imul__(other)
+        if self._expr.__imul__(other) is NotImplemented:
+            return NotImplemented
         return self
 
     def __pow__(self, value: int) -> Expression:
@@ -866,7 +873,8 @@ class Expression:
         >>> print(expr)
         a^2 + 2 a b + b^2
         """
-        self._expr.__ipow__(other)
+        if self._expr.__ipow__(other) is NotImplemented:
+            return NotImplemented
         return self
 
     def __neg__(self) -> Expression:

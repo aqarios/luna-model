@@ -53,10 +53,10 @@ impl LpTranslator {
         out.push_str(&format!(
             "{}\n",
             Self::expr_string(
-                &model.objective,
+                model.objective(),
                 Some(
                     model
-                        .constraints
+                        .constraints()
                         .vars()
                         .map(|v| VarId(v.id()))
                         .collect::<Vec<_>>()
@@ -66,7 +66,7 @@ impl LpTranslator {
             )?
         ));
         out.push_str("Subject To\n");
-        out.push_str(&format!("{}\n", Self::constr_string(&model.constraints)?));
+        out.push_str(&format!("{}\n", Self::constr_string(model.constraints())?));
         out.push_str("Bounds\n");
         out.push_str(&format!("{}\n", Self::bounds_string(&model.environment)?));
         out.push_str(&format!("{}\n", Self::variables_string(model)?));

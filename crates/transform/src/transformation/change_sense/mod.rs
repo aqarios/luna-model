@@ -23,7 +23,7 @@ mod tests {
         let mut model = Model::default();
         let x = model.add_var("i0", Vtype::Integer, None)?;
         let y = model.add_var("i1", Vtype::Integer, None)?;
-        model.objective.add_assign((&x * &y)?)?;
+        model.objective_mut().add_assign((&x * &y)?)?;
         model.sense = Sense::Min;
 
         let pm = PassManager::default().add_transform(ChangeSensePass::new(Sense::Max));
@@ -54,7 +54,7 @@ mod tests {
         let mut model = Model::default();
         let x = model.add_var("i0", Vtype::Integer, None)?;
         let y = model.add_var("i1", Vtype::Integer, None)?;
-        model.objective.add_assign((&x * &y)?)?;
+        model.objective_mut().add_assign((&x * &y)?)?;
         model.sense = Sense::Max;
 
         let pm = PassManager::default().add_transform(ChangeSensePass::new(Sense::Min));

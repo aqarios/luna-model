@@ -43,8 +43,13 @@ impl TransformationPass for IntegerToBinaryPass {
             // So we'll set it to what the largest coefficient would be if we didn't account
             // for the extra numbers that can be encoded.
             // let mu = 2f64.powf(new_upper.log2().floor() + 1.0);
-            let mu = 2usize.pow(new_upper.ilog2() + 1); // already rounded down, so we can skip the `floor`.
-            let coefs = bounded_coefficient_encoding(new_upper, mu);
+            let coefs = if new_upper == 0 {
+                // A single allowed value: the variable is replaced by the offset alone.
+                Vec::new()
+            } else {
+                let mu = 2usize.pow(new_upper.ilog2() + 1); // already rounded down, so we can skip the `floor`.
+                bounded_coefficient_encoding(new_upper, mu)
+            };
 
             let mut replacement = Expression::empty(model.environment.clone());
             let mut binvarmap = HashMap::new();
@@ -99,8 +104,21 @@ impl Reversible for IntegerToBinaryPass {
 
 impl IntegerToBinaryPass {
     /// Converts bounded integer bounds into the encoded range plus offset.
+    ///
+    /// Fractional bounds are rounded inward first, see [`Bounds::integer_domain`].
     fn make_new_bounds(&self, vname: &str, bounds: Bounds) -> TransformResult<(usize, i64)> {
-        match bounds {
+        match bounds.integer_domain() {
+            Bounds {
+                lower: Bound::Bounded(lower),
+                upper: Bound::Bounded(upper),
+            } if lower > upper || !lower.is_finite() || !upper.is_finite() => {
+                return Err(TransformError::Transformation {
+                    name: self.name().to_owned(),
+                    msg: format!(
+                        "Integer variable '{vname}' has no integer value within its bounds [{lower}, {upper}]."
+                    ),
+                });
+            }
             Bounds {
                 lower: Bound::Bounded(lower),
                 upper: Bound::Bounded(upper),

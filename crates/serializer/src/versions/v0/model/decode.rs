@@ -29,16 +29,19 @@ impl SerModel {
             .decode(())?;
         let arcenv = ArcEnv::from(env);
         let mut model = Model::with_env(Some(self.name.clone()), Some(sense), arcenv.clone());
-        model.objective = self
-            .objective
-            .as_slice()
-            .unversionize_nested()
-            .decode(arcenv.clone())?;
-        model.constraints = self
-            .constraints
-            .as_slice()
-            .unversionize_nested()
-            .decode(arcenv.clone())?;
+        model.set_objective(
+            self.objective
+                .as_slice()
+                .unversionize_nested()
+                .decode(arcenv.clone())?,
+            None,
+        )?;
+        model.set_constraints(
+            self.constraints
+                .as_slice()
+                .unversionize_nested()
+                .decode(arcenv.clone())?,
+        )?;
         Ok(model)
     }
 }

@@ -8,7 +8,7 @@ on:
       python-versions:
         required: false
         type: string
-        default: '["3.11", "3.12", "3.13", "3.14"]'
+        default: '["3.11", "3.12", "3.13", "3.14", "3.15"]'
       working-directory:
         required: false
         type: string
@@ -45,16 +45,22 @@ jobs:
           toolchain: ${{ steps.toolchain.outputs.channel }}
 
       - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2.9.2
+        uses: Swatinem/rust-cache@v2.9.3
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v10.2.0
+        uses: astral-sh/setup-uv@v10.3.2
         with:
           python-version: ${{ matrix.py }}
           activate-environment: false
           enable-cache: true
           cache-dependency-glob: "${{ inputs.working-directory }}/uv.lock"
           cache-suffix: test
+
+      # Some dev dependencies (e.g. sparsediffpy via cvxpy) ship no wheels for
+      # the newest Python yet and are built from source, which needs BLAS.
+      - name: Install BLAS (source builds)
+        if: matrix.py == '3.15'
+        run: sudo apt-get update && sudo apt-get install -y libopenblas-dev
 
       - name: Sync environment
         run: uv sync --locked

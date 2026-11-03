@@ -41,6 +41,11 @@ class TranslationTarget(Enum):
     CQM : str
         Constrained Quadratic Model format (D-Wave).
         Quadratic model with constraints.
+    OPT_MAPPER : str
+        Qiskit OptimizationProblem format.
+    SPARSE_OBSERVABLE : str
+        Qiskit SparseObservable format.
+        Spin variables only, no constraints.
     """
 
     QUBO = "Qubo"
@@ -49,9 +54,10 @@ class TranslationTarget(Enum):
     BQM = "Bqm"
     CQM = "Cqm"
     OPT_MAPPER = "OptMapper"
+    SPARSE_OBSERVABLE = "SparseObservable"
 
     @property
-    def _val(self) -> PyTranslationTarget:
+    def _val(self) -> PyTranslationTarget:  # noqa: PLR0911
         """Convert Python TranslationTarget to internal representation."""
         match self:
             case TranslationTarget.QUBO:
@@ -66,9 +72,11 @@ class TranslationTarget(Enum):
                 return PyTranslationTarget.Cqm
             case TranslationTarget.OPT_MAPPER:
                 return PyTranslationTarget.OptMapper
+            case TranslationTarget.SPARSE_OBSERVABLE:
+                return PyTranslationTarget.SparseObservable
 
     @classmethod
-    def _from_pyttarget(cls, py_ttarget: PyTranslationTarget) -> TranslationTarget:
+    def _from_pyttarget(cls, py_ttarget: PyTranslationTarget) -> TranslationTarget:  # noqa: PLR0911
         match py_ttarget:
             case PyTranslationTarget.Qubo:
                 return TranslationTarget.QUBO
@@ -82,5 +90,7 @@ class TranslationTarget(Enum):
                 return TranslationTarget.CQM
             case PyTranslationTarget.OptMapper:
                 return TranslationTarget.OPT_MAPPER
+            case PyTranslationTarget.SparseObservable:
+                return TranslationTarget.SPARSE_OBSERVABLE
         msg = f"unknown sense: {py_ttarget}"
         raise RuntimeError(msg)

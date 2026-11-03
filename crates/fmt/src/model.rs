@@ -32,8 +32,8 @@ impl CustomFormat<FormatOpt> for Model {
                 "Model(name={}, sense={}, objective={}, constraints={})",
                 self.name,
                 self.sense,
-                self.objective.format(FormatOpt::Py),
-                self.constraints.format(FormatOpt::Py)
+                self.objective().format(FormatOpt::Py),
+                self.constraints().format(FormatOpt::Py)
             ),
             #[cfg(feature = "py")]
             FormatOpt::PySol(_) => unreachable!("cannot format Model for PySol opts"),
@@ -143,9 +143,9 @@ mod pymodelio {
                 .with_new_line(&model.sense.to_string())
                 .increase_indent()
                 .new_line();
-            self.write_expression(&model.objective);
+            self.write_expression(model.objective());
             self.writer.decrease_indent();
-            let constraints = &model.constraints;
+            let constraints = model.constraints();
             if !constraints.is_empty() {
                 self.writer
                     .with_new_line("Subject To")

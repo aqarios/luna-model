@@ -68,7 +68,7 @@ class IfElsePass(PyIfElsePass, BuiltinControlFlow):
     Minimize
       12 * y * z - 4 * x_x + 2
     Binary
-      y z x_x
+      x_x y z
 
     And now a model that does not satisfy the condition:
 
