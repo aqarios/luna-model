@@ -82,15 +82,24 @@ exclude = [
 
 [tool.uv]
 package = true
+# Only sources: `src/luna_model/include` is copied by pylm/build.rs on every build, and the
+# generated headers in crates/capi-host/include are rewritten by its build.rs.
 cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "../Cargo.toml" },
+    { file = "../Cargo.lock" },
     { file = "pylm/Cargo.toml" },
-    { file = "pylm/Cargo.lock" },
     { file = "pylm/build.rs" },
-    { file = "pylm/src/lib.rs" },
     { file = "pylm/src/**/*.rs" },
-    { file = "src/**/*.rs" },
+    { file = "../crates/**/Cargo.toml" },
     { file = "../crates/**/*.rs" },
-    { file = "../cpp-lunamodel/src/**/*.hpp" },
+    { file = "../crates/capi-host/cbindgen.*.toml" },
+    { file = "../crates/capi-host/include/luna_model.h" },
+    { file = "../crates/capi-host/include/luna_model/attributes.h" },
+    { file = "../cxx-lunamodel/src/**/*.hpp" },
+    { file = "src/luna_model/**/*.py" },
+    { file = "src/luna_model/**/*.pyi" },
+    { file = "src/luna_model/proto/**/*.proto" },
 ]
 
 [dependency-groups]
