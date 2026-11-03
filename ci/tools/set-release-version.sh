@@ -6,7 +6,7 @@
 #   - every crate (pylm, js-lunamodel, rs-lunamodel, crates/*) inherits it
 #     via `version.workspace = true`, so the Python wheel version (read by
 #     maturin from pylm) and the napi crate version can never drift
-#   - js-lunamodel/package.json is synced to it here
+#   - js-lunamodel/package.json and the C headers (version.h) are synced to it here
 #   - Cargo.lock is refreshed here (uv.lock records no project version —
 #     py-lunamodel declares its version as dynamic)
 #
@@ -70,5 +70,14 @@ fi
 
 # Refresh Cargo.lock so it records the new version.
 cargo update --workspace
+
+# The committed C headers embed the version (luna_model/version.h): regenerate
+# them and the copy bundled in the wheel, as `just cheader wheelheaders` does,
+# so the drift checks pass on the release PR.
+cargo build -p lunamodel-capi-host
+rm -rf py-lunamodel/src/luna_model/include
+mkdir -p py-lunamodel/src/luna_model/include
+cp -R crates/capi-host/include/. py-lunamodel/src/luna_model/include/
+cp -R cxx-lunamodel/src/. py-lunamodel/src/luna_model/include/
 
 echo "Workspace version set to $VERSION"
