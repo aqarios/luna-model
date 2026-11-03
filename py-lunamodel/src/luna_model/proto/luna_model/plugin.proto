@@ -6,7 +6,14 @@ syntax = "proto3";
 
 package lunamodel.plugin;
 
-// Wire form of the built-in `min-value-for-constraint` analysis result.
+// Wire form of a one-sided bound (native `Bound`): `value` is present when the bound is finite
+// (`Bound::Bounded`), and absent when that direction is unbounded (`Bound::Unbounded`).
+message Bound {
+  optional double value = 1;
+}
+
+// Wire form of the built-in `min-value-for-constraint` analysis result: the minimum achievable value
+// of each constraint's LHS, which may be unbounded below.
 message MinConstraintValues {
-  map<string, double> vals = 1;
+  map<string, Bound> vals = 1;
 }
