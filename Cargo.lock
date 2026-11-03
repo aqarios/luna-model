@@ -811,6 +811,7 @@ version = "0.7.4"
 dependencies = [
  "lunamodel-capi",
  "lunamodel-core",
+ "lunamodel-error",
  "lunamodel-transpiler",
  "lunamodel-types",
  "parking_lot 0.13.0",

@@ -2,7 +2,7 @@ use lunamodel_core::prelude::{HigherOrder, Linear, Quadratic};
 
 use crate::{
     LmExpr, LmHigherOrder, LmLinear, LmQuadratic, LmStatus,
-    error::guard,
+    error::{CapiError, guard},
     expr::utils::expression_from_c,
     utils::{ref_from_c, slice_from_c},
 };
@@ -14,7 +14,9 @@ use crate::{
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_expr_set_offset(expr: *mut LmExpr, offset: f64) -> LmStatus {
     guard(|| {
-        unsafe { expression_from_c(expr, "expr") }?.write().offset = offset;
+        unsafe { expression_from_c(expr, "expr") }?
+            .write()
+            .set_offset(offset);
         Ok(())
     })
 }
@@ -30,7 +32,10 @@ pub unsafe extern "C" fn lm_expr_add_linear_term(
     bias: f64,
 ) -> LmStatus {
     guard(|| {
-        unsafe { expression_from_c(expr, "expr") }?.write().linear += (variable, bias);
+        unsafe { expression_from_c(expr, "expr") }?
+            .write()
+            .add_linear_term(variable, bias)
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -48,8 +53,10 @@ pub unsafe extern "C" fn lm_expr_add_quadratic_term(
 ) -> LmStatus {
     guard(|| {
         let expression = unsafe { expression_from_c(expr, "expr") }?;
-        let mut expression = expression.write();
-        *expression.quadratic.get_or_insert_default() += (u, v, bias);
+        expression
+            .write()
+            .add_quadratic_term(u, v, bias)
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -70,8 +77,10 @@ pub unsafe extern "C" fn lm_expr_add_higher_order_term(
     guard(|| {
         let variables = unsafe { slice_from_c(variables, len, "variables") }?;
         let expression = unsafe { expression_from_c(expr, "expr") }?;
-        let mut expression = expression.write();
-        *expression.higher_order.get_or_insert_default() += (variables, bias);
+        expression
+            .write()
+            .add_higher_order_term(variables, bias)
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -90,7 +99,9 @@ pub unsafe extern "C" fn lm_expr_set_linear_term(
     guard(|| {
         let mut expression = unsafe { expression_from_c(expr, "expr") }?.write();
         let linear = unsafe { ref_from_c(linear as *const Linear, "linear") }?;
-        expression.linear = linear.clone();
+        expression
+            .set_linear(linear.clone())
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -114,7 +125,9 @@ pub unsafe extern "C" fn lm_expr_set_quadratic_term(
             Some(unsafe { ref_from_c(quadratic as *const Quadratic, "quadratic") }?.clone())
         };
 
-        expression.quadratic = quadratic;
+        expression
+            .set_quadratic(quadratic)
+            .map_err(CapiError::from)?;
         Ok(())
     })
 }
@@ -137,7 +150,7 @@ pub unsafe extern "C" fn lm_expr_set_higher_order_term(
         } else {
             Some(unsafe { ref_from_c(higher_order as *const HigherOrder, "higher_order") }?.clone())
         };
-        expression.higher_order = ho;
+        expression.set_higher_order(ho).map_err(CapiError::from)?;
         Ok(())
     })
 }

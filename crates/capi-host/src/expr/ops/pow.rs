@@ -1,4 +1,4 @@
-use lunamodel_core::ops::{LmPow, LmPowAssign};
+use lunamodel_core::ops::LmPow;
 
 use crate::{
     LmExpr, LmStatus,

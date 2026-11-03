@@ -10,13 +10,13 @@ use lunamodel_capi::{
     LmCC, LmConstraint, LmEnv, LmExpr, LmLazyBounds, LmModel, LmSol, LmSpecs, LmVref,
     plugin::LmControlFlowPlan,
 };
-use lunamodel_core::prelude::{LazyBounds, VarRef};
+use lunamodel_core::ops::{LmAddAssign, LmMulAssign, LmPowAssign, LmSubAssign};
+use lunamodel_core::prelude::{HigherOrder, LazyBounds, Linear, Quadratic, VarRef};
 use lunamodel_core::{ArcEnv, Constraint, ConstraintCollection, Expression, Model, Solution};
+use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::ControlFlowPlan;
-use lunamodel_types::Specs;
-use parking_lot::{
-    MappedRwLockReadGuard, MappedRwLockWriteGuard, RwLock, RwLockReadGuard, RwLockWriteGuard,
-};
+use lunamodel_types::{Bias, Specs, VarIdx};
+use parking_lot::{MappedRwLockReadGuard, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 /// Associates one opaque C type with its exact host-side storage type.
 ///
@@ -114,9 +114,14 @@ impl Deref for ExpressionReadGuard<'_> {
     }
 }
 
+/// Write access to an expression handle.
+///
+/// There is deliberately no `DerefMut`: a model-objective view only edits through
+/// [`Model::objective_mut`], so the model's environment and liveness checks apply
+/// to every edit coming in over the C API. Standalone expressions are edited directly.
 pub enum ExpressionWriteGuard<'a> {
     Expression(RwLockWriteGuard<'a, Expression>),
-    Model(MappedRwLockWriteGuard<'a, Expression>),
+    Model(RwLockWriteGuard<'a, Model>),
 }
 
 impl Deref for ExpressionWriteGuard<'_> {
@@ -125,16 +130,113 @@ impl Deref for ExpressionWriteGuard<'_> {
     fn deref(&self) -> &Self::Target {
         match self {
             Self::Expression(guard) => guard,
-            Self::Model(guard) => guard,
+            Self::Model(guard) => guard.objective(),
         }
     }
 }
 
-impl std::ops::DerefMut for ExpressionWriteGuard<'_> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
+impl ExpressionWriteGuard<'_> {
+    pub fn add_assign<T>(&mut self, rhs: T) -> LunaModelResult<()>
+    where
+        Expression: LmAddAssign<T>,
+    {
         match self {
-            Self::Expression(guard) => guard,
-            Self::Model(guard) => guard,
+            Self::Expression(expr) => LmAddAssign::add_assign(&mut **expr, rhs),
+            Self::Model(model) => model.objective_mut().add_assign(rhs),
+        }
+    }
+
+    pub fn sub_assign<T>(&mut self, rhs: T) -> LunaModelResult<()>
+    where
+        Expression: LmSubAssign<T>,
+    {
+        match self {
+            Self::Expression(expr) => LmSubAssign::sub_assign(&mut **expr, rhs),
+            Self::Model(model) => model.objective_mut().sub_assign(rhs),
+        }
+    }
+
+    pub fn mul_assign<T>(&mut self, rhs: T) -> LunaModelResult<()>
+    where
+        Expression: LmMulAssign<T>,
+    {
+        match self {
+            Self::Expression(expr) => LmMulAssign::mul_assign(&mut **expr, rhs),
+            Self::Model(model) => model.objective_mut().mul_assign(rhs),
+        }
+    }
+
+    pub fn pow_assign(&mut self, exp: usize) -> LunaModelResult<()> {
+        match self {
+            Self::Expression(expr) => LmPowAssign::pow_assign(&mut **expr, exp),
+            Self::Model(model) => model.objective_mut().pow_assign(exp),
+        }
+    }
+
+    pub fn set_offset(&mut self, offset: Bias) {
+        match self {
+            Self::Expression(expr) => expr.offset = offset,
+            Self::Model(model) => model.objective_mut().set_offset(offset),
+        }
+    }
+
+    pub fn add_linear_term(&mut self, var: VarIdx, bias: Bias) -> LunaModelResult<()> {
+        match self {
+            Self::Expression(expr) => {
+                expr.linear += (var, bias);
+                Ok(())
+            }
+            Self::Model(model) => model.objective_mut().add_linear_term(var, bias),
+        }
+    }
+
+    pub fn add_quadratic_term(&mut self, u: VarIdx, v: VarIdx, bias: Bias) -> LunaModelResult<()> {
+        match self {
+            Self::Expression(expr) => {
+                *expr.quadratic.get_or_insert_default() += (u, v, bias);
+                Ok(())
+            }
+            Self::Model(model) => model.objective_mut().add_quadratic_term(u, v, bias),
+        }
+    }
+
+    pub fn add_higher_order_term(&mut self, vars: &[VarIdx], bias: Bias) -> LunaModelResult<()> {
+        match self {
+            Self::Expression(expr) => {
+                *expr.higher_order.get_or_insert_default() += (vars, bias);
+                Ok(())
+            }
+            Self::Model(model) => model.objective_mut().add_higher_order_term(vars, bias),
+        }
+    }
+
+    pub fn set_linear(&mut self, linear: Linear) -> LunaModelResult<()> {
+        match self {
+            Self::Expression(expr) => {
+                expr.linear = linear;
+                Ok(())
+            }
+            Self::Model(model) => model.objective_mut().set_linear(linear),
+        }
+    }
+
+    pub fn set_quadratic(&mut self, quadratic: Option<Quadratic>) -> LunaModelResult<()> {
+        match self {
+            Self::Expression(expr) => {
+                expr.quadratic = quadratic;
+                Ok(())
+            }
+            Self::Model(model) => model.objective_mut().set_quadratic(quadratic),
+        }
+    }
+
+    pub fn set_higher_order(&mut self, higher_order: Option<HigherOrder>) -> LunaModelResult<()> {
+        match self {
+            Self::Expression(expr) => {
+                expr.higher_order = higher_order;
+                Ok(())
+            }
+            Self::Model(model) => model.objective_mut().set_higher_order(higher_order),
         }
     }
 }
@@ -162,11 +264,7 @@ impl ExpressionHandle {
     pub fn write(&self) -> ExpressionWriteGuard<'_> {
         match self {
             Self::Expression(value) => ExpressionWriteGuard::Expression(value.write()),
-            Self::Model(model) => {
-                ExpressionWriteGuard::Model(RwLockWriteGuard::map(model.write(), |model| {
-                    model.objective_mut_unchecked()
-                }))
-            }
+            Self::Model(model) => ExpressionWriteGuard::Model(model.write()),
         }
     }
 }
@@ -198,9 +296,14 @@ impl Deref for ConstraintCollectionReadGuard<'_> {
     }
 }
 
+/// Write access to a constraint-collection handle.
+///
+/// There is deliberately no `DerefMut`: a model-constraints view only changes
+/// through the checked [`Model`] API, so every constraint added over the C API
+/// must belong to the model's environment. Standalone collections are edited directly.
 pub enum ConstraintCollectionWriteGuard<'a> {
     Collection(RwLockWriteGuard<'a, ConstraintCollection>),
-    Model(MappedRwLockWriteGuard<'a, ConstraintCollection>),
+    Model(RwLockWriteGuard<'a, Model>),
 }
 
 impl Deref for ConstraintCollectionWriteGuard<'_> {
@@ -209,16 +312,64 @@ impl Deref for ConstraintCollectionWriteGuard<'_> {
     fn deref(&self) -> &Self::Target {
         match self {
             Self::Collection(guard) => guard,
-            Self::Model(guard) => guard,
+            Self::Model(guard) => guard.constraints(),
         }
     }
 }
 
-impl std::ops::DerefMut for ConstraintCollectionWriteGuard<'_> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
+impl ConstraintCollectionWriteGuard<'_> {
+    pub fn add_constraint(
+        &mut self,
+        constr: Constraint,
+        name: Option<String>,
+    ) -> LunaModelResult<String> {
         match self {
-            Self::Collection(guard) => guard,
-            Self::Model(guard) => guard,
+            Self::Collection(cc) => cc.add_constraint(constr, name),
+            Self::Model(model) => model.add_constraint(constr, name),
+        }
+    }
+
+    pub fn add_many_constraints(
+        &mut self,
+        constrs: impl IntoIterator<Item = (Constraint, Option<String>)>,
+    ) -> LunaModelResult<Vec<String>> {
+        match self {
+            Self::Collection(cc) => cc.add_many_constraints(constrs.into_iter()),
+            Self::Model(model) => model.add_many_constraints(constrs),
+        }
+    }
+
+    pub fn add_collection(
+        &mut self,
+        other: ConstraintCollection,
+        prefix: Option<String>,
+    ) -> LunaModelResult<Vec<String>> {
+        match self {
+            Self::Collection(cc) => cc.add_collection(other, prefix),
+            Self::Model(model) => model.add_collection(other, prefix),
+        }
+    }
+
+    pub fn set_constraint(&mut self, key: &str, constr: Constraint) -> LunaModelResult<()> {
+        match self {
+            Self::Collection(cc) => cc.set_constraint(key, constr),
+            Self::Model(model) => model.set_constraint(key, constr),
+        }
+    }
+
+    pub fn remove_constraint(&mut self, key: &str) -> LunaModelResult<()> {
+        match self {
+            Self::Collection(cc) => cc.remove_constraint(key),
+            Self::Model(model) => model.remove_constraint(key),
+        }
+    }
+
+    pub fn substitute(&mut self, target: &VarRef, replacement: &Expression) -> LunaModelResult<()> {
+        match self {
+            Self::Collection(cc) => cc.substitute(target, replacement),
+            Self::Model(model) => {
+                model.update_constraints(|_, _, constr| constr.substitute(target, replacement))
+            }
         }
     }
 }
@@ -246,10 +397,7 @@ impl ConstraintCollectionHandle {
     pub fn write(&self) -> ConstraintCollectionWriteGuard<'_> {
         match self {
             Self::Collection(value) => ConstraintCollectionWriteGuard::Collection(value.write()),
-            Self::Model(model) => ConstraintCollectionWriteGuard::Model(RwLockWriteGuard::map(
-                model.write(),
-                |model| model.constraints_mut_unchecked(),
-            )),
+            Self::Model(model) => ConstraintCollectionWriteGuard::Model(model.write()),
         }
     }
 }

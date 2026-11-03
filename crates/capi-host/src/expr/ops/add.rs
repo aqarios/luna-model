@@ -1,6 +1,6 @@
 use std::ops::Add;
 
-use lunamodel_core::{ops::LmAddAssign, prelude::VarRef};
+use lunamodel_core::prelude::VarRef;
 
 use crate::{
     LmExpr, LmStatus, LmVref,

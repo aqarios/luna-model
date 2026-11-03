@@ -1,6 +1,6 @@
 use std::ops::Sub;
 
-use lunamodel_core::{ops::LmSubAssign, prelude::VarRef};
+use lunamodel_core::prelude::VarRef;
 
 use crate::{
     LmExpr, LmStatus, LmVref,

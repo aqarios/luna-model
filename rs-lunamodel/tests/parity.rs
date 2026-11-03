@@ -2,9 +2,9 @@ use std::{collections::HashMap, sync::Once};
 
 use indexmap::{IndexMap, indexmap};
 use rs_lunamodel::{
-    Assignment, Column, Comparator, Constraint, ConstraintCollection, Environment, HigherOrder,
-    LmAddAssign, Result, Sense, Solution, Timing, TryAddAssign, TryClone, TryIndex, Variable,
-    Vtype,
+    Assignment, Column, Comparator, Constraint, ConstraintCollection, Environment, ErrorKind,
+    HigherOrder, LmAddAssign, Result, Sense, Solution, Timing, TryAddAssign, TryClone, TryIndex,
+    Variable, Vtype,
 };
 
 static INIT: Once = Once::new();
@@ -197,6 +197,44 @@ fn model_children_are_live_parent_retaining_views() -> Result<()> {
 
     let clone = rs_lunamodel::Model::default().deep_clone()?;
     assert_eq!(clone.name()?, rs_lunamodel::DEFAULT_MODEL_NAME);
+    Ok(())
+}
+
+#[test]
+fn model_views_enforce_model_environment() -> Result<()> {
+    init();
+
+    let mut model = rs_lunamodel::Model::default();
+    let x = model.add_var("x", Vtype::Binary, None)?;
+    let mut other = rs_lunamodel::Model::default();
+    let a = other.add_var("a", Vtype::Binary, None)?;
+
+    // Objective view: raw indices must name living model variables, and
+    // arithmetic with another environment is rejected.
+    let mut objective = model.objective()?;
+    objective.try_add_assign((x.id()?, 1.0))?;
+    let err = objective.try_add_assign((99, 1.0)).unwrap_err();
+    assert_eq!(err.kind(), ErrorKind::VariableNotExisting);
+    let err = objective.try_add_assign(&(&a * 2.0)?).unwrap_err();
+    assert_eq!(err.kind(), ErrorKind::DifferentEnvironments);
+    assert_eq!(model.objective()?.raw_linear_items()?, vec![(x.id()?, 1.0)]);
+
+    // Constraints view: constraints from another environment never reach the model.
+    let mut constraints = model.constraints()?;
+    let foreign = Constraint::new((&a * 1.0)?, 1.0, Comparator::Le, Some("foreign".into()))?;
+    let err = constraints.add_constraint(&foreign, None).unwrap_err();
+    assert_eq!(err.kind(), ErrorKind::DifferentEnvironments);
+    let mut foreign_col = ConstraintCollection::new();
+    foreign_col.add_constraint(&foreign, None)?;
+    let err = constraints.add_collection(&foreign_col, None).unwrap_err();
+    assert_eq!(err.kind(), ErrorKind::DifferentEnvironments);
+    assert!(model.constraints()?.is_empty()?);
+
+    let own = Constraint::new((&x * 1.0)?, 1.0, Comparator::Le, Some("own".into()))?;
+    constraints.add_constraint(&own, None)?;
+    let err = constraints.set_constraint("own", &foreign).unwrap_err();
+    assert_eq!(err.kind(), ErrorKind::DifferentEnvironments);
+    assert_eq!(model.constraints()?.len()?, 1);
     Ok(())
 }
 
