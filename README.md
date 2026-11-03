@@ -3,23 +3,24 @@
 </h1>
 
 <p align="center">
-  Fast, symbolic modeling for optimization — a high-performance Rust core with a Python-first API.
+  <strong>Fast, symbolic modeling for optimization.</strong>
   <br />
-  Build, translate, and transform optimization models.
+  Build, translate, and transform optimization models on a high-performance Rust core,
+  from Python, C, C++, Rust, or JavaScript.
 </p>
 
 <p align="center">
   <a href="https://pypi.org/project/luna-model/"><img src="https://img.shields.io/pypi/v/luna-model.svg?color=2563eb&label=PyPI" alt="PyPI version"></a>
-  <a href="https://pypi.org/project/luna-model/"><img src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14%20%7C%203.15-2563eb" alt="Supported Python versions"></a>
+  <a href="https://www.npmjs.com/package/@aqarios/luna-model"><img src="https://img.shields.io/npm/v/%40aqarios%2Fluna-model.svg?color=2563eb&label=npm" alt="npm version"></a>
+  <a href="https://pypi.org/project/luna-model/"><img src="https://img.shields.io/badge/python-3.11%20%E2%80%93%203.15-2563eb" alt="Supported Python versions"></a>
+  <a href="https://github.com/aqarios/luna-model/actions/workflows/main-ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/aqarios/luna-model/main-ci.yml?branch=main&label=CI" alt="CI status"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-2563eb.svg" alt="License: Apache 2.0"></a>
 </p>
 
 <p align="center">
-  <a href="#about">About</a>
-  ·
   <a href="#installation">Installation</a>
   ·
-  <a href="#quick-example">Example</a>
+  <a href="#quick-start">Quick start</a>
   ·
   <a href="#extensions">Extensions</a>
   ·
@@ -28,101 +29,63 @@
   <a href="./CONTRIBUTING.md">Contributing</a>
 </p>
 
-## About
+---
 
-LunaModel is a high-performance symbolic modeling library for describing, translating, and
-transforming optimization problems. It provides Rust crates for model representation,
-translation, serialization, and transformation, with a Python-first API exposed through the
-[`luna-model`](https://pypi.org/project/luna-model/) package.
+LunaModel describes optimization problems as symbolic models, converts them between common
+formats, and compiles them into the representation a solver or platform expects. Use it
+standalone, or through [luna-quantum](https://pypi.org/project/luna-quantum/) to solve your
+problems on the [Luna Platform](https://aqarios.com/platform).
 
-Use LunaModel when you need to build optimization models programmatically, convert between
-common model formats, or prepare models for solver- or platform-specific workflows. You can
-use it standalone, or through [luna-quantum](https://pypi.org/project/luna-quantum/) to solve
-your problems on the [Luna Platform](https://aqarios.com/platform).
-
-- **Symbolic modeling** — define algebraic expressions of arbitrary degree, constraints, and
-  optimization models (in the spirit of dimod, Gurobi, or CPLEX).
-- **Translators** — convert to and from LunaModel for many common formats, including LP, MPS,
-  QUBO, BQM, CQM, and several solution result formats.
-- **Transformations** — a compilation/transpilation stack to map a model into a target
-  representation, e.g. CQM → BQM or integer → binary.
-- **Serialization** — built-in, portable serialization for models and solutions.
-- **Python-first** — an ergonomic Python API backed by a fast Rust core.
-- **Rust crates** — use the workspace crates directly when embedding LunaModel in Rust.
-- **C API** — a versioned C ABI with a header-only C++ wrapper and a Rust SDK, for native
-  Python extensions and for using LunaModel outside Python.
-- **Plugins** — transformation and analysis passes written in Python, Rust, or C++ run
-  together in one pass manager.
+- **Symbolic modeling**: algebraic expressions of arbitrary degree, constraints, and models
+  over binary, spin, integer, and real variables, with NumPy-style vectorized construction.
+- **Translators**: LP, MPS, QUBO, BQM, CQM, Qiskit, and several solution result formats.
+- **Transformations**: a compilation stack of analysis and transformation passes, e.g.
+  constrained → unconstrained or integer → binary, with solutions mapped back to the
+  original model.
+- **Serialization**: portable, versioned serialization for models and solutions.
+- **C API**: a versioned C ABI with a header-only C++ wrapper and a Rust SDK, for native
+  extensions and for using LunaModel outside Python.
+- **Plugins**: passes written in Python, Rust, or C++ run together in one pass manager.
 
 ## Installation
 
-Install the package from PyPI with [uv](https://docs.astral.sh/uv/):
+| Language                | Package                                                                    | Scope                                                    |
+| ----------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Python                  | [`luna-model`](https://pypi.org/project/luna-model/) on PyPI               | Modeling, translation, transformation, and serialization |
+| JavaScript / TypeScript | [`@aqarios/luna-model`](https://www.npmjs.com/package/@aqarios/luna-model) | Reading and inspecting serialized solutions              |
+| C / C++                 | [`cxx-lunamodel`](./cxx-lunamodel/) and `liblunamodel`                     | Python extensions and standalone native programs         |
+| Rust                    | [`rs-lunamodel`](./rs-lunamodel/) and the [workspace crates](./crates/)    | Python extensions over the C API, or embedding the core  |
 
 ```bash
-uv add luna-model
+uv add luna-model          # or: pip install luna-model
+npm install @aqarios/luna-model
 ```
 
-or with pip:
+The C/C++ headers ship in the Python wheel (`luna_model.capi.get_include()`). The Rust crates
+are used as git dependencies of this repository; see [Extensions](#extensions).
 
-```bash
-pip install luna-model
-```
+## Quick start
 
-The package is imported as `luna_model`:
+### Build a model
 
-```python
-from luna_model import Model, Sense, Vtype
-from luna_model.utils import quicksum
-```
-
-## Quick Example
-
-The **Multi-Dimensional Knapsack Problem**: given $n$ items, each with a weight $w_{ij}$ and value $v_i$, dimension $J$ and a
-capacity $W_j$, select items to maximize total value without exceeding the capacity.
+The **Multi-Dimensional Knapsack Problem**: given $n$ items with values $v_i$ and weights
+$w_{ij}$ in each dimension $j \in J$ with capacity $W_j$, select items to maximize the total
+value without exceeding any capacity.
 
 ```math
-\begin{align*}
-&\text{maximize} \sum_{i=1}^{n} v_i x_i \\
-&\text{s.t.} \sum_{i=1}^{n} w_{ij} x_i \leq W_j \quad \forall j \in J \quad \text{and} \quad x_i \in \{ 0, 1 \}
-\end{align*}
+\max \sum_{i=1}^{n} v_i x_i \quad \text{s.t.} \quad \sum_{i=1}^{n} w_{ij} x_i \leq W_j \;\; \forall j \in J, \qquad x_i \in \{0, 1\}
 ```
 
 ```python
-from luna_model import Model, Sense, Vtype
-from luna_model.utils import quicksum
 import numpy as np
 
-weights = np.array(
-    [
-        [1.5, 1],
-        [10, 3],
-        [5.2, 9],
-        [3.5, 12],
-        [8.32, 4],
-    ]
-)
+from luna_model import Model, Sense, Vtype
+from luna_model.utils import quicksum
+
+weights = np.array([[1.5, 1.0], [10.0, 3.0], [5.2, 9.0], [3.5, 12.0], [8.32, 4.0]])
 values = np.array([10.0, 22.0, 3.2, 1.99, 6.25])
 capacity = np.array([25, 19])
 
-model = Model(sense=Sense.MAX, name="Knapsack")
-items = [model.add_variable(f"x{i}", vtype=Vtype.BINARY) for i in range(len(weights))]
-
-model.set_objective(quicksum(values[i] * items[i] for i in range(len(items))))
-model.add_constraint(
-    quicksum(weights[i, 0] * items[i] for i in range(len(items))) <= capacity[0],
-    name="capacity_1",
-)
-model.add_constraint(
-    quicksum(weights[i, 1] * items[i] for i in range(len(items))) <= capacity[1],
-    name="capacity_2",
-)
-
-print(model)
-```
-
-The same model can be expressed far more concisely by leaning on NumPy: using `add_variables` and vectorized operations (`weights.T @ items`) lets you define the objective and all constraints in a few lines, without the explicit Python loops and per-element indexing of the first example.
-
-```python
 model = Model(sense=Sense.MAX, name="Knapsack")
 items = model.add_variables(name="x", shape=values.shape, vtype=Vtype.BINARY)
 model.set_objective(quicksum(values * items))
@@ -131,37 +94,69 @@ model.add_constraints(weights.T @ items <= capacity, name="capacity")
 print(model)
 ```
 
-Variables are `BINARY` by default and can also be `SPIN`, `INTEGER`, or `REAL`. See the
-[documentation](https://docs.aqarios.com/luna-model/intro) for bounded variants, integer models, and more.
+```text
+Model: Knapsack
+Maximize
+  10 * x0 + 22 * x1 + 3.2 * x2 + 1.99 * x3 + 6.25 * x4
+Subject To
+  capacity_0: 1.5 * x0 + 10 * x1 + 5.2 * x2 + 3.5 * x3 + 8.32 * x4 <= 25
+  capacity_1: x0 + 3 * x1 + 9 * x2 + 12 * x3 + 4 * x4 <= 19
+Binary
+  x0 x1 x2 x3 x4
+```
 
-## Components
+### Translate
 
-| Component                    | Description                                                                                                |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| **LunaModel**                | A symbolic modeling library for arbitrary optimization models.                                             |
-| **LunaModel.translator**     | A translation library that supports many common model formats.                                             |
-| **LunaModel.transformation** | A compilation and transpilation stack to transform a model (source) into a target representation (target). |
-| **LunaModel.utils**          | Utility functions for expression and model creation.                                                       |
-| **LunaModel.errors**         | All error types that can be raised within LunaModel.                                                        |
-| **LunaModel.capi**           | Paths to the bundled C API headers and protobuf schemas for building native extensions.                    |
+```python
+from luna_model.translator import LpTranslator
+
+lp = LpTranslator.from_lm(model)    # LP-format string
+restored = LpTranslator.to_lm(lp)   # back to a Model
+```
+
+### Transform
+
+```python
+from luna_model.transformation import PassManager, pipelines
+
+out = PassManager([pipelines.ToUnconstrainedBinaryPipeline()]).run(model)
+qubo = out.model                    # unconstrained, binary, minimization
+
+# solve `qubo`, then map the solution back to the original model:
+# solution = out.record.backward(qubo_solution)
+```
+
+See the [documentation](https://docs.aqarios.com/luna-model/intro) for bounded and integer
+variables, solutions, all translators, and custom passes.
+
+## Python modules
+
+| Module                      | Description                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------ |
+| `luna_model`                | Models, variables, expressions, constraints, environments, and solutions.            |
+| `luna_model.translator`     | Translators for LP, MPS, QUBO, BQM, CQM, Qiskit, and solution formats.               |
+| `luna_model.transformation` | Pass manager, built-in passes and pipelines, and the base classes for custom passes. |
+| `luna_model.utils`          | Helpers for building expressions and models, such as `quicksum`.                     |
+| `luna_model.errors`         | All error types raised by LunaModel.                                                 |
+| `luna_model.capi`           | Paths to the bundled C API headers and protobuf schemas for native extensions.       |
 
 ## Extensions
 
 LunaModel exposes its core through a C API, so native code works with the same models,
 expressions, and solutions as the Python package.
 
-| Directory          | Description                                                                                      |
-| ------------------ | ------------------------------------------------------------------------------------------------ |
-| `crates/capi-host` | `liblunamodel`: the C API (`lm_*` functions over opaque handles) and its headers.                |
-| `cxx-lunamodel`    | Header-only C++ wrapper: RAII handles, exceptions, and nanobind casters for Python extensions.   |
-| `rs-lunamodel`     | Rust SDK that mirrors the native Rust API over the C API, with pyo3 types for Python extensions. |
-| `proto`            | Protobuf schemas of the built-in analysis results that plugins consume.                          |
+| Directory                                 | Description                                                                                      |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| [`crates/capi-host`](./crates/capi-host/) | `liblunamodel`: the C API (`lm_*` functions over opaque handles) and its headers.                |
+| [`cxx-lunamodel`](./cxx-lunamodel/)       | Header-only C++ wrapper: RAII handles, exceptions, and nanobind casters for Python extensions.   |
+| [`rs-lunamodel`](./rs-lunamodel/)         | Rust SDK that mirrors the native Rust API over the C API, with pyo3 types for Python extensions. |
+| [`proto`](./proto/)                       | Protobuf schemas of the built-in analysis results that plugins consume.                          |
 
 Python extensions written in C, C++, or Rust build against an installed `luna-model`: the wheel
 ships the C/C++ headers and the `.proto` schemas (`luna_model.capi.get_include()`,
 `luna_model.capi.get_proto()`) and exports the C API to extensions at runtime, so an extension
-does not link its own copy of the core. Standalone C and C++ programs link `liblunamodel`, which
-`just c` builds into `dist/c`.
+does not link its own copy of the core. Standalone C and C++ programs link `liblunamodel`,
+which `just c` builds into `dist/c`.
 
 Transformation, analysis, meta-analysis, composite, and control-flow passes can be written in
 Python, Rust, or C++ and combined in one `PassManager`. Register an extension's passes with
@@ -169,66 +164,24 @@ Python, Rust, or C++ and combined in one `PassManager`. Register an extension's 
 
 ## Development
 
-This repository is a Rust workspace with the Python package in `py-lunamodel`, the C++
-wrapper in `cxx-lunamodel`, the Rust SDK in `rs-lunamodel`, and the JavaScript package in
-`js-lunamodel`.
-
-**Prerequisites:** Rust and Cargo, [uv](https://docs.astral.sh/uv/), and Python 3.11 or newer.
-The C, C++, and extension test suites additionally need [just](https://github.com/casey/just),
-CMake, a C++20 compiler, and protobuf (`protoc`), and the JavaScript tests need
-[Bun](https://bun.sh). `just doctor` checks for the native toolchain.
-
 ```bash
 git clone https://github.com/aqarios/luna-model.git
 cd luna-model
-
-# set up the Python development environment
-cd py-lunamodel
-uv sync
+just doctor   # check the toolchain
+just test     # run every test suite
 ```
 
-Useful local checks:
+[CONTRIBUTING.md](./CONTRIBUTING.md) lists the prerequisites, the checks for each part of the
+repository, and the pull request process.
 
-```bash
-# Python tests, linting, and formatting (from py-lunamodel)
-uv run pytest
-uv run ruff check .
-uv run ruff format .
+## Community
 
-# Rust checks (from the repository root)
-cargo test --workspace
-cargo fmt --all
-
-# build the Python wheel (from py-lunamodel)
-uv build
-```
-
-From the repository root, `just test` runs every test suite (Rust, C, C++, Python, the
-extensions, and JavaScript) in parallel, and `just --list` shows the individual recipes.
-
-To build the Rust API documentation locally:
-
-```bash
-cargo doc --workspace --no-deps
-```
-
-## Documentation
-
-The full documentation is published at [docs.aqarios.com](https://docs.aqarios.com/luna-model/intro).
-
-## Communication
-
-- Start in [GitHub Discussions](https://github.com/aqarios/luna-model/discussions) for bug
+- [GitHub Discussions](https://github.com/aqarios/luna-model/discussions) is the place for bug
   reports, feature ideas, questions, and usage help. Maintainers triage discussions and turn
-  confirmed, actionable items into issues — see [CONTRIBUTING.md](./CONTRIBUTING.md).
-- Open a pull request when a change is ready for review. For anything beyond a small, obvious
-  fix, make sure there is an accepted issue or an agreed direction in a discussion first.
-
-## Contributing
-
-Bug fixes, documentation improvements, examples, and focused feature work are welcome. See
-[CONTRIBUTING.md](./CONTRIBUTING.md) for branch naming, local checks, pull request
-expectations, and release notes.
+  confirmed, actionable items into issues.
+- Bug fixes, documentation improvements, examples, and focused feature work are welcome. For
+  anything beyond a small, obvious fix, agree on the direction in a discussion first; see
+  [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 

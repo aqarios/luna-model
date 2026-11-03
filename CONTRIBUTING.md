@@ -72,8 +72,13 @@ docs: clarify environment context in constraint examples
 
 ## Development setup
 
-The repository is a Rust workspace with the Python package in `py-lunamodel`. You will need
-Rust and Cargo, [uv](https://docs.astral.sh/uv/), and Python 3.11 or newer.
+The repository is a Rust workspace with the Python package in `py-lunamodel`, the C++
+wrapper in `cxx-lunamodel`, the Rust SDK in `rs-lunamodel`, and the JavaScript package in
+`js-lunamodel`. You will need Rust and Cargo, [uv](https://docs.astral.sh/uv/), and Python
+3.11 or newer. The C, C++, and extension test suites additionally need
+[just](https://github.com/casey/just), CMake, a C++20 compiler, and protobuf (`protoc`), and
+the JavaScript tests need [Bun](https://bun.sh). `just doctor` checks for the native
+toolchain.
 
 ```bash
 git clone https://github.com/aqarios/luna-model.git
@@ -110,6 +115,20 @@ cargo test --workspace
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 ```
+
+C API, C++, and extension changes (from the repository root):
+
+```bash
+just ctest            # C test suite
+just cpp-test         # C++ test suite
+just rs-ext-test      # Rust extension against the local wheel
+just rs-plugin-test   # Rust plugin passes driven from Python
+just cpp-plugin-test  # C++ plugin passes driven from Python
+just cdrift wheelheadersdrift protodrift  # committed header and .proto copies are current
+```
+
+`just test` runs every suite (Rust, C, C++, Python, the extensions, and JavaScript) in
+parallel, and `just --list` shows all recipes.
 
 To run the same hooks that fire on commit:
 
