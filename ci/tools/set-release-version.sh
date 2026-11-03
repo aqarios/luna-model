@@ -14,7 +14,10 @@
 #
 # Inputs (environment):
 #   RELEASE_TYPE  optional  major | minor | patch | release | rc | beta | alpha
-#                           (passed to `cargo set-version --bump`; default patch)
+#                           (passed to `cargo set-version --bump`; default patch),
+#                           or <major|minor|patch>-<alpha|beta|rc> for the first
+#                           pre-release of the next version, e.g. minor-alpha:
+#                           0.7.4 -> 0.8.0-alpha.1
 
 set -eu
 
@@ -30,10 +33,37 @@ sed -i.bak -E 's/^(version = "[^"+]+)\+[^"]+"/\1"/' Cargo.toml && rm -f Cargo.to
 
 # All members inherit the workspace version, so this edits exactly one line:
 # the [workspace.package] version in the root Cargo.toml.
-cargo set-version --workspace --bump "$RELEASE_TYPE"
+read_version() { sed -n 's/^version = "\([^"]*\)".*/\1/p' Cargo.toml | head -n 1; }
 
-VERSION=$(sed -n 's/^version = "\([^"]*\)".*/\1/p' Cargo.toml | head -n 1)
+case "$RELEASE_TYPE" in
+  major-alpha | major-beta | major-rc | minor-alpha | minor-beta | minor-rc | patch-alpha | patch-beta | patch-rc)
+    # A plain `--bump alpha` on a release version bumps the patch, so compute the
+    # next major/minor/patch here and start its pre-release series at .1. Setting
+    # it in one step keeps it an upgrade (a pre-release sorts below its release).
+    base=$(read_version | sed 's/[-+].*//')
+    major=${base%%.*}
+    rest=${base#*.}
+    minor=${rest%%.*}
+    patch=${rest#*.}
+    case "${RELEASE_TYPE%-*}" in
+      major) next="$((major + 1)).0.0" ;;
+      minor) next="$major.$((minor + 1)).0" ;;
+      patch) next="$major.$minor.$((patch + 1))" ;;
+    esac
+    cargo set-version --workspace "$next-${RELEASE_TYPE#*-}.1"
+    ;;
+  *)
+    cargo set-version --workspace --bump "$RELEASE_TYPE"
+    ;;
+esac
+
+VERSION=$(read_version)
 test -n "$VERSION"
+
+if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
+  echo "❌ v$VERSION is already released" >&2
+  exit 1
+fi
 
 # Sync the npm package manifest (its Cargo.toml already inherits the bump).
 (cd js-lunamodel && bun pm pkg set "version=$VERSION")
