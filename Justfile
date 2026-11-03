@@ -27,12 +27,13 @@ cpp_samples_build := cpp_dir / "samples/build"
 cpp_test_build    := cpp_dir / "test/build"
 cpp_plugin_test   := cpp_dir / "tests/plugin_ext"
 rs_plugin_test    := "rs-lunamodel/tests/plugin_ext"
+rs_ext_test       := "rs-lunamodel/tests"
 
-# Shared Cargo build cache for the three uv/maturin-driven wheel builds below (test-py,
-# cpp-plugin-test, rs-plugin-test) — all three compile the same luna-model Rust source
+# Shared Cargo build cache for the uv/maturin-driven wheel builds below (test-py, rs-ext-test,
+# cpp-plugin-test, rs-plugin-test) — all of them compile the same luna-model Rust source
 # independently via isolated `uv` build environments. Pointing them at one target dir lets
 # Cargo's incremental cache carry over between them: the first build compiles from scratch,
-# the other two mostly just relink. Deliberately NOT the main workspace's target/ dir — sharing
+# the others mostly just relink. Deliberately NOT the main workspace's target/ dir — sharing
 # that would reintroduce Cargo's single-process build lock with test-rust/ctest/cpp-test and
 # undo the point of running everything in parallel.
 uv_cargo_target_dir := justfile_directory() / "target" / "uv-wheels"
@@ -206,6 +207,11 @@ cpp-plugin-dev: wheelheaders
 rs-plugin-test:
     cd {{rs_plugin_test}} && CARGO_TARGET_DIR={{uv_cargo_target_dir}} uv sync --group dev --reinstall-package luna-model --reinstall-package luna-plugin-ext && uv run pytest pytests/ -v -n {{pytest_workers}}
 
+# Host/extension interop test: a Rust extension built on rs-lunamodel round-trips and reads every
+# host type of the local luna-model wheel. Reinstalls both so neither side is stale.
+rs-ext-test:
+    cd {{rs_ext_test}} && CARGO_TARGET_DIR={{uv_cargo_target_dir}} uv sync --reinstall-package luna-model --reinstall-package rs-lunamodel-integration-ext && uv run pytest integration_ext/pytests -v
+
 # Rust tests: the whole main workspace EXCEPT the pyo3/napi crates. Those force pyo3's
 # `extension-module` feature (whose no-libpython-linking breaks a plain `cargo test` binary via
 # feature unification), and they are exercised by the Python/JS suites below instead. Also the
@@ -236,7 +242,8 @@ test-js:
 # which use separate build systems (uv-isolated maturin builds sharing uv_cargo_target_dir, and
 # bun) and so genuinely overlap.
 
-# Run every test suite in the repo: Rust, C, C++, core Python, both plugin extensions, and JS.
+# Run every test suite in the repo: Rust, C, C++, core Python, the Rust extension interop test,
+# both plugin extensions, and JS.
 [parallel]
-test: test-rust ctest cpp-test test-py cpp-plugin-test rs-plugin-test test-js
+test: test-rust ctest cpp-test test-py rs-ext-test cpp-plugin-test rs-plugin-test test-js
     @echo "✓ all test suites passed"

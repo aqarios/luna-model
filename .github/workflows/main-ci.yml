@@ -50,6 +50,10 @@ jobs:
     name: Test JS
     uses: ./.github/workflows/_test-js.yml
 
+  test-capi:
+    name: Test C API
+    uses: ./.github/workflows/_test-capi.yml
+
   nightly-version:
     name: Compute nightly version
     # Skip on release-PR merges: the tag flow builds and publishes the real
@@ -85,6 +89,7 @@ jobs:
       - lint-python
       - test-python
       - test-js
+      - test-capi
     uses: ./.github/workflows/_build-wheels.yml
     with:
       version-override: ${{ needs.nightly-version.outputs.version }}

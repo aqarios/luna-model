@@ -26,6 +26,7 @@ jobs:
       rust: ${{ steps.filter.outputs.rust }}
       python: ${{ steps.filter.outputs.python }}
       js: ${{ steps.filter.outputs.js }}
+      capi: ${{ steps.filter.outputs.capi }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -45,13 +46,21 @@ jobs:
               - '.github/workflows/**'
             rust:
               - *shared
-              - 'pyo3-lunamodel/**'
+              - 'rs-lunamodel/**'
             python:
               - *shared
               - 'py-lunamodel/**'
             js:
               - *shared
               - 'js-lunamodel/**'
+            capi:
+              - *shared
+              - 'rs-lunamodel/**'
+              - 'cxx-lunamodel/**'
+              - 'py-lunamodel/**'
+              - 'proto/**'
+              - 'test/c/**'
+              - 'Justfile'
 
   check-versions:
     name: Check version sync
@@ -99,6 +108,12 @@ jobs:
     if: needs.changes.outputs.js == 'true'
     uses: ./.github/workflows/_build-js-wasm.yml
 
+  test-capi:
+    name: Test C API
+    needs: changes
+    if: needs.changes.outputs.capi == 'true'
+    uses: ./.github/workflows/_test-capi.yml
+
   summary:
     name: PR Checks
     runs-on: ubuntu-latest
@@ -111,6 +126,7 @@ jobs:
       - test-python
       - test-js
       - build-js-wasm
+      - test-capi
     if: always()
     steps:
       - name: Verify all checks succeeded or were skipped
