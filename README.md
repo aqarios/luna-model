@@ -176,12 +176,11 @@ repository, and the pull request process.
 
 ## Community
 
-- [GitHub Discussions](https://github.com/aqarios/luna-model/discussions) is the place for bug
-  reports, feature ideas, questions, and usage help. Maintainers triage discussions and turn
-  confirmed, actionable items into issues.
-- Bug fixes, documentation improvements, examples, and focused feature work are welcome. For
-  anything beyond a small, obvious fix, agree on the direction in a discussion first; see
-  [CONTRIBUTING.md](./CONTRIBUTING.md).
+- Bug reports, feature requests, and questions go to
+  [GitHub Discussions](https://github.com/aqarios/luna-model/discussions). Maintainers triage
+  them and turn confirmed, actionable items into issues.
+- Pull requests beyond small, obvious fixes need an accepted issue or a direction agreed in a
+  discussion. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
