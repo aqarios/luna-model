@@ -1,7 +1,6 @@
 //! Python wrapper for the binary-to-spin transformation pass.
 
-use std::collections::HashMap;
-
+use indexmap::IndexMap;
 use lunamodel_python_macros::pytransformation;
 use lunamodel_transform::transformation::{BinarySpinPass, BinarySpinPassArtifact};
 use lunamodel_transpiler::{Artifact, Reversible, TransformationPass};
@@ -21,7 +20,7 @@ pub struct PyBinarySpinPassArtifact(pub BinarySpinPassArtifact);
 #[pymethods]
 impl PyBinarySpinPassArtifact {
     #[getter]
-    fn map(&self) -> HashMap<String, String> {
+    fn map(&self) -> IndexMap<String, String> {
         self.0.map().clone()
     }
 
