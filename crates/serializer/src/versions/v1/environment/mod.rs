@@ -18,6 +18,9 @@ pub struct SerEnvironment {
     /// The length of the variables vector.
     #[prost(uint32, optional, tag = "24")]
     next_idx: Option<u32>,
+    /// The indices of all variables (including inverted binaries) in environment order.
+    #[prost(uint32, repeated, tag = "25")]
+    order: Vec<u32>,
 
     /// The indices of the binary variables.
     #[prost(uint32, repeated, tag = "3")]
@@ -81,5 +84,56 @@ pub struct SerEnvironment {
 impl Creatable<Environment> for SerEnvironment {
     fn new(value: &Environment) -> Self {
         Self::default().fill(value)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::encode::{BytesDecodable, BytesEncodable};
+    use lunamodel_core::prelude::ArcEnv;
+    use lunamodel_types::Vtype;
+
+    fn names(env: &Environment) -> Vec<String> {
+        env.vars().map(|v| env[v].name().into()).collect()
+    }
+
+    fn roundtrip(env: &Environment) -> Environment {
+        let bytes = SerEnvironment::new(env).encode_to_bytes();
+        SerEnvironment::decode_from_bytes(&bytes, ()).unwrap()
+    }
+
+    /// Variables of mixed types and inverted binaries keep their position, even
+    /// when the order differs from index order.
+    #[test]
+    fn roundtrip_keeps_variable_order() {
+        let mut env = ArcEnv::default();
+        let a = env.insert("a", Vtype::Integer, None).unwrap();
+        let b = env.insert("b", Vtype::Binary, None).unwrap();
+        env.insert("c", Vtype::Real, None).unwrap();
+        env.insert("d", Vtype::Spin, None).unwrap();
+        env.insert_inverted(&b).unwrap();
+        env.insert_before(&a, "e", Vtype::Binary, None).unwrap();
+
+        let env = env.env.read_arc();
+        let expected = names(&env);
+        for _ in 0..20 {
+            let decoded = roundtrip(&env);
+            assert_eq!(names(&decoded), expected);
+            assert_eq!(decoded.next_idx(), env.next_idx());
+        }
+    }
+
+    /// Data written without an explicit order falls back to index order.
+    #[test]
+    fn decode_without_order_uses_index_order() {
+        let mut env = Environment::default();
+        for name in ["x", "y", "z", "w"] {
+            env.insert(name, Vtype::Binary, None).unwrap();
+        }
+        let mut ser = SerEnvironment::new(&env);
+        ser.order.clear();
+        let decoded = ser.extract();
+        assert_eq!(names(&decoded), ["x", "y", "z", "w"]);
     }
 }

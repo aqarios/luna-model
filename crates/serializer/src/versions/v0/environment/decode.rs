@@ -31,7 +31,9 @@ impl SerEnvironment {
         self.extract_spin(&mut variables, &mut lookup);
         self.extract_int(&mut variables, &mut lookup);
         self.extract_real(&mut variables, &mut lookup);
-        let ivs: IndexMap<u32, Variable> = variables.into_iter().collect();
+        // v0 does not store the variable order, index order is the best approximation.
+        let mut ivs: IndexMap<u32, Variable> = variables.into_iter().collect();
+        ivs.sort_keys();
         let nxt_idx = match ivs.keys().max() {
             Some(val) => val + 1,
             None => 0,
