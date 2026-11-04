@@ -357,7 +357,7 @@ dependencies = [
 
 [[package]]
 name = "luna-model-ffi"
-version = "0.8.0-alpha.1"
+version = "0.8.0-alpha.2"
 dependencies = [
  "derive_more",
  "enumset",
@@ -374,7 +374,7 @@ dependencies = [
 
 [[package]]
 name = "luna-model-ffi-derive"
-version = "0.8.0-alpha.1"
+version = "0.8.0-alpha.2"
 dependencies = [
  "quote",
  "syn 3.0.3",
@@ -392,11 +392,11 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-capi"
-version = "0.8.0-alpha.1"
+version = "0.8.0-alpha.2"
 
 [[package]]
 name = "lunamodel-capi-plugin-proto"
-version = "0.8.0-alpha.1"
+version = "0.8.0-alpha.2"
 dependencies = [
  "luna-model-ffi",
  "prost",
@@ -406,7 +406,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-capi-pyffi"
-version = "0.8.0-alpha.1"
+version = "0.8.0-alpha.2"
 dependencies = [
  "lunamodel-capi",
  "pyo3",
@@ -414,7 +414,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-error"
-version = "0.8.0-alpha.1"
+version = "0.8.0-alpha.2"
 dependencies = [
  "prost",
  "rand",
@@ -423,7 +423,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-types"
-version = "0.8.0-alpha.1"
+version = "0.8.0-alpha.2"
 dependencies = [
  "derive_more",
  "enumset",
@@ -435,7 +435,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.8.0-alpha.1"
+version = "0.8.0-alpha.2"
 dependencies = [
  "lunamodel-error",
  "num",
