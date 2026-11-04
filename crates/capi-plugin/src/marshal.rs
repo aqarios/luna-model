@@ -85,3 +85,17 @@ pub(crate) fn plugin_error(fallback: &str) -> TranspileErrorKind {
         None => TranspileErrorKind::external(std::io::Error::other(fallback.to_string())),
     }
 }
+
+/// Like [`plugin_error`], for a plugin callback of the pass `pass_id` that returned non-`Ok`. A
+/// plugin reporting the `"infeasible"` kind becomes the same [`TranspileErrorKind::Infeasible`] a
+/// native pass produces (located at `pass_id`), so it surfaces as the same error, e.g.
+/// `ModelInfeasibleError` in Python.
+pub(crate) fn plugin_failure(pass_id: &str, fallback: &str) -> TranspileErrorKind {
+    match lunamodel_capi::error::last() {
+        Some(rich) if rich.kind == "infeasible" => TranspileErrorKind::Infeasible {
+            location: pass_id.to_owned(),
+            reason: rich.to_string(),
+        },
+        _ => plugin_error(fallback),
+    }
+}

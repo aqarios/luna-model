@@ -17,7 +17,7 @@ use lunamodel_transpiler::{
     TranspileKindResult,
 };
 
-use crate::marshal::{borrow_cstr, byte_sink, collect_strings, plugin_error, reclaim};
+use crate::marshal::{borrow_cstr, byte_sink, collect_strings, plugin_failure, reclaim};
 
 /// A plugin analysis pass wrapping its C descriptor.
 pub struct CPluginAnalysisPass {
@@ -106,10 +106,10 @@ impl AnalysisPass for CPluginAnalysisPass {
         };
         let _ = reclaim::<LmModel, Model>(handle, "model", "analysis")?;
         if status != LmStatus::Ok {
-            return Err(plugin_error(&format!(
-                "plugin analysis '{}' run returned {status:?}",
-                self.id
-            )));
+            return Err(plugin_failure(
+                &self.id,
+                &format!("plugin analysis '{}' run returned {status:?}", self.id),
+            ));
         }
         Ok(SerializedAnalysis {
             type_tag: self.result_type_tag.clone(),

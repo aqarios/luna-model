@@ -19,7 +19,7 @@ use lunamodel_transpiler::{
 };
 
 use crate::artifact::CPluginArtifact;
-use crate::marshal::{borrow_cstr, byte_sink, collect_strings, plugin_error, reclaim};
+use crate::marshal::{borrow_cstr, byte_sink, collect_strings, plugin_failure, reclaim};
 use crate::registry;
 
 /// A plugin composite pass wrapping its C descriptor.
@@ -125,10 +125,10 @@ impl CompositePass for CPluginCompositePass {
         };
         *model = reclaim::<LmModel, Model>(handle, "model", "composite forward")?;
         if status != LmStatus::Ok {
-            return Err(plugin_error(&format!(
-                "plugin composite '{}' forward returned {status:?}",
-                self.id
-            )));
+            return Err(plugin_failure(
+                &self.id,
+                &format!("plugin composite '{}' forward returned {status:?}", self.id),
+            ));
         }
         Ok((
             CPluginArtifact {
@@ -171,10 +171,13 @@ impl Reversible for CPluginCompositePass {
             )
         };
         if status != LmStatus::Ok {
-            return Err(plugin_error(&format!(
-                "plugin composite '{}' backward returned {status:?}",
-                artifact.plugin_pass_id
-            )));
+            return Err(plugin_failure(
+                &artifact.plugin_pass_id,
+                &format!(
+                    "plugin composite '{}' backward returned {status:?}",
+                    artifact.plugin_pass_id
+                ),
+            ));
         }
         reclaim::<LmSol, Solution>(out_handle, "solution", "composite backward")
     }

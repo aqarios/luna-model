@@ -161,3 +161,29 @@ def test_cxx_control_flow_plan_runs_chosen_steps(plugin):
 
     # The plan's single transform step renamed the model, just like RenamePass.forward does.
     assert out.model.name == "renamed:original"
+
+
+def test_cxx_plugin_infeasible_raises_model_infeasible_error(plugin):
+    """A plugin reporting the "infeasible" kind raises the same exception as a native pass."""
+    from luna_model.errors import ModelInfeasibleError
+
+    with pytest.raises(ModelInfeasibleError, match="cxxplugin::failing: no feasible point"):
+        PassManager([plugin.FailingPass("infeasible", "no feasible point")]).run(Model("m"))
+
+
+def test_cxx_plugin_error_kind_is_the_cause_of_transform_error(plugin):
+    """Any other kind raises TransformError, with the kind's own exception as its cause."""
+    from luna_model.errors import ModelVtypeError, TransformError
+
+    with pytest.raises(TransformError, match="spins are not supported") as raised:
+        PassManager([plugin.FailingPass("vtype", "spins are not supported")]).run(Model("m"))
+    assert isinstance(raised.value.__cause__, ModelVtypeError)
+    assert "spins are not supported" in str(raised.value.__cause__)
+
+
+def test_cxx_plugin_error_with_unknown_kind_has_no_cause(plugin):
+    from luna_model.errors import TransformError
+
+    with pytest.raises(TransformError, match="custom failure") as raised:
+        PassManager([plugin.FailingPass("cxxplugin::custom", "custom failure")]).run(Model("m"))
+    assert raised.value.__cause__ is None

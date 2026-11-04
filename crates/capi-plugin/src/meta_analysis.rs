@@ -14,7 +14,7 @@ use lunamodel_transpiler::{
     AnalysisKey, MetaAnalysisPass, PipelineStep, SerializedAnalysis, TranspileKindResult,
 };
 
-use crate::marshal::{borrow_cstr, byte_sink, plugin_error};
+use crate::marshal::{borrow_cstr, byte_sink, plugin_failure};
 use crate::pipeline::StepListView;
 
 /// A plugin meta-analysis pass wrapping its C descriptor.
@@ -94,10 +94,10 @@ impl MetaAnalysisPass for CPluginMetaAnalysisPass {
             )
         };
         if status != LmStatus::Ok {
-            return Err(plugin_error(&format!(
-                "plugin meta-analysis '{}' run returned {status:?}",
-                self.id
-            )));
+            return Err(plugin_failure(
+                &self.id,
+                &format!("plugin meta-analysis '{}' run returned {status:?}", self.id),
+            ));
         }
         Ok(SerializedAnalysis {
             type_tag: self.result_type_tag.clone(),

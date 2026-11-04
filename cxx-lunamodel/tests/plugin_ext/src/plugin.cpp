@@ -16,6 +16,7 @@
 #include <memory>
 #include <span>
 #include <string>
+#include <utility>
 #include <vector>
 
 // LUNA_MODEL_PYTHON_EXTENSION is set by the build (target_compile_definitions in CMakeLists.txt), so
@@ -240,6 +241,38 @@ class PickBranchPass : public lm::plugin::ControlFlowPass {
     }
 };
 
+// --- FailingPass: a transform whose forward fails with a chosen error kind ---
+//
+// Proves how a plugin failure surfaces in Python: the `"infeasible"` kind as the native
+// `ModelInfeasibleError`, any other kind as `TransformError` with the kind's own exception as its
+// `__cause__`.
+
+class FailingPass : public lm::plugin::TransformationPass {
+  public:
+    static constexpr const char *ID = "cxxplugin::failing";
+
+    FailingPass(std::string kind, std::string message)
+        : kind_(std::move(kind)), message_(std::move(message)) {}
+
+    std::string id() const override { return ID; }
+    std::string name() const override { return "cxx failing"; }
+
+    std::vector<std::uint8_t> forward(lm::Model &, const lm::plugin::PassContext &) override {
+        throw lm::Error(LmStatus_Errored, message_, kind_);
+    }
+
+    static lm::Solution backward(std::span<const std::uint8_t>, lm::Solution solution) {
+        return solution;
+    }
+
+    const std::string &kind() const { return kind_; }
+    const std::string &message() const { return message_; }
+
+  private:
+    std::string kind_;
+    std::string message_;
+};
+
 // --- Python-facing shells ---
 //
 // Each shell exposes the capsule method the host reads. `make_descriptor` takes ownership of a fresh
@@ -273,6 +306,11 @@ nb::object rename_and_count_capsule(const RenameAndCountPass &) {
 nb::object count_following_meta_capsule(const CountFollowingMeta &) {
     return nb::steal(lm::plugin::python::meta_analysis_capsule(
         lm::plugin::make_descriptor(std::make_unique<CountFollowingMeta>())));
+}
+
+nb::object failing_capsule(const FailingPass &self) {
+    return nb::steal(lm::plugin::python::transform_capsule(
+        lm::plugin::make_descriptor(std::make_unique<FailingPass>(self.kind(), self.message()))));
 }
 
 nb::object pick_branch_capsule(const PickBranchPass &) {
@@ -311,6 +349,10 @@ NB_MODULE(luna_cxx_plugin_ext, m) {
     nb::class_<CountFollowingMeta>(m, "CountFollowingMeta")
         .def(nb::init<>())
         .def(lm::plugin::python::META_ANALYSIS_METHOD, &count_following_meta_capsule);
+
+    nb::class_<FailingPass>(m, "FailingPass")
+        .def(nb::init<std::string, std::string>(), nb::arg("kind"), nb::arg("message"))
+        .def(lm::plugin::python::TRANSFORM_METHOD, &failing_capsule);
 
     nb::class_<PickBranchPass>(m, "PickBranchPass")
         .def(nb::init<>())

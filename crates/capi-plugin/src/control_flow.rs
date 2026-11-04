@@ -8,7 +8,7 @@ use lunamodel_transpiler::{
     AnalysisManager, ControlFlowPass, ControlFlowPlan, PassContext, TranspileKindResult,
 };
 
-use crate::marshal::{borrow_cstr, collect_strings, plugin_error, reclaim};
+use crate::marshal::{borrow_cstr, collect_strings, plugin_failure, reclaim};
 
 /// A plugin control-flow pass wrapping its C descriptor.
 pub struct CPluginControlFlowPass {
@@ -87,18 +87,18 @@ impl ControlFlowPass for CPluginControlFlowPass {
         };
         let _ = reclaim::<LmModel, Model>(handle, "model", "control_flow")?;
         if status != LmStatus::Ok || plan_ptr.is_null() {
-            return Err(plugin_error(&format!(
-                "plugin control-flow '{}' run returned {status:?}",
-                self.id
-            )));
+            return Err(plugin_failure(
+                &self.id,
+                &format!("plugin control-flow '{}' run returned {status:?}", self.id),
+            ));
         }
         // The plan is an owned handle the plugin built via `control_flow_plan_*` and handed back;
         // take ownership of its `ControlFlowPlan` value (mirrors freeing an unconsumed one).
         unsafe { handle_into_storage::<LmControlFlowPlan>(plan_ptr) }.ok_or_else(|| {
-            plugin_error(&format!(
-                "plugin control-flow '{}' returned a null plan",
-                self.id
-            ))
+            plugin_failure(
+                &self.id,
+                &format!("plugin control-flow '{}' returned a null plan", self.id),
+            )
         })
     }
 }

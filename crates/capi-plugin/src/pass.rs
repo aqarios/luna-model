@@ -17,7 +17,7 @@ use lunamodel_transpiler::{
 };
 
 use crate::artifact::CPluginArtifact;
-use crate::marshal::{borrow_cstr, byte_sink, collect_strings, plugin_error, reclaim};
+use crate::marshal::{borrow_cstr, byte_sink, collect_strings, plugin_failure, reclaim};
 use crate::registry;
 
 /// A plugin transformation pass wrapping its C descriptor.
@@ -95,10 +95,10 @@ impl TransformationPass for CPluginTransformPass {
         };
         *model = reclaim::<LmModel, Model>(handle, "model", "forward")?;
         if status != LmStatus::Ok {
-            return Err(plugin_error(&format!(
-                "plugin pass '{}' forward returned {status:?}",
-                self.id
-            )));
+            return Err(plugin_failure(
+                &self.id,
+                &format!("plugin pass '{}' forward returned {status:?}", self.id),
+            ));
         }
         Ok(CPluginArtifact {
             plugin_pass_id: self.id.clone(),
@@ -135,10 +135,13 @@ impl Reversible for CPluginTransformPass {
             )
         };
         if status != LmStatus::Ok {
-            return Err(plugin_error(&format!(
-                "plugin pass '{}' backward returned {status:?}",
-                artifact.plugin_pass_id
-            )));
+            return Err(plugin_failure(
+                &artifact.plugin_pass_id,
+                &format!(
+                    "plugin pass '{}' backward returned {status:?}",
+                    artifact.plugin_pass_id
+                ),
+            ));
         }
         reclaim::<LmSol, Solution>(out_handle, "solution", "backward")
     }

@@ -351,7 +351,12 @@ create_exception!(
 /// as the native one. Kinds without a dedicated class (plugin-defined kinds, coarse ABI fallback
 /// tags) map to the base `LunaModelError`.
 pub fn new_err_for_kind(tag: &str) -> fn(String) -> PyErr {
-    match tag {
+    known_err_for_kind(tag).unwrap_or(PyLunaModelError::new_err)
+}
+
+/// The constructor of the dedicated Python exception for kind `tag`; `None` for kinds without one.
+fn known_err_for_kind(tag: &str) -> Option<fn(String) -> PyErr> {
+    Some(match tag {
         "different_environments" => PyDifferentEnvsError::new_err,
         "variable_exists" => PyVariableExistsError::new_err,
         "variable_not_existing" => PyVariableNotExistingError::new_err,
@@ -384,8 +389,8 @@ pub fn new_err_for_kind(tag: &str) -> fn(String) -> PyErr {
         "invalid_tolerance" => PyInvalidToleranceError::new_err,
         "infeasible" => PyModelInfeasibleError::new_err,
         // "formatter", "internal", "external", and any tag luna-model does not define.
-        _ => PyLunaModelError::new_err,
-    }
+        _ => return None,
+    })
 }
 
 /// `luna_model.errors._error_for_kind(kind, message)`: the exception (not raised) luna-model
@@ -417,8 +422,18 @@ impl From<Lme> for PyErr {
                 return pyerr;
             }
             // Carries a plugin's own kind tag when a plugin pass failed; it still surfaces as a
-            // transformation failure.
-            Lme::Transformation { .. } => PyTransformError::new_err,
+            // transformation failure, with the kind's own exception (e.g. `ModelVtypeError`) as
+            // its `__cause__` when luna-model defines one.
+            Lme::Transformation {
+                ref msg, ref kind, ..
+            } => {
+                let pyerr = PyTransformError::new_err(lme.to_string());
+                if let Some(new_cause) = kind.as_deref().and_then(known_err_for_kind) {
+                    let cause = new_cause(msg.to_string());
+                    Python::attach(|py| pyerr.set_cause(py, Some(cause)));
+                }
+                return pyerr;
+            }
             ref other => new_err_for_kind(&other.kind_tag()),
         };
         err(lme.to_string())
