@@ -10,7 +10,7 @@ use std::ffi::CStr;
 use std::fmt;
 use std::sync::OnceLock;
 
-use lunamodel_capi::{CAPI_ABI_VERSION, LunaModelCApi};
+use lunamodel_capi::{CAPI_ABI_VERSION, CAPI_BASE_TABLE_SIZE, LunaModelCApi};
 
 /// Wraps the raw table pointer so it can live in a `static`.
 ///
@@ -36,6 +36,13 @@ pub enum InitError {
         /// ABI version reported by the provided table.
         found: u32,
     },
+    /// The table reports a size smaller than the base table of its ABI version.
+    TableTooSmall {
+        /// Minimum size in bytes ([`CAPI_BASE_TABLE_SIZE`]).
+        expected: usize,
+        /// Size reported by the provided table.
+        found: usize,
+    },
 }
 
 impl fmt::Display for InitError {
@@ -46,6 +53,10 @@ impl fmt::Display for InitError {
             InitError::AbiMismatch { expected, found } => write!(
                 f,
                 "C API ABI mismatch: built against {expected}, runtime {found}"
+            ),
+            InitError::TableTooSmall { expected, found } => write!(
+                f,
+                "C API table too small: {found} bytes, at least {expected} expected"
             ),
         }
     }
@@ -70,6 +81,13 @@ pub unsafe fn init(table: *const LunaModelCApi) -> Result<(), InitError> {
         return Err(InitError::AbiMismatch {
             expected: CAPI_ABI_VERSION,
             found,
+        });
+    }
+    let size = unsafe { (*table).size() };
+    if size < CAPI_BASE_TABLE_SIZE {
+        return Err(InitError::TableTooSmall {
+            expected: CAPI_BASE_TABLE_SIZE,
+            found: size,
         });
     }
     API.set(ApiHandle(table))
@@ -99,6 +117,24 @@ pub fn version() -> crate::Result<String> {
 /// Returns the ABI version of the installed table.
 pub fn abi_version() -> u32 {
     api().abi_version
+}
+
+/// Returns the size in bytes of the installed (host) table.
+///
+/// Within one ABI version the table only grows, so this tells which entry points the host
+/// provides; see [`lunamodel_capi::capi_has`].
+pub fn host_table_size() -> usize {
+    api().size()
+}
+
+/// Whether the installed host table contains entry point `$field`. Every entry point
+/// appended after the base table ([`CAPI_BASE_TABLE_SIZE`]) must be checked with this
+/// before calling it; on an older host, fall back or return an error.
+#[allow(unused_macros)]
+macro_rules! api_has {
+    ($field:ident) => {
+        lunamodel_capi::capi_has!(crate::api::api(), $field)
+    };
 }
 
 /// Borrows the installed C API table.

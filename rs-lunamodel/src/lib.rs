@@ -33,6 +33,7 @@ pub mod plugin;
 pub mod traits;
 mod utils;
 
+#[macro_use]
 mod api;
 mod assignment;
 mod bound;
@@ -66,7 +67,7 @@ mod vref;
 #[macro_use]
 pub mod py;
 
-pub use api::{InitError, abi_version, init, is_initialized, version};
+pub use api::{InitError, abi_version, host_table_size, init, is_initialized, version};
 pub use assignment::Assignment;
 pub use bound::Bound;
 pub use bounds::Bounds;
@@ -109,6 +110,10 @@ pub use lunamodel_capi::LunaModelCApi;
 /// The C API ABI version this SDK was built for; [`init`] accepts only a host table of exactly
 /// this version.
 pub use lunamodel_capi::CAPI_ABI_VERSION;
+
+/// Size in bytes of the base C API table of [`CAPI_ABI_VERSION`] (as released in luna-model
+/// 0.8.0a1); every host provides at least these entry points, see [`host_table_size`].
+pub use lunamodel_capi::CAPI_BASE_TABLE_SIZE;
 
 pub use lunamodel_types::{
     Bias, BinaryAssignment, Comparator, Ctype, DEFAULT_BIAS, EnumSet, EnumSetFromVec, EnvIdx,

@@ -327,3 +327,36 @@ fn solution_from_random_keeps_context_alive() -> Result<()> {
     assert_eq!(solution.variable_names()?, vec!["z"]);
     Ok(())
 }
+
+#[test]
+fn c_api_table_size_and_entry_point_availability() {
+    use lunamodel_capi::{LunaModelCApi, capi_has};
+    use lunamodel_capi_host::capi_table::LUNA_MODEL_C_API;
+
+    init();
+
+    // The host reports its full table.
+    assert_eq!(rs_lunamodel::host_table_size(), size_of::<LunaModelCApi>());
+    assert!(rs_lunamodel::host_table_size() >= rs_lunamodel::CAPI_BASE_TABLE_SIZE);
+
+    // A luna-model 0.8.0a1 table has no `struct_size` (reads 0): it is the base table.
+    let mut table = LUNA_MODEL_C_API;
+    table.struct_size = 0;
+    assert_eq!(table.size(), rs_lunamodel::CAPI_BASE_TABLE_SIZE);
+    assert!(capi_has!(&table, version));
+    assert!(capi_has!(&table, control_flow_plan_add_meta_analysis));
+
+    // A smaller host table lacks the entry points past its end.
+    table.struct_size = (rs_lunamodel::CAPI_BASE_TABLE_SIZE - size_of::<usize>()) as u32;
+    assert!(capi_has!(&table, version));
+    assert!(!capi_has!(&table, control_flow_plan_add_meta_analysis));
+
+    // ...and is rejected on init (checked before the table would be installed).
+    assert_eq!(
+        unsafe { rs_lunamodel::init(&table) },
+        Err(rs_lunamodel::InitError::TableTooSmall {
+            expected: rs_lunamodel::CAPI_BASE_TABLE_SIZE,
+            found: rs_lunamodel::CAPI_BASE_TABLE_SIZE - size_of::<usize>(),
+        })
+    );
+}

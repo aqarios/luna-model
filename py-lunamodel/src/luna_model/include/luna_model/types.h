@@ -13,6 +13,8 @@
  *
  * Bump this on any breaking change to the layout of the exported table struct
  * or to any exported function signature. Consumers must check it after import.
+ * Appending entry points to the end of the table is not breaking: consumers check
+ * the host table's size before calling one (`ci/tools/check-abi.py` enforces this).
  */
 #define LUNA_MODEL_CAPI_ABI_VERSION 1
 
@@ -1205,12 +1207,26 @@ typedef struct {
  *
  * Consumers obtaining this via the capsule must check [`Self::abi_version`]
  * against the `CAPI_ABI_VERSION` they were compiled against before calling.
+ *
+ * Within one ABI version the table only grows: new entry points are appended at
+ * the end, never inserted, reordered, removed, or changed (`ci/tools/check-abi.py`
+ * enforces this against the last release). A consumer may therefore be built
+ * against a larger table than the host provides; before calling an entry point
+ * that may postdate the host, it checks [`capi_has!`](crate::capi_has).
  */
 typedef struct {
     /**
      * ABI version of this table (`CAPI_ABI_VERSION` at build time).
      */
     uint32_t abi_version;
+    /**
+     * Size in bytes of the host's table (`size_of::<LunaModelCApi>()` at the host's
+     * build). It occupies the padding after `abi_version`, so adding it kept every
+     * entry point's offset. `0` in tables of luna-model 0.8.0a1, which predate the
+     * field; those are [`CAPI_BASE_TABLE_SIZE`] bytes. Read it through
+     * [`LunaModelCApi::size`].
+     */
+    uint32_t struct_size;
     const char *(*version)(void);
     void (*buffer_free)(LmBuffer);
     void (*str_buffer_free)(LmStrBuffer);

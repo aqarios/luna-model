@@ -10,6 +10,7 @@ use crate::{CAPI_ABI_VERSION, LunaModelCApi};
 /// The singleton C API table exposed to consumers (directly or via the capsule).
 pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     abi_version: CAPI_ABI_VERSION,
+    struct_size: size_of::<LunaModelCApi>() as u32,
     version: crate::version::lm_version,
     // ////// //
     // BUFFER //

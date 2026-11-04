@@ -19,6 +19,8 @@ pub mod plugin;
 ///
 /// Bump this on any breaking change to the layout of the exported table struct
 /// or to any exported function signature. Consumers must check it after import.
+/// Appending entry points to the end of the table is not breaking: consumers check
+/// the host table's size before calling one (`ci/tools/check-abi.py` enforces this).
 ///
 /// cbindgen:ignore
 pub const CAPI_ABI_VERSION: u32 = 1;
@@ -34,4 +36,4 @@ pub use core::{
     LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
 };
 
-pub use vtable::LunaModelCApi;
+pub use vtable::{CAPI_BASE_TABLE_SIZE, LunaModelCApi};

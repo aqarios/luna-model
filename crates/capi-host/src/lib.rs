@@ -22,6 +22,8 @@ pub use lunamodel_capi::{
 ///
 /// Bump this on any breaking change to the layout of the exported table struct
 /// or to any exported function signature. Consumers must check it after import.
+/// Appending entry points to the end of the table is not breaking: consumers check
+/// the host table's size before calling one (`ci/tools/check-abi.py` enforces this).
 //
 // Defined here as a literal in the binding crate so cbindgen emits the
 // `LUNA_MODEL_CAPI_ABI_VERSION` macro into the header. The vtable crate's copy

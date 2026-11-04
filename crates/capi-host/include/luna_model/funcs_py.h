@@ -10,6 +10,8 @@
  * which the umbrella includes first.
  */
 
+#include <stddef.h>
+
 #include "luna_model/types.h"
 
 #ifdef __cplusplus
@@ -18,12 +20,30 @@ extern "C" {
 
 #define LUNA_MODEL_CAPI_CAPSULE_NAME "luna_model._lm._C_API"
 
+/* Size of the table as released in luna-model 0.8.0a1, whose tables have no
+ * `struct_size` (it reads 0): `control_flow_plan_add_meta_analysis` was its last entry
+ * point. Mirrors `CAPI_BASE_TABLE_SIZE` in the `lunamodel-capi` crate. */
+#define LUNA_MODEL_CAPI_BASE_TABLE_SIZE \
+    (offsetof(LunaModelCApi, control_flow_plan_add_meta_analysis) + sizeof(void (*)(void)))
+
 /* The imported C API table; NULL until import_luna_model() succeeds. Each TU that
  * includes this header has its own pointer; call import_luna_model() once per TU. */
 static const LunaModelCApi *lunamodel__vtable = NULL;
 
+/* Size in bytes of the imported table; 0 until import_luna_model() succeeds. */
+static size_t lunamodel__table_size = 0;
+
 /* Returns the imported table, or NULL if import_luna_model() has not succeeded. */
 static inline const LunaModelCApi *lunamodel_api(void) { return lunamodel__vtable; }
+
+/* Whether the imported host table contains entry point `field`, i.e. whether the host
+ * is recent enough to provide it. Within one ABI version the table only grows, so an
+ * extension may be built against a larger table than the host's: check every entry
+ * point added after the base table before calling it (reading past the end of the
+ * host's table is undefined behaviour). */
+#define lunamodel_api_has(field)                                               \
+    (lunamodel__table_size >=                                                  \
+     offsetof(LunaModelCApi, field) + sizeof(((const LunaModelCApi *)0)->field))
 
 /* Imports `luna_model._lm` and binds its `_C_API` capsule. Returns 0 on success,
  * -1 on failure (Python exception set). Call once during module init. */
@@ -49,7 +69,16 @@ static inline int import_luna_model(void) {
                      (int)LUNA_MODEL_CAPI_ABI_VERSION, api->abi_version);
         return -1;
     }
+    size_t size = api->struct_size != 0 ? (size_t)api->struct_size
+                                         : LUNA_MODEL_CAPI_BASE_TABLE_SIZE;
+    if (size < LUNA_MODEL_CAPI_BASE_TABLE_SIZE) {
+        PyErr_Format(PyExc_ImportError,
+                     "luna_model C API table too small: %zu bytes, at least %zu expected",
+                     size, (size_t)LUNA_MODEL_CAPI_BASE_TABLE_SIZE);
+        return -1;
+    }
     lunamodel__vtable = api;
+    lunamodel__table_size = size;
     return 0;
 }
 

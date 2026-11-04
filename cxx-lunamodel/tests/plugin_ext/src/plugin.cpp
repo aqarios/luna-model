@@ -330,6 +330,16 @@ NB_MODULE(luna_cxx_plugin_ext, m) {
     // compile-checks both directions (from_python on the argument, from_cpp on the return), and a
     // couple are round-tripped from Python in the tests.
     m.def("roundtrip_solution", [](lm::Solution s) { return s; });
+
+    // The C API table as the host reports it vs this extension's compiled C view of it: the
+    // host's `struct_size` (Rust's size_of) must equal C's sizeof, so the generated header's
+    // layout is the Rust layout. Plus `lunamodel_api_has` on the last base entry point.
+    m.def("c_api_table_layout", []() {
+        const LunaModelCApi *api = lunamodel_api();
+        return nb::make_tuple(api->struct_size, sizeof(LunaModelCApi),
+                              static_cast<std::size_t>(LUNA_MODEL_CAPI_BASE_TABLE_SIZE),
+                              lunamodel_api_has(control_flow_plan_add_meta_analysis));
+    });
     m.def("roundtrip_environment", [](lm::Env e) { return e; });
     m.def("roundtrip_expression", [](lm::Expression e) { return e; });
     m.def("roundtrip_constraint", [](lm::Constraint c) { return c; });

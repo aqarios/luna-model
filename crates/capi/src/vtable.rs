@@ -1,4 +1,7 @@
-use std::ffi::{c_char, c_void};
+use std::{
+    ffi::{c_char, c_void},
+    mem::{offset_of, size_of},
+};
 
 use crate::plugin::{
     LmBackwardFn, LmByteSink, LmControlFlowPlan, LmPassContext, LmPassKind, LmPluginAnalysis,
@@ -20,11 +23,23 @@ pub use super::{
 ///
 /// Consumers obtaining this via the capsule must check [`Self::abi_version`]
 /// against the `CAPI_ABI_VERSION` they were compiled against before calling.
+///
+/// Within one ABI version the table only grows: new entry points are appended at
+/// the end, never inserted, reordered, removed, or changed (`ci/tools/check-abi.py`
+/// enforces this against the last release). A consumer may therefore be built
+/// against a larger table than the host provides; before calling an entry point
+/// that may postdate the host, it checks [`capi_has!`](crate::capi_has).
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct LunaModelCApi {
     /// ABI version of this table (`CAPI_ABI_VERSION` at build time).
     pub abi_version: u32,
+    /// Size in bytes of the host's table (`size_of::<LunaModelCApi>()` at the host's
+    /// build). It occupies the padding after `abi_version`, so adding it kept every
+    /// entry point's offset. `0` in tables of luna-model 0.8.0a1, which predate the
+    /// field; those are [`CAPI_BASE_TABLE_SIZE`] bytes. Read it through
+    /// [`LunaModelCApi::size`].
+    pub struct_size: u32,
     pub version: extern "C" fn() -> *const c_char,
     pub buffer_free: unsafe extern "C" fn(LmBuffer),
     pub str_buffer_free: unsafe extern "C" fn(LmStrBuffer),
@@ -907,4 +922,50 @@ pub struct LunaModelCApi {
         plan: *mut LmControlFlowPlan,
         desc: *const LmPluginMetaAnalysis,
     ) -> LmStatus,
+}
+
+/// Size of the table as released in luna-model 0.8.0a1, the first release of ABI
+/// version 1: the size of a host table whose [`LunaModelCApi::struct_size`] is `0`.
+/// `control_flow_plan_add_meta_analysis` is that table's last entry point; this
+/// stays fixed while the table grows.
+///
+/// cbindgen:ignore
+pub const CAPI_BASE_TABLE_SIZE: usize =
+    offset_of!(LunaModelCApi, control_flow_plan_add_meta_analysis) + size_of::<extern "C" fn()>();
+
+// Layout pins. `struct_size` must stay in the padding after `abi_version` (tables of
+// luna-model 0.8.0a1 have no such field) and the entry points must start at offset 8.
+// Only 64-bit targets are built; there a function pointer is 8 bytes.
+const _: () = {
+    assert!(offset_of!(LunaModelCApi, abi_version) == 0);
+    assert!(offset_of!(LunaModelCApi, struct_size) == 4);
+    #[cfg(target_pointer_width = "64")]
+    assert!(offset_of!(LunaModelCApi, version) == 8);
+    assert!(size_of::<LunaModelCApi>() >= CAPI_BASE_TABLE_SIZE);
+};
+
+impl LunaModelCApi {
+    /// Size in bytes of this (host) table: [`Self::struct_size`], or
+    /// [`CAPI_BASE_TABLE_SIZE`] for a luna-model 0.8.0a1 table without that field.
+    pub fn size(&self) -> usize {
+        match self.struct_size {
+            0 => CAPI_BASE_TABLE_SIZE,
+            size => size as usize,
+        }
+    }
+}
+
+/// Whether the host table `$table` (`&LunaModelCApi`) contains entry point `$field`,
+/// i.e. whether the host is recent enough to provide it.
+///
+/// Entry points of the base table ([`CAPI_BASE_TABLE_SIZE`]) are always present; check
+/// every entry point appended later before calling it, since reading past the end of an
+/// older host's table is undefined behaviour.
+#[macro_export]
+macro_rules! capi_has {
+    ($table:expr, $field:ident) => {
+        ::core::mem::offset_of!($crate::LunaModelCApi, $field)
+            + ::core::mem::size_of::<unsafe extern "C" fn()>()
+            <= $crate::LunaModelCApi::size($table)
+    };
 }

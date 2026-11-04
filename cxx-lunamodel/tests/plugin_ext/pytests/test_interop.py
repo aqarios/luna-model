@@ -51,3 +51,11 @@ def test_python_enum_to_c_enum():
 def test_c_enum_to_python_enum():
     # A C LmVtype converts back to the Python luna_model.Vtype.
     assert ext.binary_vtype() == Vtype.BINARY
+
+
+def test_c_api_table_layout_matches_host():
+    host_size, compiled_size, base_size, has_last_base_entry = ext.c_api_table_layout()
+    # The host's table size (Rust) equals the C header's sizeof: one layout on both sides.
+    assert host_size == compiled_size
+    assert base_size <= host_size
+    assert has_last_base_entry
