@@ -1,7 +1,7 @@
 //! The `py_control_flow_plugin!` macro.
 
 /// Generates a Python-facing **control-flow** pass class from a type implementing
-/// [`rs_lunamodel::plugin::ControlFlowPass`].
+/// [`luna_model_ffi::plugin::ControlFlowPass`].
 ///
 /// Unlike the other plugin macros there is no artifact or result class: a control-flow pass produces
 /// a `ControlFlowPlan` (a pipeline of steps), not a serialized payload, and it is not reversible.

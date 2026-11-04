@@ -9,7 +9,7 @@ def _extension():
 
 
 def pytest_collection_modifyitems(config, items):
-    # The extension may only fail against a host of a different C API ABI version (rs-lunamodel
+    # The extension may only fail against a host of a different C API ABI version (luna-model-ffi
     # rejects such a host); against the same ABI every test must pass. Skip, not fail, the
     # whole session on a mismatch so that case stays distinguishable from a real regression.
     host = luna_model._lm._C_API_ABI_VERSION

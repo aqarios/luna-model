@@ -1,8 +1,8 @@
 //! Owning wrapper over a host-owned solution column.
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::{LmColumn, LmVtype};
 use num::ToPrimitive;
-use rs_lunamodel_derive::RawHandle;
 
 use crate::{Assignment, Error, Result, Status, TryClone, TryIndex, Vtype, traits::LmTryInto};
 

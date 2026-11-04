@@ -356,13 +356,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "luna-model-ffi"
+version = "0.8.0-alpha.1"
+dependencies = [
+ "derive_more",
+ "enumset",
+ "indexmap",
+ "itertools 0.15.0",
+ "luna-model-ffi-derive",
+ "lunamodel-capi",
+ "lunamodel-capi-pyffi",
+ "lunamodel-types",
+ "num",
+ "prost",
+ "pyo3",
+]
+
+[[package]]
+name = "luna-model-ffi-derive"
+version = "0.8.0-alpha.1"
+dependencies = [
+ "quote",
+ "syn 3.0.3",
+]
+
+[[package]]
 name = "luna-plugin-ext"
 version = "0.0.1"
 dependencies = [
+ "luna-model-ffi",
  "lunamodel-capi-plugin-proto",
  "prost",
  "pyo3",
- "rs-lunamodel",
 ]
 
 [[package]]
@@ -373,10 +398,10 @@ version = "0.8.0-alpha.1"
 name = "lunamodel-capi-plugin-proto"
 version = "0.8.0-alpha.1"
 dependencies = [
+ "luna-model-ffi",
  "prost",
  "prost-build",
  "protox",
- "rs-lunamodel",
 ]
 
 [[package]]
@@ -772,31 +797,6 @@ name = "regex-syntax"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
-
-[[package]]
-name = "rs-lunamodel"
-version = "0.8.0-alpha.1"
-dependencies = [
- "derive_more",
- "enumset",
- "indexmap",
- "itertools 0.15.0",
- "lunamodel-capi",
- "lunamodel-capi-pyffi",
- "lunamodel-types",
- "num",
- "prost",
- "pyo3",
- "rs-lunamodel-derive",
-]
-
-[[package]]
-name = "rs-lunamodel-derive"
-version = "0.8.0-alpha.1"
-dependencies = [
- "quote",
- "syn 3.0.3",
-]
 
 [[package]]
 name = "rustc_version"

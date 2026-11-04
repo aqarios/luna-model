@@ -5,7 +5,7 @@
 //! a built-in analysis result without linking the core. Serialization comes free from the shared
 //! `AnalysisResult`/`Artifact` prost path — each type only declares its `static_type_tag`.
 
-use rs_lunamodel::plugin::AnalysisResult;
+use luna_model_ffi::plugin::AnalysisResult;
 
 pub mod proto {
     include!(concat!(env!("OUT_DIR"), "/lunamodel.plugin.rs"));

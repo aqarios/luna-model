@@ -14,7 +14,7 @@
 
 """Plugin registration for luna-model extensions.
 
-External extensions (built with ``rs-lunamodel``, or a plain Rust/C library) can provide custom
+External extensions (built with ``luna-model-ffi``, or a plain Rust/C library) can provide custom
 transformation passes that the transpiler calls back into over the C ABI. Registering a plugin
 makes its passes' reversal handlers known to the host and allowlists its import namespace so any
 dynamically resolved artifacts/backwards can be imported.

@@ -1,7 +1,7 @@
 //! The `py_analysis_plugin!` macro.
 
 /// Generates a Python-facing **analysis** pass class **and** its result class from a type
-/// implementing [`rs_lunamodel::plugin::AnalysisPass`], giving the plugin the full native
+/// implementing [`luna_model_ffi::plugin::AnalysisPass`], giving the plugin the full native
 /// `AnalysisPass` surface from Python.
 ///
 /// The C-boundary analog of a pure-Python analysis pass (subclassing luna-model's `PyAnalysisPass`);
@@ -19,7 +19,7 @@
 /// `Clone`.
 ///
 /// ```ignore
-/// rs_lunamodel::py::py_analysis_plugin!(pub CountVariables(CountLogic) => VariableCount);
+/// luna_model_ffi::py::py_analysis_plugin!(pub CountVariables(CountLogic) => VariableCount);
 ///
 /// #[pymethods]
 /// impl CountVariables {

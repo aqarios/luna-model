@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.29.0", features = ["extension-module", "multiple-pymethods"] }
-rs-lunamodel = { path = "../..", features = ["py"] }
+luna-model-ffi = { path = "../..", features = ["py"] }
 # The shared binding of luna-model's built-in analysis result schemas (generated from the same
 # `.proto` shipped in the wheel). A plugin depends on it to consume a built-in analysis by type.
 lunamodel-capi-plugin-proto = { path = "../../../crates/capi-plugin-proto" }

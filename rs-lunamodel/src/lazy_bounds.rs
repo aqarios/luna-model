@@ -5,9 +5,9 @@
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `LazyBounds` still return `Result` here.
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::LmLazyBounds;
 use lunamodel_types::Vtype;
-use rs_lunamodel_derive::RawHandle;
 
 use crate::{Bound, Bounds, Result, TryClone, api::api};
 

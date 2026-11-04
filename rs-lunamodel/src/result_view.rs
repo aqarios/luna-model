@@ -5,8 +5,8 @@
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `ResultView` still return `Result` here.
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::LmResultView;
-use rs_lunamodel_derive::RawHandle;
 
 use std::collections::HashMap;
 

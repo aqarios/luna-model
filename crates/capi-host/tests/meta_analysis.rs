@@ -6,22 +6,22 @@
 //! of the following steps). The SDK generates the `extern "C"` trampolines and the `step_list_*`
 //! dispatch; the core lends the step view and deposits the result.
 
+use luna_model_ffi::plugin::{descriptor, descriptor_meta_analysis, register_backward};
 use lunamodel_capi_host::capi_table::LUNA_MODEL_C_API;
 use lunamodel_capi_host::plugin::{CPluginMetaAnalysisPass, CPluginTransformPass};
 use lunamodel_transpiler::PassManager;
-use rs_lunamodel::plugin::{descriptor, descriptor_meta_analysis, register_backward};
 
 fn init() {
-    match unsafe { rs_lunamodel::init(&LUNA_MODEL_C_API as *const _) } {
-        Ok(()) | Err(rs_lunamodel::InitError::AlreadyInitialized) => {}
-        Err(e) => panic!("rs_lunamodel init failed: {e}"),
+    match unsafe { luna_model_ffi::init(&LUNA_MODEL_C_API as *const _) } {
+        Ok(()) | Err(luna_model_ffi::InitError::AlreadyInitialized) => {}
+        Err(e) => panic!("luna_model_ffi init failed: {e}"),
     }
 }
 
 /// The shared contract: what the meta-analysis reports about the steps following it.
 mod contract {
+    use luna_model_ffi::plugin::AnalysisResult;
     use prost::Message;
-    use rs_lunamodel::plugin::AnalysisResult;
 
     pub const FOLLOWING_STEPS: &str = "contract::following-steps";
 
@@ -46,7 +46,7 @@ mod contract {
 /// entirely through the `StepList` facade.
 mod meta {
     use super::contract::{FOLLOWING_STEPS, FollowingSteps};
-    use rs_lunamodel::plugin::{MetaAnalysisPass, StepList};
+    use luna_model_ffi::plugin::{MetaAnalysisPass, StepList};
 
     pub struct DescribeFollowing;
 
@@ -59,7 +59,7 @@ mod meta {
             "describe-following"
         }
 
-        fn run(&self, steps: &StepList) -> rs_lunamodel::Result<FollowingSteps> {
+        fn run(&self, steps: &StepList) -> luna_model_ffi::Result<FollowingSteps> {
             let (first_name, first_kind) = match steps.get(0) {
                 Some(step) => (step.name()?, format!("{:?}", step.kind()?)),
                 None => (String::new(), String::new()),
@@ -76,8 +76,8 @@ mod meta {
 /// A consumer transform that reads the meta-analysis result and tags the model with it.
 mod consumer {
     use super::contract::{FOLLOWING_STEPS, FollowingSteps};
+    use luna_model_ffi::plugin::{Artifact, PassContext, Reversible, TransformationPass};
     use prost::Message;
-    use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
     #[derive(Message)]
     pub struct TagInverse {}
@@ -107,8 +107,8 @@ mod consumer {
 
         fn backward(
             _artifact: &TagInverse,
-            solution: rs_lunamodel::Solution,
-        ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+            solution: luna_model_ffi::Solution,
+        ) -> luna_model_ffi::Result<luna_model_ffi::Solution> {
             Ok(solution)
         }
     }
@@ -124,9 +124,9 @@ mod consumer {
 
         fn forward(
             &self,
-            model: &mut rs_lunamodel::Model,
+            model: &mut luna_model_ffi::Model,
             ctx: &PassContext,
-        ) -> rs_lunamodel::Result<TagInverse> {
+        ) -> luna_model_ffi::Result<TagInverse> {
             let info: FollowingSteps = ctx.require_analysis(FOLLOWING_STEPS)?;
             model.set_name(format!(
                 "steps={}:first={}:kind={}",

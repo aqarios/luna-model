@@ -1,7 +1,7 @@
 //! The `py_meta_analysis_plugin!` macro.
 
 /// Generates a Python-facing **meta-analysis** pass class **and** its result class from a type
-/// implementing [`rs_lunamodel::plugin::MetaAnalysisPass`].
+/// implementing [`luna_model_ffi::plugin::MetaAnalysisPass`].
 ///
 /// Unlike [`py_analysis_plugin!`], a meta-analysis reads no model — it inspects the pipeline steps
 /// that follow it, which the host lends as a `StepList` only inside a `PassManager` run. There is

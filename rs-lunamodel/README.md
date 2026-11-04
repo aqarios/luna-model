@@ -1,4 +1,4 @@
-# rs-lunamodel
+# luna-model-ffi
 
 Rust SDK for LunaModel extensions. It mirrors the native `luna-model` Rust API (`Model`,
 `Expression`, `Environment`, `ConstraintCollection`, `Solution`, ...) but routes every call
@@ -9,14 +9,14 @@ in instead of linking its own copy of the core. Its only LunaModel dependencies 
 ## Features
 
 - `py`: pyo3 types for Python extensions (`PyModel`, `PyExpression`, `PySolution`, ... in
-  `rs_lunamodel::py::prelude`) and macros that expose plugin passes to Python.
+  `luna_model_ffi::py::prelude`) and macros that expose plugin passes to Python.
 
 ## Python extensions
 
 ```toml
 [dependencies]
 pyo3 = { version = "0.29", features = ["extension-module"] }
-rs-lunamodel = { git = "https://github.com/aqarios/luna-model", features = ["py"] }
+luna-model-ffi = { git = "https://github.com/aqarios/luna-model", features = ["py"] }
 ```
 
 The `Py*` types convert to and from `luna_model` objects. They are handles to the same object,
@@ -24,7 +24,7 @@ so a change made in Rust is visible in Python:
 
 ```rust
 use pyo3::prelude::*;
-use rs_lunamodel::py::prelude::*;
+use luna_model_ffi::py::prelude::*;
 
 #[pyfunction]
 fn rename(mut model: PyModel, name: String) -> PyResult<()> {
@@ -39,12 +39,12 @@ fn my_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
 ```
 
 The conversions read the C API table from the `luna_model._lm._C_API` capsule on first use.
-Code that calls into the API before any conversion calls `rs_lunamodel::py::ensure_c_api(py)`
+Code that calls into the API before any conversion calls `luna_model_ffi::py::ensure_c_api(py)`
 first.
 
 ## Plugins
 
-`rs_lunamodel::plugin` mirrors the native pass traits: `TransformationPass` (with `Reversible`
+`luna_model_ffi::plugin` mirrors the native pass traits: `TransformationPass` (with `Reversible`
 and an `Artifact`), `AnalysisPass`, `MetaAnalysisPass`, `CompositePass`, and `ControlFlowPass`.
 `py_transform_plugin!`, `py_analysis_plugin!`, `py_meta_analysis_plugin!`,
 `py_composite_plugin!`, and `py_control_flow_plugin!` turn a pass into a Python class, and
@@ -69,7 +69,7 @@ every pass kind is in [`tests/plugin_ext/src/lib.rs`](tests/plugin_ext/src/lib.r
 A Rust program that links the host directly installs its table once:
 
 ```rust
-unsafe { rs_lunamodel::init(&lunamodel_capi_host::capi_table::LUNA_MODEL_C_API) }?;
+unsafe { luna_model_ffi::init(&lunamodel_capi_host::capi_table::LUNA_MODEL_C_API) }?;
 ```
 
 ## Tests

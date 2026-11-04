@@ -7,8 +7,8 @@
 
 use std::ops::{Deref, Mul, Neg};
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::LmQuadratic;
-use rs_lunamodel_derive::RawHandle;
 
 use crate::{
     Neighborhood, Result, TryClone, TryIndex,

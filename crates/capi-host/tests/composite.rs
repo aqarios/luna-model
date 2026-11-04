@@ -6,17 +6,17 @@
 //! analysis half). The SDK generates every `extern "C"` trampoline; the core runs the pass, deposits
 //! the result, and lends it to later passes — exactly as for a built-in composite.
 
+use luna_model_ffi::plugin::{descriptor, descriptor_composite, register_composite_backward};
 use lunamodel_capi_host::capi_table::LUNA_MODEL_C_API;
 use lunamodel_capi_host::plugin::{CPluginCompositePass, CPluginTransformPass};
 use lunamodel_transpiler::PassManager;
 use lunamodel_types::Vtype;
-use rs_lunamodel::plugin::{descriptor, descriptor_composite, register_composite_backward};
 
 /// Installs the host C-API table (the one host-side `unsafe`, shared by all tests).
 fn init() {
-    match unsafe { rs_lunamodel::init(&LUNA_MODEL_C_API as *const _) } {
-        Ok(()) | Err(rs_lunamodel::InitError::AlreadyInitialized) => {}
-        Err(e) => panic!("rs_lunamodel init failed: {e}"),
+    match unsafe { luna_model_ffi::init(&LUNA_MODEL_C_API as *const _) } {
+        Ok(()) | Err(luna_model_ffi::InitError::AlreadyInitialized) => {}
+        Err(e) => panic!("luna_model_ffi init failed: {e}"),
     }
 }
 
@@ -39,8 +39,8 @@ fn model_with_vars(n: usize) -> lunamodel_core::Model {
 
 /// The shared **contract**: the analysis result type the composite produces and a consumer reads.
 mod contract {
+    use luna_model_ffi::plugin::AnalysisResult;
     use prost::Message;
-    use rs_lunamodel::plugin::AnalysisResult;
 
     /// Stable name the composite's result is stored/read under.
     pub const VARIABLE_COUNT: &str = "contract::variable-count";
@@ -62,8 +62,8 @@ mod contract {
 /// half), in a single forward.
 mod composite {
     use super::contract::{VARIABLE_COUNT, VariableCount};
+    use luna_model_ffi::plugin::{Artifact, CompositePass, PassContext, Reversible};
     use prost::Message;
-    use rs_lunamodel::plugin::{Artifact, CompositePass, PassContext, Reversible};
 
     pub const NEW_NAME: &str = "renamed-by-composite";
 
@@ -89,8 +89,8 @@ mod composite {
 
         fn backward(
             _artifact: &RenameInverse,
-            solution: rs_lunamodel::Solution,
-        ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+            solution: luna_model_ffi::Solution,
+        ) -> luna_model_ffi::Result<luna_model_ffi::Solution> {
             // A rename does not affect the solution space.
             Ok(solution)
         }
@@ -107,9 +107,9 @@ mod composite {
 
         fn forward(
             &self,
-            model: &mut rs_lunamodel::Model,
+            model: &mut luna_model_ffi::Model,
             _ctx: &PassContext,
-        ) -> rs_lunamodel::Result<(RenameInverse, VariableCount)> {
+        ) -> luna_model_ffi::Result<(RenameInverse, VariableCount)> {
             let previous = model.name()?;
             model.set_name(NEW_NAME.to_string())?;
             let count = model.num_variables()? as u64;
@@ -121,8 +121,8 @@ mod composite {
 /// A consumer transform that reads the composite's deposited analysis result across the C-ABI.
 mod consumer {
     use super::contract::{VARIABLE_COUNT, VariableCount};
+    use luna_model_ffi::plugin::{Artifact, PassContext, Reversible, TransformationPass};
     use prost::Message;
-    use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
     #[derive(Message)]
     pub struct TagInverse {}
@@ -152,8 +152,8 @@ mod consumer {
 
         fn backward(
             _artifact: &TagInverse,
-            solution: rs_lunamodel::Solution,
-        ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+            solution: luna_model_ffi::Solution,
+        ) -> luna_model_ffi::Result<luna_model_ffi::Solution> {
             Ok(solution)
         }
     }
@@ -169,9 +169,9 @@ mod consumer {
 
         fn forward(
             &self,
-            model: &mut rs_lunamodel::Model,
+            model: &mut luna_model_ffi::Model,
             ctx: &PassContext,
-        ) -> rs_lunamodel::Result<TagInverse> {
+        ) -> luna_model_ffi::Result<TagInverse> {
             let counted: VariableCount = ctx.require_analysis(VARIABLE_COUNT)?;
             model.set_name(format!("vars={}", counted.count))?;
             Ok(TagInverse {})

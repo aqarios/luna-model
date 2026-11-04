@@ -1,5 +1,5 @@
 [package]
-name = "rs-lunamodel"
+name = "luna-model-ffi"
 version.workspace = true
 edition = "2024"
 authors = [
@@ -40,7 +40,7 @@ prost = "0.14"
 # `luna-model` core is linked: model operations dispatch into the host table.
 lunamodel-capi = { path = "../crates/capi" }
 lunamodel-types = { path = "../crates/types" }
-rs-lunamodel-derive = { path = "./derive" }
+luna-model-ffi-derive = { path = "./derive" }
 
 [dependencies.pyo3]
 optional = true

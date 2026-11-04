@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::Once};
 
 use indexmap::{IndexMap, indexmap};
-use rs_lunamodel::{
+use luna_model_ffi::{
     Assignment, Column, Comparator, Constraint, ConstraintCollection, Environment, ErrorKind,
     HigherOrder, LmAddAssign, Result, Sense, Solution, Timing, TryAddAssign, TryClone, TryIndex,
     Variable, Vtype,
@@ -11,7 +11,7 @@ static INIT: Once = Once::new();
 
 fn init() {
     INIT.call_once(|| unsafe {
-        rs_lunamodel::init(&lunamodel_capi_host::capi_table::LUNA_MODEL_C_API).unwrap();
+        luna_model_ffi::init(&lunamodel_capi_host::capi_table::LUNA_MODEL_C_API).unwrap();
     });
 }
 
@@ -19,7 +19,7 @@ fn init() {
 fn environment_expression_and_constraint_facade() -> Result<()> {
     init();
 
-    let mut env = rs_lunamodel::ArcEnv::default();
+    let mut env = luna_model_ffi::ArcEnv::default();
     let x = env.insert("x", Vtype::Binary, None)?;
     let y = env.insert_with_fallback("x", Vtype::Spin, None, Some(&[7, 11]))?;
     assert_ne!(x.name()?, y.name()?);
@@ -85,7 +85,7 @@ fn owned_environment_and_mutation_proxy() -> Result<()> {
 fn term_editors_commit_to_host() -> Result<()> {
     init();
 
-    let mut linear = rs_lunamodel::Linear::for_var(1, 2.0)?;
+    let mut linear = luna_model_ffi::Linear::for_var(1, 2.0)?;
     {
         let mut editor = linear.iter_mut()?;
         for (_, bias) in &mut editor {
@@ -95,7 +95,7 @@ fn term_editors_commit_to_host() -> Result<()> {
     }
     assert_eq!(linear.try_index(1)?, 6.0);
 
-    let mut quadratic = rs_lunamodel::Quadratic::default();
+    let mut quadratic = luna_model_ffi::Quadratic::default();
     quadratic.try_add_assign((1, 2, 4.0))?;
     {
         let mut editor = quadratic.iter_mut()?;
@@ -127,7 +127,7 @@ fn solution_optional_values_buffers_and_owned_views() -> Result<()> {
 
     let mut solution = Solution::with_sense(Sense::Min);
     solution.push(
-        indexmap! { "x".into() => rs_lunamodel::Assignment::Binary(1) },
+        indexmap! { "x".into() => luna_model_ffi::Assignment::Binary(1) },
         2,
         None,
     )?;
@@ -165,14 +165,14 @@ fn solution_optional_values_buffers_and_owned_views() -> Result<()> {
 fn model_children_are_live_parent_retaining_views() -> Result<()> {
     init();
 
-    let mut model = rs_lunamodel::Model::default();
+    let mut model = luna_model_ffi::Model::default();
     assert_eq!(model.environment()?.id()?, model.env()?.id()?);
     let mut objective = model.objective()?;
     objective.try_add_assign(2.0)?;
     assert_eq!(model.objective()?.offset()?, 2.0);
 
     model.set_objective(
-        rs_lunamodel::Expression::constant(model.env()?, 7.0)?,
+        luna_model_ffi::Expression::constant(model.env()?, 7.0)?,
         Some(Sense::Max),
     )?;
     assert_eq!(objective.offset()?, 7.0);
@@ -180,7 +180,7 @@ fn model_children_are_live_parent_retaining_views() -> Result<()> {
 
     let mut constraints = model.constraints()?;
     let constraint = Constraint::new(
-        rs_lunamodel::Expression::constant(model.env()?, 0.0)?,
+        luna_model_ffi::Expression::constant(model.env()?, 0.0)?,
         1.0,
         Comparator::Le,
         Some("first".into()),
@@ -195,8 +195,8 @@ fn model_children_are_live_parent_retaining_views() -> Result<()> {
     assert_eq!(objective.offset()?, 7.0);
     assert!(constraints.is_empty()?);
 
-    let clone = rs_lunamodel::Model::default().deep_clone()?;
-    assert_eq!(clone.name()?, rs_lunamodel::DEFAULT_MODEL_NAME);
+    let clone = luna_model_ffi::Model::default().deep_clone()?;
+    assert_eq!(clone.name()?, luna_model_ffi::DEFAULT_MODEL_NAME);
     Ok(())
 }
 
@@ -204,9 +204,9 @@ fn model_children_are_live_parent_retaining_views() -> Result<()> {
 fn model_views_enforce_model_environment() -> Result<()> {
     init();
 
-    let mut model = rs_lunamodel::Model::default();
+    let mut model = luna_model_ffi::Model::default();
     let x = model.add_var("x", Vtype::Binary, None)?;
-    let mut other = rs_lunamodel::Model::default();
+    let mut other = luna_model_ffi::Model::default();
     let a = other.add_var("a", Vtype::Binary, None)?;
 
     // Objective view: raw indices must name living model variables, and
@@ -261,7 +261,7 @@ fn column_facade_dispatches_to_host() -> Result<()> {
 fn expression_and_model_evaluation_via_capi() -> Result<()> {
     init();
 
-    let mut env = rs_lunamodel::ArcEnv::default();
+    let mut env = luna_model_ffi::ArcEnv::default();
     let x = env.insert("x", Vtype::Binary, None)?;
     let y = env.insert("y", Vtype::Binary, None)?;
 
@@ -276,8 +276,8 @@ fn expression_and_model_evaluation_via_capi() -> Result<()> {
     let mut sol = Solution::with_sense(Sense::Min);
     sol.push(
         indexmap! {
-            "x".into() => rs_lunamodel::Assignment::Binary(1),
-            "y".into() => rs_lunamodel::Assignment::Binary(1),
+            "x".into() => luna_model_ffi::Assignment::Binary(1),
+            "y".into() => luna_model_ffi::Assignment::Binary(1),
         },
         1,
         None,
@@ -285,7 +285,7 @@ fn expression_and_model_evaluation_via_capi() -> Result<()> {
     assert_eq!(obj.evaluate(&sol)?, vec![2.0]);
 
     // Model with the objective and a constraint x + y <= 1.
-    let mut model = rs_lunamodel::Model::with_env(Some("m".into()), None, &env)?;
+    let mut model = luna_model_ffi::Model::with_env(Some("m".into()), None, &env)?;
     model.set_objective(obj.try_clone()?, None)?;
     let cap = Constraint::new((&x + &y)?, 1.0, Comparator::Le, Some("cap".into()))?;
     let mut cc = ConstraintCollection::new();
@@ -311,16 +311,16 @@ fn solution_from_random_keeps_context_alive() -> Result<()> {
 
     // The context is passed by value and is the only owner of its handle, so it must stay alive
     // until the C API call has returned.
-    let mut env = rs_lunamodel::Env::new();
+    let mut env = luna_model_ffi::Env::new();
     env.insert("x", Vtype::Binary, None)?;
     env.insert("y", Vtype::Binary, None)?;
     let solution = Solution::from_random(5, Some(7), Left(env), None, None)?;
     assert_eq!(solution.n_samples()?, 5);
     assert_eq!(solution.variable_names()?, vec!["x", "y"]);
 
-    let mut env = rs_lunamodel::Env::new();
+    let mut env = luna_model_ffi::Env::new();
     env.insert("z", Vtype::Binary, None)?;
-    let model = rs_lunamodel::Model::with_env(None, Some(Sense::Min), &env)?;
+    let model = luna_model_ffi::Model::with_env(None, Some(Sense::Min), &env)?;
     drop(env);
     let solution = Solution::from_random(3, Some(7), Right(model), None, None)?;
     assert_eq!(solution.n_samples()?, 3);
@@ -336,27 +336,30 @@ fn c_api_table_size_and_entry_point_availability() {
     init();
 
     // The host reports its full table.
-    assert_eq!(rs_lunamodel::host_table_size(), size_of::<LunaModelCApi>());
-    assert!(rs_lunamodel::host_table_size() >= rs_lunamodel::CAPI_BASE_TABLE_SIZE);
+    assert_eq!(
+        luna_model_ffi::host_table_size(),
+        size_of::<LunaModelCApi>()
+    );
+    assert!(luna_model_ffi::host_table_size() >= luna_model_ffi::CAPI_BASE_TABLE_SIZE);
 
     // A luna-model 0.8.0a1 table has no `struct_size` (reads 0): it is the base table.
     let mut table = LUNA_MODEL_C_API;
     table.struct_size = 0;
-    assert_eq!(table.size(), rs_lunamodel::CAPI_BASE_TABLE_SIZE);
+    assert_eq!(table.size(), luna_model_ffi::CAPI_BASE_TABLE_SIZE);
     assert!(capi_has!(&table, version));
     assert!(capi_has!(&table, control_flow_plan_add_meta_analysis));
 
     // A smaller host table lacks the entry points past its end.
-    table.struct_size = (rs_lunamodel::CAPI_BASE_TABLE_SIZE - size_of::<usize>()) as u32;
+    table.struct_size = (luna_model_ffi::CAPI_BASE_TABLE_SIZE - size_of::<usize>()) as u32;
     assert!(capi_has!(&table, version));
     assert!(!capi_has!(&table, control_flow_plan_add_meta_analysis));
 
     // ...and is rejected on init (checked before the table would be installed).
     assert_eq!(
-        unsafe { rs_lunamodel::init(&table) },
-        Err(rs_lunamodel::InitError::TableTooSmall {
-            expected: rs_lunamodel::CAPI_BASE_TABLE_SIZE,
-            found: rs_lunamodel::CAPI_BASE_TABLE_SIZE - size_of::<usize>(),
+        unsafe { luna_model_ffi::init(&table) },
+        Err(luna_model_ffi::InitError::TableTooSmall {
+            expected: luna_model_ffi::CAPI_BASE_TABLE_SIZE,
+            found: luna_model_ffi::CAPI_BASE_TABLE_SIZE - size_of::<usize>(),
         })
     );
 }

@@ -36,4 +36,4 @@ lunamodel-transpiler = { workspace = true }
 lunamodel-transform = { workspace = true }
 lunamodel-capi-plugin-proto = { workspace = true }
 prost = { workspace = true }
-rs-lunamodel = { path = "../../rs-lunamodel" }
+luna-model-ffi = { path = "../../rs-lunamodel" }

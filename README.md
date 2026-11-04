@@ -54,7 +54,7 @@ problems on the [Luna Platform](https://aqarios.com/platform).
 | Python                  | [`luna-model`](https://pypi.org/project/luna-model/) on PyPI               | Modeling, translation, transformation, and serialization |
 | JavaScript / TypeScript | [`@aqarios/luna-model`](https://www.npmjs.com/package/@aqarios/luna-model) | Reading and inspecting serialized solutions              |
 | C / C++                 | [`cxx-lunamodel`](./cxx-lunamodel/) and `liblunamodel`                     | Python extensions and standalone native programs         |
-| Rust                    | [`rs-lunamodel`](./rs-lunamodel/) and the [workspace crates](./crates/)    | Python extensions over the C API, or embedding the core  |
+| Rust                    | [`luna-model-ffi`](./rs-lunamodel/) and the [workspace crates](./crates/)    | Python extensions over the C API, or embedding the core  |
 
 ```bash
 uv add luna-model          # or: pip install luna-model
@@ -149,7 +149,7 @@ expressions, and solutions as the Python package.
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | [`crates/capi-host`](./crates/capi-host/) | `liblunamodel`: the C API (`lm_*` functions over opaque handles) and its headers.                |
 | [`cxx-lunamodel`](./cxx-lunamodel/)       | Header-only C++ wrapper: RAII handles, exceptions, and nanobind casters for Python extensions.   |
-| [`rs-lunamodel`](./rs-lunamodel/)         | Rust SDK that mirrors the native Rust API over the C API, with pyo3 types for Python extensions. |
+| [`luna-model-ffi`](./rs-lunamodel/)         | Rust SDK that mirrors the native Rust API over the C API, with pyo3 types for Python extensions. |
 | [`proto`](./proto/)                       | Protobuf schemas of the built-in analysis results that plugins consume.                          |
 
 Python extensions written in C, C++, or Rust build against an installed `luna-model`: the wheel

@@ -41,4 +41,4 @@ keep the workspace layout concise.
 
 The `luna_model._lm` Python module is built from [`py-lunamodel/pylm`](../py-lunamodel/pylm/),
 which combines `lunamodel-python` with `lunamodel-capi-host`. Native extensions use the C API
-through [`rs-lunamodel`](../rs-lunamodel/) (Rust) or [`cxx-lunamodel`](../cxx-lunamodel/) (C++).
+through [`luna-model-ffi`](../rs-lunamodel/) (Rust) or [`cxx-lunamodel`](../cxx-lunamodel/) (C++).

@@ -1,7 +1,7 @@
 //! The `py_composite_plugin!` macro.
 
 /// Generates a Python-facing **composite** pass class, its artifact class, and its result class from
-/// a type implementing [`rs_lunamodel::plugin::CompositePass`], giving the plugin the full native
+/// a type implementing [`luna_model_ffi::plugin::CompositePass`], giving the plugin the full native
 /// `CompositePass` surface from Python.
 ///
 /// A composite fuses a transformation and an analysis, so — unlike [`py_transform_plugin!`] — its
@@ -20,7 +20,7 @@
 /// `multiple-pymethods` feature). `Inner` must be `Clone`.
 ///
 /// ```ignore
-/// rs_lunamodel::py::py_composite_plugin!(pub RenameAndCount(Logic) => RenameArtifact, VariableCount);
+/// luna_model_ffi::py::py_composite_plugin!(pub RenameAndCount(Logic) => RenameArtifact, VariableCount);
 ///
 /// #[pymethods]
 /// impl RenameAndCount {

@@ -6,13 +6,13 @@ use super::{AnalysisResult, PassContext, Reversible};
 
 /// A composite pass: a fused transformation **and** analysis, authored in safe Rust.
 ///
-/// A 1:1 mirror of `lunamodel_transpiler::CompositePass` over the `rs-lunamodel` facade. A single
+/// A 1:1 mirror of `lunamodel_transpiler::CompositePass` over the `luna-model-ffi` facade. A single
 /// `forward` both mutates the model — producing the [`Artifact`](Reversible::Artifact) needed for
 /// reversal (via the [`Reversible`] super-trait) — and computes an analysis [`Output`](Self::Output)
 /// deposited under [`PROVIDES`](Self::PROVIDES), where later passes read it back by that name
 /// (including passes from a *different* plugin, as long as they share the [`Output`](Self::Output)
 /// type). Implement this and hand the type to the SDK (`descriptor_composite` /
-/// `register_composite_backward`, or the `rs-lunamodel` macros) — no `unsafe`, no C types.
+/// `register_composite_backward`, or the `luna-model-ffi` macros) — no `unsafe`, no C types.
 pub trait CompositePass: Send + Sync + Reversible {
     /// The analysis result this pass produces and consumers decode into.
     type Output: AnalysisResult;

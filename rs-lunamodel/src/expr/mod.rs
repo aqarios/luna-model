@@ -16,8 +16,8 @@ use crate::{
     traits::{ContentEquality, Serialization, TryClone, TryDeepClone},
 };
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::LmExpr;
-use rs_lunamodel_derive::RawHandle;
 
 /// Owning handle to a LunaModel expression (frees on drop).
 #[derive(RawHandle)]

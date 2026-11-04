@@ -1,7 +1,7 @@
 //! The `py_transform_plugin!` macro.
 
 /// Generates a Python-facing pass class **and** its artifact class from a type implementing
-/// [`rs_lunamodel::plugin::TransformationPass`], giving the plugin the full native
+/// [`luna_model_ffi::plugin::TransformationPass`], giving the plugin the full native
 /// `TransformationPass` surface from Python.
 ///
 /// `py_transform_plugin!(vis Pass(Inner) => Artifact)` emits:
@@ -16,7 +16,7 @@
 /// (enable pyo3's `multiple-pymethods` feature). `Inner` must be `Clone`.
 ///
 /// ```ignore
-/// rs_lunamodel::py::py_transform_plugin!(pub RelabelPass(Relabel) => RelabelArtifact);
+/// luna_model_ffi::py::py_transform_plugin!(pub RelabelPass(Relabel) => RelabelArtifact);
 ///
 /// #[pymethods]
 /// impl RelabelPass {

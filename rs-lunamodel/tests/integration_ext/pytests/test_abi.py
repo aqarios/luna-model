@@ -12,7 +12,7 @@ def test_host_exposes_c_api_abi() -> None:
 
 
 def test_extension_import_agrees_with_host_c_api_abi(ext) -> None:
-    # Initializing rs-lunamodel validates the table ABI before any call.
+    # Initializing luna-model-ffi validates the table ABI before any call.
     from luna_model import Bounds
 
     value = Bounds(-1, 4)

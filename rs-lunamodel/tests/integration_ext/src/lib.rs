@@ -1,7 +1,7 @@
+use luna_model_ffi::py::prelude::*;
 use pyo3::{exceptions::PyRuntimeError, prelude::*};
-use rs_lunamodel::py::prelude::*;
 
-fn lm_error(error: rs_lunamodel::Error) -> PyErr {
+fn lm_error(error: luna_model_ffi::Error) -> PyErr {
     PyRuntimeError::new_err(error.to_string())
 }
 
@@ -83,7 +83,7 @@ impl HeldEnvironment {
     fn insert_real(&mut self, py: Python<'_>, name: String) -> PyResult<()> {
         py.detach(|| {
             self.environment
-                .insert(&name, rs_lunamodel::Vtype::Real, None)
+                .insert(&name, luna_model_ffi::Vtype::Real, None)
                 .map(|_| ())
         })
         .map_err(lm_error)
@@ -102,8 +102,10 @@ impl HeldExpression {
     }
 
     fn add_bias(&mut self, py: Python<'_>, value: f64) -> PyResult<()> {
-        py.detach(|| rs_lunamodel::TryAddAssign::try_add_assign(self.expression.inner_mut(), value))
-            .map_err(lm_error)
+        py.detach(|| {
+            luna_model_ffi::TryAddAssign::try_add_assign(self.expression.inner_mut(), value)
+        })
+        .map_err(lm_error)
     }
 }
 
@@ -156,9 +158,9 @@ fn roundtrip_bounds(value: PyBounds) -> PyBounds {
 
 #[pyfunction]
 fn new_bounds(lower: f64, upper: f64) -> PyResult<PyBounds> {
-    rs_lunamodel::LazyBounds::new(
-        Some(rs_lunamodel::Bound::Bounded(lower)),
-        Some(rs_lunamodel::Bound::Bounded(upper)),
+    luna_model_ffi::LazyBounds::new(
+        Some(luna_model_ffi::Bound::Bounded(lower)),
+        Some(luna_model_ffi::Bound::Bounded(upper)),
     )
     .map(PyBounds::from)
     .map_err(lm_error)
@@ -201,7 +203,7 @@ fn roundtrip_model(value: PyModel) -> PyModel {
 
 #[pyfunction]
 fn new_model(name: String) -> PyResult<PyModel> {
-    rs_lunamodel::Model::new(Some(name), None)
+    luna_model_ffi::Model::new(Some(name), None)
         .map(PyModel::from)
         .map_err(lm_error)
 }
@@ -223,7 +225,7 @@ fn roundtrip_model_specs(value: PyModelSpecs) -> PyModelSpecs {
 
 #[pyfunction]
 fn new_model_specs(max_degree: usize) -> PyResult<PyModelSpecs> {
-    rs_lunamodel::Specs::new(None, None, None, Some(max_degree), None, None)
+    luna_model_ffi::Specs::new(None, None, None, Some(max_degree), None, None)
         .map(PyModelSpecs::from)
         .map_err(lm_error)
 }
@@ -287,7 +289,11 @@ fn expression_higher_order_items(
 
 /// Looks up a higher-order bias by key, exercising the host map's hashing.
 #[pyfunction]
-fn expression_higher_order_bias(py: Python<'_>, value: PyExpression, vars: Vec<u32>) -> PyResult<f64> {
+fn expression_higher_order_bias(
+    py: Python<'_>,
+    value: PyExpression,
+    vars: Vec<u32>,
+) -> PyResult<f64> {
     py.detach(|| value.higher_order(&vars)).map_err(lm_error)
 }
 
@@ -308,15 +314,15 @@ fn expression_scaled_higher_order_items(
 /// Raises the Python exception `into_pyerr` maps an error of `kind` to.
 #[pyfunction]
 fn raise_error_kind(kind: String) -> PyResult<()> {
-    let error = rs_lunamodel::Error::new(rs_lunamodel::Status::Errored, "boom").with_kind(kind);
+    let error = luna_model_ffi::Error::new(luna_model_ffi::Status::Errored, "boom").with_kind(kind);
     Err(into_pyerr(error))
 }
 
 #[pymodule]
 fn rs_lunamodel_integration_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // The ABI this extension was built for, readable without initializing rs-lunamodel (which
+    // The ABI this extension was built for, readable without initializing luna-model-ffi (which
     // fails on a host of another ABI); the test session compares it with the host's.
-    m.add("C_API_ABI_VERSION", rs_lunamodel::CAPI_ABI_VERSION)?;
+    m.add("C_API_ABI_VERSION", luna_model_ffi::CAPI_ABI_VERSION)?;
     m.add_function(wrap_pyfunction!(roundtrip_bounds, m)?)?;
     m.add_function(wrap_pyfunction!(new_bounds, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_comparator, m)?)?;

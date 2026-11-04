@@ -51,7 +51,7 @@ docs: clarify environment context in constraint examples
 ## Development setup
 
 The repository is a Rust workspace with the Python package in `py-lunamodel`, the C++
-wrapper in `cxx-lunamodel`, the Rust SDK in `rs-lunamodel`, and the JavaScript package in
+wrapper in `cxx-lunamodel`, the Rust SDK in `luna-model-ffi`, and the JavaScript package in
 `js-lunamodel`. You will need Rust and Cargo, [uv](https://docs.astral.sh/uv/), and Python
 3.11 or newer. The C, C++, and extension test suites additionally need
 [just](https://github.com/casey/just), CMake, a C++20 compiler, and protobuf (`protoc`), and

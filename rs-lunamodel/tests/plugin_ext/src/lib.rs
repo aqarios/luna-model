@@ -16,9 +16,9 @@
 //! This is the C-boundary (Rust-backed) authoring path; it coexists with writing passes in pure
 //! Python (subclassing luna-model's `PyTransformationPass`/`PyAnalysisPass`).
 
+use luna_model_ffi::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 use prost::Message;
 use pyo3::prelude::*;
-use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
 const NEW_NAME: &str = "renamed-by-py-plugin";
 
@@ -46,8 +46,8 @@ impl Reversible for RenameLogic {
 
     fn backward(
         _artifact: &RenameInverse,
-        solution: rs_lunamodel::Solution,
-    ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+        solution: luna_model_ffi::Solution,
+    ) -> luna_model_ffi::Result<luna_model_ffi::Solution> {
         // Renaming does not affect assignments, so reversal is a no-op on the solution.
         Ok(solution)
     }
@@ -60,16 +60,16 @@ impl TransformationPass for RenameLogic {
 
     fn forward(
         &self,
-        model: &mut rs_lunamodel::Model,
+        model: &mut luna_model_ffi::Model,
         _ctx: &PassContext,
-    ) -> rs_lunamodel::Result<RenameInverse> {
+    ) -> luna_model_ffi::Result<RenameInverse> {
         let previous = model.name()?;
         model.set_name(NEW_NAME.to_string())?;
         Ok(RenameInverse { previous })
     }
 }
 
-rs_lunamodel::py::py_transform_plugin!(pub RenamePass(RenameLogic) => RenameArtifact);
+luna_model_ffi::py::py_transform_plugin!(pub RenamePass(RenameLogic) => RenameArtifact);
 
 #[pymethods]
 impl RenamePass {
@@ -82,8 +82,8 @@ impl RenamePass {
 /// The shared **contract** both plugins agree on: the analysis result type. In a real split this
 /// lives in plugin A's crate, which plugin B depends on to obtain the type (and its `type_tag`).
 mod contract {
+    use luna_model_ffi::plugin::AnalysisResult;
     use prost::Message;
-    use rs_lunamodel::plugin::AnalysisResult;
 
     /// Stable name the result is stored/read under.
     pub const VARIABLE_COUNT: &str = "luna_plugin_ext::variable-count";
@@ -104,8 +104,8 @@ mod contract {
 /// **Plugin A** — an analysis counting the model's participating variables.
 mod plugin_a {
     use super::contract::{VARIABLE_COUNT, VariableCount};
+    use luna_model_ffi::plugin::{AnalysisPass, PassContext};
     use pyo3::prelude::*;
-    use rs_lunamodel::plugin::{AnalysisPass, PassContext};
 
     #[derive(Clone)]
     pub struct CountVariablesLogic;
@@ -122,16 +122,16 @@ mod plugin_a {
 
         fn run(
             &self,
-            model: &rs_lunamodel::Model,
+            model: &luna_model_ffi::Model,
             _ctx: &PassContext,
-        ) -> rs_lunamodel::Result<VariableCount> {
+        ) -> luna_model_ffi::Result<VariableCount> {
             Ok(VariableCount {
                 count: model.num_variables()? as u64,
             })
         }
     }
 
-    rs_lunamodel::py::py_analysis_plugin!(pub CountVariablesAnalysis(CountVariablesLogic) => VariableCountResult);
+    luna_model_ffi::py::py_analysis_plugin!(pub CountVariablesAnalysis(CountVariablesLogic) => VariableCountResult);
 
     #[pymethods]
     impl CountVariablesAnalysis {
@@ -146,9 +146,9 @@ mod plugin_a {
 /// context, then tags the model name with the count. Depends only on the shared contract type.
 mod plugin_b {
     use super::contract::{VARIABLE_COUNT, VariableCount};
+    use luna_model_ffi::plugin::{Artifact, PassContext, Reversible, TransformationPass};
     use prost::Message;
     use pyo3::prelude::*;
-    use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
     /// Inverse artifact — tagging carries no reversal data.
     #[derive(Message)]
@@ -180,8 +180,8 @@ mod plugin_b {
 
         fn backward(
             _artifact: &TagInverse,
-            solution: rs_lunamodel::Solution,
-        ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+            solution: luna_model_ffi::Solution,
+        ) -> luna_model_ffi::Result<luna_model_ffi::Solution> {
             Ok(solution)
         }
     }
@@ -197,9 +197,9 @@ mod plugin_b {
 
         fn forward(
             &self,
-            model: &mut rs_lunamodel::Model,
+            model: &mut luna_model_ffi::Model,
             ctx: &PassContext,
-        ) -> rs_lunamodel::Result<TagInverse> {
+        ) -> luna_model_ffi::Result<TagInverse> {
             // Read plugin A's analysis result across the C-ABI, decoding into the contract type.
             let counted: VariableCount = ctx.require_analysis(VARIABLE_COUNT)?;
             model.set_name(format!("vars={}", counted.count))?;
@@ -207,7 +207,7 @@ mod plugin_b {
         }
     }
 
-    rs_lunamodel::py::py_transform_plugin!(pub TagWithVariableCount(TagWithCountLogic) => TagArtifact);
+    luna_model_ffi::py::py_transform_plugin!(pub TagWithVariableCount(TagWithCountLogic) => TagArtifact);
 
     #[pymethods]
     impl TagWithVariableCount {
@@ -224,10 +224,10 @@ mod plugin_b {
 /// result the Rust *core* produced, across the C-ABI, by type — the twin of the C++ test's
 /// `TagWithMinConstraintPass`.
 mod plugin_c {
+    use luna_model_ffi::plugin::{Artifact, PassContext, Reversible, TransformationPass};
     use lunamodel_capi_plugin_proto::proto::MinConstraintValues;
     use prost::Message;
     use pyo3::prelude::*;
-    use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
     /// The built-in analysis's stable slot name (its public contract).
     const MIN_VALUE_FOR_CONSTRAINT: &str = "luna_model::min-value-for-constraint";
@@ -262,8 +262,8 @@ mod plugin_c {
 
         fn backward(
             _artifact: &TagInverse,
-            solution: rs_lunamodel::Solution,
-        ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+            solution: luna_model_ffi::Solution,
+        ) -> luna_model_ffi::Result<luna_model_ffi::Solution> {
             Ok(solution)
         }
     }
@@ -279,9 +279,9 @@ mod plugin_c {
 
         fn forward(
             &self,
-            model: &mut rs_lunamodel::Model,
+            model: &mut luna_model_ffi::Model,
             ctx: &PassContext,
-        ) -> rs_lunamodel::Result<TagInverse> {
+        ) -> luna_model_ffi::Result<TagInverse> {
             // The type carries its own tag (via `AnalysisResult`), so only the slot name is passed.
             let values: MinConstraintValues = ctx.require_analysis(MIN_VALUE_FOR_CONSTRAINT)?;
             model.set_name(format!("min-constraints:{}", values.vals.len()))?;
@@ -289,7 +289,7 @@ mod plugin_c {
         }
     }
 
-    rs_lunamodel::py::py_transform_plugin!(pub TagWithMinConstraint(TagWithMinConstraintLogic) => MinConstraintTagArtifact);
+    luna_model_ffi::py::py_transform_plugin!(pub TagWithMinConstraint(TagWithMinConstraintLogic) => MinConstraintTagArtifact);
 
     #[pymethods]
     impl TagWithMinConstraint {
@@ -307,9 +307,9 @@ mod plugin_c {
 /// it would plugin A's, with no changes on the consumer side.
 mod plugin_d {
     use super::contract::{VARIABLE_COUNT, VariableCount};
+    use luna_model_ffi::plugin::{Artifact, CompositePass, PassContext, Reversible};
     use prost::Message;
     use pyo3::prelude::*;
-    use rs_lunamodel::plugin::{Artifact, CompositePass, PassContext, Reversible};
 
     /// Typed inverse artifact — carries the original name so the rename half can be undone.
     #[derive(Message)]
@@ -334,8 +334,8 @@ mod plugin_d {
 
         fn backward(
             _artifact: &RenameAndCountInverse,
-            solution: rs_lunamodel::Solution,
-        ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+            solution: luna_model_ffi::Solution,
+        ) -> luna_model_ffi::Result<luna_model_ffi::Solution> {
             // Renaming does not affect assignments, so reversal is a no-op on the solution.
             Ok(solution)
         }
@@ -352,9 +352,9 @@ mod plugin_d {
 
         fn forward(
             &self,
-            model: &mut rs_lunamodel::Model,
+            model: &mut luna_model_ffi::Model,
             _ctx: &PassContext,
-        ) -> rs_lunamodel::Result<(RenameAndCountInverse, VariableCount)> {
+        ) -> luna_model_ffi::Result<(RenameAndCountInverse, VariableCount)> {
             // Transform half: rename the model, capturing the previous name for reversal.
             let previous = model.name()?;
             model.set_name("renamed-and-counted".into())?;
@@ -364,7 +364,7 @@ mod plugin_d {
         }
     }
 
-    rs_lunamodel::py::py_composite_plugin!(pub RenameAndCount(RenameAndCountLogic) => RenameAndCountArtifact, RenameAndCountResult);
+    luna_model_ffi::py::py_composite_plugin!(pub RenameAndCount(RenameAndCountLogic) => RenameAndCountArtifact, RenameAndCountResult);
 
     #[pymethods]
     impl RenameAndCount {
@@ -382,12 +382,12 @@ mod plugin_d {
 /// two steps. A companion transform reads that count back across the C-ABI and tags the model with
 /// it, proving the meta result is a drop-in producer of the shared analysis contract.
 mod plugin_e {
-    use prost::Message;
-    use pyo3::prelude::*;
-    use rs_lunamodel::plugin::{
+    use luna_model_ffi::plugin::{
         AnalysisResult, Artifact, MetaAnalysisPass, PassContext, Reversible, StepList,
         TransformationPass,
     };
+    use prost::Message;
+    use pyo3::prelude::*;
 
     /// Stable name the meta result is stored/read under.
     const FOLLOWING_COUNT: &str = "luna_plugin_ext::following-count";
@@ -418,7 +418,7 @@ mod plugin_e {
             "count-following"
         }
 
-        fn run(&self, steps: &StepList) -> rs_lunamodel::Result<FollowingCount> {
+        fn run(&self, steps: &StepList) -> luna_model_ffi::Result<FollowingCount> {
             // The view starts at this pass's own position, so `len` counts it plus the steps after.
             Ok(FollowingCount {
                 count: steps.len() as u64,
@@ -426,7 +426,7 @@ mod plugin_e {
         }
     }
 
-    rs_lunamodel::py::py_meta_analysis_plugin!(pub CountFollowing(CountFollowingLogic) => FollowingCountResult);
+    luna_model_ffi::py::py_meta_analysis_plugin!(pub CountFollowing(CountFollowingLogic) => FollowingCountResult);
 
     #[pymethods]
     impl CountFollowing {
@@ -468,8 +468,8 @@ mod plugin_e {
 
         fn backward(
             _artifact: &TagInverse,
-            solution: rs_lunamodel::Solution,
-        ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+            solution: luna_model_ffi::Solution,
+        ) -> luna_model_ffi::Result<luna_model_ffi::Solution> {
             Ok(solution)
         }
     }
@@ -485,9 +485,9 @@ mod plugin_e {
 
         fn forward(
             &self,
-            model: &mut rs_lunamodel::Model,
+            model: &mut luna_model_ffi::Model,
             ctx: &PassContext,
-        ) -> rs_lunamodel::Result<TagInverse> {
+        ) -> luna_model_ffi::Result<TagInverse> {
             // Read the meta-analysis result across the C-ABI, decoding into the contract type.
             let counted: FollowingCount = ctx.require_analysis(FOLLOWING_COUNT)?;
             model.set_name(format!("meta-steps={}", counted.count))?;
@@ -495,7 +495,7 @@ mod plugin_e {
         }
     }
 
-    rs_lunamodel::py::py_transform_plugin!(pub TagWithFollowingCount(TagWithFollowingCountLogic) => FollowingCountTagArtifact);
+    luna_model_ffi::py::py_transform_plugin!(pub TagWithFollowingCount(TagWithFollowingCountLogic) => FollowingCountTagArtifact);
 
     #[pymethods]
     impl TagWithFollowingCount {
@@ -514,8 +514,8 @@ mod plugin_e {
 /// `RenameLogic`'s backward is already registered in the top-level `register_plugins!`), so it is
 /// absent from the reversal registration.
 mod plugin_f {
+    use luna_model_ffi::plugin::{ControlFlowPass, ControlFlowPlan, PassContext};
     use pyo3::prelude::*;
-    use rs_lunamodel::plugin::{ControlFlowPass, ControlFlowPlan, PassContext};
 
     #[derive(Clone)]
     pub struct PickBranchLogic;
@@ -527,9 +527,9 @@ mod plugin_f {
 
         fn run(
             &self,
-            _model: &rs_lunamodel::Model,
+            _model: &luna_model_ffi::Model,
             _ctx: &PassContext,
-        ) -> rs_lunamodel::Result<ControlFlowPlan> {
+        ) -> luna_model_ffi::Result<ControlFlowPlan> {
             // Build the chosen branch: one transform step (the standalone rename), returned for the
             // engine to run. Reversible steps still register their own backward, as any pass does.
             let mut plan = ControlFlowPlan::new("chosen")?;
@@ -538,7 +538,7 @@ mod plugin_f {
         }
     }
 
-    rs_lunamodel::py::py_control_flow_plugin!(pub PickBranch(PickBranchLogic));
+    luna_model_ffi::py::py_control_flow_plugin!(pub PickBranch(PickBranchLogic));
 
     #[pymethods]
     impl PickBranch {
@@ -569,7 +569,7 @@ fn luna_plugin_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<plugin_f::PickBranch>()?;
     // Only reversible passes (transforms + composites) register a backward handler; analyses and
     // meta-analyses do not.
-    rs_lunamodel::py::register_plugins!(
+    luna_model_ffi::py::register_plugins!(
         m,
         transform: [
             RenameLogic,

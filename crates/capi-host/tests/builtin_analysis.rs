@@ -4,17 +4,17 @@
 //! serializes it on demand (registered serializer) into the shared protobuf wire form; the plugin
 //! decodes it into `lunamodel_capi_plugin_proto::proto::MinConstraintValues` — without linking core.
 
+use luna_model_ffi::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 use lunamodel_capi_host::capi_table::LUNA_MODEL_C_API;
 use lunamodel_capi_host::plugin::CPluginTransformPass;
 use lunamodel_capi_plugin_proto::proto::MinConstraintValues;
 use lunamodel_transform::analysis::MinValueForConstraintAnalysis;
 use lunamodel_transpiler::{AnalysisPass, PassManager};
-use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
 fn init() {
-    match unsafe { rs_lunamodel::init(&LUNA_MODEL_C_API as *const _) } {
-        Ok(()) | Err(rs_lunamodel::InitError::AlreadyInitialized) => {}
-        Err(e) => panic!("rs_lunamodel init failed: {e}"),
+    match unsafe { luna_model_ffi::init(&LUNA_MODEL_C_API as *const _) } {
+        Ok(()) | Err(luna_model_ffi::InitError::AlreadyInitialized) => {}
+        Err(e) => panic!("luna_model_ffi init failed: {e}"),
     }
     // Register built-in analysis serializers so a plugin can consume built-in results.
     lunamodel_transform::register_builtins();
@@ -48,8 +48,8 @@ impl Reversible for ReadMinConstraints {
     const ID: &'static str = "test::read-min-constraints";
     fn backward(
         _artifact: &ReadMarker,
-        solution: rs_lunamodel::Solution,
-    ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+        solution: luna_model_ffi::Solution,
+    ) -> luna_model_ffi::Result<luna_model_ffi::Solution> {
         Ok(solution)
     }
 }
@@ -63,9 +63,9 @@ impl TransformationPass for ReadMinConstraints {
     }
     fn forward(
         &self,
-        model: &mut rs_lunamodel::Model,
+        model: &mut luna_model_ffi::Model,
         ctx: &PassContext,
-    ) -> rs_lunamodel::Result<ReadMarker> {
+    ) -> luna_model_ffi::Result<ReadMarker> {
         // Decode the BUILT-IN analysis result into the shared proto type — no core linked here.
         let mins: MinConstraintValues =
             ctx.require_analysis(MinValueForConstraintAnalysis::PROVIDES)?;
@@ -77,10 +77,10 @@ impl TransformationPass for ReadMinConstraints {
 #[test]
 fn plugin_reads_builtin_analysis() {
     init();
-    rs_lunamodel::plugin::register_backward::<ReadMinConstraints>().expect("register backward");
+    luna_model_ffi::plugin::register_backward::<ReadMinConstraints>().expect("register backward");
 
     let transform =
-        rs_lunamodel::plugin::descriptor(ReadMinConstraints::new()).expect("build descriptor");
+        luna_model_ffi::plugin::descriptor(ReadMinConstraints::new()).expect("build descriptor");
 
     // Built-in analysis first, then the plugin transform that requires it.
     let pm = PassManager::default()

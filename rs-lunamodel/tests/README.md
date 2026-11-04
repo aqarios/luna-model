@@ -1,4 +1,4 @@
-# Testing rs-lunamodel
+# Testing luna-model-ffi
 
 Tests live in this directory: a small maturin-built extension crate
 (`rs-lunamodel-integration-ext` under `integration_ext/`) plus pytest
@@ -50,11 +50,11 @@ which `luna_model` host it runs against. That is what makes this a check of
 whether the published host is compatible with the current extension code.
 
 The contract: against a host of a **different** C API ABI version the extension
-may fail (rs-lunamodel rejects such a host), so `conftest.py` skips the whole
+may fail (luna-model-ffi rejects such a host), so `conftest.py` skips the whole
 session with the two versions as reason. Against the **same** ABI version every
 test must pass. Additions to the host don't break that: an older extension
 never uses them. But the extension built here is newer than the published host,
-so where rs-lunamodel uses a host addition (e.g.
+so where luna-model-ffi uses a host addition (e.g.
 `luna_model.errors._error_for_kind`, added in 0.8.0a2) it must fall back when
 the host predates it, and the tests expect that fallback on such a host (see
 `test_errors.py`).

@@ -6,7 +6,7 @@
 //! Python-facing class name (`"Bounds"`) and the `_lm` inner class name
 //! (`"PyBounds"`) from it.
 
-/// Declares a Python conversion wrapper around an owning `rs-lunamodel`
+/// Declares a Python conversion wrapper around an owning `luna-model-ffi`
 /// facade handle.
 ///
 /// The generated conversion transfers only an opaque C handle through a named

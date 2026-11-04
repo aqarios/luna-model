@@ -19,7 +19,7 @@ use super::{
 /// At `run`, the pass inspects the read-only model (and the analyses available so far) and builds a
 /// [`ControlFlowPlan`]: the pipeline of steps to execute next. It is not itself reversible — the
 /// steps it selects carry their own reversal. Implement this and hand the type to the SDK
-/// (`descriptor_control_flow`, or the `rs-lunamodel` macros) — no `unsafe`, no C types.
+/// (`descriptor_control_flow`, or the `luna-model-ffi` macros) — no `unsafe`, no C types.
 pub trait ControlFlowPass: Send + Sync + 'static {
     /// Human-readable pass name.
     fn name(&self) -> &str;

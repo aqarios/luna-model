@@ -7,8 +7,8 @@
 
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::LmTiming;
-use rs_lunamodel_derive::RawHandle;
 
 use crate::{Result, TryClone, api::api};
 

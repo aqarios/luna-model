@@ -5,9 +5,9 @@
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `Variable` still return `Result` here.
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::LmVar;
 use lunamodel_types::Vtype;
-use rs_lunamodel_derive::RawHandle;
 
 use crate::{Bounds, LazyBounds, Result, TryClone};
 

@@ -8,9 +8,9 @@
 mod access;
 mod modification;
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::LmConstraint;
 use lunamodel_types::{Bias, Comparator};
-use rs_lunamodel_derive::RawHandle;
 
 use crate::{ContentEquality, Env, Expression, Result, TryClone, TryDeepClone};
 

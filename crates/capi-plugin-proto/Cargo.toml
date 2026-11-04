@@ -11,7 +11,7 @@ repository.workspace = true
 
 [dependencies]
 prost = { workspace = true }
-rs-lunamodel = { path = "../../rs-lunamodel" }
+luna-model-ffi = { path = "../../rs-lunamodel" }
 
 [build-dependencies]
 prost-build = "0.14"

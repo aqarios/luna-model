@@ -1,7 +1,7 @@
 """End-to-end test of the Python<->C++ interop casters (luna_model/nanobind.hpp).
 
 Plain C++ functions — not passes — receive and return luna_model Python objects directly, driven
-from Python. This exercises the general interop membrane (the nanobind analog of rs-lunamodel's
+from Python. This exercises the general interop membrane (the nanobind analog of luna-model-ffi's
 FromPyObject/IntoPyObject): a luna_model.Model crosses into C++ as an lm::Model and back, via the
 `_to_c_capsule` / `_from_c_capsule` transport. Importing the module binds the C API table, so no
 `luna_model.register` is needed — these are ordinary functions, not plugins.

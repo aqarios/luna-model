@@ -8,22 +8,22 @@
 
 use std::sync::Arc;
 
+use luna_model_ffi::plugin::{descriptor_control_flow, register_backward};
 use lunamodel_capi_host::capi_table::LUNA_MODEL_C_API;
 use lunamodel_capi_host::plugin::CPluginControlFlowPass;
 use lunamodel_transpiler::{PassManager, PipelineStep};
-use rs_lunamodel::plugin::{descriptor_control_flow, register_backward};
 
 fn init() {
-    match unsafe { rs_lunamodel::init(&LUNA_MODEL_C_API as *const _) } {
-        Ok(()) | Err(rs_lunamodel::InitError::AlreadyInitialized) => {}
-        Err(e) => panic!("rs_lunamodel init failed: {e}"),
+    match unsafe { luna_model_ffi::init(&LUNA_MODEL_C_API as *const _) } {
+        Ok(()) | Err(luna_model_ffi::InitError::AlreadyInitialized) => {}
+        Err(e) => panic!("luna_model_ffi init failed: {e}"),
     }
 }
 
 /// The transform the control-flow pass selects into its branch.
 mod branch {
+    use luna_model_ffi::plugin::{Artifact, PassContext, Reversible, TransformationPass};
     use prost::Message;
-    use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
     pub const NEW_NAME: &str = "via-control-flow";
 
@@ -49,8 +49,8 @@ mod branch {
 
         fn backward(
             _artifact: &RenameInverse,
-            solution: rs_lunamodel::Solution,
-        ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+            solution: luna_model_ffi::Solution,
+        ) -> luna_model_ffi::Result<luna_model_ffi::Solution> {
             Ok(solution)
         }
     }
@@ -62,9 +62,9 @@ mod branch {
 
         fn forward(
             &self,
-            model: &mut rs_lunamodel::Model,
+            model: &mut luna_model_ffi::Model,
             _ctx: &PassContext,
-        ) -> rs_lunamodel::Result<RenameInverse> {
+        ) -> luna_model_ffi::Result<RenameInverse> {
             let previous = model.name()?;
             model.set_name(NEW_NAME.to_string())?;
             Ok(RenameInverse { previous })
@@ -74,7 +74,7 @@ mod branch {
 
 /// The control-flow pass: builds a one-step plan (the rename branch) at run time.
 mod cf {
-    use rs_lunamodel::plugin::{ControlFlowPass, ControlFlowPlan, PassContext};
+    use luna_model_ffi::plugin::{ControlFlowPass, ControlFlowPlan, PassContext};
 
     pub struct PickBranch;
 
@@ -85,9 +85,9 @@ mod cf {
 
         fn run(
             &self,
-            _model: &rs_lunamodel::Model,
+            _model: &luna_model_ffi::Model,
             _ctx: &PassContext,
-        ) -> rs_lunamodel::Result<ControlFlowPlan> {
+        ) -> luna_model_ffi::Result<ControlFlowPlan> {
             let mut plan = ControlFlowPlan::new("chosen")?;
             plan.add_transform(super::branch::RenameTo)?;
             Ok(plan)

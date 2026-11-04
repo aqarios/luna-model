@@ -2,7 +2,7 @@
 
 The `roundtrip_*` functions only pass the C-API handle back, so they never read
 the host's data and cannot detect a mismatch between the host `luna_model` and
-the `rs-lunamodel` the extension was built with. These probes read and compute
+the `luna-model-ffi` the extension was built with. These probes read and compute
 on the data in Rust.
 """
 

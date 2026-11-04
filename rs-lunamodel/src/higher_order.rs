@@ -7,8 +7,8 @@
 
 use std::ops::{Mul, Neg};
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::LmHigherOrder;
-use rs_lunamodel_derive::RawHandle;
 
 use crate::{
     Result, TryClone, TryIndex,

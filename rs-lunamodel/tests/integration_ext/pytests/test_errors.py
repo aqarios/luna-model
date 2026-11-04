@@ -1,7 +1,7 @@
 import pytest
 from luna_model import errors
 
-# Every kind tag of rs-lunamodel's `ErrorKind` catalog, with the class luna-model raises for it
+# Every kind tag of luna-model-ffi's `ErrorKind` catalog, with the class luna-model raises for it
 # natively; `into_pyerr` takes it from the installed luna-model (`errors._error_for_kind`).
 KIND_CLASSES = {
     "different_environments": errors.DifferentEnvsError,

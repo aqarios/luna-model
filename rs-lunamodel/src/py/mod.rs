@@ -18,12 +18,12 @@ mod variable;
 pub mod prelude;
 
 // Re-exported so the plugin-authoring macros below can reference these crates through `$crate`,
-// keeping extension authors' dependency list to just `pyo3` + ``rs-lunamodel/py`.
+// keeping extension authors' dependency list to just `pyo3` + `luna-model-ffi/py`.
 pub use lunamodel_capi_pyffi;
 
 // The plugin-authoring macros are `#[macro_export]`, so they live at the crate root
-// (`rs_lunamodel::py_transform_plugin!`). Re-export them here so authors can also reach them under
-// the `py` module — `rs_lunamodel::py::py_transform_plugin!(...)` — matching the single-package
+// (`luna_model_ffi::py_transform_plugin!`). Re-export them here so authors can also reach them under
+// the `py` module — `luna_model_ffi::py::py_transform_plugin!(...)` — matching the single-package
 // layout (the macros' own `$crate::…` paths still resolve against the crate root either way).
 pub use crate::{
     py_analysis_plugin, py_composite_plugin, py_control_flow_plugin, py_meta_analysis_plugin,
@@ -49,7 +49,7 @@ pub(crate) fn luna_model(py: Python<'_>) -> PyResult<Bound<'_, PyModule>> {
 
 /// Ensures the host LunaModel C API table is installed for this extension.
 ///
-/// Reads the `luna_model._lm._C_API` capsule and hands it to [`rs_lunamodel::init`] (idempotent).
+/// Reads the `luna_model._lm._C_API` capsule and hands it to [`luna_model_ffi::init`] (idempotent).
 /// Extension authors call this before any raw ABI use — e.g. before registering a plugin pass's
 /// reversal handler, or before returning a plugin descriptor whose trampolines dispatch through
 /// the table. The conversion wrappers call it automatically, so most code never needs to.

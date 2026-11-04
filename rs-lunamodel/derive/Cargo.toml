@@ -1,5 +1,5 @@
 [package]
-name = "rs-lunamodel-derive"
+name = "luna-model-ffi-derive"
 version.workspace = true
 edition = "2024"
 license = "Apache-2.0"

@@ -214,7 +214,7 @@ cpp-plugin-dev: wheelheaders
 rs-plugin-test:
     cd {{rs_plugin_test}} && CARGO_TARGET_DIR={{uv_cargo_target_dir}} uv sync --group dev --reinstall-package luna-model --reinstall-package luna-plugin-ext && uv run pytest pytests/ -v -n {{pytest_workers}}
 
-# Host/extension interop test: a Rust extension built on rs-lunamodel round-trips and reads every
+# Host/extension interop test: a Rust extension built on luna-model-ffi round-trips and reads every
 # host type of the local luna-model wheel. Reinstalls both so neither side is stale.
 rs-ext-test:
     cd {{rs_ext_test}} && CARGO_TARGET_DIR={{uv_cargo_target_dir}} uv sync --reinstall-package luna-model --reinstall-package rs-lunamodel-integration-ext && uv run pytest integration_ext/pytests -v
@@ -228,9 +228,9 @@ rs-ext-test-pypi:
 # Rust tests: the whole main workspace EXCEPT the pyo3/napi crates. Those force pyo3's
 # `extension-module` feature (whose no-libpython-linking breaks a plain `cargo test` binary via
 # feature unification), and they are exercised by the Python/JS suites below instead. Also the
-# separate rs-lunamodel SDK workspace (excluded from the main workspace).
+# separate luna-model-ffi SDK workspace (excluded from the main workspace).
 
-# Rust test suites: the main workspace core (pyo3/napi crates excluded) + the rs-lunamodel SDK.
+# Rust test suites: the main workspace core (pyo3/napi crates excluded) + the luna-model-ffi SDK.
 test-rust:
     cargo test --workspace \
       --exclude pylm --exclude lunamodel-python \
@@ -245,7 +245,7 @@ test-py:
 test-js:
     cd {{js_dir}} && bun run test:all
 
-# Run EVERYTHING: Rust (core + rs-lunamodel SDK), C, C++, core Python, both plugin extensions
+# Run EVERYTHING: Rust (core + luna-model-ffi SDK), C, C++, core Python, both plugin extensions
 # (C++ and Rust, driven from Python), and JS bindings — all run concurrently (see [parallel]
 # below), capped at `just --jobs N test` / `JUST_JOBS=N` (default: number of CPUs). Unlike the
 # old sequential version, this does NOT fail fast: every dependency runs to completion and only

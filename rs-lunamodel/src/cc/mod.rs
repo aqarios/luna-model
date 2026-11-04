@@ -9,8 +9,8 @@ mod access;
 mod editor;
 mod modification;
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::LmCC;
-use rs_lunamodel_derive::RawHandle;
 
 use crate::{
     Constraint, ContentEquality, Env, Result, Serialization, TryClone, TryDeepClone, api::api,

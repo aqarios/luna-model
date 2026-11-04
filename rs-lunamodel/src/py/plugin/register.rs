@@ -9,7 +9,7 @@
 /// #[pymodule]
 /// fn my_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
 ///     m.add_class::<RelabelPass>()?;
-///     rs_lunamodel::py::register_plugins!(m, Relabel)?;
+///     luna_model_ffi::py::register_plugins!(m, Relabel)?;
 ///     Ok(())
 /// }
 /// ```

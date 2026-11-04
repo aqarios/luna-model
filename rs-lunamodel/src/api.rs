@@ -144,7 +144,7 @@ macro_rules! api_has {
 pub(crate) fn api() -> &'static LunaModelCApi {
     let handle = API
         .get()
-        .expect("rs-lunamodel: C API table not installed; call `rs_lunamodel::init` first");
+        .expect("luna-model-ffi: C API table not installed; call `luna_model_ffi::init` first");
     // SAFETY: `init` validated the pointer and the host keeps it alive for the
     // process lifetime.
     unsafe { &*handle.0 }

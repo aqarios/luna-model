@@ -28,7 +28,7 @@ pub trait AnalysisResult: Message + Default + Send + Sync + 'static {
 
 /// An analysis pass: computes a result from a model without transforming it.
 ///
-/// A 1:1 mirror of `lunamodel_transpiler::AnalysisPass` over the `rs-lunamodel` facade. The result
+/// A 1:1 mirror of `lunamodel_transpiler::AnalysisPass` over the `luna-model-ffi` facade. The result
 /// is deposited under [`PROVIDES`](Self::PROVIDES) in the run's analysis store, where later passes
 /// read it back by that name with [`PassContext::require_analysis`](super::PassContext::require_analysis)
 /// — including passes from a *different* plugin, as long as they share the [`Output`](Self::Output)

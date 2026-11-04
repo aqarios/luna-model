@@ -16,10 +16,10 @@
 //! // In a pyo3 extension: read the capsule and hand the pointer to `init`.
 //! let capsule = py.import("luna_model._lm")?.getattr("_C_API")?;
 //! let table = capsule.downcast::<PyCapsule>()?.pointer() as *const LunaModelCApi;
-//! unsafe { rs_lunamodel::init(table)? };
+//! unsafe { luna_model_ffi::init(table)? };
 //!
-//! let env = rs_lunamodel::Env::new();
-//! let x = rs_lunamodel::Expression::constant(&env, 2.0)?;
+//! let env = luna_model_ffi::Env::new();
+//! let x = luna_model_ffi::Expression::constant(&env, 2.0)?;
 //! let y = (x * 3.0)?;
 //! assert_eq!(y.offset()?, 6.0);
 //! ```

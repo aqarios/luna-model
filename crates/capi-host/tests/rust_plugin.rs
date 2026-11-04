@@ -11,9 +11,9 @@ use std::sync::{
 use lunamodel_capi_host::capi_table::LUNA_MODEL_C_API;
 use lunamodel_capi_host::plugin::CPluginTransformPass;
 
+use luna_model_ffi::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 use lunamodel_transpiler::PassManager;
 use prost::Message;
-use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
 const NEW_NAME: &str = "renamed-by-rust-plugin";
 
@@ -52,8 +52,8 @@ impl Reversible for RenamePass {
 
     fn backward(
         artifact: &RenameArtifact,
-        solution: rs_lunamodel::Solution,
-    ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+        solution: luna_model_ffi::Solution,
+    ) -> luna_model_ffi::Result<luna_model_ffi::Solution> {
         // Renaming does not affect assignments; record that reversal dispatched here and that the
         // typed artifact round-tripped its data through serialize/deserialize.
         BACKWARD_CALLS.fetch_add(1, Ordering::SeqCst);
@@ -69,9 +69,9 @@ impl TransformationPass for RenamePass {
 
     fn forward(
         &self,
-        model: &mut rs_lunamodel::Model,
+        model: &mut luna_model_ffi::Model,
         _ctx: &PassContext,
-    ) -> rs_lunamodel::Result<RenameArtifact> {
+    ) -> luna_model_ffi::Result<RenameArtifact> {
         let previous = model.name()?;
         model.set_name(NEW_NAME.to_string())?;
         Ok(RenameArtifact { previous })
@@ -85,14 +85,14 @@ fn rust_plugin_forward_and_backward() {
     BACKWARD_PREV_OK.store(false, Ordering::SeqCst);
 
     // Driver bootstrap: install the host C-API table (the one unavoidable `unsafe`, host-side).
-    match unsafe { rs_lunamodel::init(&LUNA_MODEL_C_API as *const _) } {
-        Ok(()) | Err(rs_lunamodel::InitError::AlreadyInitialized) => {}
-        Err(e) => panic!("rs_lunamodel init failed: {e}"),
+    match unsafe { luna_model_ffi::init(&LUNA_MODEL_C_API as *const _) } {
+        Ok(()) | Err(luna_model_ffi::InitError::AlreadyInitialized) => {}
+        Err(e) => panic!("luna_model_ffi init failed: {e}"),
     }
 
     // Safe SDK calls — no unsafe, no descriptor hand-assembly.
-    rs_lunamodel::plugin::register_backward::<RenamePass>().expect("register plugin backward");
-    let descriptor = rs_lunamodel::plugin::descriptor(RenamePass).expect("build descriptor");
+    luna_model_ffi::plugin::register_backward::<RenamePass>().expect("register plugin backward");
+    let descriptor = luna_model_ffi::plugin::descriptor(RenamePass).expect("build descriptor");
 
     // Driver: the core builds and runs the pipeline and reverses the solution.
     let pm =
@@ -122,14 +122,14 @@ fn rust_plugin_mixed_with_builtin() {
     use lunamodel_transform::transformation::ChangeSensePass;
 
     let _serial = serial();
-    match unsafe { rs_lunamodel::init(&LUNA_MODEL_C_API as *const _) } {
-        Ok(()) | Err(rs_lunamodel::InitError::AlreadyInitialized) => {}
-        Err(e) => panic!("rs_lunamodel init failed: {e}"),
+    match unsafe { luna_model_ffi::init(&LUNA_MODEL_C_API as *const _) } {
+        Ok(()) | Err(luna_model_ffi::InitError::AlreadyInitialized) => {}
+        Err(e) => panic!("luna_model_ffi init failed: {e}"),
     }
     lunamodel_transform::register_backward();
-    rs_lunamodel::plugin::register_backward::<RenamePass>().expect("register plugin backward");
+    luna_model_ffi::plugin::register_backward::<RenamePass>().expect("register plugin backward");
 
-    let descriptor = rs_lunamodel::plugin::descriptor(RenamePass).expect("build descriptor");
+    let descriptor = luna_model_ffi::plugin::descriptor(RenamePass).expect("build descriptor");
     let pm = PassManager::default()
         .add_transform(CPluginTransformPass::from_descriptor(&descriptor))
         .add_transform(ChangeSensePass::new(lunamodel_types::Sense::Max));

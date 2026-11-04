@@ -7,17 +7,17 @@
 //! deposits the analysis result, and lends it back to the consuming pass — exactly as it does for
 //! built-in passes.
 
+use luna_model_ffi::plugin::{descriptor, descriptor_analysis, register_backward};
 use lunamodel_capi_host::capi_table::LUNA_MODEL_C_API;
 use lunamodel_capi_host::plugin::{CPluginAnalysisPass, CPluginTransformPass};
 use lunamodel_transpiler::PassManager;
 use lunamodel_types::Vtype;
-use rs_lunamodel::plugin::{descriptor, descriptor_analysis, register_backward};
 
 /// Installs the host C-API table (the one host-side `unsafe`, shared by all tests).
 fn init() {
-    match unsafe { rs_lunamodel::init(&LUNA_MODEL_C_API as *const _) } {
-        Ok(()) | Err(rs_lunamodel::InitError::AlreadyInitialized) => {}
-        Err(e) => panic!("rs_lunamodel init failed: {e}"),
+    match unsafe { luna_model_ffi::init(&LUNA_MODEL_C_API as *const _) } {
+        Ok(()) | Err(luna_model_ffi::InitError::AlreadyInitialized) => {}
+        Err(e) => panic!("luna_model_ffi init failed: {e}"),
     }
 }
 
@@ -42,8 +42,8 @@ fn model_with_vars(n: usize) -> lunamodel_core::Model {
 /// split this lives in plugin A's crate, which plugin B depends on and compiles — giving B the type
 /// (and its `type_tag`) needed to decode A's result.
 mod contract {
+    use luna_model_ffi::plugin::AnalysisResult;
     use prost::Message;
-    use rs_lunamodel::plugin::AnalysisResult;
 
     /// Stable name the result is stored/read under.
     pub const VARIABLE_COUNT: &str = "contract::variable-count";
@@ -64,7 +64,7 @@ mod contract {
 /// **Plugin A** — provides an analysis computing the model's variable count.
 mod plugin_a {
     use super::contract::{VARIABLE_COUNT, VariableCount};
-    use rs_lunamodel::plugin::{AnalysisPass, PassContext};
+    use luna_model_ffi::plugin::{AnalysisPass, PassContext};
 
     pub struct CountVariables;
 
@@ -80,9 +80,9 @@ mod plugin_a {
 
         fn run(
             &self,
-            model: &rs_lunamodel::Model,
+            model: &luna_model_ffi::Model,
             _ctx: &PassContext,
-        ) -> rs_lunamodel::Result<VariableCount> {
+        ) -> luna_model_ffi::Result<VariableCount> {
             Ok(VariableCount {
                 count: model.num_variables()? as u64,
             })
@@ -94,8 +94,8 @@ mod plugin_a {
 /// context. B depends only on the shared contract type, never on the core.
 mod plugin_b {
     use super::contract::{VARIABLE_COUNT, VariableCount};
+    use luna_model_ffi::plugin::{Artifact, PassContext, Reversible, TransformationPass};
     use prost::Message;
-    use rs_lunamodel::plugin::{Artifact, PassContext, Reversible, TransformationPass};
 
     #[derive(Message)]
     pub struct CountArtifact {
@@ -128,8 +128,8 @@ mod plugin_b {
 
         fn backward(
             _artifact: &CountArtifact,
-            solution: rs_lunamodel::Solution,
-        ) -> rs_lunamodel::Result<rs_lunamodel::Solution> {
+            solution: luna_model_ffi::Solution,
+        ) -> luna_model_ffi::Result<luna_model_ffi::Solution> {
             Ok(solution)
         }
     }
@@ -145,9 +145,9 @@ mod plugin_b {
 
         fn forward(
             &self,
-            model: &mut rs_lunamodel::Model,
+            model: &mut luna_model_ffi::Model,
             ctx: &PassContext,
-        ) -> rs_lunamodel::Result<CountArtifact> {
+        ) -> luna_model_ffi::Result<CountArtifact> {
             // Read plugin A's analysis result across the C-ABI, decoding into the contract type.
             let counted: VariableCount = ctx.require_analysis(VARIABLE_COUNT)?;
             model.set_name(format!("vars={}", counted.count))?;

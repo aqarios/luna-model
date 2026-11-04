@@ -205,6 +205,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
 
 [[package]]
+name = "luna-model-ffi"
+version = "0.8.0-alpha.1"
+dependencies = [
+ "derive_more",
+ "enumset",
+ "indexmap",
+ "itertools 0.15.0",
+ "luna-model-ffi-derive",
+ "lunamodel-capi",
+ "lunamodel-capi-pyffi",
+ "lunamodel-types",
+ "num",
+ "prost",
+ "pyo3",
+]
+
+[[package]]
+name = "luna-model-ffi-derive"
+version = "0.8.0-alpha.1"
+dependencies = [
+ "quote",
+ "syn 3.0.3",
+]
+
+[[package]]
 name = "lunamodel-capi"
 version = "0.8.0-alpha.1"
 
@@ -451,36 +476,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
 
 [[package]]
-name = "rs-lunamodel"
-version = "0.8.0-alpha.1"
-dependencies = [
- "derive_more",
- "enumset",
- "indexmap",
- "itertools 0.15.0",
- "lunamodel-capi",
- "lunamodel-capi-pyffi",
- "lunamodel-types",
- "num",
- "prost",
- "pyo3",
- "rs-lunamodel-derive",
-]
-
-[[package]]
-name = "rs-lunamodel-derive"
-version = "0.8.0-alpha.1"
-dependencies = [
- "quote",
- "syn 3.0.3",
-]
-
-[[package]]
 name = "rs-lunamodel-integration-ext"
 version = "0.0.1"
 dependencies = [
+ "luna-model-ffi",
  "pyo3",
- "rs-lunamodel",
 ]
 
 [[package]]

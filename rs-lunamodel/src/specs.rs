@@ -5,9 +5,9 @@
 //! calls surface as [`Result`]; the C ABI can always report a status, so methods
 //! that are infallible on the native `Specs` still return `Result` here.
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::{LmCtype, LmSpecs, LmVtype};
 use lunamodel_types::{Ctype, EnumSet, Sense, Vtype};
-use rs_lunamodel_derive::RawHandle;
 
 use crate::traits::LmInto;
 use crate::{Result, TryClone};

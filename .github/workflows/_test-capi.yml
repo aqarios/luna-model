@@ -1,4 +1,4 @@
-# Reusable: everything built on the C API — the rs-lunamodel SDK, the C and C++
+# Reusable: everything built on the C API — the luna-model-ffi SDK, the C and C++
 # test suites, the Rust/C++ extensions driven from Python against the local
 # luna-model wheel (and the Rust one also against the published wheel), and the
 # drift checks for the committed header/.proto copies.

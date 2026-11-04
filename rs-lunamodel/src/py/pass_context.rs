@@ -9,7 +9,7 @@ use crate::plugin::PassContext;
 ///
 /// Mirrors the host's own read-only context: a `PassContext()` constructed in Python is empty, and
 /// a populated one is supplied by the host during a `PassManager` run (a pass reaches results
-/// through `rs_lunamodel::plugin::PassContext::{get_analysis, require_analysis}`). Present so a
+/// through `luna_model_ffi::plugin::PassContext::{get_analysis, require_analysis}`). Present so a
 /// plugin pass's `forward` has the same `(model, ctx)` surface as a native pass.
 #[pyclass(name = "PassContext")]
 pub struct PyPassContext(PassContext);

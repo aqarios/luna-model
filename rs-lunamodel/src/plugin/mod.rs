@@ -2,7 +2,7 @@
 //!
 //! The traits here are a 1:1 mirror of the native transpiler's pass traits — [`Artifact`],
 //! [`Reversible`], [`TransformationPass`], [`AnalysisPass`], [`CompositePass`], [`PassContext`] —
-//! but over the `rs-lunamodel` facade (`Model`/`Solution`), dispatched through the stable C ABI. A
+//! but over the `luna-model-ffi` facade (`Model`/`Solution`), dispatched through the stable C ABI. A
 //! plugin author writes exactly what they would for a native pass and never touches `unsafe`,
 //! `extern "C"`, raw handles, or the C descriptor: [`descriptor`] and [`register_backward`] (and
 //! their per-kind siblings) generate that glue by monomorphizing over the concrete pass type, so

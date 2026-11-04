@@ -3,7 +3,7 @@
 
 // Authoring luna-model transpiler-pass **plugins** in C++.
 //
-// This is the C++ twin of `rs-lunamodel`'s `plugin` module: a header-only SDK for writing passes
+// This is the C++ twin of `luna-model-ffi`'s `plugin` module: a header-only SDK for writing passes
 // that luna-model calls OUT into (the inverse of the `LunaModelCApi` extension direction). A plugin
 // author subclasses `lm::plugin::TransformationPass` / `lm::plugin::AnalysisPass`, and this header
 // generates the C-ABI descriptor (`LmPluginTransform` / `LmPluginAnalysis`) and the reversal glue —
@@ -146,7 +146,7 @@ class PassContext {
 };
 
 /// Read-only view of the pipeline steps that follow a meta-analysis pass, lent to it during
-/// `MetaAnalysisPass::run`. A 1:1 mirror of the `rs-lunamodel` `StepList`/`Step` facade over the
+/// `MetaAnalysisPass::run`. A 1:1 mirror of the `luna-model-ffi` `StepList`/`Step` facade over the
 /// `step_list_*` API-table entries: the count, and per step its `LmPassKind`, name, and the analysis
 /// names it requires / provides / invalidates. Matching the native semantics, the view starts at the
 /// meta pass's OWN position — so index 0 is the meta pass itself, index 1 the next step, and so on.

@@ -8,8 +8,8 @@
 //! [`update`]: SolutionLookup::update
 //! [`write_sol`]: SolutionLookup::write_sol
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::LmSolutionLookup;
-use rs_lunamodel_derive::RawHandle;
 
 use crate::{Env, Result, SampleView, Solution};
 

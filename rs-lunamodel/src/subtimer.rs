@@ -3,8 +3,8 @@
 //! Mirrors the Rust `SubTimer`, dispatching every call through the installed
 //! [`LunaModelCApi`](lunamodel_capi::LunaModelCApi) table.
 
+use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::LmSubTimer;
-use rs_lunamodel_derive::RawHandle;
 
 use crate::Result;
 
