@@ -29,7 +29,7 @@ impl SerEnvironment {
         self.extract_spin(&mut variables, &mut lookup);
         self.extract_int(&mut variables, &mut lookup);
         self.extract_real(&mut variables, &mut lookup);
-        let ivs: IndexMap<u32, Variable> = variables.into_iter().collect();
+        let ivs = self.ordered(variables);
         let nxt_idx = match self.next_idx {
             Some(idx) => idx,
             None => match ivs.keys().max() {
@@ -38,6 +38,23 @@ impl SerEnvironment {
             },
         };
         Environment::new(ivs, lookup, nxt_idx)
+    }
+
+    /// Arranges the decoded variables in their serialized environment order.
+    ///
+    /// Variables not covered by the stored order (e.g. data written before the
+    /// order was serialized) are appended in index order, which matches the
+    /// insertion order of environments that were never reordered.
+    fn ordered(&self, mut variables: HashMap<VarIdx, Variable>) -> IndexMap<VarIdx, Variable> {
+        let mut ivs: IndexMap<VarIdx, Variable> = self
+            .order
+            .iter()
+            .filter_map(|idx| variables.remove_entry(idx))
+            .collect();
+        let mut rest: IndexMap<VarIdx, Variable> = variables.into_iter().collect();
+        rest.sort_keys();
+        ivs.extend(rest);
+        ivs
     }
 
     fn extract_bin(
