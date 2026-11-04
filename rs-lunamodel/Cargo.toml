@@ -27,7 +27,7 @@ members = ["derive"]
 # workspace version by ci/tools/set-release-version.sh, checked by check-versions.sh.
 # Keep this the first bare `version =` line of this manifest (the scripts edit that one).
 [workspace.package]
-version = "0.8.0-alpha.1"
+version = "0.8.0-alpha.2"
 
 [dependencies]
 enumset = "1.1.14"
