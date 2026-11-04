@@ -264,6 +264,10 @@ impl LunaModelError {
     /// Used to carry variant identity across boundaries that can't hold the enum itself (the C
     /// ABI's [`RichError`](../../lunamodel_capi/error/struct.RichError.html), for one) without
     /// losing the ability to tell one kind of failure from another.
+    ///
+    /// With the `py` feature, a new tag also needs its Python exception in
+    /// [`py::new_err_for_kind`] (otherwise it raises the base
+    /// `LunaModelError`, natively and from C API extensions alike).
     pub fn kind_tag(&self) -> Cow<'static, str> {
         use LunaModelError::*;
         match self {

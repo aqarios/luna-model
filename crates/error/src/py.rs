@@ -5,8 +5,9 @@
 //! callers can still handle specific categories without having to parse strings.
 // the entire module is feature bound to `py`.
 use pyo3::{
-    PyErr, Python, create_exception,
-    exceptions::{PyException, PyIndexError},
+    PyErr, PyResult, Python, create_exception,
+    exceptions::{PyBaseException, PyException, PyIndexError},
+    prelude::*,
 };
 
 use crate::LunaModelError as Lme;
@@ -341,48 +342,67 @@ create_exception!(
     "Raised when an invalid tolerance is specified."
 );
 
+/// The constructor of the Python exception luna-model raises for an error of kind `tag`
+/// ([`Lme::kind_tag`]).
+///
+/// This is the single kind -> exception mapping: native errors are raised through it (see the
+/// `From<Lme> for PyErr` impl below), and C API extensions reach it through
+/// `luna_model.errors._error_for_kind`, so an error raised by a plugin is the same Python class
+/// as the native one. Kinds without a dedicated class (plugin-defined kinds, coarse ABI fallback
+/// tags) map to the base `LunaModelError`.
+pub fn new_err_for_kind(tag: &str) -> fn(String) -> PyErr {
+    match tag {
+        "different_environments" => PyDifferentEnvsError::new_err,
+        "variable_exists" => PyVariableExistsError::new_err,
+        "variable_not_existing" => PyVariableNotExistingError::new_err,
+        "variable_name_invalid" | "variable_names" => PyVariableNamesError::new_err,
+        "constraint_name_invalid" => PyIllegalConstraintNameError::new_err,
+        "invalid_bounds" | "inverted_binary_creation" => PyVariableCreationError::new_err,
+        "invalid_inversion" | "unsupported_operation" => PyUnsupportedOperationError::new_err,
+        "compression" => PyCompressionError::new_err,
+        "decoding" => PyDecodeError::new_err,
+        "dtype" => PySampleColCreationError::new_err,
+        "computation" => PyComputationError::new_err,
+        "no_constraint_for_key" => PyNoConstraintForKeyError::new_err,
+        "duplicate_constraint_name" => PyDuplicateConstraintNameError::new_err,
+        "model_not_quadratic" => PyModelNotQuadraticError::new_err,
+        "model_not_unconstrained" => PyModelNotUnconstrainedError::new_err,
+        "vtype" => PyModelVtypeError::new_err,
+        "translation" => PyTranslationError::new_err,
+        "index_out_of_bounds" => PyIndexError::new_err,
+        "model_sense_not_minimize" => PyModelSenseNotMinimizeError::new_err,
+        "evaluation" => PyEvaluationError::new_err,
+        "sample_incorrect_length" => PySampleIncorrectLengthError::new_err,
+        "sample_unexpected_variable" => PySampleUnexpectedVariableError::new_err,
+        "sample_incompatible_vtype" => PySampleIncompatibleVtypeError::new_err,
+        "transformation_pass" => PyTransformationPassError::new_err,
+        "analysis_pass" => PyAnalysisPassError::new_err,
+        "if_else_pass" => PyIfElsePassError::new_err,
+        "meta_analysis_pass" => PyMetaAnalysisPassError::new_err,
+        "transformation" => PyTransformError::new_err,
+        "random_sampling" => PyRandomSamplingError::new_err,
+        "invalid_tolerance" => PyInvalidToleranceError::new_err,
+        "infeasible" => PyModelInfeasibleError::new_err,
+        // "formatter", "internal", "external", and any tag luna-model does not define.
+        _ => PyLunaModelError::new_err,
+    }
+}
+
+/// `luna_model.errors._error_for_kind(kind, message)`: the exception (not raised) luna-model
+/// raises for an error of `kind`, see [`new_err_for_kind`].
+#[pyfunction]
+#[pyo3(name = "_error_for_kind")]
+pub fn error_for_kind(
+    py: Python<'_>,
+    kind: &str,
+    message: String,
+) -> PyResult<Py<PyBaseException>> {
+    Ok(new_err_for_kind(kind)(message).into_value(py))
+}
+
 impl From<Lme> for PyErr {
     fn from(lme: Lme) -> Self {
         let err = match lme {
-            Lme::DifferentEnvironments | Lme::DifferentEnvironmentsIn(_) => {
-                PyDifferentEnvsError::new_err
-            }
-            Lme::VariableExists(_) => PyVariableExistsError::new_err,
-            Lme::VariableNotExisting(_) => PyVariableNotExistingError::new_err,
-            Lme::VariableNameInvalid(_, _) => PyVariableNamesError::new_err,
-            Lme::ConstraintNameInvalid(_) => PyIllegalConstraintNameError::new_err,
-            Lme::InvalidBounds(_) | Lme::InvertedBinaryCreation => PyVariableCreationError::new_err,
-            Lme::InvalidInversion(_) => PyUnsupportedOperationError::new_err,
-            Lme::Compression(_) => PyCompressionError::new_err,
-            Lme::Decoding(_) => PyDecodeError::new_err,
-            Lme::UnsupportedOperation(_) => PyUnsupportedOperationError::new_err,
-            Lme::Dtype(_) => PySampleColCreationError::new_err,
-            Lme::Formatter(_) | Lme::Internal(_) => PyLunaModelError::new_err,
-            Lme::Computation(_) => PyComputationError::new_err,
-            Lme::NoConstraintForKey(_) => PyNoConstraintForKeyError::new_err,
-            Lme::DuplicateConstraintName(_) => PyDuplicateConstraintNameError::new_err,
-            Lme::ModelNotQuadratic => PyModelNotQuadraticError::new_err,
-            Lme::ModelNotUnconstrained => PyModelNotUnconstrainedError::new_err,
-            Lme::Vtype(_) => PyModelVtypeError::new_err,
-            Lme::Translation(_) => PyTranslationError::new_err,
-            Lme::IndexOutOfBounds(_) => PyIndexError::new_err,
-            Lme::ModelSenseNotMinimize => PyModelSenseNotMinimizeError::new_err,
-            Lme::Evaluation(_) => PyEvaluationError::new_err,
-            Lme::SampleIncorrectLength(_) => PySampleIncorrectLengthError::new_err,
-            Lme::SampleUnexpectedVariable(_) => PySampleUnexpectedVariableError::new_err,
-            Lme::SampleIncompatibleVtype => PySampleIncompatibleVtypeError::new_err,
-            Lme::VariableNames(_) => PyVariableNamesError::new_err,
-            Lme::TransformationPass(_, _) => PyTransformationPassError::new_err,
-            Lme::AnalysisPass(_, _) => PyAnalysisPassError::new_err,
-            Lme::IfElsePass(_) => PyIfElsePassError::new_err,
-            Lme::MetaAnalysisPass(_, _) => PyMetaAnalysisPassError::new_err,
-            Lme::RandomSampling(_) => PyRandomSamplingError::new_err,
-            Lme::InvalidTolerance(_) => PyInvalidToleranceError::new_err,
-
-            Lme::Transformation { .. } => PyTransformError::new_err,
-            Lme::Infeasible { .. } => PyModelInfeasibleError::new_err,
-            Lme::External(_) => PyLunaModelError::new_err,
-
             Lme::WithCause(e, cause) => {
                 let pyerr: PyErr = (*e).into();
                 // `cause` may itself be a `LunaModelError::WithCause` wrapping further context
@@ -396,6 +416,10 @@ impl From<Lme> for PyErr {
                 }
                 return pyerr;
             }
+            // Carries a plugin's own kind tag when a plugin pass failed; it still surfaces as a
+            // transformation failure.
+            Lme::Transformation { .. } => PyTransformError::new_err,
+            ref other => new_err_for_kind(&other.kind_tag()),
         };
         err(lme.to_string())
     }

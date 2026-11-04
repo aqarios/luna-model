@@ -100,6 +100,7 @@ fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     transform::register_backward();
 
     // Errors
+    m.add_function(wrap_pyfunction!(error_for_kind, m)?)?;
     m.add(
         PyLunaModelError::type_object(py).name()?,
         m.py().get_type::<PyLunaModelError>(),

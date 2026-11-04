@@ -305,6 +305,13 @@ fn expression_scaled_higher_order_items(
     Ok(items)
 }
 
+/// Raises the Python exception `into_pyerr` maps an error of `kind` to.
+#[pyfunction]
+fn raise_error_kind(kind: String) -> PyResult<()> {
+    let error = rs_lunamodel::Error::new(rs_lunamodel::Status::Errored, "boom").with_kind(kind);
+    Err(into_pyerr(error))
+}
+
 #[pymodule]
 fn rs_lunamodel_integration_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(roundtrip_bounds, m)?)?;
@@ -332,6 +339,7 @@ fn rs_lunamodel_integration_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(expression_higher_order_items, m)?)?;
     m.add_function(wrap_pyfunction!(expression_higher_order_bias, m)?)?;
     m.add_function(wrap_pyfunction!(expression_scaled_higher_order_items, m)?)?;
+    m.add_function(wrap_pyfunction!(raise_error_kind, m)?)?;
 
     m.add_class::<HeldModel>()?;
     m.add_class::<HeldSolution>()?;
