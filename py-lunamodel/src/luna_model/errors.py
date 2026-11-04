@@ -148,7 +148,6 @@ from luna_model._lm import (
 from luna_model._lm import (
     PyVariablesFromDifferentEnvsError as VariablesFromDifferentEnvsError,
 )
-
 from luna_model._lm import _error_for_kind  # noqa: F401 # re-exported for C API extensions
 
 
