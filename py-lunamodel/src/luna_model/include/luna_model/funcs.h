@@ -1279,7 +1279,8 @@ LmStatus lm_env_set_inverted(LmEnv *env, uint32_t index, bool present, uint32_t 
 LmStatus lm_env_insert_inverted(LmEnv *env, const LmVref *vref, LmVref **out);
 
 /**
- * Removes the referenced variable from the environment.
+ * Removes the referenced variable from the environment. Fails with the
+ * `variable_not_existing` kind if it is not (or no longer) in the environment.
  *
  * # Safety
  * `env` must be a valid mutable environment handle created by this library.

@@ -224,7 +224,7 @@ class Env {
         return Vref(out);
     }
 
-    /* Removes the variable referenced by `vref`. */
+    /* Removes the variable referenced by `vref`; throws `lm::Error` if it is not in the environment. */
     void remove(const Vref &vref) { detail::check(lm_env_remove(handle_, vref.get())); }
 
     /* Sets or clears the inverted companion index of the variable at `index`.

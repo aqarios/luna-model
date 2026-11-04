@@ -125,7 +125,8 @@ pub unsafe extern "C" fn lm_env_insert_inverted(
     })
 }
 
-/// Removes the referenced variable from the environment.
+/// Removes the referenced variable from the environment. Fails with the
+/// `variable_not_existing` kind if it is not (or no longer) in the environment.
 ///
 /// # Safety
 /// `env` must be a valid mutable environment handle created by this library.
@@ -135,7 +136,7 @@ pub unsafe extern "C" fn lm_env_remove(env: *mut LmEnv, vref: *const LmVref) -> 
     guard(|| {
         let mut env = unsafe { storage_from_c(env, "env") }?.clone();
         let vref = unsafe { ref_from_c(vref as *const VarRef, "vref") }?;
-        env.remove(vref);
+        env.remove(vref).map_err(CapiError::from)?;
         Ok(())
     })
 }

@@ -194,10 +194,21 @@ impl Environment {
     }
 
     /// Removes a variable by reference from both storage maps.
-    pub fn remove(&mut self, target: &VarRef) {
-        let name = &self.variables[&target.id].name;
-        self.lookup.remove(&name.0);
-        self.variables.shift_remove(&target.id);
+    ///
+    /// Fails with [`LunaModelError::VariableNotExisting`] if the variable is not (or no longer) in
+    /// the environment.
+    pub fn remove(&mut self, target: &VarRef) -> LunaModelResult<()> {
+        let var = self.variables.shift_remove(&target.id).ok_or_else(|| {
+            LunaModelError::VariableNotExisting(
+                format!(
+                    "variable with index {} is not in the environment",
+                    target.id
+                )
+                .into(),
+            )
+        })?;
+        self.lookup.remove(&var.name.0);
+        Ok(())
     }
 
     /// Looks up a variable index by name.
