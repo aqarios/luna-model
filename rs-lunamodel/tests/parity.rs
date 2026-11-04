@@ -302,3 +302,28 @@ fn expression_and_model_evaluation_via_capi() -> Result<()> {
     assert!(violated.contains("cap")?); // x + y = 2 > 1
     Ok(())
 }
+
+#[test]
+fn solution_from_random_keeps_context_alive() -> Result<()> {
+    use itertools::Either::{Left, Right};
+
+    init();
+
+    // The context is passed by value and is the only owner of its handle, so it must stay alive
+    // until the C API call has returned.
+    let mut env = rs_lunamodel::Env::new();
+    env.insert("x", Vtype::Binary, None)?;
+    env.insert("y", Vtype::Binary, None)?;
+    let solution = Solution::from_random(5, Some(7), Left(env), None, None)?;
+    assert_eq!(solution.n_samples()?, 5);
+    assert_eq!(solution.variable_names()?, vec!["x", "y"]);
+
+    let mut env = rs_lunamodel::Env::new();
+    env.insert("z", Vtype::Binary, None)?;
+    let model = rs_lunamodel::Model::with_env(None, Some(Sense::Min), &env)?;
+    drop(env);
+    let solution = Solution::from_random(3, Some(7), Right(model), None, None)?;
+    assert_eq!(solution.n_samples()?, 3);
+    assert_eq!(solution.variable_names()?, vec!["z"]);
+    Ok(())
+}

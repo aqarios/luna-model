@@ -562,11 +562,11 @@ checksum = "5d15f86d12da44cd8d4ec3c73984537eb7f4cadcb9776a575a0a8a05ca11005c"
 
 [[package]]
 name = "lunamodel-capi"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 
 [[package]]
 name = "lunamodel-capi-handle"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "lunamodel-capi",
  "lunamodel-core",
@@ -578,7 +578,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-capi-host"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "cbindgen",
  "indexmap",
@@ -596,7 +596,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-capi-plugin"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "lunamodel-capi",
  "lunamodel-capi-handle",
@@ -606,7 +606,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-capi-pyffi"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "lunamodel-capi",
  "pyo3",
@@ -614,7 +614,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-core"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "bitvec",
  "derive_more",
@@ -638,7 +638,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-error"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "prost",
  "rand",
@@ -647,7 +647,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-serializer"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "bitvec",
  "indexmap",
@@ -664,7 +664,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "anyhow",
  "lunamodel-core",
@@ -675,7 +675,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler-macros"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -684,7 +684,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-types"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "derive_more",
  "enumset",
@@ -696,7 +696,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "lunamodel-error",
  "num",

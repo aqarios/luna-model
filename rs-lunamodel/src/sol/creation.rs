@@ -25,7 +25,8 @@ impl Solution {
     ) -> crate::Result<Self> {
         let mut ctx_a = std::ptr::null();
         let mut ctx_b = std::ptr::null();
-        match context {
+        // Borrow: `context` owns the handle and must outlive the call below.
+        match &context {
             Left(env) => ctx_a = env.as_ptr(),
             Right(model) => ctx_b = model.as_ptr(),
         };
