@@ -57,7 +57,7 @@ impl AnalysisPass for CheckInfeasibleConstraintsAnalysis {
             };
 
             if infeasible {
-                return Err(TransformError::Infeasible {
+                Err(TransformError::Infeasible {
                     location: self.name().to_owned(),
                     reason: format!(
                         "constraint '{name}' is infeasible: LHS range cannot satisfy '{} {}'",

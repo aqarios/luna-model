@@ -1,3 +1,4 @@
+import os
 import random as r
 import sys
 from itertools import permutations
@@ -10,8 +11,24 @@ def todo(msg: str | None = None):
     assert False, msg
 
 
+# Seeded from the LUNA_TEST_SEED env var (set once per pytest run by tests/conftest.py, shared
+# with every pytest-xdist worker) so that make_seed()'s sequence of picks is identical across
+# every process collecting the suite. An unseeded global RNG here would make each xdist worker
+# generate different randomized test data — including data embedded in parametrize IDs — which
+# xdist rejects as "different tests collected between workers".
+_seed_rng: r.Random | None = None
+
+
+def _get_seed_rng() -> r.Random:
+    global _seed_rng
+    if _seed_rng is None:
+        master_seed = os.environ.get("LUNA_TEST_SEED")
+        _seed_rng = r.Random(int(master_seed)) if master_seed is not None else r.Random()
+    return _seed_rng
+
+
 def make_seed() -> int:
-    seed = r.randint(0, 2**32 - 1)
+    seed = _get_seed_rng().randint(0, 2**32 - 1)
     print(
         f"""
 ************************

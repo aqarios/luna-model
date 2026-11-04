@@ -1,11 +1,19 @@
+use lunamodel_capi_pyffi::C_API_CAPSULE_NAME;
 use lunamodel_python::translate::model::*;
 pub use lunamodel_python::*;
-use pyo3::{PyTypeInfo, prelude::*};
+use pyo3::{PyTypeInfo, prelude::*, types::PyCapsule};
 
 #[pymodule]
 fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
-    m.add("__capsule_abi__", lunamodel_python::ffi::CAPSULE_ABI)?;
+
+    let c_api_capsule = PyCapsule::new_with_value(
+        py,
+        lunamodel_capi_host::capi_table::LUNA_MODEL_C_API,
+        C_API_CAPSULE_NAME,
+    )?;
+    m.add("_C_API", c_api_capsule)?;
+    m.add("_C_API_ABI_VERSION", lunamodel_capi_host::CAPI_ABI_VERSION)?;
 
     m.add_function(wrap_pyfunction!(quicksum, m)?)?;
     // Enums from lunamodel-core
@@ -92,6 +100,7 @@ fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     transform::register_backward();
 
     // Errors
+    m.add_function(wrap_pyfunction!(error_for_kind, m)?)?;
     m.add(
         PyLunaModelError::type_object(py).name()?,
         m.py().get_type::<PyLunaModelError>(),

@@ -1,6 +1,6 @@
 //! Python wrapper for model specs.
 mod access;
-mod io;
+mod fmt;
 
 use lunamodel_types::Specs;
 use pyo3::pyclass;

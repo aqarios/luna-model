@@ -2,7 +2,7 @@
 mod access;
 mod content;
 mod creation;
-mod io;
+mod fmt;
 mod iter;
 mod modification;
 mod ser;

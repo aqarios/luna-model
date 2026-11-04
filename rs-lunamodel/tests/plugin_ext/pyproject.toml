@@ -1,0 +1,26 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "luna-plugin-ext"
+version = "0.0.1"
+requires-python = ">=3.11"
+dependencies = [
+    "luna-model",
+]
+
+[tool.maturin]
+module-name = "luna_plugin_ext"
+manifest-path = "Cargo.toml"
+
+# luna-model is the local (Rust/maturin) wheel in this repo, not a published package.
+[tool.uv.sources]
+luna-model = { path = "../../../py-lunamodel" }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.0",
+    "pytest-xdist>=3.8.0",
+    "grpcio-tools",
+]

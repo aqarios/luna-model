@@ -1,11 +1,11 @@
 //! Built-in analyses over [`lunamodel_core::Model`] values.
-mod utils;
+pub(super) mod check_infeasible_constraints;
+pub(super) mod check_model_specs;
+pub(super) mod max_bias;
+pub(super) mod min_val_in_constr;
+pub(super) mod specs;
 
-mod check_infeasible_constraints;
-mod check_model_specs;
-mod max_bias;
-mod min_val_in_constr;
-mod specs;
+mod utils;
 
 pub use check_infeasible_constraints::{CheckInfeasibleConstraintsAnalysis, Ignore};
 pub use check_model_specs::{CheckModelSpecsAnalysis, Nothing};

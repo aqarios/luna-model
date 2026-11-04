@@ -11,13 +11,12 @@ mod random;
 pub mod result;
 pub mod sample;
 mod samples;
-mod src;
-// pub mod timing;
 
-pub use col::{Assignment, ColElement, Column};
+pub use col::{ColElement, Column};
 use indexmap::IndexMap;
+pub use lunamodel_types::Assignment;
 use lunamodel_types::Sense;
-pub use src::ValueSource;
+pub use lunamodel_types::ValueSource;
 use std::collections::HashMap;
 
 use crate::{Timing, traits::ContentEquality};

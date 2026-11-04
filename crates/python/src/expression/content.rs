@@ -10,7 +10,7 @@ use lunamodel_core::{
     prelude::{ContentEquality, Expression, Model, VarRef},
 };
 use lunamodel_error::LunaModelResult;
-use lunamodel_io::{CustomFormat, FormatOpt};
+use lunamodel_fmt::{CustomFormat, FormatOpt};
 use parking_lot::RwLock;
 use std::{
     ops::{Add, Mul, Neg, Sub},

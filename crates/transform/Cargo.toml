@@ -15,6 +15,7 @@ lunamodel-error = { workspace = true }
 lunamodel-types = { workspace = true }
 lunamodel-transpiler = { workspace = true }
 lunamodel-serializer = { workspace = true }
+lunamodel-capi-plugin-proto = { workspace = true }
 
 strum = { workspace = true }
 strum_macros = { workspace = true }

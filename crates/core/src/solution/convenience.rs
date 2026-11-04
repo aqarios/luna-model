@@ -1,9 +1,7 @@
 //! Convenience statistics and helper queries for solutions.
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_types::{Bias, Sense};
-
-use crate::ValueSource;
+use lunamodel_types::{Bias, Sense, ValueSource};
 
 use super::Solution;
 

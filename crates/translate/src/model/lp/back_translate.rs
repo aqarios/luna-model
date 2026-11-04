@@ -162,7 +162,7 @@ impl LpTranslator {
             match &vars[..] {
                 [] => {
                     if b != Bias::default() {
-                        const_str.push_str(&format!("+{}", &b.to_string()).replace("+-", "-"))
+                        const_str.push_str(&format!("+{}", b).replace("+-", "-"))
                     }
                 }
                 [v] => {
