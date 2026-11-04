@@ -1,6 +1,6 @@
 [package]
 name = "rs-lunamodel"
-version = "0.0.1"
+version.workspace = true
 edition = "2024"
 authors = [
   "Jonas Blenninger <jonas.blenninger@aqarios.com>",
@@ -22,6 +22,12 @@ incremental = false
 # Keep out of workspace
 [workspace]
 members = ["derive"]
+
+# The SDK is released with luna-model and carries its version: kept equal to the root
+# workspace version by ci/tools/set-release-version.sh, checked by check-versions.sh.
+# Keep this the first bare `version =` line of this manifest (the scripts edit that one).
+[workspace.package]
+version = "0.8.0-alpha.1"
 
 [dependencies]
 enumset = "1.1.14"

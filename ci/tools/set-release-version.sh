@@ -6,7 +6,8 @@
 #   - every crate (pylm, js-lunamodel, rs-lunamodel, crates/*) inherits it
 #     via `version.workspace = true`, so the Python wheel version (read by
 #     maturin from pylm) and the napi crate version can never drift
-#   - js-lunamodel/package.json and the C headers (version.h) are synced to it here
+#   - js-lunamodel/package.json, the rs-lunamodel SDK workspace (a separate
+#     workspace), and the C headers (version.h) are synced to it here
 #   - every tracked Cargo.lock is refreshed here (uv.lock records no project version —
 #     py-lunamodel declares its version as dynamic)
 #
@@ -67,6 +68,16 @@ fi
 
 # Sync the npm package manifest (its Cargo.toml already inherits the bump).
 (cd js-lunamodel && bun pm pkg set "version=$VERSION")
+
+# Sync the rs-lunamodel SDK, a separate workspace: its `[workspace.package] version`,
+# the first bare `version =` line of its manifest (dependency tables follow with their own).
+VERSION="$VERSION" python3 - <<'PY'
+import os, pathlib, re
+sdk = pathlib.Path("rs-lunamodel/Cargo.toml")
+text, n = re.subn(r'^version = "[^"]*"', f'version = "{os.environ["VERSION"]}"', sdk.read_text(), count=1, flags=re.M)
+assert n == 1, "workspace version line not found in rs-lunamodel/Cargo.toml"
+sdk.write_text(text)
+PY
 
 # Refresh every Cargo.lock so it records the new version: the root workspace's
 # and those of the nested workspaces (rs-lunamodel and its test extensions),

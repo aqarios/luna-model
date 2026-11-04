@@ -1011,7 +1011,7 @@ dependencies = [
 
 [[package]]
 name = "rs-lunamodel"
-version = "0.0.1"
+version = "0.8.0-alpha.1"
 dependencies = [
  "derive_more",
  "enumset",
@@ -1029,7 +1029,7 @@ dependencies = [
 
 [[package]]
 name = "rs-lunamodel-derive"
-version = "0.0.1"
+version = "0.8.0-alpha.1"
 dependencies = [
  "quote",
  "syn 3.0.8",

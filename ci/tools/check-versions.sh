@@ -2,9 +2,9 @@
 # Verify that every stated version matches the workspace version.
 #
 # The `[workspace.package] version` in the root Cargo.toml is the single
-# source of truth. The only other place a version is *stated* is
-# js-lunamodel/package.json (synced by set-release-version.sh) — everything
-# else derives at build time:
+# source of truth. The only other places a version is *stated* are
+# js-lunamodel/package.json and the rs-lunamodel SDK workspace (synced by
+# set-release-version.sh) — everything else derives at build time:
 #   - all crates inherit via `version.workspace = true`
 #   - maturin reads the Python wheel version from the inherited pylm version
 #     (py-lunamodel declares `dynamic = ["version"]`; uv.lock records none)
@@ -28,6 +28,13 @@ test -n "$WORKSPACE"
 NPM=$(python3 -c 'import json; print(json.load(open("js-lunamodel/package.json"))["version"])')
 
 status=0
+
+SDK=$(sed -n 's/^version = "\([^"]*\)".*/\1/p' rs-lunamodel/Cargo.toml | head -n 1)
+if [ "$SDK" != "$WORKSPACE" ]; then
+  echo "❌ rs-lunamodel/Cargo.toml is $SDK, workspace is $WORKSPACE" >&2
+  echo "   (run ci/tools/apply-version.sh to re-sync)" >&2
+  status=1
+fi
 
 if [ "$NPM" != "$WORKSPACE" ]; then
   echo "❌ js-lunamodel/package.json is $NPM, workspace is $WORKSPACE" >&2
