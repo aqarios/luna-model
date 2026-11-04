@@ -34,8 +34,8 @@ Apache License 2.0 (Apache-2.0)
 ================================================================================
 
 Applies to the following dependencies:
-  * luna-model-ffi 0.8.0-alpha.2
-  * luna-model-ffi-derive 0.8.0-alpha.2
+  * luna-model-ffi 0.8.0-alpha.3
+  * luna-model-ffi-derive 0.8.0-alpha.3
 
 --------------------------------------------------------------------------------
 
