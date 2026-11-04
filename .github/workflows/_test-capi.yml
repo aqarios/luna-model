@@ -1,6 +1,7 @@
 # Reusable: everything built on the C API — the rs-lunamodel SDK, the C and C++
 # test suites, the Rust/C++ extensions driven from Python against the local
-# luna-model wheel, and the drift checks for the committed header/.proto copies.
+# luna-model wheel (and the Rust one also against the published wheel), and the
+# drift checks for the committed header/.proto copies.
 # Each suite runs through its `just` recipe, so CI and `just test` stay in sync.
 name: Test C API
 
@@ -29,6 +30,10 @@ jobs:
             run: just cpp-test
           - suite: rs-ext
             run: just rs-ext-test
+          # The same against the newest published luna-model: skipped on a different C API ABI
+          # version, must pass on the same one.
+          - suite: rs-ext-pypi
+            run: just rs-ext-test-pypi
           - suite: rs-plugin
             run: just rs-plugin-test
           - suite: cpp-plugin

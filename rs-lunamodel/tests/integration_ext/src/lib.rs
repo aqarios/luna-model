@@ -314,6 +314,9 @@ fn raise_error_kind(kind: String) -> PyResult<()> {
 
 #[pymodule]
 fn rs_lunamodel_integration_ext(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    // The ABI this extension was built for, readable without initializing rs-lunamodel (which
+    // fails on a host of another ABI); the test session compares it with the host's.
+    m.add("C_API_ABI_VERSION", rs_lunamodel::CAPI_ABI_VERSION)?;
     m.add_function(wrap_pyfunction!(roundtrip_bounds, m)?)?;
     m.add_function(wrap_pyfunction!(new_bounds, m)?)?;
     m.add_function(wrap_pyfunction!(roundtrip_comparator, m)?)?;

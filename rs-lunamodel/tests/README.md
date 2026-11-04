@@ -29,16 +29,35 @@ uv run pytest integration_ext/pytests
 ## Run tests against the published `lunamodel` on PyPI
 
 ```bash
-uv run --no-default-groups --group pypi pytest integration_ext/pytests
+just rs-ext-test-pypi   # from the repository root; CI runs this too
+```
+
+or by hand:
+
+```bash
+uv sync --no-default-groups --group pypi --reinstall-package luna-model
+uv run --no-sync pytest integration_ext/pytests
 ```
 
 `--no-default-groups` is required: `local` is enabled by default and conflicts
-with `pypi`.
+with `pypi`. `--reinstall-package luna-model` is required as well: a local build
+of the same version would otherwise be kept, and `--no-sync` keeps a plain
+`uv run` from re-syncing the `local` group.
 
 The extension itself is always compiled from the local Rust crates
 (`integration_ext/Cargo.toml` uses path dependencies); the group only selects
 which `luna_model` host it runs against. That is what makes this a check of
 whether the published host is compatible with the current extension code.
+
+The contract: against a host of a **different** C API ABI version the extension
+may fail (rs-lunamodel rejects such a host), so `conftest.py` skips the whole
+session with the two versions as reason. Against the **same** ABI version every
+test must pass. Additions to the host don't break that: an older extension
+never uses them. But the extension built here is newer than the published host,
+so where rs-lunamodel uses a host addition (e.g.
+`luna_model.errors._error_for_kind`, added in 0.8.0a2) it must fall back when
+the host predates it, and the tests expect that fallback on such a host (see
+`test_errors.py`).
 
 The minimum version is pinned in `pyproject.toml` under
 `[dependency-groups] pypi`. Bump it there when a new release should be

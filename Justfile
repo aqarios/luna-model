@@ -212,6 +212,12 @@ rs-plugin-test:
 rs-ext-test:
     cd {{rs_ext_test}} && CARGO_TARGET_DIR={{uv_cargo_target_dir}} uv sync --reinstall-package luna-model --reinstall-package rs-lunamodel-integration-ext && uv run pytest integration_ext/pytests -v
 
+# The same interop test against the newest published luna-model from PyPI (the `pypi` group, see
+# rs-lunamodel/tests/README.md): skipped when the published host has a different C API ABI version,
+# and must pass when it has the same. `--no-sync`: a plain `uv run` would re-sync the local group.
+rs-ext-test-pypi:
+    cd {{rs_ext_test}} && CARGO_TARGET_DIR={{uv_cargo_target_dir}} uv sync --no-default-groups --group pypi --reinstall-package luna-model --reinstall-package rs-lunamodel-integration-ext && uv run --no-sync pytest integration_ext/pytests -v -rs
+
 # Rust tests: the whole main workspace EXCEPT the pyo3/napi crates. Those force pyo3's
 # `extension-module` feature (whose no-libpython-linking breaks a plain `cargo test` binary via
 # feature unification), and they are exercised by the Python/JS suites below instead. Also the
@@ -245,5 +251,5 @@ test-js:
 # Run every test suite in the repo: Rust, C, C++, core Python, the Rust extension interop test,
 # both plugin extensions, and JS.
 [parallel]
-test: test-rust ctest cpp-test test-py rs-ext-test cpp-plugin-test rs-plugin-test test-js
+test: test-rust ctest cpp-test test-py rs-ext-test rs-ext-test-pypi cpp-plugin-test rs-plugin-test test-js
     @echo "✓ all test suites passed"

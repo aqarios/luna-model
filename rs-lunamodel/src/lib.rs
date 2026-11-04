@@ -106,6 +106,10 @@ pub use prost;
 /// [`init`].
 pub use lunamodel_capi::LunaModelCApi;
 
+/// The C API ABI version this SDK was built for; [`init`] accepts only a host table of exactly
+/// this version.
+pub use lunamodel_capi::CAPI_ABI_VERSION;
+
 pub use lunamodel_types::{
     Bias, BinaryAssignment, Comparator, Ctype, DEFAULT_BIAS, EnumSet, EnumSetFromVec, EnvIdx,
     IntegerAssignment, Neighborhood, OneVarTerm, RealAssignment, Sense, SpinAssignment, TwoVarTerm,
