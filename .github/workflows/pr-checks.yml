@@ -72,6 +72,22 @@ jobs:
       - name: Verify all versions match the workspace version
         run: sh ci/tools/check-versions.sh
 
+  check-abi:
+    name: Check C ABI compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          # The release tags: the check compares with the last release's headers.
+          fetch-depth: 0
+
+      - name: Self-test the ABI rules
+        run: python3 ci/tools/check-abi.py --self-test
+
+      - name: Verify the C ABI only changed compatibly since the last release
+        run: python3 ci/tools/check-abi.py
+
   lint-rust:
     name: Lint Rust
     needs: changes
@@ -120,6 +136,7 @@ jobs:
     needs:
       - changes
       - check-versions
+      - check-abi
       - lint-rust
       - test-rust
       - lint-python

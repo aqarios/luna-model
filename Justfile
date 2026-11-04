@@ -119,6 +119,13 @@ cdrift:
     cargo build -p lunamodel-capi-host
     git diff --exit-code -- {{c_dir_capi_include}}
 
+# Fail if the C ABI changed incompatibly since the last release (within one ABI version the
+# C API table may only grow at the end; see ci/tools/check-abi.py), after self-testing those
+# rules. Compares the committed headers, so run `cheader` first; needs the release tags.
+abi-check:
+    python3 ci/tools/check-abi.py --self-test
+    python3 ci/tools/check-abi.py
+
 # --- Shipped-in-wheel artifacts ---------------------------------------------
 
 # Canonical protobuf schemas -> the copy bundled + shipped in the luna_model wheel (discoverable via

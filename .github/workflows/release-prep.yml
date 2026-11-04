@@ -66,6 +66,8 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           token: ${{ steps.app-token.outputs.token }}
+          # The release tags: the C ABI check compares with the last release's headers.
+          fetch-depth: 0
 
       - name: Read Rust toolchain channel
         id: toolchain
@@ -96,6 +98,10 @@ jobs:
 
       - name: Verify version sync
         run: sh ci/tools/check-versions.sh
+
+      # set-release-version.sh regenerated the C headers from the Rust sources.
+      - name: Verify the C ABI only changed compatibly since the last release
+        run: python3 ci/tools/check-abi.py
 
       - name: Regenerate third-party license notices
         run: sh ci/tools/generate-third-party-licenses.sh
