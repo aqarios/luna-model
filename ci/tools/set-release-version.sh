@@ -7,7 +7,7 @@
 #     via `version.workspace = true`, so the Python wheel version (read by
 #     maturin from pylm) and the napi crate version can never drift
 #   - js-lunamodel/package.json and the C headers (version.h) are synced to it here
-#   - Cargo.lock is refreshed here (uv.lock records no project version —
+#   - every tracked Cargo.lock is refreshed here (uv.lock records no project version —
 #     py-lunamodel declares its version as dynamic)
 #
 # `ci/tools/check-versions.sh` enforces the invariant in CI.
@@ -68,8 +68,12 @@ fi
 # Sync the npm package manifest (its Cargo.toml already inherits the bump).
 (cd js-lunamodel && bun pm pkg set "version=$VERSION")
 
-# Refresh Cargo.lock so it records the new version.
-cargo update --workspace
+# Refresh every Cargo.lock so it records the new version: the root workspace's
+# and those of the nested workspaces (rs-lunamodel and its test extensions),
+# which depend on the crates/* path crates and so record their version too.
+git ls-files '*Cargo.lock' | while read -r lock; do
+  cargo update --workspace --manifest-path "$(dirname "$lock")/Cargo.toml"
+done
 
 # The committed C headers embed the version (luna_model/version.h): regenerate
 # them and the copy bundled in the wheel, as `just cheader wheelheaders` does,

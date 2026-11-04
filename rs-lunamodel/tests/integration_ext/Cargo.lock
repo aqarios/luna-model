@@ -206,11 +206,11 @@ checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
 
 [[package]]
 name = "lunamodel-capi"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 
 [[package]]
 name = "lunamodel-capi-pyffi"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "lunamodel-capi",
  "pyo3",
@@ -218,7 +218,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-error"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "prost",
  "rand",
@@ -227,7 +227,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-types"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "derive_more",
  "enumset",
@@ -239,7 +239,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.7.4"
+version = "0.8.0-alpha.1"
 dependencies = [
  "lunamodel-error",
  "num",
