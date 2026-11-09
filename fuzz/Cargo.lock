@@ -465,9 +465,30 @@ dependencies = [
 name = "lunamodel-fuzz"
 version = "0.0.0"
 dependencies = [
+ "itertools 0.15.0",
  "libfuzzer-sys",
  "lunamodel-core",
+ "lunamodel-error",
+ "lunamodel-serializer",
  "lunamodel-translate",
+ "lunamodel-types",
+]
+
+[[package]]
+name = "lunamodel-serializer"
+version = "0.7.5"
+dependencies = [
+ "bitvec",
+ "indexmap",
+ "lunamodel-core",
+ "lunamodel-error",
+ "lunamodel-transpiler",
+ "lunamodel-types",
+ "parking_lot 0.13.0",
+ "prost",
+ "strum",
+ "strum_macros",
+ "zstd",
 ]
 
 [[package]]
@@ -480,6 +501,26 @@ dependencies = [
  "lunamodel-types",
  "lunamodel-utils",
  "strum_macros",
+]
+
+[[package]]
+name = "lunamodel-transpiler"
+version = "0.7.5"
+dependencies = [
+ "anyhow",
+ "lunamodel-core",
+ "lunamodel-error",
+ "lunamodel-transpiler-macros",
+ "lunamodel-types",
+]
+
+[[package]]
+name = "lunamodel-transpiler-macros"
+version = "0.7.5"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -638,6 +679,12 @@ name = "pin-project-lite"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
+
+[[package]]
+name = "pkg-config"
+version = "0.3.34"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f6b464fbc74e149a392436b17d523f769e057cb6877f6a5c4618bc6f11800548"
 
 [[package]]
 name = "proc-macro2"
@@ -1001,3 +1048,31 @@ name = "zmij"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
+
+[[package]]
+name = "zstd"
+version = "0.14.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db3ae9bf90af6e40197bef767eeefc46ad6397420fe873830bd85e5fbbfb3c70"
+dependencies = [
+ "zstd-safe",
+]
+
+[[package]]
+name = "zstd-safe"
+version = "8.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ded520f16b29e1a9b771c722221b2b0a0398c2316d9bb3c42b458a5414d7434b"
+dependencies = [
+ "zstd-sys",
+]
+
+[[package]]
+name = "zstd-sys"
+version = "2.1.2+zstd.1.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "481ada9c543b2323cbb7bbdbb5249177fbf0188ed959ed2c15e4b22421c84ed3"
+dependencies = [
+ "cc",
+ "pkg-config",
+]
