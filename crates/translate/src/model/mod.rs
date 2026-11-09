@@ -4,6 +4,7 @@ mod lp;
 mod mps;
 mod problem;
 mod qubo;
+mod writer;
 
 /// Translator for LP files/strings.
 pub use lp::LpTranslator;
