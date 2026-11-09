@@ -9,35 +9,40 @@ use lunamodel_error::LunaModelResult;
 use lunamodel_types::{Bound, VarIdx, Vtype};
 use prost::Message;
 use std::collections::HashMap;
-use std::collections::VecDeque;
 
 use super::SerEnvironment;
 
+use crate::check::{at, corrupt, first_unused, insert, next, variable};
 use crate::encode::BytesDecodable;
 
 impl BytesDecodable<Environment> for SerEnvironment {
     fn decode_from_bytes(bytes: &[u8], _: ()) -> LunaModelResult<Environment> {
-        Ok(Self::decode(bytes)?.extract())
+        Self::decode(bytes)?.extract()
     }
 }
 
 impl SerEnvironment {
-    pub fn extract(&self) -> Environment {
-        let mut variables = HashMap::with_capacity(self.varcount as usize);
-        let mut lookup = HashMap::with_capacity(self.varcount as usize);
-        self.extract_bin(&mut variables, &mut lookup);
-        self.extract_spin(&mut variables, &mut lookup);
-        self.extract_int(&mut variables, &mut lookup);
-        self.extract_real(&mut variables, &mut lookup);
+    pub fn extract(&self) -> LunaModelResult<Environment> {
+        // Sized from the data present, not from a stored count.
+        let capacity = self.binary.len()
+            + self.inverted_binary.len()
+            + self.spin.len()
+            + self.integer.len()
+            + self.real.len();
+        let mut variables = HashMap::with_capacity(capacity);
+        let mut lookup = HashMap::with_capacity(capacity);
+        self.extract_bin(&mut variables, &mut lookup)?;
+        self.extract_spin(&mut variables, &mut lookup)?;
+        self.extract_int(&mut variables, &mut lookup)?;
+        self.extract_real(&mut variables, &mut lookup)?;
         let ivs = self.ordered(variables);
+        let lowest_free = first_unused(ivs.keys())?;
         let nxt_idx = match self.next_idx {
+            Some(idx) if idx < lowest_free => return Err(corrupt("next variable index in use")),
             Some(idx) => idx,
-            None => match ivs.keys().max() {
-                Some(val) => val + 1,
-                None => 0,
-            },
+            None => lowest_free,
         };
-        Environment::new(ivs, lookup, nxt_idx)
+        Ok(Environment::new(ivs, lookup, nxt_idx))
     }
 
     /// Arranges the decoded variables in their serialized environment order.
@@ -61,84 +66,102 @@ impl SerEnvironment {
         &self,
         variables: &mut HashMap<VarIdx, Variable>,
         lookup: &mut HashMap<String, VarIdx>,
-    ) {
-        let mut inverted = VecDeque::from(self.inverted_binary.clone());
-        for (i, vidx) in self.binary.iter().enumerate() {
-            let name = self.binary_names[i].clone();
-            let mut var = Variable::new(&name, Vtype::Binary, None).unwrap();
-            if !self.binary_is_inverted.is_empty() && self.binary_is_inverted[i] {
-                let inv = inverted.pop_front().unwrap();
+    ) -> LunaModelResult<()> {
+        let mut inverted = self.inverted_binary.iter();
+        for (i, &vidx) in self.binary.iter().enumerate() {
+            let name = at(&self.binary_names, i, "binary variable name")?;
+            let mut var = variable(&name, Vtype::Binary, None)?;
+            if !self.binary_is_inverted.is_empty()
+                && at(&self.binary_is_inverted, i, "binary inversion flag")?
+            {
+                let inv = *next(&mut inverted, "inverted binary variable")?;
                 var.inverted = Some(inv);
                 let invname = var.name().inverted();
-                let invvar = Variable::new(&invname, Vtype::InvertedBinary, None).unwrap();
-                variables.insert(inv, invvar);
-                lookup.insert(invname.into(), inv);
+                let invvar = variable(&invname.0, Vtype::InvertedBinary, None)?;
+                insert(variables, lookup, inv, invvar, invname.0)?;
             }
-            variables.insert(*vidx, var);
-            lookup.insert(name, *vidx);
+            insert(variables, lookup, vidx, var, name)?;
         }
+        Ok(())
     }
 
     fn extract_spin(
         &self,
         variables: &mut HashMap<VarIdx, Variable>,
         lookup: &mut HashMap<String, VarIdx>,
-    ) {
-        for (i, vidx) in self.spin.iter().enumerate() {
-            let name = self.spin_names[i].clone();
-            let var = Variable::new(&name, Vtype::Spin, None).unwrap();
-            variables.insert(*vidx, var);
-            lookup.insert(name, *vidx);
+    ) -> LunaModelResult<()> {
+        for (i, &vidx) in self.spin.iter().enumerate() {
+            let name = at(&self.spin_names, i, "spin variable name")?;
+            insert(
+                variables,
+                lookup,
+                vidx,
+                variable(&name, Vtype::Spin, None)?,
+                name,
+            )?;
         }
+        Ok(())
     }
 
     fn extract_int(
         &self,
         variables: &mut HashMap<VarIdx, Variable>,
         lookup: &mut HashMap<String, VarIdx>,
-    ) {
-        let mut lowers = VecDeque::from(self.integer_bounds_lower.clone());
-        let mut uppers = VecDeque::from(self.integer_bounds_upper.clone());
+    ) -> LunaModelResult<()> {
+        let mut lowers = self.integer_bounds_lower.iter();
+        let mut uppers = self.integer_bounds_upper.iter();
 
-        for (i, vidx) in self.integer.iter().enumerate() {
-            let name = self.integer_names[i].clone();
-            let lower_bound: Bound = match self.integer_bounds_has_lower[i] {
-                true => Bound::Bounded(lowers.pop_front().unwrap()),
-                false => Bound::Unbounded,
-            };
-            let upper_bound: Bound = match self.integer_bounds_has_upper[i] {
-                true => Bound::Bounded(uppers.pop_front().unwrap()),
-                false => Bound::Unbounded,
-            };
+        for (i, &vidx) in self.integer.iter().enumerate() {
+            let name = at(&self.integer_names, i, "integer variable name")?;
+            let lower_bound: Bound =
+                match at(&self.integer_bounds_has_lower, i, "lower bound flag")? {
+                    true => Bound::Bounded(*next(&mut lowers, "integer lower bound")?),
+                    false => Bound::Unbounded,
+                };
+            let upper_bound: Bound =
+                match at(&self.integer_bounds_has_upper, i, "upper bound flag")? {
+                    true => Bound::Bounded(*next(&mut uppers, "integer upper bound")?),
+                    false => Bound::Unbounded,
+                };
             let bounds = Some(LazyBounds::new(Some(lower_bound), Some(upper_bound)));
-            let var = Variable::new(&name, Vtype::Integer, bounds).unwrap();
-            variables.insert(*vidx, var);
-            lookup.insert(name, *vidx);
+            insert(
+                variables,
+                lookup,
+                vidx,
+                variable(&name, Vtype::Integer, bounds)?,
+                name,
+            )?;
         }
+        Ok(())
     }
 
     fn extract_real(
         &self,
         variables: &mut HashMap<VarIdx, Variable>,
         lookup: &mut HashMap<String, VarIdx>,
-    ) {
-        let mut lowers = VecDeque::from(self.real_bounds_lower.clone());
-        let mut uppers = VecDeque::from(self.real_bounds_upper.clone());
+    ) -> LunaModelResult<()> {
+        let mut lowers = self.real_bounds_lower.iter();
+        let mut uppers = self.real_bounds_upper.iter();
 
-        for (i, vidx) in self.real.iter().enumerate() {
-            let name = self.real_names[i].clone();
-            let lower_bound: Bound = match self.real_bounds_has_lower[i] {
-                true => Bound::Bounded(lowers.pop_front().unwrap()),
+        for (i, &vidx) in self.real.iter().enumerate() {
+            let name = at(&self.real_names, i, "real variable name")?;
+            let lower_bound: Bound = match at(&self.real_bounds_has_lower, i, "lower bound flag")? {
+                true => Bound::Bounded(*next(&mut lowers, "real lower bound")?),
                 false => Bound::Unbounded,
             };
-            let upper_bound: Bound = match self.real_bounds_has_upper[i] {
-                true => Bound::Bounded(uppers.pop_front().unwrap()),
+            let upper_bound: Bound = match at(&self.real_bounds_has_upper, i, "upper bound flag")? {
+                true => Bound::Bounded(*next(&mut uppers, "real upper bound")?),
                 false => Bound::Unbounded,
             };
             let bounds = Some(LazyBounds::new(Some(lower_bound), Some(upper_bound)));
-            let var = Variable::new(&name, Vtype::Real, bounds).unwrap();
-            variables.insert(*vidx, var);
-            lookup.insert(name, *vidx);
+            insert(
+                variables,
+                lookup,
+                vidx,
+                variable(&name, Vtype::Real, bounds)?,
+                name,
+            )?;
         }
+        Ok(())
     }
 }

@@ -77,3 +77,31 @@ impl Creatable<Solution> for SerSolution {
         Self::default().fill(value)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::encode::{BytesDecodable, BytesEncodable};
+
+    /// Counts and lengths are checked, not trusted (found by fuzzing).
+    #[test]
+    fn contradicting_fields_are_an_error() {
+        let mut sol = Solution::default();
+        sol.add_binary("x".into(), vec![0.0, 1.0], None).unwrap();
+        sol.constraints.insert("c".into(), vec![true, false]);
+        let tampers: [fn(&mut SerSolution); 4] = [
+            |ser| ser.num_samples = 9, // more than the 8 bits of one byte
+            |ser| ser.n_constraints = u64::MAX,
+            |ser| ser.sample_types[0] = 9,
+            |ser| {
+                ser.variable_names.clear();
+                ser.sample_types.clear();
+            },
+        ];
+        for tamper in tampers {
+            let mut ser = SerSolution::new(&sol);
+            tamper(&mut ser);
+            assert!(SerSolution::decode_from_bytes(&ser.encode_to_bytes(), ()).is_err());
+        }
+    }
+}
