@@ -2,9 +2,14 @@
 
 use std::fs;
 
+use itertools::Either;
+use lunamodel_core::{Expression, Solution};
+use lunamodel_fuzz::expression_env;
+use lunamodel_serializer::prelude::{Creatable, Encodable};
 use lunamodel_translate::model::{LpTranslator, MpsTranslator};
 
-/// Each LP model also seeds the MPS reader, through the MPS writer.
+/// Each LP model also seeds the MPS reader through the MPS writer, and the
+/// decoders through the encoders.
 const LP: &[&str] = &[
     "\\ every section\nMaximize\n obj: 2 x + 3 y - z + [ x * y + 2 z ^ 2 ] / 2 + 5\n\
      Subject To\n c1: x + y + z <= 10\n c2: x - y >= -2\n q: [ x * y ] + z <= 4\n eq: y + z = 3\n\
@@ -36,11 +41,37 @@ fn main() {
         write("lp_reader", &format!("{i}"), lp);
         write("lp_reader", &format!("{i}_written"), &written_lp);
         write("mps_reader", &format!("{i}_written"), &written_mps);
+
+        let env = model.environment.read_arc().clone();
+        for compress in [false, true] {
+            let name = format!("{i}_{compress}");
+            write("decode_model", &name, encode(&model, compress));
+            write("decode_environment", &name, encode(&env, compress));
+        }
+    }
+
+    // Random samples need bounded variables.
+    let bounded = "Minimize\n x + 2 y - 3 i\nSubject To\n c: x + y + i <= 2\n\
+                   Bounds\n 0 <= x <= 1.5\n -2 <= i <= 2\nGenerals\n i\nBinaries\n y\nEnd\n";
+    let model = LpTranslator::translate(bounded.to_string()).unwrap();
+    let solution = Solution::from_random(4, Some(0), Either::Right(model), None, None).unwrap();
+    for compress in [false, true] {
+        write("decode_solution", &format!("{compress}"), encode(&solution, compress));
+    }
+
+    let dense = [1.0, -2.0, 0.0, 0.5, 0.0, 3.0, 1.5, 0.0, 0.0, 0.0, -1.0, 2.0, 0.0, 0.0, 0.0, 4.0];
+    let expr = Expression::from_dense_quadratic(&dense, 4, Some(7.0), expression_env()).unwrap();
+    for compress in [false, true] {
+        write("decode_expression", &format!("{compress}"), encode(&expr, compress));
     }
     for (i, mps) in MPS.iter().enumerate() {
         MpsTranslator::translate(mps.to_string()).unwrap();
         write("mps_reader", &format!("{i}"), mps);
     }
+}
+
+fn encode<T: Encodable<S>, S: Creatable<T>>(value: &T, compress: bool) -> Vec<u8> {
+    value.encode(Some(compress), None).unwrap()
 }
 
 fn write(target: &str, name: &str, content: impl AsRef<[u8]>) {
