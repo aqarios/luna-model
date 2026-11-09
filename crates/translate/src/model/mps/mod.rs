@@ -1,6 +1,5 @@
 //! MPS model translation support.
 mod back_translate;
-mod builder;
 mod reader;
 mod translate;
 
