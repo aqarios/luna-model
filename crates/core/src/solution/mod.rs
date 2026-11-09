@@ -18,7 +18,6 @@ pub use col::{Assignment, ColElement, Column};
 use indexmap::IndexMap;
 use lunamodel_types::Sense;
 pub use src::ValueSource;
-use std::collections::HashMap;
 
 use crate::{Timing, traits::ContentEquality};
 
@@ -69,11 +68,11 @@ pub struct Solution {
     ///
     /// Each vector is aligned with the stored samples and indicates whether the
     /// corresponding sample satisfies that named constraint.
-    pub constraints: HashMap<String, Vec<bool>>,
+    pub constraints: IndexMap<String, Vec<bool>>,
     /// Boolean flag for each variable whether its bounds are satisfied for each sample.
     /// For every variable key, the corresponding vector length matches the number
     /// of stored samples.
-    pub variable_bounds: HashMap<String, Vec<bool>>,
+    pub variable_bounds: IndexMap<String, Vec<bool>>,
     // metadata
     /// Runtime metrics of the solution.
     pub timing: Option<Timing>,
