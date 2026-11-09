@@ -1,0 +1,31 @@
+[package]
+name = "lunamodel-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+lunamodel-core = { path = "../crates/core" }
+lunamodel-translate = { path = "../crates/translate" }
+
+# Not a member of the main workspace, which stays on stable.
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "lp_reader"
+path = "fuzz_targets/lp_reader.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "mps_reader"
+path = "fuzz_targets/mps_reader.rs"
+test = false
+doc = false
+bench = false
