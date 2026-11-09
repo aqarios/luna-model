@@ -9,6 +9,7 @@ use lunamodel_types::{Sense, Vtype};
 use prost::Message;
 
 use crate::{
+    check::{aligned, product, span},
     encode::{BytesDecodable, Decodable},
     utils::u8_to_vtype,
     versionize::Unversionizable,
@@ -45,12 +46,13 @@ impl SerSolution {
             sol.timing = Some(t.as_slice().unversionize_nested().decode(())?);
         }
 
+        let num_samples = self.num_samples as usize;
         let mut bv: BitVec<u8, Lsb0> = BitVec::from_vec(self.bins);
-        bv.truncate(self.num_samples as usize * self.n_bins as usize);
+        bv.truncate(product(self.num_samples, self.n_bins, "binary samples")?);
         let bins: Vec<u8> = bv.into_iter().map(|v| v as u8).collect();
 
         let mut sv: BitVec<u8, Lsb0> = BitVec::from_vec(self.spins);
-        sv.truncate(self.num_samples as usize * self.n_spins as usize);
+        sv.truncate(product(self.num_samples, self.n_spins, "spin samples")?);
         let spins: Vec<i8> = sv.into_iter().map(|v| 1 - (2 * v as i8)).collect();
 
         let (mut start_bin, mut start_spin, mut start_int, mut start_real) = (0, 0, 0, 0);
@@ -60,63 +62,60 @@ impl SerSolution {
             .cloned()
             .zip(self.sample_types.iter())
         {
-            let vtype = u8_to_vtype(st);
-            if vtype.is_none() {
+            let Some(vtype) = u8_to_vtype(st)? else {
                 continue;
-            }
-            match vtype.unwrap() {
+            };
+            match vtype {
                 Vtype::Binary => {
                     sol.add_binary(
                         name,
-                        bins[start_bin..start_bin + self.num_samples as usize]
+                        span(&bins, start_bin, num_samples, "binary samples")?
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
                         None,
                     )?;
-                    start_bin += self.num_samples as usize;
+                    start_bin += num_samples;
                 }
                 Vtype::Spin => {
                     sol.add_spin(
                         name,
-                        spins[start_spin..start_spin + self.num_samples as usize]
+                        span(&spins, start_spin, num_samples, "spin samples")?
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
                         None,
                     )?;
-                    start_spin += self.num_samples as usize;
+                    start_spin += num_samples;
                 }
                 Vtype::Integer => {
                     sol.add_integer(
                         name,
-                        self.ints[start_int..start_int + self.num_samples as usize]
+                        span(&self.ints, start_int, num_samples, "integer samples")?
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
                         None,
                     )?;
-                    start_int += self.num_samples as usize;
+                    start_int += num_samples;
                 }
                 Vtype::Real => {
                     sol.add_real(
                         name,
-                        self.reals[start_real..start_real + self.num_samples as usize].to_vec(),
+                        span(&self.reals, start_real, num_samples, "real samples")?.to_vec(),
                     );
-                    start_real += self.num_samples as usize;
+                    start_real += num_samples;
                 }
                 Vtype::InvertedBinary => (),
             }
         }
 
-        let constraint_names = if self.constraint_names.is_empty() {
-            (0..self.n_constraints).map(|i| format!("c{i}")).collect()
-        } else {
-            self.constraint_names
-        };
-
         let mut cv: BitVec<u8, Lsb0> = BitVec::from_vec(self.constraints);
-        cv.truncate(self.n_constraints as usize * self.num_samples as usize);
+        cv.truncate(product(
+            self.n_constraints,
+            self.num_samples,
+            "constraints",
+        )?);
         let constraint_chunks: Vec<Vec<bool>> = match self.n_constraints == 0 {
             true => Vec::default(),
             false => cv
@@ -127,6 +126,14 @@ impl SerSolution {
                 .collect(),
         };
 
+        // Generated only for existing results, so `n_constraints` is bounded by the data.
+        let constraint_names = match (
+            self.constraint_names.is_empty(),
+            constraint_chunks.is_empty(),
+        ) {
+            (true, false) => (0..self.n_constraints).map(|i| format!("c{i}")).collect(),
+            _ => self.constraint_names,
+        };
         for sample in constraint_chunks {
             for (cname, value) in constraint_names.iter().zip(sample) {
                 sol.constraints
@@ -137,7 +144,11 @@ impl SerSolution {
         }
 
         let mut cv: BitVec<u8, Lsb0> = BitVec::from_vec(self.variable_bounds);
-        cv.truncate(self.n_variable_bounds as usize * self.num_samples as usize);
+        cv.truncate(product(
+            self.n_variable_bounds,
+            self.num_samples,
+            "variable bounds",
+        )?);
         let variable_bounds: Vec<Vec<bool>> = match self.n_variable_bounds == 0 {
             true => Vec::default(),
             false => cv
@@ -161,10 +172,11 @@ impl SerSolution {
             }
         }
 
+        aligned(&sol)?;
         sol.feasible = if sol.variable_bounds.is_empty() && sol.constraints.is_empty() {
             None
         } else {
-            let mut feasible: Vec<bool> = vec![true; self.num_samples as usize];
+            let mut feasible: Vec<bool> = vec![true; sol.len()];
             for per_constraint in sol.constraints.values() {
                 for (i, &item) in per_constraint.iter().enumerate() {
                     feasible[i] = feasible[i] && item;
