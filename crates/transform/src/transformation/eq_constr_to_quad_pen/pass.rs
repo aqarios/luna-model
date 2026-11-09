@@ -8,7 +8,7 @@ use lunamodel_transpiler::{
     AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult,
     transformation,
 };
-use lunamodel_types::{Comparator, Sense};
+use lunamodel_types::{Comparator, EnumSet, ModelPart, Sense};
 
 use crate::{
     analysis::{MaxBias, MaxBiasAnalysis},
@@ -40,6 +40,10 @@ impl EqualityConstraintsToQuadraticPenaltyPass {
 impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
     fn name(&self) -> &str {
         "equality-constraints-to-quadratic-penalty"
+    }
+
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        ModelPart::Objective | ModelPart::Constraints
     }
 
     fn forward(&self, model: &mut Model, ctx: &PassContext) -> TranspileKindResult<Self::Artifact> {

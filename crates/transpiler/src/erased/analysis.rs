@@ -3,6 +3,7 @@
 use std::any::Any;
 
 use lunamodel_core::Model;
+use lunamodel_types::{EnumSet, ModelPart};
 
 use crate::{AnalysisKey, AnalysisManager, AnalysisPass, PassContext, error::TranspileKindResult};
 
@@ -14,6 +15,8 @@ pub trait ErasedAnalysisPass: Send + Sync {
     fn provides(&self) -> &str;
     /// Required pass/analysis names.
     fn requires(&self) -> &[String];
+    /// Model parts the result depends on.
+    fn depends_on(&self) -> EnumSet<ModelPart>;
     /// Runs the pass and stores the result in the provided analysis manager.
     fn run_erased(
         &self,
@@ -41,6 +44,10 @@ where
 
     fn requires(&self) -> &[String] {
         self.requires()
+    }
+
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        self.depends_on()
     }
 
     fn run_erased(

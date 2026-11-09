@@ -1,8 +1,9 @@
 //! Pass-manager execution engine.
 
-use std::{collections::HashSet, sync::Arc};
+use std::sync::Arc;
 
 use lunamodel_core::Model;
+use lunamodel_types::EnumSet;
 
 use crate::{
     Pipeline,
@@ -15,13 +16,20 @@ use crate::{
     output::TransformationOutput,
     record::{PassEntry, TransformationRecord},
     step::PipelineStep,
+    validation::Availability,
+    verify::Untouched,
 };
 
 /// Executes pipelines and manages analysis state across pass boundaries.
-#[derive(Default)]
 pub struct PassManager {
     passes: Vec<PipelineStep>,
-    // analysis_manager: AnalysisManager,
+    verify_modifies: bool,
+}
+
+impl Default for PassManager {
+    fn default() -> Self {
+        Self::from_steps(Vec::new())
+    }
 }
 
 impl PassManager {
@@ -32,7 +40,17 @@ impl PassManager {
 
     /// Creates a pass manager from an explicit step list.
     pub fn from_steps(steps: Vec<PipelineStep>) -> Self {
-        Self { passes: steps }
+        Self {
+            passes: steps,
+            verify_modifies: cfg!(debug_assertions),
+        }
+    }
+
+    /// Checks after every transformation that it only modified the model parts it declares in
+    /// `modifies`. On by default in debug builds.
+    pub fn verify_modifies(mut self, verify: bool) -> Self {
+        self.verify_modifies = verify;
+        self
     }
 
     /// Appends a transformation pass.
@@ -92,7 +110,12 @@ impl PassManager {
     pub fn run(&self, mut model: Model) -> TranspilerResult<TransformationOutput> {
         self.validate_requirements()?;
         let mut analysis = AnalysisManager::default();
-        let record = execute_steps(&mut model, &self.passes, &mut analysis)?;
+        let record = execute_steps(
+            &mut model,
+            &self.passes,
+            &mut analysis,
+            self.verify_modifies,
+        )?;
         Ok(TransformationOutput {
             record,
             model,
@@ -102,8 +125,7 @@ impl PassManager {
 
     /// Validates pass requirements against the configured execution order.
     fn validate_requirements(&self) -> TranspilerResult<()> {
-        let mut satisfied: HashSet<String> = HashSet::new();
-        self.validate_steps(&self.passes, &mut satisfied)
+        self.validate_steps(&self.passes, &mut Availability::default())
     }
 }
 
@@ -112,11 +134,13 @@ fn execute_steps(
     model: &mut Model,
     passes: &[PipelineStep],
     analysis_manager: &mut AnalysisManager,
+    verify: bool,
 ) -> TranspilerResult<TransformationRecord> {
     record(|entries| {
         for (pos, step) in passes.iter().enumerate() {
             match step {
                 PipelineStep::Transform(pass) => {
+                    let untouched = verify.then(|| Untouched::snapshot(model, pass.modifies()));
                     let ctx = PassContext::new(analysis_manager);
                     let artifact = pass.forward_erased(model, &ctx)?;
                     entries.push(PassEntry::Transform {
@@ -124,37 +148,49 @@ fn execute_steps(
                         pass_name: pass.name().to_string(),
                         artifact,
                     });
-                    analysis_manager.invalidate_many(pass.invalidates());
+                    if let Some(untouched) = untouched {
+                        untouched.check(model, pass.name())?;
+                    }
+                    analysis_manager.invalidate(pass.modifies());
                 }
                 PipelineStep::Analysis(pass) => {
                     let analysis_snapshot = analysis_manager.clone();
                     let ctx = PassContext::new(&analysis_snapshot);
                     pass.run_erased(model, &ctx, analysis_manager)?;
+                    analysis_manager.set_depends_on(pass.provides(), pass.depends_on());
                     entries.push(PassEntry::Analysis {
                         pass_name: pass.name().to_string(),
                     });
                 }
                 PipelineStep::MetaAnalysis(pass) => {
                     pass.run_erased(&passes[pos..], analysis_manager)?;
+                    analysis_manager.set_depends_on(pass.provides(), EnumSet::empty());
                     entries.push(PassEntry::MetaAnalysis {
                         pass_name: pass.name().to_string(),
                     });
                 }
                 PipelineStep::Composite(pass) => {
+                    let untouched = verify.then(|| Untouched::snapshot(model, pass.modifies()));
                     let analysis_snapshot = analysis_manager.clone();
                     let ctx = PassContext::new(&analysis_snapshot);
+                    // Invalidate before the pass deposits its own result, which is computed on
+                    // the modified model.
+                    analysis_manager.invalidate(pass.modifies());
                     let artifact = pass.forward_erased(model, &ctx, analysis_manager)?;
+                    analysis_manager.set_depends_on(pass.provides(), pass.depends_on());
                     entries.push(PassEntry::Composite {
                         pass_id: pass.id().to_string(),
                         pass_name: pass.name().to_string(),
                         artifact,
                     });
-                    analysis_manager.invalidate_many(pass.invalidates());
+                    if let Some(untouched) = untouched {
+                        untouched.check(model, pass.name())?;
+                    }
                 }
                 PipelineStep::ControlFlow(pass) => {
                     let ctx = PassContext::new(analysis_manager);
                     let plan = pass.run_erased(model, &ctx)?;
-                    let res = execute_steps(model, &plan.pipeline.steps, analysis_manager);
+                    let res = execute_steps(model, &plan.pipeline.steps, analysis_manager, verify);
                     attach_nested(entries, res, |record| PassEntry::ControlFlow {
                         name: plan.pipeline.name,
                         pass_name: pass.name().to_string(),
@@ -162,7 +198,7 @@ fn execute_steps(
                     })?;
                 }
                 PipelineStep::Pipeline(p) => {
-                    let res = execute_steps(model, &p.steps, analysis_manager);
+                    let res = execute_steps(model, &p.steps, analysis_manager, verify);
                     attach_nested(entries, res, |record| PassEntry::Pipeline {
                         name: p.name.clone(),
                         record,

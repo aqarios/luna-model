@@ -1,6 +1,7 @@
 //! Trait definitions for composite passes.
 
 use lunamodel_core::Model;
+use lunamodel_types::{EnumSet, ModelPart};
 
 use crate::{AnalysisKey, PassContext, error::TranspileKindResult, reversible::Reversible};
 
@@ -36,9 +37,14 @@ pub trait CompositePass: Send + Sync + Reversible {
     }
     fn key<T>() -> AnalysisKey<T>;
 
-    /// Which pass/analysis keys might be invalidated after this pass was executed.
-    fn invalidates(&self) -> &[String] {
-        &[]
+    /// Which model parts this pass may modify. Analyses depending on any of them are invalidated.
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        EnumSet::all()
+    }
+
+    /// Which model parts the provided result is computed from.
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        EnumSet::all()
     }
 
     /// Overridable to_string method for displaying the pass as human readble.

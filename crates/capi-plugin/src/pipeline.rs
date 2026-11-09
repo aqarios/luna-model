@@ -70,10 +70,10 @@ impl StepListView {
     }
 
     /// Analysis names the step at `index` invalidates, or `None` if out of bounds.
+    ///
+    /// Invalidation is tracked by model part (`modifies`) now, so no step names analyses.
     pub fn invalidates(&self, index: usize) -> Option<Vec<String>> {
-        self.steps()
-            .get(index)
-            .map(|s| std::slice::from_ref(s).collect_invalidates().collect())
+        self.steps().get(index).map(|_| Vec::new())
     }
 }
 

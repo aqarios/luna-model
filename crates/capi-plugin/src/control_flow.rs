@@ -17,7 +17,6 @@ pub struct CPluginControlFlowPass {
     name: String,
     requires: Vec<String>,
     provides: Vec<String>,
-    invalidates: Vec<String>,
 }
 
 // Safety: `desc` holds plugin-owned pointers opaque to luna-model. The plugin owns their
@@ -34,14 +33,12 @@ impl CPluginControlFlowPass {
         let name = unsafe { borrow_cstr((desc.name)(desc.user_data)) };
         let requires = unsafe { collect_strings(desc.user_data, desc.requires_analyses) };
         let provides = unsafe { collect_strings(desc.user_data, desc.provides) };
-        let invalidates = unsafe { collect_strings(desc.user_data, desc.invalidates) };
         Self {
             desc,
             id,
             name,
             requires,
             provides,
-            invalidates,
         }
     }
 }
@@ -63,10 +60,6 @@ impl ControlFlowPass for CPluginControlFlowPass {
 
     fn provides(&self) -> &[String] {
         &self.provides
-    }
-
-    fn invalidates(&self) -> &[String] {
-        &self.invalidates
     }
 
     fn run(&self, model: &Model, ctx: &PassContext) -> TranspileKindResult<ControlFlowPlan> {

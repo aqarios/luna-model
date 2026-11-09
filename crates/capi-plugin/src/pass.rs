@@ -26,7 +26,6 @@ pub struct CPluginTransformPass {
     id: String,
     name: String,
     requires: Vec<String>,
-    invalidates: Vec<String>,
 }
 
 // Safety: `desc` holds plugin-owned pointers opaque to luna-model. The plugin owns their
@@ -43,13 +42,11 @@ impl CPluginTransformPass {
         let id = unsafe { borrow_cstr((desc.id)(desc.user_data)) };
         let name = unsafe { borrow_cstr((desc.name)(desc.user_data)) };
         let requires = unsafe { collect_strings(desc.user_data, desc.requires_analyses) };
-        let invalidates = unsafe { collect_strings(desc.user_data, desc.invalidates) };
         Self {
             desc,
             id,
             name,
             requires,
-            invalidates,
         }
     }
 }
@@ -67,10 +64,6 @@ impl TransformationPass for CPluginTransformPass {
 
     fn requires(&self) -> &[String] {
         &self.requires
-    }
-
-    fn invalidates(&self) -> &[String] {
-        &self.invalidates
     }
 
     fn forward(&self, model: &mut Model, ctx: &PassContext) -> TranspileKindResult<Self::Artifact> {

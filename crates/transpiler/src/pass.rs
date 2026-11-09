@@ -1,6 +1,7 @@
 //! Trait definitions for reversible transformation and analysis passes.
 
 use lunamodel_core::Model;
+use lunamodel_types::{EnumSet, ModelPart};
 
 use crate::{AnalysisKey, Reversible, context::PassContext, error::TranspileKindResult};
 
@@ -20,9 +21,9 @@ pub trait TransformationPass: Send + Sync + Reversible {
         &[]
     }
 
-    /// Which pass/analysis keys are invalidated after this pass was executed.
-    fn invalidates(&self) -> &[String] {
-        &[]
+    /// Which model parts this pass may modify. Analyses depending on any of them are invalidated.
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        EnumSet::all()
     }
 
     /// Human-readable display string used by pipeline visualization.
@@ -52,6 +53,11 @@ pub trait AnalysisPass: Send + Sync {
     /// Which pass/analysis keys must be satisfied before this analysis can execute?
     fn requires(&self) -> &[String] {
         &[]
+    }
+
+    /// Which model parts the result is computed from. It stays valid until one of them is modified.
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        EnumSet::all()
     }
 
     /// Computes the analysis result without mutating the model.

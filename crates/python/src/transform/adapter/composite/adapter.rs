@@ -31,7 +31,6 @@ pub struct PyCompositePassAdapter {
     name: String,
     requires: Vec<String>,
     provides: String,
-    invalidates: Vec<String>,
 }
 
 impl PyCompositePassAdapter {
@@ -51,18 +50,11 @@ impl PyCompositePassAdapter {
             .map_err(map_pyerr)?
             .extract(py)
             .map_err(map_pyerr)?;
-        let invalidates: Vec<String> = inner
-            .call_method0(py, "invalidates")
-            .map_err(map_pyerr)?
-            .extract(py)
-            .map_err(map_pyerr)?;
-
         Ok(Self {
             inner,
             name,
             requires,
             provides,
-            invalidates,
         })
     }
 
@@ -83,10 +75,6 @@ impl CompositePass for PyCompositePassAdapter {
 
     fn provides(&self) -> &str {
         &self.provides
-    }
-
-    fn invalidates(&self) -> &[String] {
-        &self.invalidates
     }
 
     fn requires(&self) -> &[String] {

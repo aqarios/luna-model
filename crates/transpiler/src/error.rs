@@ -3,6 +3,7 @@
 use std::{error::Error, fmt::Display, sync::Arc};
 
 use lunamodel_error::{ErasedRecord, ErrString, LunaModelError};
+use lunamodel_types::{EnumSet, ModelPart};
 
 use crate::{PassEntry, TransformationRecord};
 
@@ -20,6 +21,16 @@ impl Error for TranspilerError {
 pub type TranspilerResult<T> = Result<T, TranspilerError>;
 pub type TranspileKindResult<T> = Result<T, TranspileErrorKind>;
 
+/// A required analysis that was computed but invalidated before the requiring pass runs.
+#[derive(Debug)]
+pub struct InvalidatedRequirement {
+    pub pass_name: String,
+    pub requirement: String,
+    pub computed_by: String,
+    pub invalidated_by: String,
+    pub parts: EnumSet<ModelPart>,
+}
+
 /// Errors originating from pass orchestration rather than domain modeling itself.
 #[derive(Debug)]
 pub enum TranspileErrorKind {
@@ -36,6 +47,13 @@ pub enum TranspileErrorKind {
     UnsatisfiedRequirement {
         pass_name: String,
         requirement: String,
+    },
+    /// A pass requires an analysis that an earlier transformation invalidated.
+    InvalidatedRequirement(Box<InvalidatedRequirement>),
+    /// A transformation modified model parts it did not declare in `modifies`.
+    UndeclaredModification {
+        pass_name: String,
+        parts: EnumSet<ModelPart>,
     },
     /// Backward execution requested a pass that was never registered.
     UnregisteredPass {
@@ -97,6 +115,29 @@ impl Display for TranspileErrorKind {
                 write!(
                     f,
                     "pass '{pass_name}' requires '{requirement}' to be satisfied first"
+                )
+            }
+            Self::InvalidatedRequirement(inv) => {
+                let InvalidatedRequirement {
+                    pass_name,
+                    requirement,
+                    computed_by,
+                    invalidated_by,
+                    parts,
+                } = inv.as_ref();
+                write!(
+                    f,
+                    "pass '{pass_name}' requires '{requirement}', computed by '{computed_by}' but \
+                     invalidated by '{invalidated_by}' which modifies {}; recompute it after \
+                     '{invalidated_by}' or move '{invalidated_by}' earlier",
+                    fmt_parts(*parts)
+                )
+            }
+            Self::UndeclaredModification { pass_name, parts } => {
+                write!(
+                    f,
+                    "pass '{pass_name}' modified {} without declaring it in `modifies`",
+                    fmt_parts(*parts)
                 )
             }
             Self::UnregisteredPass { name } => {
@@ -253,6 +294,11 @@ pub fn attach_nested(
             Err(kind.into())
         }
     }
+}
+
+fn fmt_parts(parts: EnumSet<ModelPart>) -> String {
+    let names: Vec<String> = parts.iter().map(|p| p.to_string()).collect();
+    format!("{{{}}}", names.join(", "))
 }
 
 fn describe_external(e: &anyhow::Error) -> ErrString {

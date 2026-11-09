@@ -19,6 +19,7 @@
 use std::hash::Hasher;
 
 use lunamodel_core::Model;
+use lunamodel_types::ModelPart;
 use rustc_hash::FxHasher;
 
 mod constr;
@@ -36,5 +37,18 @@ pub fn hash_model(m: &Model) -> u64 {
     let mut h = FxHasher::default();
     h.write_u64(HASH_SCHEME_VERSION);
     model::hash_model(m, &mut h);
+    h.finish()
+}
+
+/// Hashes a single part of a model based on its semantic content.
+pub fn hash_model_part(m: &Model, part: ModelPart) -> u64 {
+    let mut h = FxHasher::default();
+    h.write_u64(HASH_SCHEME_VERSION);
+    match part {
+        ModelPart::Objective => expr::hash_expr(m.objective(), &mut h),
+        ModelPart::Constraints => constr::hash_constr(m.constraints(), &mut h),
+        ModelPart::Variables => env::hash_env(&m.environment, &mut h),
+        ModelPart::Sense => h.write_u8(m.sense.is_min() as u8),
+    }
     h.finish()
 }

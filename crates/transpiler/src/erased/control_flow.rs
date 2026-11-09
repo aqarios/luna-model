@@ -3,6 +3,7 @@
 use std::any::Any;
 
 use lunamodel_core::Model;
+use lunamodel_types::{EnumSet, ModelPart};
 
 use crate::{
     ControlFlowPass, ControlFlowPlan, PassContext, PipelineStep, error::TranspileKindResult,
@@ -16,8 +17,8 @@ pub trait ErasedControlFlowPass: Send + Sync {
     fn requires(&self) -> &[String];
     /// Provided names after execution.
     fn provides(&self) -> &[String];
-    /// Invalidated analysis names.
-    fn invalidates(&self) -> &[String];
+    /// Model parts any branch may modify.
+    fn modifies(&self) -> EnumSet<ModelPart>;
     /// All possible branches (sub-steps) this pass may branch into, for static validation.
     fn branches(&self) -> Vec<&[PipelineStep]>;
     /// Runs the pass and returns the selected control-flow plan.
@@ -49,8 +50,8 @@ where
         self.provides()
     }
 
-    fn invalidates(&self) -> &[String] {
-        self.invalidates()
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        self.modifies()
     }
 
     fn branches(&self) -> Vec<&[PipelineStep]> {

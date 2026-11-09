@@ -1045,6 +1045,7 @@ dependencies = [
  "anyhow",
  "lunamodel-core",
  "lunamodel-error",
+ "lunamodel-hashing",
  "lunamodel-transpiler-macros",
  "lunamodel-types",
 ]

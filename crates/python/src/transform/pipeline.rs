@@ -48,8 +48,10 @@ impl PyPipeline {
     }
 
     /// Return the analyses invalidated by the pipeline.
+    ///
+    /// Invalidation is tracked by model part now, so the pipeline names no analyses.
     fn invalidates(&self) -> Vec<String> {
-        self.0.invalidates().collect()
+        Vec::new()
     }
 
     /// Return the analyses produced by the pipeline.

@@ -8,6 +8,8 @@ use std::{
     sync::{Arc, OnceLock, RwLock},
 };
 
+use lunamodel_types::{EnumSet, ModelPart};
+
 use crate::error::{TranspileErrorKind, TranspileKindResult};
 
 /// Typed key for accessing analysis results.
@@ -47,6 +49,8 @@ pub struct SerializedAnalysis {
 #[derive(Clone, Default, Debug)]
 pub struct AnalysisManager {
     results: HashMap<String, Arc<dyn Any + Send + Sync>>,
+    /// Model parts each result depends on; results without an entry depend on all parts.
+    depends_on: HashMap<String, EnumSet<ModelPart>>,
 }
 
 impl AnalysisManager {
@@ -70,6 +74,7 @@ impl AnalysisManager {
 
     /// Stores an analysis result under its typed key.
     pub fn insert<T: Send + Sync + 'static>(&mut self, key: &AnalysisKey<T>, value: T) {
+        self.depends_on.remove(&key.name);
         self.results.insert(key.name.clone(), Arc::new(value));
     }
 
@@ -80,6 +85,7 @@ impl AnalysisManager {
     ///
     /// [`get_serialized`]: Self::get_serialized
     pub fn insert_serialized(&mut self, name: &str, type_tag: String, bytes: Vec<u8>) {
+        self.depends_on.remove(name);
         self.results.insert(
             name.to_string(),
             Arc::new(SerializedAnalysis { type_tag, bytes }),
@@ -95,11 +101,26 @@ impl AnalysisManager {
             .and_then(|boxed| boxed.downcast_ref::<SerializedAnalysis>())
     }
 
-    /// Invalidates analysis entries by name.
-    pub fn invalidate_many(&mut self, keys: &[String]) {
-        for key in keys {
-            self.results.remove(key);
+    /// Records the model parts the result stored under `name` depends on.
+    pub fn set_depends_on(&mut self, name: &str, parts: EnumSet<ModelPart>) {
+        self.depends_on.insert(name.to_string(), parts);
+    }
+
+    /// Drops every result that depends on one of the `modified` parts.
+    pub fn invalidate(&mut self, modified: EnumSet<ModelPart>) {
+        if modified.is_empty() {
+            return;
         }
+        let depends_on = &mut self.depends_on;
+        self.results.retain(|name, _| {
+            let keep = depends_on
+                .get(name)
+                .is_some_and(|parts| parts.is_disjoint(modified));
+            if !keep {
+                depends_on.remove(name);
+            }
+            keep
+        });
     }
 }
 
