@@ -85,6 +85,11 @@ fn is_infinity(name: &str) -> bool {
     name.eq_ignore_ascii_case("inf") || name.eq_ignore_ascii_case("infinity")
 }
 
+/// Whether LP readers could take `name` for a keyword instead of a name.
+pub fn is_keyword(name: &str) -> bool {
+    section(name).is_some() || name.eq_ignore_ascii_case("free") || is_infinity(name)
+}
+
 /// `value cmp var` means `var flip(cmp) value`.
 fn flip(cmp: Comparator) -> Comparator {
     match cmp {

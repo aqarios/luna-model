@@ -73,6 +73,26 @@ pub fn prepare(model: &Model, format: &str) -> LunaModelResult<Vars> {
     Ok(Vars { list, position })
 }
 
+/// Rejects the first variable or constraint name that `invalid` gives a reason for,
+/// as the file would not read back.
+pub fn check_names(
+    model: &Model,
+    vars: &Vars,
+    format: &str,
+    invalid: impl Fn(&str) -> Option<&'static str>,
+) -> LunaModelResult<()> {
+    let vars = vars.list.iter().map(|v| ("variable", v.name.as_str()));
+    let constraints = model.constraints().iter();
+    let constraints = constraints.map(|(name, _)| ("constraint", name.as_str()));
+    for (kind, name) in vars.chain(constraints) {
+        if let Some(reason) = invalid(name) {
+            let msg = format!("{format} files cannot contain the {kind} name '{name}': {reason}");
+            return Err(LunaModelError::Translation(msg.into()));
+        }
+    }
+    Ok(())
+}
+
 /// The expression's non-zero quadratic terms.
 pub fn quadratic(expr: &Expression) -> impl Iterator<Item = (VarIdx, VarIdx, Bias)> + '_ {
     let terms = expr.quadratic.iter().flat_map(|q| q.iter_flat());
