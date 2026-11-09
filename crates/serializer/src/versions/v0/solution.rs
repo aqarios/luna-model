@@ -12,7 +12,6 @@ use lunamodel_core::Solution;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Sense, Vtype};
 use prost::Message;
-use std::collections::HashMap;
 
 #[derive(Clone, PartialEq, Message)]
 struct BoolVec {
@@ -210,7 +209,7 @@ impl SerSolution {
                 }
             }
         } else {
-            sol.constraints = HashMap::default();
+            sol.constraints = IndexMap::default();
         }
         if !self.variable_bounds.is_empty()
             && self.variable_bounds.iter().all(|vs| vs.vector.is_some())
@@ -234,7 +233,7 @@ impl SerSolution {
                 }
             }
         } else {
-            sol.variable_bounds = HashMap::default();
+            sol.variable_bounds = IndexMap::default();
         }
         if !(sol.constraints.is_empty() && sol.variable_bounds.is_empty()) {
             let mut feasible = vec![true; sol.len()];

@@ -9,7 +9,6 @@ use rand::{
     distr::{Distribution, Uniform},
     rngs::StdRng,
 };
-use std::collections::HashMap;
 
 use crate::{ArcEnv, Model, Timer, bounds::Bounds, solution::Column};
 
@@ -119,8 +118,8 @@ impl Solution {
             counts,
             raw_energies: None,
             obj_values: None,
-            constraints: HashMap::new(),
-            variable_bounds: HashMap::new(),
+            constraints: IndexMap::new(),
+            variable_bounds: IndexMap::new(),
             feasible: None,
             timing,
             sense: match &context {
