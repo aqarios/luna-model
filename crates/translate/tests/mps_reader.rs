@@ -296,3 +296,10 @@ fn numbers_that_are_not_finite_are_rejected() {
     let err = read_err(&small("").replace("rhs c1 4", "rhs c1 -1e400"));
     assert!(err.contains("constraint 'c1' contains -inf"), "{err}");
 }
+
+#[test]
+fn name_after_unicode_whitespace() {
+    // found by fuzzing: U+3000 is whitespace of three bytes
+    let m = read(&small("").replace("NAME test", "\u{3000}NAME test"));
+    assert_eq!(m.name, "test");
+}
