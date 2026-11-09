@@ -101,7 +101,12 @@ impl JsSolution {
     /// Each vector is aligned with the stored sample rows.
     #[napi(getter)]
     pub fn constraints(&self) -> HashMap<String, Vec<bool>> {
-        self.inner.read_arc().constraints.clone()
+        self.inner
+            .read_arc()
+            .constraints
+            .clone()
+            .into_iter()
+            .collect()
     }
 
     /// Per-variable bound feasibility flags keyed by variable name.
@@ -109,7 +114,12 @@ impl JsSolution {
     /// Each vector is aligned with the stored sample rows.
     #[napi(getter)]
     pub fn variable_bounds(&self) -> HashMap<String, Vec<bool>> {
-        self.inner.read_arc().variable_bounds.clone()
+        self.inner
+            .read_arc()
+            .variable_bounds
+            .clone()
+            .into_iter()
+            .collect()
     }
 
     /// Runtime metrics carried by this solution.
