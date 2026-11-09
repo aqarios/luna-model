@@ -20,6 +20,7 @@ impl SerEnvironment {
         self.next_idx = Some(env.next_idx());
 
         for idx in env.vars() {
+            self.order.push(idx);
             let var = &env[idx];
             match var.vtype() {
                 Vtype::Binary => {
