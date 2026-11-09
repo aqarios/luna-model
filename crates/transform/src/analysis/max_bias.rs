@@ -6,6 +6,7 @@ use lunamodel_core::Model;
 use lunamodel_transpiler::{
     AnalysisKey, AnalysisPass, PassContext, PipelineStep, TranspileKindResult, analysis,
 };
+use lunamodel_types::{EnumSet, ModelPart};
 
 #[derive(Debug, Clone, Copy)]
 pub struct MaxBias {
@@ -23,6 +24,10 @@ impl AnalysisPass for MaxBiasAnalysis {
 
     fn name(&self) -> &str {
         "max-bias"
+    }
+
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        EnumSet::only(ModelPart::Objective)
     }
 
     fn key<MaxBias>() -> AnalysisKey<MaxBias> {

@@ -5,7 +5,7 @@ use lunamodel_transpiler::{
     AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, TranspileErrorKind,
     TranspileKindResult, transformation,
 };
-use lunamodel_types::{Bound, Comparator, Vtype};
+use lunamodel_types::{Bound, Comparator, EnumSet, ModelPart, Vtype};
 
 use crate::{
     analysis::{MinConstraintValues, MinValueForConstraintAnalysis},
@@ -31,6 +31,10 @@ impl Default for LeToEqConstraintsPass {
 impl TransformationPass for LeToEqConstraintsPass {
     fn name(&self) -> &str {
         "le-to-eq-constraints"
+    }
+
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        ModelPart::Constraints | ModelPart::Variables
     }
 
     fn requires(&self) -> &[String] {

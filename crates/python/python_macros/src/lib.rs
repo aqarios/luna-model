@@ -147,7 +147,7 @@ pub fn pytransformation(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
 
             fn invalidates(&self) -> ::std::vec::Vec<::std::string::String> {
-                <#inner as TransformationPass>::invalidates(&self.0).to_vec()
+                ::std::vec::Vec::new()
             }
 
             fn __str__(&self) -> ::std::string::String {
@@ -190,7 +190,7 @@ pub fn pycontrolflow(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
 
             fn invalidates(&self) -> ::std::vec::Vec<::std::string::String> {
-                <#inner as ControlFlowPass>::invalidates(&self.0).to_vec()
+                ::std::vec::Vec::new()
             }
 
             fn run(

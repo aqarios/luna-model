@@ -30,7 +30,6 @@ pub struct CPluginCompositePass {
     provides: String,
     result_type_tag: String,
     requires: Vec<String>,
-    invalidates: Vec<String>,
 }
 
 // Safety: `desc` holds plugin-owned pointers opaque to luna-model. The plugin owns their
@@ -49,7 +48,6 @@ impl CPluginCompositePass {
         let provides = unsafe { borrow_cstr((desc.provides)(desc.user_data)) };
         let result_type_tag = unsafe { borrow_cstr((desc.result_type_tag)(desc.user_data)) };
         let requires = unsafe { collect_strings(desc.user_data, desc.requires_analyses) };
-        let invalidates = unsafe { collect_strings(desc.user_data, desc.invalidates) };
         Self {
             desc,
             id,
@@ -57,7 +55,6 @@ impl CPluginCompositePass {
             provides,
             result_type_tag,
             requires,
-            invalidates,
         }
     }
 }
@@ -85,10 +82,6 @@ impl CompositePass for CPluginCompositePass {
 
     fn requires(&self) -> &[String] {
         &self.requires
-    }
-
-    fn invalidates(&self) -> &[String] {
-        &self.invalidates
     }
 
     fn key<T>() -> AnalysisKey<T> {

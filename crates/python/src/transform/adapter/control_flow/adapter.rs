@@ -15,7 +15,6 @@ pub struct PyControlFlowPassAdapter {
     inner: Py<PyControlFlowPass>,
     name: String,
     requires: Vec<String>,
-    invalidates: Vec<String>,
     provides: Vec<String>,
 }
 
@@ -31,11 +30,6 @@ impl PyControlFlowPassAdapter {
             .map_err(map_pyerr)?
             .extract(py)
             .map_err(map_pyerr)?;
-        let invalidates: Vec<String> = inner
-            .call_method0(py, "invalidates")
-            .map_err(map_pyerr)?
-            .extract(py)
-            .map_err(map_pyerr)?;
         let provides: Vec<String> = inner
             .call_method0(py, "provides")
             .map_err(map_pyerr)?
@@ -45,7 +39,6 @@ impl PyControlFlowPassAdapter {
             inner,
             name,
             requires,
-            invalidates,
             provides,
         })
     }
@@ -84,9 +77,5 @@ impl ControlFlowPass for PyControlFlowPassAdapter {
 
     fn provides(&self) -> &[String] {
         &self.provides
-    }
-
-    fn invalidates(&self) -> &[String] {
-        &self.invalidates
     }
 }

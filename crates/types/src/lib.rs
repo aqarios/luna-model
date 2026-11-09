@@ -10,6 +10,7 @@ mod assignment;
 mod bound;
 mod cmp;
 mod dtypes;
+mod model_part;
 mod sense;
 mod specs;
 mod term;
@@ -27,6 +28,7 @@ pub use dtypes::{
     Bias, BinaryAssignment, EnvIdx, IntegerAssignment, RealAssignment, SpinAssignment, VarIdx,
 };
 pub use enumset::EnumSet;
+pub use model_part::ModelPart;
 pub use sense::Sense;
 pub use specs::{Ctype, Specs};
 pub use term::{Neighborhood, OneVarTerm, TwoVarTerm};

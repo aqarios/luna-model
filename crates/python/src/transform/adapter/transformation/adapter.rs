@@ -23,7 +23,6 @@ pub struct PyTransformationPassAdapter {
     inner: Py<PyTransformationPass>,
     name: String,
     requires: Vec<String>,
-    invalidates: Vec<String>,
 }
 
 impl PyTransformationPassAdapter {
@@ -38,17 +37,10 @@ impl PyTransformationPassAdapter {
             .map_err(map_pyerr)?
             .extract(py)
             .map_err(map_pyerr)?;
-        let invalidates: Vec<String> = inner
-            .call_method0(py, "invalidates")
-            .map_err(map_pyerr)?
-            .extract(py)
-            .map_err(map_pyerr)?;
-
         Ok(Self {
             inner,
             name,
             requires,
-            invalidates,
         })
     }
 
@@ -130,10 +122,6 @@ impl TransformationPass for PyTransformationPassAdapter {
 
     fn requires(&self) -> &[String] {
         &self.requires
-    }
-
-    fn invalidates(&self) -> &[String] {
-        &self.invalidates
     }
 }
 

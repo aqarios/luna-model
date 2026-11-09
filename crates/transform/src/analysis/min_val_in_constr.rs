@@ -10,7 +10,7 @@ use lunamodel_core::Model;
 use lunamodel_transpiler::{
     AnalysisKey, AnalysisPass, PassContext, PipelineStep, TranspileKindResult, analysis,
 };
-use lunamodel_types::Bound;
+use lunamodel_types::{Bound, EnumSet, ModelPart};
 use prost::Message;
 
 #[derive(Clone, Debug)]
@@ -29,6 +29,10 @@ impl AnalysisPass for MinValueForConstraintAnalysis {
 
     fn name(&self) -> &str {
         "min-value-for-constraint"
+    }
+
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        ModelPart::Constraints | ModelPart::Variables
     }
 
     fn key<MinConstraintValues>() -> AnalysisKey<MinConstraintValues> {
