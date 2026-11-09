@@ -1,12 +1,10 @@
 //! Version 0 timing encoding.
 
+use crate::check::time;
+use crate::encode::BytesDecodable;
 use lunamodel_core::Timing;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use prost::Message;
-use std::ops::Add;
-use std::time::{Duration, UNIX_EPOCH};
-
-use crate::encode::BytesDecodable;
 
 #[derive(Clone, PartialEq, Message)]
 pub struct SerTiming {
@@ -28,8 +26,8 @@ impl BytesDecodable<Timing> for SerTiming {
 
 impl SerTiming {
     fn extract(self) -> LunaModelResult<Timing> {
-        let start = UNIX_EPOCH.add(Duration::from_secs_f64(self.start));
-        let end = UNIX_EPOCH.add(Duration::from_secs_f64(self.end));
+        let start = time(self.start)?;
+        let end = time(self.end)?;
         let total = end
             .duration_since(start)
             .map_err(|e| LunaModelError::Internal(e.to_string().into()))?

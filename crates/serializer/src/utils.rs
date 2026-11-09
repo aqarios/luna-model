@@ -1,6 +1,9 @@
 //! Shared helpers for serializer implementations.
 
+use lunamodel_error::LunaModelResult;
 use lunamodel_types::Vtype;
+
+use crate::check::corrupt;
 
 /// Implementation of this trait on any type ensures that the respective type can be expressed
 /// as a slice of bytes.
@@ -30,13 +33,13 @@ pub fn vtype_to_u8(vtype: Vtype) -> u8 {
 }
 
 /// Decodes the serializer's compact numeric representation into a variable type.
-pub fn u8_to_vtype(u: u8) -> Option<Vtype> {
+pub fn u8_to_vtype(u: u8) -> LunaModelResult<Option<Vtype>> {
     match u {
-        0 => Some(Vtype::Binary),
-        1 => Some(Vtype::Spin),
-        2 => Some(Vtype::Integer),
-        3 => Some(Vtype::Real),
-        4 => None, // was ghost
-        _ => unreachable!("invalid vtype number"),
+        0 => Ok(Some(Vtype::Binary)),
+        1 => Ok(Some(Vtype::Spin)),
+        2 => Ok(Some(Vtype::Integer)),
+        3 => Ok(Some(Vtype::Real)),
+        4 => Ok(None), // was ghost
+        _ => Err(corrupt("invalid variable type")),
     }
 }
