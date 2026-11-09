@@ -4,8 +4,8 @@ use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 
 use super::LpTranslator;
-use super::builder::build_model;
 use super::reader::read_lp;
+use crate::model::builder::build_model;
 
 impl LpTranslator {
     pub fn translate(content: String) -> LunaModelResult<Model> {

@@ -1,4 +1,4 @@
-//! Builds a core [`Model`] from a parsed [`LpProblem`].
+//! Builds a core [`Model`] from a parsed [`Problem`].
 
 use lunamodel_core::{
     ArcEnv, ConstraintCollection, Expression, Model,
@@ -8,16 +8,16 @@ use lunamodel_core::{
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bound, Vtype};
 
-use super::reader::{LpExpr, LpProblem};
+use super::problem::{Expr, Problem};
 
-pub fn build_model(prob: LpProblem) -> LunaModelResult<Model> {
+pub fn build_model(prob: Problem) -> LunaModelResult<Model> {
     let mut env = ArcEnv::default();
     let vars = build_vars(&mut env, &prob)?;
 
     let objective = build_expr(&env, &vars, &prob.objective)?;
     let mut constraints = ConstraintCollection::default();
     for c in &prob.constraints {
-        let name = c.name.map(str::to_string);
+        let name = c.name.as_deref().map(str::to_string);
         let lhs = build_expr(&env, &vars, &c.lhs)?;
         let constraint = Constraint::new(lhs, c.rhs, c.comparator, name.clone())?;
         constraints.add_constraint(constraint, name)?;
@@ -30,7 +30,7 @@ pub fn build_model(prob: LpProblem) -> LunaModelResult<Model> {
 }
 
 /// Creates the variables in file order; index `i` is the parser's variable id `i`.
-fn build_vars(env: &mut ArcEnv, prob: &LpProblem) -> LunaModelResult<Vec<VarRef>> {
+fn build_vars(env: &mut ArcEnv, prob: &Problem) -> LunaModelResult<Vec<VarRef>> {
     let mut vars = Vec::with_capacity(prob.vars.len());
     for ((name, &bounds), &vtype) in prob.vars.iter().zip(&prob.bounds).zip(&prob.vtypes) {
         let bounds = match vtype {
@@ -74,7 +74,7 @@ fn check_binary_bounds(
     Ok(())
 }
 
-fn build_expr(env: &ArcEnv, vars: &[VarRef], lp: &LpExpr) -> LunaModelResult<Expression> {
+fn build_expr(env: &ArcEnv, vars: &[VarRef], lp: &Expr) -> LunaModelResult<Expression> {
     let mut expr = Expression::constant(env.clone(), lp.offset);
 
     // `Linear` is a sorted vector, so adding terms in index order only appends.

@@ -1,5 +1,8 @@
 //! LP reader behaviour, checked only through the public `LpTranslator` API.
 
+mod common;
+
+use common::{bounds, objective, var_names};
 use lunamodel_core::Model;
 use lunamodel_translate::model::LpTranslator;
 use lunamodel_types::{Bound, Comparator};
@@ -12,34 +15,6 @@ fn read_err(lp: &str) -> String {
     LpTranslator::translate(lp.to_string())
         .unwrap_err()
         .to_string()
-}
-
-fn bounds(model: &Model, name: &str) -> (Bound, Bound) {
-    let b = model.environment.lookup(name).unwrap().bounds().unwrap();
-    (b.lower, b.upper)
-}
-
-/// Objective terms as `("x", c)` or `("x*y", c)`, sorted by name.
-fn objective(model: &Model) -> Vec<(String, f64)> {
-    let mut terms: Vec<_> = model
-        .objective()
-        .items()
-        .map(|(vars, c)| {
-            let names: Vec<_> = vars.iter().map(|v| v.name().unwrap()).collect();
-            (names.join("*"), c)
-        })
-        .collect();
-    terms.sort_by(|a, b| a.0.cmp(&b.0));
-    terms
-}
-
-fn var_names(model: &Model) -> Vec<String> {
-    model
-        .environment
-        .vars()
-        .iter()
-        .map(|v| v.name().unwrap())
-        .collect()
 }
 
 #[test]
