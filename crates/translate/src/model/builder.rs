@@ -8,7 +8,10 @@ use lunamodel_core::{
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bound, Vtype};
 
-use super::problem::{Expr, Problem};
+use super::{
+    finite::check_finite,
+    problem::{Expr, Problem},
+};
 
 pub fn build_model(prob: Problem) -> LunaModelResult<Model> {
     let mut env = ArcEnv::default();
@@ -26,6 +29,8 @@ pub fn build_model(prob: Problem) -> LunaModelResult<Model> {
     let mut model = Model::with_env(prob.name.map(str::to_string), Some(prob.sense), env);
     model.set_objective(objective, None)?;
     model.set_constraints(constraints)?;
+    // E.g. `/ 0`, `1e400` or two huge terms that overflow when summed.
+    check_finite(&model)?;
     Ok(model)
 }
 

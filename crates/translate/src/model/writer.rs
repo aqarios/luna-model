@@ -6,6 +6,8 @@ use lunamodel_core::{Expression, Model};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Bound, VarIdx, Vtype};
 
+use super::finite::check_finite;
+
 pub struct Var {
     pub idx: VarIdx,
     pub name: String,
@@ -47,6 +49,7 @@ pub fn prepare(model: &Model, format: &str) -> LunaModelResult<Vars> {
             format!("{format} files cannot contain higher-order terms").into(),
         ));
     }
+    check_finite(model)?;
 
     let mut list = Vec::new();
     for v in model.environment.vars() {

@@ -138,3 +138,16 @@ fn unsupported_section_is_rejected_by_name() {
     );
     assert!(err.contains("Unsupported section"), "{err}");
 }
+
+#[test]
+fn numbers_that_are_not_finite_are_rejected() {
+    for lp in [
+        "Maximize\n [ x * y ] / 0\nEnd\n", // found by fuzzing
+        "Minimize\n 1e400 x\nEnd\n",
+        "Minimize\n 1e308 x + 1e308 x\nEnd\n",
+        "Minimize\n x\nSubject To\n c: x >= 1e400\nEnd\n",
+    ] {
+        let err = read_err(lp);
+        assert!(err.contains("not a finite number"), "{err}");
+    }
+}

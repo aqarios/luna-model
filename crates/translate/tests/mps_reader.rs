@@ -288,3 +288,11 @@ fn malformed_number_is_an_error_naming_the_line() {
     let err = read_err(&small("").replace(" y obj 2 c1 1", " y obj 2 c1 1.2.3"));
     assert!(err.contains("line 7"), "{err}");
 }
+
+#[test]
+fn numbers_that_are_not_finite_are_rejected() {
+    let err = read_err(&small("").replace("x obj 1", "x obj 1e400"));
+    assert!(err.contains("the objective contains inf"), "{err}");
+    let err = read_err(&small("").replace("rhs c1 4", "rhs c1 -1e400"));
+    assert!(err.contains("constraint 'c1' contains -inf"), "{err}");
+}

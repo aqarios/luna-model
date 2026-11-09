@@ -3,7 +3,7 @@
 mod common;
 
 use common::contents;
-use lunamodel_core::Model;
+use lunamodel_core::{Model, ops::LmAddAssign};
 use lunamodel_translate::model::{LpTranslator, MpsTranslator};
 use lunamodel_types::Vtype;
 
@@ -116,4 +116,12 @@ fn names_with_whitespace_are_rejected_by_mps() {
         err.contains("constraint name 'a b': it contains whitespace"),
         "{err}"
     );
+}
+
+#[test]
+fn numbers_that_are_not_finite_are_rejected() {
+    let mut m = model("Minimize\n x\nEnd\n");
+    m.objective_mut().add_assign(f64::NAN).unwrap();
+    let err = lp_error(&m);
+    assert!(err.contains("the objective contains NaN"), "{err}");
 }
