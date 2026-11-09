@@ -114,4 +114,24 @@ mod tests {
         items.sort_by(|a, b| a.partial_cmp(b).unwrap());
         assert_eq!(items, vec![(0, 2, 3.0), (3, 4, 2.0)]);
     }
+
+    /// Lengths and variable indices are checked, not trusted (found by fuzzing).
+    #[test]
+    fn contradicting_fields_are_an_error() {
+        let mut expr = Expression::empty(env(3));
+        expr.linear += (0, 1.0);
+        let mut quad = Quadratic::default();
+        quad += (1, 2, 2.0);
+        expr.quadratic = Some(quad);
+        let tampers: [fn(&mut SerExpression); 3] = [
+            |ser| ser.quad_neighborhoods_len[0] = u32::MAX,
+            |ser| ser.quad_neighborhoods_values.clear(),
+            |ser| ser.linear_indices[0] = 3,
+        ];
+        for tamper in tampers {
+            let mut ser = SerExpression::new(&expr);
+            tamper(&mut ser);
+            assert!(ser.extract(env(3)).is_err());
+        }
+    }
 }

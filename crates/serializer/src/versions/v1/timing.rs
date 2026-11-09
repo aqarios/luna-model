@@ -4,9 +4,9 @@ use lunamodel_core::Timing;
 use lunamodel_error::LunaModelResult;
 use prost::Message;
 use std::collections::HashMap;
-use std::ops::Add;
-use std::time::{Duration, UNIX_EPOCH};
+use std::time::UNIX_EPOCH;
 
+use crate::check::time;
 use crate::encode::{BytesDecodable, BytesEncodable, Creatable};
 
 #[derive(Clone, PartialEq, Message)]
@@ -35,7 +35,7 @@ impl BytesEncodable for SerTiming {
 
 impl BytesDecodable<Timing> for SerTiming {
     fn decode_from_bytes(bytes: &[u8], _payload: ()) -> LunaModelResult<Timing> {
-        Ok(Self::decode(bytes)?.extract())
+        Self::decode(bytes)?.extract()
     }
 }
 
@@ -70,20 +70,16 @@ impl SerTiming {
         self
     }
 
-    pub fn extract(self) -> Timing {
-        Timing {
-            start: self
-                .maybe_start
-                .map(|t| UNIX_EPOCH.add(Duration::from_secs_f64(t))),
-            end: self
-                .maybe_end
-                .map(|t| UNIX_EPOCH.add(Duration::from_secs_f64(t))),
+    pub fn extract(self) -> LunaModelResult<Timing> {
+        Ok(Timing {
+            start: self.maybe_start.map(time).transpose()?,
+            end: self.maybe_end.map(time).transpose()?,
             total: self.total,
             timings: self
                 .timings
                 .into_iter()
                 .map(|(key, data)| (key, data.data))
                 .collect(),
-        }
+        })
     }
 }

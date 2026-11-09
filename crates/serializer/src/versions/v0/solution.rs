@@ -3,6 +3,7 @@
 use std::{num::NonZeroUsize, str::FromStr};
 
 use crate::{
+    check::{aligned, corrupt},
     encode::{BytesDecodable, BytesEncodable, Decodable},
     utils::u8_to_vtype,
     versionize::Unversionizable,
@@ -119,25 +120,17 @@ impl SerSolution {
         let num_samples = self.num_samples as usize;
 
         if let Some(num_samples) = NonZeroUsize::new(num_samples) {
-            let bin_step: usize = self.bins.len() / num_samples;
-            let spin_step: usize = self.spins.len() / num_samples;
-            let int_step: usize = self.ints.len() / num_samples;
-            let real_step: usize = self.reals.len() / num_samples;
-
             for (varname, st) in self.variable_names.iter().zip(self.sample_types) {
-                let vtype = u8_to_vtype(st);
-                if vtype.is_none() {
+                let Some(vtype) = u8_to_vtype(st)? else {
                     continue;
-                }
-                match vtype.unwrap() {
+                };
+                match vtype {
                     Vtype::Binary => {
                         sol.add_binary(
                             varname.clone(),
-                            self.bins
-                                .iter()
-                                .skip(nbins)
-                                .step_by(bin_step)
-                                .map(|&e| e as f64)
+                            column(&self.bins, nbins, num_samples)?
+                                .into_iter()
+                                .map(|e| e as f64)
                                 .collect(),
                             None,
                         )?;
@@ -146,11 +139,9 @@ impl SerSolution {
                     Vtype::Spin => {
                         sol.add_spin(
                             varname.clone(),
-                            self.spins // [start_idx..end_idx]
-                                .iter()
-                                .skip(nspins)
-                                .step_by(spin_step)
-                                .map(|&e| e as f64)
+                            column(&self.spins, nspins, num_samples)?
+                                .into_iter()
+                                .map(|e| e as f64)
                                 .collect(),
                             None,
                         )?;
@@ -159,26 +150,16 @@ impl SerSolution {
                     Vtype::Integer => {
                         sol.add_integer(
                             varname.clone(),
-                            self.ints
-                                .iter()
-                                .skip(nints)
-                                .step_by(int_step)
-                                .map(|&e| e as f64)
+                            column(&self.ints, nints, num_samples)?
+                                .into_iter()
+                                .map(|e| e as f64)
                                 .collect(),
                             None,
                         )?;
                         nints += 1;
                     }
                     Vtype::Real => {
-                        sol.add_real(
-                            varname.clone(),
-                            self.reals
-                                .iter()
-                                .skip(nreals)
-                                .step_by(real_step)
-                                .copied()
-                                .collect(),
-                        );
+                        sol.add_real(varname.clone(), column(&self.reals, nreals, num_samples)?);
                         nreals += 1;
                     }
                     Vtype::InvertedBinary => (),
@@ -235,6 +216,7 @@ impl SerSolution {
         } else {
             sol.variable_bounds = IndexMap::default();
         }
+        aligned(&sol)?;
         if !(sol.constraints.is_empty() && sol.variable_bounds.is_empty()) {
             let mut feasible = vec![true; sol.len()];
             sol.constraints.iter().for_each(|(_, bs)| {
@@ -260,9 +242,12 @@ impl SerSolution {
                 sol.sense = sense;
             }
             None => {
-                let bestobj = self
-                    .best_sample_idx
-                    .and_then(|i| sol.obj_values.as_ref().map(|o| o[i as usize]));
+                let bestobj = match (self.best_sample_idx, sol.obj_values.as_ref()) {
+                    (Some(i), Some(o)) => {
+                        Some(*o.get(i as usize).ok_or_else(|| corrupt("best sample"))?)
+                    }
+                    _ => None,
+                };
                 sol.sense = match bestobj {
                     None => Sense::Min,
                     Some(b) => match (sol.obj_values.as_ref(), sol.feasible.as_ref()) {
@@ -280,5 +265,19 @@ impl SerSolution {
         }
 
         Ok(sol)
+    }
+}
+
+/// The samples of the `nth` variable of one type; the samples of all variables of
+/// that type are interleaved.
+fn column<T: Copy>(values: &[T], nth: usize, num_samples: NonZeroUsize) -> LunaModelResult<Vec<T>> {
+    let step = values.len() / num_samples;
+    let column: Vec<T> = match step {
+        0 => Vec::new(),
+        _ => values.iter().skip(nth).step_by(step).copied().collect(),
+    };
+    match column.len() == num_samples.get() {
+        true => Ok(column),
+        false => Err(corrupt("samples")),
     }
 }
