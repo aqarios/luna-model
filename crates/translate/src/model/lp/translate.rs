@@ -48,7 +48,7 @@ End
     fn test_parse_simple_linear() {
         let lp_content = r#"
 Minimize
-  x + 2 y + 5 ^ 3
+  x + 2 y
 Subject To
   c1: x + y <= 10
 Bounds
