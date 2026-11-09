@@ -10,7 +10,7 @@ use lunamodel_error::LunaModelResult;
 use lunamodel_types::{Bias, Bound, Comparator, Sense, Vtype};
 
 use super::MpsTranslator;
-use crate::model::writer::{Var, Vars, output, prepare, quadratic};
+use crate::model::writer::{Var, Vars, check_names, output, prepare, quadratic};
 
 impl MpsTranslator {
     /// Translates a model into MPS text, written to `filepath` or returned.
@@ -19,6 +19,11 @@ impl MpsTranslator {
         filepath: Option<PathBuf>,
     ) -> LunaModelResult<Option<String>> {
         let vars = prepare(model, "MPS")?;
+        // Fields are separated by whitespace.
+        check_names(model, &vars, "MPS", |name| {
+            name.contains(char::is_whitespace)
+                .then_some("it contains whitespace")
+        })?;
         let mut out = String::new();
         write_mps(&mut out, model, &vars).expect("writing to a String cannot fail");
         output(out, filepath)

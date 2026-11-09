@@ -9,8 +9,8 @@ use lunamodel_core::{Expression, Model};
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{Bound, Comparator, Vtype};
 
-use super::LpTranslator;
-use crate::model::writer::{Vars, output, prepare, quadratic};
+use super::{LpTranslator, reader::is_keyword, tokenizer::is_name};
+use crate::model::writer::{Vars, check_names, output, prepare, quadratic};
 
 impl LpTranslator {
     /// Translates a model into LP text, written to `filepath` or returned.
@@ -19,6 +19,15 @@ impl LpTranslator {
         filepath: Option<PathBuf>,
     ) -> LunaModelResult<Option<String>> {
         let vars = prepare(model, "LP")?;
+        check_names(model, &vars, "LP", |name| {
+            if !is_name(name) {
+                Some("it contains characters LP does not allow")
+            } else if is_keyword(name) {
+                Some("it is an LP keyword")
+            } else {
+                None
+            }
+        })?;
         let mut out = String::new();
         write_lp(&mut out, model, &vars).expect("writing to a String cannot fail");
         output(out, filepath)
