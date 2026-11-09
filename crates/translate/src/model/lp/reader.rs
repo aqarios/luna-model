@@ -1,65 +1,24 @@
-//! Parses LP text into an [`LpProblem`].
+//! Parses LP text into a [`Problem`].
 
-use std::collections::HashMap;
+use std::borrow::Cow;
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Comparator, Sense, Vtype};
 
-use super::tokenizer::{Spanned, Token, error, tokenize};
-
-#[derive(Default)]
-pub struct LpProblem<'a> {
-    pub name: Option<&'a str>,
-    pub sense: Sense,
-    pub vars: Vec<&'a str>, // in order of first appearance
-    pub objective: LpExpr,
-    pub constraints: Vec<LpConstraint<'a>>,
-    pub bounds: Vec<(Option<f64>, Option<f64>)>, // per variable, as written
-    pub vtypes: Vec<Vtype>,                      // per variable
-}
-
-#[derive(Default)]
-pub struct LpExpr {
-    pub offset: f64,
-    pub linear: Vec<(usize, f64)>,
-    pub quadratic: Vec<(usize, usize, f64)>,
-}
-
-impl LpExpr {
-    /// Appends `other`, multiplied by `factor`.
-    fn add_scaled(&mut self, other: LpExpr, factor: f64) {
-        self.offset += factor * other.offset;
-        let linear = other.linear.into_iter().map(|(v, c)| (v, factor * c));
-        let quadratic = other
-            .quadratic
-            .into_iter()
-            .map(|(u, v, c)| (u, v, factor * c));
-        self.linear.extend(linear);
-        self.quadratic.extend(quadratic);
-    }
-}
-
-pub struct LpConstraint<'a> {
-    pub name: Option<&'a str>,
-    pub lhs: LpExpr,
-    pub comparator: Comparator,
-    pub rhs: f64,
-}
+use super::tokenizer::{Spanned, Token, tokenize};
+use crate::model::problem::{Constraint, Expr, Problem, error};
 
 const MULTIPLE_OBJECTIVES: &str =
     "Multiple objectives found in LP file. Only a single objective is supported.";
 
-pub fn read_lp(src: &str) -> LunaModelResult<LpProblem<'_>> {
+pub fn read_lp(src: &str) -> LunaModelResult<Problem<'_>> {
     let mut parser = Parser {
         lines: src.lines().collect(),
         tokens: tokenize(src)?,
         pos: 0,
-        ids: HashMap::new(),
-        problem: LpProblem {
-            name: problem_name(src),
-            ..Default::default()
-        },
+        problem: Problem::default(),
     };
+    parser.problem.name = problem_name(src);
     parser.sections()?;
     Ok(parser.problem)
 }
@@ -139,8 +98,7 @@ struct Parser<'a> {
     lines: Vec<&'a str>,
     tokens: Vec<Spanned<'a>>,
     pos: usize,
-    ids: HashMap<&'a str, usize>,
-    problem: LpProblem<'a>,
+    problem: Problem<'a>,
 }
 
 impl<'a> Parser<'a> {
@@ -191,12 +149,12 @@ impl<'a> Parser<'a> {
     }
 
     /// Parses `[name:] expr cmp number`.
-    fn constraint(&mut self) -> LunaModelResult<LpConstraint<'a>> {
-        let name = self.label();
+    fn constraint(&mut self) -> LunaModelResult<Constraint<'a>> {
+        let name = self.label().map(Cow::Borrowed);
         let lhs = self.expr()?;
         let comparator = self.comparator()?;
         let rhs = self.number()?;
-        Ok(LpConstraint {
+        Ok(Constraint {
             name,
             lhs,
             comparator,
@@ -253,8 +211,8 @@ impl<'a> Parser<'a> {
     }
 
     /// Parses `[sign] term (sign term)*`. An expression may be empty.
-    fn expr(&mut self) -> LunaModelResult<LpExpr> {
-        let mut expr = LpExpr::default();
+    fn expr(&mut self) -> LunaModelResult<Expr> {
+        let mut expr = Expr::default();
         let mut sign = match self.sign() {
             Some(sign) => sign,
             None if self.at_term() => 1.0,
@@ -270,7 +228,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Parses `[number] name [^2 | * name]`, a constant, or `[ expr ] [/ number]`.
-    fn term(&mut self, sign: f64, expr: &mut LpExpr) -> LunaModelResult<()> {
+    fn term(&mut self, sign: f64, expr: &mut Expr) -> LunaModelResult<()> {
         match self.peek() {
             Some(Token::LBracket) => {
                 self.pos += 1;
@@ -305,8 +263,8 @@ impl<'a> Parser<'a> {
     }
 
     /// Parses what follows a variable: `^2`, `* name`, or nothing.
-    fn factor(&mut self, name: &'a str, coef: f64, expr: &mut LpExpr) -> LunaModelResult<()> {
-        let u = self.var_id(name);
+    fn factor(&mut self, name: &'a str, coef: f64, expr: &mut Expr) -> LunaModelResult<()> {
+        let u = self.problem.var_id(name);
         if self.eat(Token::Caret) {
             if self.number()? != 2.0 {
                 return Err(error(self.line(), "only the power 2 is supported".into()));
@@ -347,21 +305,10 @@ impl<'a> Parser<'a> {
         match self.peek() {
             Some(Token::Name(name)) => {
                 self.pos += 1;
-                Ok(self.var_id(name))
+                Ok(self.problem.var_id(name))
             }
             _ => Err(self.expected("a variable")),
         }
-    }
-
-    /// The id of `name`; a new name gets the next id.
-    fn var_id(&mut self, name: &'a str) -> usize {
-        let problem = &mut self.problem;
-        *self.ids.entry(name).or_insert_with(|| {
-            problem.vars.push(name);
-            problem.bounds.push((None, None));
-            problem.vtypes.push(Vtype::Real);
-            problem.vars.len() - 1
-        })
     }
 
     /// Consumes a `+` or `-` and returns its sign.
@@ -472,11 +419,11 @@ mod tests {
         assert_eq!(p.objective.linear, [(0, 2.0)]);
         assert_eq!(p.objective.quadratic, [(0, 1, 0.5)]);
         assert_eq!(p.constraints.len(), 2);
-        assert_eq!(p.constraints[0].name, Some("c1"));
+        assert_eq!(p.constraints[0].name.as_deref(), Some("c1"));
         assert_eq!(p.constraints[0].lhs.linear, [(0, 1.0), (1, -1.0)]);
         assert_eq!(p.constraints[0].comparator, Comparator::Ge);
         assert_eq!(p.constraints[0].rhs, -1.0);
-        assert_eq!(p.constraints[1].name, None);
+        assert_eq!(p.constraints[1].name.as_deref(), None);
         assert_eq!(p.bounds[0], (Some(f64::NEG_INFINITY), Some(f64::INFINITY)));
         assert_eq!(p.bounds[1], (Some(3.0), Some(5.0)));
         assert_eq!(p.vtypes, [Vtype::Real, Vtype::Integer]);
