@@ -4,8 +4,8 @@ use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 
 use super::MpsTranslator;
-use super::builder::build_model;
 use super::reader::read_mps;
+use crate::model::builder::build_model;
 
 impl MpsTranslator {
     pub fn translate(content: String) -> LunaModelResult<Model> {

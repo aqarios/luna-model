@@ -16,5 +16,4 @@ lunamodel-types = { workspace = true }
 lunamodel-utils = { workspace = true }
 
 strum_macros = { workspace = true }
-regex = { workspace = true }
 indexmap = { workspace = true }

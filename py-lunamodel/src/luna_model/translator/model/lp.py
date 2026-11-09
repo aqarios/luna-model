@@ -37,7 +37,7 @@ class LpTranslator:
     Read a model from an LP file:
 
     >>> from luna_model.translator import LpTranslator
-    >>> model = LpTranslator.to_lm("problem.lp")
+    >>> model = LpTranslator.to_lm("problem.lp")  # doctest: +SKIP
 
     Write a model to an LP file:
 
@@ -61,11 +61,8 @@ class LpTranslator:
      3 x + 2 y
     Subject To
      c0: 1 x + 1 y <= 1
-    Bounds
-    <BLANKLINE>
     Binaries
      x y
-    <BLANKLINE>
     End
     """
 
@@ -99,7 +96,7 @@ class LpTranslator:
         --------
         From a file:
 
-        >>> model = LpTranslator.to_lm("model.lp")
+        >>> model = LpTranslator.to_lm("model.lp")  # doctest: +SKIP
 
         From a string:
 
@@ -171,10 +168,6 @@ class LpTranslator:
         Minimize
         <BLANKLINE>
         Subject To
-        <BLANKLINE>
-        Bounds
-        <BLANKLINE>
-        <BLANKLINE>
         End
         """
         return PyLpTranslator.from_lm(model, filepath)

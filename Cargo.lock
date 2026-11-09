@@ -1035,7 +1035,6 @@ dependencies = [
  "lunamodel-error",
  "lunamodel-types",
  "lunamodel-utils",
- "regex",
  "strum_macros",
 ]
 
