@@ -1,6 +1,8 @@
 //! Splits LP text into tokens.
 
-use lunamodel_error::{LunaModelError, LunaModelResult};
+use lunamodel_error::LunaModelResult;
+
+use crate::model::problem::error;
 use lunamodel_types::Comparator;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -77,11 +79,6 @@ pub fn tokenize(src: &str) -> LunaModelResult<Vec<Spanned<'_>>> {
         i = end;
     }
     Ok(tokens)
-}
-
-/// Translation error that names the line it happened on.
-pub fn error(line: usize, msg: String) -> LunaModelError {
-    LunaModelError::Translation(format!("line {line}: {msg}").into())
 }
 
 /// Scans `digits[.digits][e[+-]digits]`. Rust's float parser does the conversion.

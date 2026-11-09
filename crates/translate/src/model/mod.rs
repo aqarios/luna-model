@@ -1,6 +1,8 @@
 //! Translators for individual model formats.
+mod builder;
 mod lp;
 mod mps;
+mod problem;
 mod qubo;
 
 /// Translator for LP files/strings.
