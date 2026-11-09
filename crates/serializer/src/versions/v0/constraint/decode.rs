@@ -6,6 +6,7 @@ use lunamodel_error::LunaModelResult;
 use lunamodel_types::Comparator;
 use prost::Message;
 
+use crate::check::corrupt;
 use crate::encode::{BytesDecodable, Decodable};
 use crate::versionize::Unversionizable;
 
@@ -35,13 +36,13 @@ impl SerConstraintCollection {
                 0 => Comparator::Le,
                 1 => Comparator::Eq,
                 2 => Comparator::Ge,
-                _ => unreachable!("undefined comparator '{}'", cmp),
+                _ => return Err(corrupt("invalid comparator")),
             };
             let name = match name {
                 n if n == "<NN>" => None,
                 x => Some(x.clone()),
             };
-            let constr = Constraint::new(lhs, *rhs, comparator, name.clone()).unwrap();
+            let constr = Constraint::new(lhs, *rhs, comparator, name.clone())?;
             constraints.insert(constr.name().to_string(), constr);
         }
         Ok(constraints.into())
