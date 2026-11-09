@@ -5,6 +5,7 @@ mod common;
 use common::contents;
 use lunamodel_core::Model;
 use lunamodel_translate::model::{LpTranslator, MpsTranslator};
+use lunamodel_types::Vtype;
 
 /// Builds the model to write from LP text, the shortest way to describe one.
 fn model(lp: &str) -> Model {
@@ -71,4 +72,48 @@ fn long_lp_lines_are_wrapped() {
         "longest line has {longest} characters:\n{lp}"
     );
     assert_roundtrips(&original);
+}
+
+/// A model with one constraint `x >= 1` named `name`.
+fn with_constraint_name(name: &str) -> Model {
+    let mut m = model("Minimize\n x\nSubject To\n c: x >= 1\nEnd\n");
+    let c = m.constraints().get("c").unwrap().clone();
+    m.set_constraints(Default::default()).unwrap();
+    m.add_constraint(c, Some(name.into())).unwrap();
+    m
+}
+
+fn lp_error(m: &Model) -> String {
+    LpTranslator::back_translate(m, None)
+        .unwrap_err()
+        .to_string()
+}
+
+#[test]
+fn constraint_names_lp_cannot_read_are_rejected() {
+    for name in ["a b", "c:1", "c>=", "st"] {
+        let err = lp_error(&with_constraint_name(name));
+        assert!(err.contains(&format!("constraint name '{name}'")), "{err}");
+    }
+}
+
+#[test]
+fn variable_names_lp_cannot_read_are_rejected() {
+    for name in ["end", "st", "free", "bin", "inf", "s.t.", "x]"] {
+        let mut m = model("Minimize\n x\nEnd\n");
+        m.add_var(name, Vtype::Binary, None).unwrap();
+        let err = lp_error(&m);
+        assert!(err.contains(&format!("variable name '{name}'")), "{err}");
+    }
+}
+
+#[test]
+fn names_with_whitespace_are_rejected_by_mps() {
+    let err = MpsTranslator::back_translate(&with_constraint_name("a b"), None)
+        .unwrap_err()
+        .to_string();
+    assert!(
+        err.contains("constraint name 'a b': it contains whitespace"),
+        "{err}"
+    );
 }

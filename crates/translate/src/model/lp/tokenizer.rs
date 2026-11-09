@@ -102,6 +102,11 @@ fn number(src: &str, start: usize, line: usize) -> LunaModelResult<(Token<'_>, u
     Ok((Token::Num(value), end))
 }
 
+/// Whether `text` reads back as exactly one name.
+pub fn is_name(text: &str) -> bool {
+    text.starts_with(|c: char| c.is_ascii_alphabetic()) && name(text, 0).1 == text.len()
+}
+
 /// Scans a name. A `]` belongs to the name only if it closes a `[` inside it,
 /// so `x[0]` is one name, but in `[x * y]` the last `]` ends the quadratic term.
 fn name(src: &str, start: usize) -> (Token<'_>, usize) {
