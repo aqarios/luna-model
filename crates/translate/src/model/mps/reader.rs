@@ -134,7 +134,8 @@ impl<'a> Reader<'a> {
         let section = match keyword.as_str() {
             "NAME" => {
                 // Everything after the keyword, so fixed-format names may contain spaces.
-                self.problem.name = Some(line[4..].trim()).filter(|name| !name.is_empty());
+                let name = line.trim_start()[4..].trim();
+                self.problem.name = Some(name).filter(|name| !name.is_empty());
                 Section::Name
             }
             "OBJSENSE" => {
