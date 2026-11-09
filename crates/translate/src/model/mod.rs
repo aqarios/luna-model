@@ -1,5 +1,6 @@
 //! Translators for individual model formats.
 mod builder;
+mod finite;
 mod lp;
 mod mps;
 mod problem;
