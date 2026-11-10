@@ -1,4 +1,4 @@
-"""Shared normalization and comparison utilities for MPS translator tests. Package specific things, are marked with
+"""Shared normalization and comparison utilities for LP and MPS translator tests. Package specific things, are marked with
 ```PackageNote: ...``` - ```# PackageNote: Gurobi may read binary vars (integer with [0,1] bounds) as INTEGER```
 and should be checked regularly."""
 
@@ -34,11 +34,23 @@ except ImportError as _:
     NOT_RUN_GUROBI = True
     gp = None
 
+NOT_RUN_CPLEX = False
+try:
+    import cplex
+except ImportError as _:
+    print(
+        "CPLEX is not installed and thus, the CPLEX tests will not be executed",
+        file=sys.stdout,
+    )
+    NOT_RUN_CPLEX = True
+    cplex = None
+
 
 MPS_DIR = Path(__file__).parent / "mps_models"
 MPS_FILES = sorted(p.name for p in MPS_DIR.glob("*.mps"))
 
 TOL = 1e-6
+SCIP_OBJECTIVE_CONSTRAINTS = ("qmatrix", "quadobj")
 _OK: tuple[bool, MismatchKind | None, str] = (True, None, "")
 
 
@@ -222,8 +234,9 @@ def extract_scip(
             obj_linear[str(sv)] = c
 
     # Quadratic objective: SCIP may linearize via 'qmatrixvar' + 'qmatrix' constraint
+    # PackageNote: pyscipopt >= 6.3 names them 'quadobjvar' + 'quadobj'.
     scip_conss = sorted(scip_model.getConss(), key=lambda c: str(c))
-    qmatrix_cons = [c for c in scip_conss if str(c) == "qmatrix"]
+    qmatrix_cons = [c for c in scip_conss if str(c) in SCIP_OBJECTIVE_CONSTRAINTS]
     obj_quadratic: dict[tuple[str, str], float] = {}
     if qmatrix_cons:
         bilin, sqterms, _ = scip_model.getTermsQuadratic(qmatrix_cons[0])
@@ -247,7 +260,7 @@ def extract_scip(
 
     # Constraints (filter out internal qmatrix)
     inf = scip_model.infinity()
-    conss_filtered = [c for c in scip_conss if str(c) != "qmatrix"]
+    conss_filtered = [c for c in scip_conss if str(c) not in SCIP_OBJECTIVE_CONSTRAINTS]
 
     linear_constraints = []
     quadratic_constraints = []
@@ -290,6 +303,71 @@ def extract_scip(
         is_minimize=scip_model.getObjectiveSense() == "minimize",
         variables=variables,
         obj_offset=obj_offset,
+        obj_linear=obj_linear,
+        obj_quadratic=obj_quadratic,
+        linear_constraints=linear_constraints,
+        quadratic_constraints=quadratic_constraints,
+    )
+
+
+# ─────────────────────── Extraction: CPLEX ───────────────────────────────────
+
+
+def extract_cplex(cpx: "cplex.Cplex") -> NormalizedModel:
+    vtype_map = {"B": NormalizedVtype.BINARY, "I": NormalizedVtype.INTEGER, "C": NormalizedVtype.CONTINUOUS}
+    sense_map = {"L": NormalizedSense.LE, "G": NormalizedSense.GE, "E": NormalizedSense.EQ}
+
+    names = cpx.variables.get_names()
+    # PackageNote: CPLEX only reports variable types for mixed-integer problems.
+    is_mip = cpx.get_problem_type() in (cpx.problem_type.MILP, cpx.problem_type.MIQP, cpx.problem_type.MIQCP)
+    types = cpx.variables.get_types() if is_mip else ["C"] * len(names)
+
+    variables = []
+    for name, t, lb, ub in zip(names, types, cpx.variables.get_lower_bounds(), cpx.variables.get_upper_bounds()):
+        vtype = vtype_map[t]
+        if vtype == NormalizedVtype.INTEGER and abs(lb) < TOL and abs(ub - 1.0) < TOL:
+            vtype = NormalizedVtype.BINARY
+        lb = float("-inf") if lb <= -1e20 else lb
+        ub = float("inf") if ub >= 1e20 else ub
+        variables.append(NormalizedVar(name, vtype, lb, ub))
+    variables.sort(key=lambda v: v.name)
+
+    obj_linear = {n: c for n, c in zip(names, cpx.objective.get_linear()) if abs(c) > TOL}
+
+    # PackageNote: CPLEX stores the objective as c'x + 1/2 x'Qx with a symmetric Q,
+    # so every stored entry contributes half of its value to the term u*v.
+    obj_quadratic: dict[tuple[str, str], float] = {}
+    for i, row in enumerate(cpx.objective.get_quadratic()):
+        for j, q in zip(row.ind, row.val):
+            key = tuple(sorted((names[i], names[j])))
+            obj_quadratic[key] = obj_quadratic.get(key, 0.0) + 0.5 * q
+
+    linear_constraints = []
+    lc = cpx.linear_constraints
+    for cname, row, sense, rhs in zip(lc.get_names(), lc.get_rows(), lc.get_senses(), lc.get_rhs()):
+        linear = {names[j]: c for j, c in zip(row.ind, row.val) if abs(c) > TOL}
+        linear_constraints.append(NormalizedConstraint(cname, sense_map[sense], rhs, linear))
+    linear_constraints.sort(key=lambda c: c.name)
+
+    quadratic_constraints = []
+    qc = cpx.quadratic_constraints
+    for cname, lin, quad, sense, rhs in zip(
+        qc.get_names(), qc.get_linear_components(), qc.get_quadratic_components(), qc.get_senses(), qc.get_rhs()
+    ):
+        linear = {names[j]: c for j, c in zip(lin.ind, lin.val) if abs(c) > TOL}
+        quadratic: dict[tuple[str, str], float] = {}
+        for i, j, q in zip(quad.ind1, quad.ind2, quad.val):
+            key = tuple(sorted((names[i], names[j])))
+            quadratic[key] = quadratic.get(key, 0.0) + q
+        quadratic_constraints.append(NormalizedConstraint(cname, sense_map[sense], rhs, linear, quadratic))
+    quadratic_constraints.sort(key=lambda c: c.name)
+
+    is_minimize = cpx.objective.get_sense() == cpx.objective.sense.minimize
+    return NormalizedModel(
+        source="CPLEX",
+        is_minimize=is_minimize,
+        variables=variables,
+        obj_offset=cpx.objective.get_offset(),
         obj_linear=obj_linear,
         obj_quadratic=obj_quadratic,
         linear_constraints=linear_constraints,

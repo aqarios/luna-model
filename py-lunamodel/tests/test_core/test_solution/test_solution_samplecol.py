@@ -1,6 +1,6 @@
 import pytest
 
-from luna_model import Environment, Solution, Variable, Vtype
+from luna_model import Environment, Expression, Model, Solution, Variable, Vtype
 
 
 def test_add_var():
@@ -120,11 +120,12 @@ def test_remove_var():
     assert sol.samples.tolist()[0] == [-1]
     assert sol[0].sample.to_dict() == {"s": -1}
 
+    # Removing the last variable keeps the sample row, with an empty assignment.
     sol.remove_var("s")
     assert sol.variable_names == []
-    assert sol.samples.tolist() == []
-    with pytest.raises(IndexError):
-        _ = sol[0].sample.to_dict()
+    assert sol.samples.tolist() == [[]]
+    assert sol[0].sample.to_dict() == {}
+    assert sol.counts.tolist() == [1]
 
 
 def test_remove_vars():
@@ -142,8 +143,27 @@ def test_remove_vars():
     base = {n: v for n, v in zip(base_names, base_vals)}
     sol = Solution.from_dict(base, env=env)
 
+    # Removing every variable keeps the sample row, with an empty assignment.
     sol.remove_vars([vars[0], "s", vars[2], "r"])
     assert sol.variable_names == []
-    assert sol.samples.tolist() == []
+    assert sol.samples.tolist() == [[]]
+    assert sol[0].sample.to_dict() == {}
+    assert sol.counts.tolist() == [1]
     with pytest.raises(IndexError):
-        _ = sol[0].sample.to_dict()
+        _ = sol[1]
+
+
+def test_solution_without_variables_keeps_its_samples():
+    """A model whose variables were all fixed (e.g. by presolve) still has its solver's samples."""
+    model = Model("constant")
+    model.objective = Expression(env=model.environment) + 2.5
+    sol = Solution([{}], counts=[3], env=model.environment)
+
+    assert len(sol) == 1
+    assert sol.counts.tolist() == [3]
+    assert [r.sample.to_dict() for r in sol.results] == [{}]
+
+    evaluated = model.evaluate(sol)
+    assert evaluated.obj_values.tolist() == [2.5]
+    assert all(r.feasible for r in evaluated.results)
+    assert evaluated.best() is not None

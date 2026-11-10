@@ -44,8 +44,12 @@ jobs:
         with:
           toolchain: ${{ steps.toolchain.outputs.channel }}
 
+      # Own key per Python version: the wheel is a release build with a per-version pyo3
+      # config, so it can reuse neither the `cargo test` cache nor another version's.
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2.9.3
+        with:
+          key: py${{ matrix.py }}
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.3.2
@@ -66,7 +70,7 @@ jobs:
         run: uv sync --locked
 
       - name: Unit tests
-        run: uv run --no-sync pytest -x --tb=short
+        run: uv run --no-sync pytest -n auto -x --tb=short
 
       - name: Doctests
         run: uv run --no-sync pytest --doctest-modules src -x --tb=short

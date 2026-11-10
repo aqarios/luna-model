@@ -190,7 +190,7 @@ impl PySolution {
         }
 
         if let Some(varbounds) = variables_bounds {
-            let mut vbs: HashMap<String, Vec<bool>> = HashMap::with_capacity(varbounds.len());
+            let mut vbs: IndexMap<String, Vec<bool>> = IndexMap::with_capacity(varbounds.len());
             for (i, (key, values)) in varbounds.into_iter().enumerate() {
                 if values.len() != samples.len() {
                     return Err(PyValueError::new_err(format!(
@@ -690,7 +690,7 @@ impl PySolution {
             .map(|s| s.s.read_arc().clone())
             .collect::<Vec<_>>();
         let model = model.map(|m| m.m.read_arc().clone());
-        Ok(Solution::merge_many(&sols, &model, tol)?.into())
+        Ok(Solution::merge_many(&sols, model.as_ref(), tol)?.into())
     }
 }
 

@@ -1,0 +1,6 @@
+# Point clangd at the extension-mode compile_commands.json produced by `just cpp-plugin-dev`
+# (symlinked into this directory). It carries the Python + nanobind + luna_model include paths and
+# -DLUNA_MODEL_PYTHON_EXTENSION, so plugin.cpp and the SDK headers it includes resolve in the
+# extension-mode view rather than the guarded-empty standalone one.
+CompileFlags:
+  CompilationDatabase: .

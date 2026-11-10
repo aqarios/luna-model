@@ -1,6 +1,6 @@
 //! Python wrapper for [`PassManager`].
 
-use lunamodel_io::{CustomFormat, FormatOpt};
+use lunamodel_fmt::{CustomFormat, FormatOpt};
 use lunamodel_transpiler::PassManager;
 use lunamodel_unwind::*;
 use pyo3::{FromPyObject, PyResult, Python, pyclass, pymethods};
@@ -28,15 +28,15 @@ impl PyPassManager {
     ///
     /// Python passes are converted eagerly into Rust pipeline steps so runtime
     /// errors around adapter creation surface at construction time.
+    /// `verify_modifies` overrides the build default (on in debug builds) for checking that
+    /// transformations only modify the model parts they declare.
     #[new]
-    fn new(py: Python, passes: Option<PassIn>) -> PyResult<Self> {
-        let Some(steps) = passes else {
-            return Ok(PyPassManager::default());
-        };
-
-        let pm = match steps {
-            PassIn::Single(pass) => PassManager::from_steps(vec![pass.to_step(py)?]),
-            PassIn::PassVec(steps) => PassManager::from_steps(
+    #[pyo3(signature = (passes = None, verify_modifies = None))]
+    fn new(py: Python, passes: Option<PassIn>, verify_modifies: Option<bool>) -> PyResult<Self> {
+        let pm = match passes {
+            None => PassManager::default(),
+            Some(PassIn::Single(pass)) => PassManager::from_steps(vec![pass.to_step(py)?]),
+            Some(PassIn::PassVec(steps)) => PassManager::from_steps(
                 steps
                     .into_iter()
                     .map(|p| p.to_step(py))
@@ -44,7 +44,12 @@ impl PyPassManager {
             ),
         };
 
-        Ok(PyPassManager { pm })
+        Ok(PyPassManager {
+            pm: match verify_modifies {
+                Some(verify) => pm.verify_modifies(verify),
+                None => pm,
+            },
+        })
     }
 
     /// Append a pass to the manager.

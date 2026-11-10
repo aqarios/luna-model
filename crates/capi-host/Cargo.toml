@@ -1,0 +1,39 @@
+[package]
+name = "lunamodel-capi-host"
+version.workspace = true
+license.workspace = true
+publish = false
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+name = "lunamodel_capi_host"
+crate-type = ["rlib"]
+
+[dependencies]
+lunamodel-serializer = { workspace = true }
+lunamodel-transpiler = { workspace = true }
+lunamodel-types = { workspace = true }
+lunamodel-core = { workspace = true }
+lunamodel-error = { workspace = true }
+
+lunamodel-capi = { workspace = true }
+lunamodel-capi-handle = { workspace = true }
+lunamodel-capi-plugin = { workspace = true }
+
+itertools = { workspace = true }
+indexmap = { workspace = true }
+
+[build-dependencies]
+cbindgen = "0.29.4"
+syn = { workspace = true, features = ["full"] }
+
+[dev-dependencies]
+lunamodel-transpiler = { workspace = true }
+lunamodel-transform = { workspace = true }
+lunamodel-capi-plugin-proto = { workspace = true }
+prost = { workspace = true }
+luna-model-ffi = { path = "../../rs-lunamodel" }

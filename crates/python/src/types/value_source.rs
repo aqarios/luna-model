@@ -1,6 +1,9 @@
 //! Python wrapper for solution value-source enums.
 
-use lunamodel_core::ValueSource;
+// pyo3's `from_py_object` derive emits `.clone()` on these `Copy` types.
+#![allow(clippy::clone_on_copy)]
+
+use lunamodel_types::ValueSource;
 use pyo3::pyclass;
 use strum_macros::Display;
 

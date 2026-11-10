@@ -7,6 +7,7 @@ use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{
     AnalysisKey, CompositePass, PassContext, Reversible, TranspileKindResult,
 };
+use lunamodel_types::{EnumSet, ModelPart};
 use pyo3::{
     Py, PyAny, PyErr, Python,
     types::{PyAnyMethods, PyModule, PyTuple, PyTupleMethods},
@@ -22,6 +23,7 @@ use crate::{
         },
         utils::map_pyerr,
     },
+    types::parts_from_py,
 };
 
 use super::PyCompositePass;
@@ -31,7 +33,8 @@ pub struct PyCompositePassAdapter {
     name: String,
     requires: Vec<String>,
     provides: String,
-    invalidates: Vec<String>,
+    modifies: EnumSet<ModelPart>,
+    depends_on: EnumSet<ModelPart>,
 }
 
 impl PyCompositePassAdapter {
@@ -51,18 +54,28 @@ impl PyCompositePassAdapter {
             .map_err(map_pyerr)?
             .extract(py)
             .map_err(map_pyerr)?;
-        let invalidates: Vec<String> = inner
-            .call_method0(py, "invalidates")
-            .map_err(map_pyerr)?
-            .extract(py)
-            .map_err(map_pyerr)?;
+        let modifies = parts_from_py(
+            inner
+                .call_method0(py, "modifies")
+                .map_err(map_pyerr)?
+                .bind(py),
+        )
+        .map_err(map_pyerr)?;
+        let depends_on = parts_from_py(
+            inner
+                .call_method0(py, "depends_on")
+                .map_err(map_pyerr)?
+                .bind(py),
+        )
+        .map_err(map_pyerr)?;
 
         Ok(Self {
             inner,
             name,
             requires,
             provides,
-            invalidates,
+            modifies,
+            depends_on,
         })
     }
 
@@ -85,12 +98,16 @@ impl CompositePass for PyCompositePassAdapter {
         &self.provides
     }
 
-    fn invalidates(&self) -> &[String] {
-        &self.invalidates
-    }
-
     fn requires(&self) -> &[String] {
         &self.requires
+    }
+
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        self.modifies
+    }
+
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        self.depends_on
     }
 
     fn forward(

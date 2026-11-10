@@ -1,5 +1,8 @@
 //! Python-visible marker type used for unbounded endpoints.
 
+// pyo3's `from_py_object` derive emits `.clone()` on these `Copy` types.
+#![allow(clippy::clone_on_copy)]
+
 use lunamodel_error::py::PyLunaModelError;
 use lunamodel_types::Bound;
 use lunamodel_unwind::*;

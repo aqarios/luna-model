@@ -34,6 +34,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
+        with:
+          # The release tags: the C ABI check compares with the previous release's headers.
+          fetch-depth: 0
 
       - name: Extract version from tag
         id: version
@@ -50,6 +53,9 @@ jobs:
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.version }}
         run: sh ci/tools/check-versions.sh
+
+      - name: Verify the C ABI only changed compatibly since the previous release
+        run: python3 ci/tools/check-abi.py
 
   build-wheels:
     name: Build wheels

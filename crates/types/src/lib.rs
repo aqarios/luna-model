@@ -6,12 +6,16 @@
 //! model capability specifications. Keeping those definitions here avoids
 //! dependency cycles between the modeling, translation, hashing, and Python
 //! layers.
+mod assignment;
 mod bound;
 mod cmp;
 mod dtypes;
+mod model_part;
 mod sense;
 mod specs;
+mod term;
 mod utils;
+mod value_source;
 mod varid;
 mod varname;
 mod vtype;
@@ -23,12 +27,17 @@ pub use cmp::Comparator;
 pub use dtypes::{
     Bias, BinaryAssignment, EnvIdx, IntegerAssignment, RealAssignment, SpinAssignment, VarIdx,
 };
+pub use enumset::EnumSet;
+pub use model_part::ModelPart;
 pub use sense::Sense;
 pub use specs::{Ctype, Specs};
+pub use term::{Neighborhood, OneVarTerm, TwoVarTerm};
 pub use utils::EnumSetFromVec;
+pub use value_source::ValueSource;
 pub use varid::VarId;
 pub use varname::VarName;
 pub use vtype::Vtype;
 
 /// Canonical zero bias used where a stable shared default is convenient.
 pub static DEFAULT_BIAS: LazyLock<Bias> = LazyLock::new(Bias::default);
+pub use assignment::Assignment;

@@ -5,7 +5,7 @@ use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{
     PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult, transformation,
 };
-use lunamodel_types::{VarIdx, Vtype};
+use lunamodel_types::{EnumSet, ModelPart, VarIdx, Vtype};
 
 use super::ReduceInvertedBinaryPassArtifact;
 
@@ -23,6 +23,10 @@ impl ReduceInvertedBinaryPass {
 impl TransformationPass for ReduceInvertedBinaryPass {
     fn name(&self) -> &str {
         "reduce-inverted-binary"
+    }
+
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        ModelPart::Objective | ModelPart::Constraints | ModelPart::Variables
     }
 
     fn forward(

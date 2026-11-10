@@ -2,7 +2,7 @@ use lunamodel_core::Model;
 use lunamodel_transpiler::{
     AnalysisKey, AnalysisPass, PassContext, PipelineStep, TranspileKindResult, analysis,
 };
-use lunamodel_types::{Bound, Comparator};
+use lunamodel_types::{Bound, Comparator, EnumSet, ModelPart};
 
 use crate::{
     analysis::utils::{compute_maxvalue, compute_minvalue},
@@ -22,6 +22,10 @@ impl AnalysisPass for CheckInfeasibleConstraintsAnalysis {
 
     fn name(&self) -> &str {
         "check-infeasibile-constraints"
+    }
+
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        ModelPart::Constraints | ModelPart::Variables
     }
 
     fn key<Ignore>() -> AnalysisKey<Ignore> {
@@ -57,7 +61,7 @@ impl AnalysisPass for CheckInfeasibleConstraintsAnalysis {
             };
 
             if infeasible {
-                return Err(TransformError::Infeasible {
+                Err(TransformError::Infeasible {
                     location: self.name().to_owned(),
                     reason: format!(
                         "constraint '{name}' is infeasible: LHS range cannot satisfy '{} {}'",

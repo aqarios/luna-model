@@ -3,6 +3,7 @@
 use std::any::Any;
 
 use lunamodel_core::Model;
+use lunamodel_types::{EnumSet, ModelPart};
 
 use crate::{
     AnalysisKey, AnalysisManager, CompositePass, ErasedArtifact, PassContext,
@@ -19,8 +20,10 @@ pub trait ErasedCompositePass: Send + Sync {
     fn requires(&self) -> &[String];
     /// Provided analysis key name.
     fn provides(&self) -> &str;
-    /// Invalidated analysis names.
-    fn invalidates(&self) -> &[String];
+    /// Model parts the pass may modify.
+    fn modifies(&self) -> EnumSet<ModelPart>;
+    /// Model parts the provided result depends on.
+    fn depends_on(&self) -> EnumSet<ModelPart>;
     /// Runs the forward pass and erases the produced artifact.
     fn forward_erased(
         &self,
@@ -55,8 +58,12 @@ where
         self.provides()
     }
 
-    fn invalidates(&self) -> &[String] {
-        self.invalidates()
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        self.modifies()
+    }
+
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        self.depends_on()
     }
 
     fn forward_erased(

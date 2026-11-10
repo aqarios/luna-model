@@ -3,6 +3,7 @@
 use std::{error::Error, fmt::Display, sync::Arc};
 
 use lunamodel_error::{ErasedRecord, ErrString, LunaModelError};
+use lunamodel_types::{EnumSet, ModelPart};
 
 use crate::{PassEntry, TransformationRecord};
 
@@ -19,6 +20,16 @@ impl Error for TranspilerError {
 
 pub type TranspilerResult<T> = Result<T, TranspilerError>;
 pub type TranspileKindResult<T> = Result<T, TranspileErrorKind>;
+
+/// A required analysis that was computed but invalidated before the requiring pass runs.
+#[derive(Debug)]
+pub struct InvalidatedRequirement {
+    pub pass_name: String,
+    pub requirement: String,
+    pub computed_by: String,
+    pub invalidated_by: String,
+    pub parts: EnumSet<ModelPart>,
+}
 
 /// Errors originating from pass orchestration rather than domain modeling itself.
 #[derive(Debug)]
@@ -37,6 +48,13 @@ pub enum TranspileErrorKind {
         pass_name: String,
         requirement: String,
     },
+    /// A pass requires an analysis that an earlier transformation invalidated.
+    InvalidatedRequirement(Box<InvalidatedRequirement>),
+    /// A transformation modified model parts it did not declare in `modifies`.
+    UndeclaredModification {
+        pass_name: String,
+        parts: EnumSet<ModelPart>,
+    },
     /// Backward execution requested a pass that was never registered.
     UnregisteredPass {
         name: String,
@@ -54,6 +72,10 @@ pub enum TranspileErrorKind {
     /// External error occured
     External {
         e: anyhow::Error,
+        /// The originating kind tag, when known (e.g. a plugin's own `RichError.kind`), so it
+        /// survives into the resulting [`LunaModelError`]'s `kind_tag()` instead of collapsing
+        /// to the generic `"transformation"`/`"external"` tag.
+        kind: Option<String>,
     },
     Infeasible {
         location: String,
@@ -63,7 +85,7 @@ pub enum TranspileErrorKind {
 impl Error for TranspileErrorKind {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            Self::External { e } => Some(e.as_ref()),
+            Self::External { e, .. } => Some(e.as_ref()),
             _ => None,
         }
     }
@@ -95,6 +117,29 @@ impl Display for TranspileErrorKind {
                     "pass '{pass_name}' requires '{requirement}' to be satisfied first"
                 )
             }
+            Self::InvalidatedRequirement(inv) => {
+                let InvalidatedRequirement {
+                    pass_name,
+                    requirement,
+                    computed_by,
+                    invalidated_by,
+                    parts,
+                } = inv.as_ref();
+                write!(
+                    f,
+                    "pass '{pass_name}' requires '{requirement}', computed by '{computed_by}' but \
+                     invalidated by '{invalidated_by}' which modifies {}; recompute it after \
+                     '{invalidated_by}' or move '{invalidated_by}' earlier",
+                    fmt_parts(*parts)
+                )
+            }
+            Self::UndeclaredModification { pass_name, parts } => {
+                write!(
+                    f,
+                    "pass '{pass_name}' modified {} without declaring it in `modifies`",
+                    fmt_parts(*parts)
+                )
+            }
             Self::UnregisteredPass { name } => {
                 write!(f, "unregistered pass for backwards '{name}'")
             }
@@ -108,7 +153,7 @@ impl Display for TranspileErrorKind {
                 Some(q) => write!(f, "query failed: {msg} for '{q}'"),
                 None => write!(f, "query failed: {msg}"),
             },
-            Self::External { e } => write!(f, "external: {}", describe_external(e)),
+            Self::External { e, .. } => write!(f, "external: {}", describe_external(e)),
             Self::Infeasible { location, reason } => {
                 write!(f, "model is infeasible at {location}: {reason}")
             }
@@ -120,6 +165,20 @@ impl TranspileErrorKind {
     pub fn external<E: Error + Send + Sync + 'static>(e: E) -> Self {
         Self::External {
             e: anyhow::Error::from(e),
+            kind: None,
+        }
+    }
+
+    /// Like [`external`](Self::external), but tags the resulting error with `kind` (e.g. a
+    /// plugin's own `RichError.kind`) so it survives into the final [`LunaModelError`]'s
+    /// `kind_tag()` instead of collapsing to a generic tag.
+    pub fn external_with_kind<E: Error + Send + Sync + 'static>(
+        kind: impl Into<String>,
+        e: E,
+    ) -> Self {
+        Self::External {
+            e: anyhow::Error::from(e),
+            kind: Some(kind.into()),
         }
     }
 }
@@ -128,6 +187,7 @@ impl From<LunaModelError> for TranspileErrorKind {
     fn from(value: LunaModelError) -> Self {
         Self::External {
             e: anyhow::Error::from(value),
+            kind: None,
         }
     }
 }
@@ -140,13 +200,25 @@ impl From<TranspileErrorKind> for LunaModelError {
                 reason,
                 record: None,
             },
-            TranspileErrorKind::External { e } => {
-                let msg = describe_external(&e);
-                with_cause(Self::Transformation { msg, record: None }, &e)
+            TranspileErrorKind::External { e, kind } => {
+                // `with_cause` attaches the rest of `e`'s chain structurally, so the top-level
+                // message here is just the outermost context frame, not the whole chain
+                // (avoids printing the chain twice via `WithCause`'s own `Display`).
+                let msg = e.to_string().into();
+                let kind = kind.map(Into::into);
+                with_cause(
+                    Self::Transformation {
+                        msg,
+                        record: None,
+                        kind,
+                    },
+                    &e,
+                )
             }
             other => Self::Transformation {
                 msg: other.to_string().into(),
                 record: None,
+                kind: None,
             },
         }
     }
@@ -162,13 +234,15 @@ impl From<TranspilerError> for LunaModelError {
                 reason,
                 record,
             },
-            TranspileErrorKind::External { e } => {
-                let msg = describe_external(&e);
-                with_cause(LunaModelError::Transformation { msg, record }, &e)
+            TranspileErrorKind::External { e, kind } => {
+                let msg = e.to_string().into();
+                let kind = kind.map(Into::into);
+                with_cause(LunaModelError::Transformation { msg, record, kind }, &e)
             }
             other => LunaModelError::Transformation {
                 msg: other.to_string().into(),
                 record,
+                kind: None,
             },
         }
     }
@@ -222,6 +296,11 @@ pub fn attach_nested(
     }
 }
 
+fn fmt_parts(parts: EnumSet<ModelPart>) -> String {
+    let names: Vec<String> = parts.iter().map(|p| p.to_string()).collect();
+    format!("{{{}}}", names.join(", "))
+}
+
 fn describe_external(e: &anyhow::Error) -> ErrString {
     e.chain()
         .map(ToString::to_string)
@@ -230,16 +309,74 @@ fn describe_external(e: &anyhow::Error) -> ErrString {
         .into()
 }
 
+/// Wraps `inner` around the chain of `e` (every `anyhow::Context` frame, in order) as nested
+/// [`LunaModelError::WithCause`] links, so the chain survives structurally — each link
+/// individually inspectable and `Display`-able — rather than being collapsed into one flat
+/// string (which [`describe_external`] still produces, for the outer message text).
+///
+/// Stops as soon as it reaches an embedded `LunaModelError::WithCause` (e.g. one built by
+/// `map_pyerr` around a Python exception) and adopts *that* node's own cause verbatim instead of
+/// re-wrapping it: `WithCause`'s cause is `Arc<dyn Error + Send + Sync>`, not itself a
+/// `LunaModelError`, and boundaries like the Python bindings' `__cause__` recovery
+/// (`crates/error/src/py.rs`) downcast it directly to recover the original typed error (a
+/// `PyErr`, say) by object identity — re-wrapping it inside another `LunaModelError` would bury
+/// it somewhere `Error::source()` can no longer reach (`source()` only walks a `WithCause`'s
+/// `cause` field, never its boxed content), silently breaking that recovery. Anything further
+/// down `e`'s chain past that point is just the adopted cause's own source and is already
+/// reachable through it, so it needs no separate representation here.
 fn with_cause(inner: LunaModelError, e: &anyhow::Error) -> LunaModelError {
-    let cause = e
-        .chain()
-        .find_map(|link| link.downcast_ref::<LunaModelError>())
-        .and_then(|lme| match lme {
-            LunaModelError::WithCause(_, cause) => Some(Arc::clone(cause)),
-            _ => None,
+    // Walk root to leaf, collecting one frame per link; stop early (see doc comment above) at an
+    // embedded `WithCause`, taking its own cause as the terminal one.
+    //
+    // `chain()` yields `e` itself as its first element, and that top frame's *text* is already
+    // captured verbatim in `inner`'s message (built from `e.to_string()` by the caller) — so it's
+    // never re-pushed as its own redundant frame. The one exception is when that first link is
+    // itself an embedded `WithCause`: its `cause` field (the `Arc<dyn Error + Send + Sync>`, e.g.
+    // a `PyErr` from `map_pyerr`) is only reachable by matching the link itself, not by anything
+    // in the rendered text, so it must still be detected here even though its content isn't
+    // pushed as a duplicate frame — dropping this case entirely would silently discard the
+    // terminal cause instead of merely avoiding a duplicate.
+    let mut frames: Vec<LunaModelError> = Vec::new();
+    let mut terminal_cause: Option<Arc<dyn Error + Send + Sync>> = None;
+    let mut chain = e.chain();
+    let first_is_terminal = match chain.next() {
+        Some(link) => match link.downcast_ref::<LunaModelError>() {
+            Some(LunaModelError::WithCause(content, cause)) => {
+                frames.push((**content).clone());
+                terminal_cause = Some(Arc::clone(cause));
+                true
+            }
+            _ => false,
+        },
+        None => false,
+    };
+    if !first_is_terminal {
+        for link in chain {
+            match link.downcast_ref::<LunaModelError>() {
+                Some(LunaModelError::WithCause(content, cause)) => {
+                    frames.push((**content).clone());
+                    terminal_cause = Some(Arc::clone(cause));
+                    break;
+                }
+                Some(other) => frames.push(other.clone()),
+                None => frames.push(LunaModelError::External(link.to_string().into())),
+            }
+        }
+    }
+    // Fold leaf to root: the terminal cause (if any) attaches only to the innermost (last)
+    // frame; every frame further out just nests the previous, already-built result.
+    let mut chained: Option<LunaModelError> = None;
+    for frame in frames.into_iter().rev() {
+        chained = Some(match chained {
+            Some(prev) => LunaModelError::WithCause(Box::new(frame), Arc::new(prev)),
+            None => match terminal_cause.take() {
+                Some(cause) => LunaModelError::WithCause(Box::new(frame), cause),
+                None => frame,
+            },
         });
-    match cause {
-        Some(cause) => LunaModelError::WithCause(Box::new(inner), cause),
+    }
+    match chained {
+        Some(chained) => LunaModelError::WithCause(Box::new(inner), Arc::new(chained)),
         None => inner,
     }
 }

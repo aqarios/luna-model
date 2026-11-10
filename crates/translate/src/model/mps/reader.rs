@@ -1,626 +1,420 @@
-//! MPS parser and intermediate representation.
+//! Parses MPS text, in free or fixed format, into a [`Problem`].
 
-use lunamodel_core::prelude::LazyBounds;
-use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_types::{Bias, Bound, Comparator, Sense};
-use std::collections::{HashMap, HashSet};
+use std::{
+    borrow::Cow,
+    collections::{HashMap, HashSet},
+};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+use lunamodel_error::LunaModelResult;
+use lunamodel_types::{Comparator, Sense, Vtype};
+
+use crate::model::problem::{self, Constraint, Expr, Problem};
+
+/// Reads free format first and falls back to fixed format, which allows spaces in names.
+/// If both fail, the error of the format that got further through the file is reported.
+pub fn read_mps(src: &str) -> LunaModelResult<Problem<'_>> {
+    let free = match read(src, Format::Free) {
+        Ok(problem) => return Ok(problem),
+        Err(failure) => failure,
+    };
+    match read(src, Format::Fixed) {
+        Ok(problem) => Ok(problem),
+        Err(fixed) => {
+            let (line, msg) = if fixed.0 > free.0 { fixed } else { free };
+            Err(problem::error(line, msg))
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+enum Format {
+    Free,
+    Fixed,
+}
+
+/// Start and end (0-based, exclusive) of the six fields of a fixed-format line.
+const FIXED_FIELDS: [(usize, usize); 6] = [(1, 3), (4, 12), (14, 22), (24, 36), (39, 47), (49, 61)];
+
+/// Splits a data line into its non-empty fields, so an omitted set name looks the same in both formats.
+fn split_fields<'a>(line: &'a str, format: Format, fields: &mut Vec<&'a str>) {
+    fields.clear();
+    match format {
+        Format::Free => fields.extend(line.split_whitespace()),
+        Format::Fixed => fields.extend(
+            FIXED_FIELDS
+                .iter()
+                .filter_map(|&(start, end)| line.get(start..end.min(line.len())))
+                .map(str::trim)
+                .filter(|field| !field.is_empty()),
+        ),
+    }
+}
+
+/// Reads the whole file in one format; an error comes with its line number.
+fn read(src: &str, format: Format) -> Result<Problem<'_>, (usize, String)> {
+    let mut reader = Reader {
+        problem: Problem::default(),
+        rows: HashMap::new(),
+        has_objective: false,
+        ranges: Vec::new(),
+        bounded: HashSet::new(),
+        integer_block: false,
+        last_column: None,
+    };
+    let mut section = None;
+    let mut fields = Vec::with_capacity(FIXED_FIELDS.len());
+
+    for (i, line) in src.lines().enumerate() {
+        let at_line = |msg| (i + 1, msg);
+        if line.trim().is_empty() || line.starts_with('*') {
+            continue;
+        }
+        // Section headers start in column 1, data lines are indented.
+        if !line.starts_with([' ', '\t']) {
+            match reader.header(line).map_err(at_line)? {
+                Section::End => break,
+                header => section = Some(header),
+            }
+            continue;
+        }
+        let Some(section) = section else {
+            return Err(at_line("data before the first section".into()));
+        };
+        split_fields(line, format, &mut fields);
+        reader.data(section, &fields).map_err(at_line)?;
+    }
+    Ok(reader.finish())
+}
+
+#[derive(Clone, Copy)]
 enum Section {
-    None,
     Name,
     Objsense,
     Rows,
     Columns,
     Rhs,
+    Ranges,
     Bounds,
-    Quadobj,  // Quadratic objective terms
-    Qcmatrix, // Quadratic constraint terms
+    /// Quadratic terms for `row`; an entry `q` is scaled by `diagonal` or `off_diagonal`.
+    Quadratic {
+        row: Row,
+        diagonal: f64,
+        off_diagonal: f64,
+    },
     End,
 }
 
-impl Section {
-    fn try_parse(line: &str) -> Option<Section> {
-        let upper = line.trim().to_uppercase();
-        if upper.starts_with("NAME") {
-            Some(Section::Name)
-        } else if upper.starts_with("OBJSENSE") {
-            Some(Section::Objsense)
-        } else if upper == "ROWS" {
-            Some(Section::Rows)
-        } else if upper == "COLUMNS" {
-            Some(Section::Columns)
-        } else if upper == "RHS" {
-            Some(Section::Rhs)
-        } else if upper == "BOUNDS" || upper == "BOUND" {
-            Some(Section::Bounds)
-        } else if upper == "QUADOBJ" {
-            Some(Section::Quadobj)
-        } else if upper.starts_with("QCMATRIX") {
-            Some(Section::Qcmatrix)
-        } else if upper == "ENDATA" {
-            Some(Section::End)
-        } else {
-            None
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum RowType {
+/// What a row name refers to.
+#[derive(Clone, Copy)]
+enum Row {
     Objective,
-    LessEqual,
-    GreaterEqual,
-    Equal,
-}
-
-impl RowType {
-    fn from_char(c: char) -> LunaModelResult<Self> {
-        match c {
-            'N' | 'n' => Ok(RowType::Objective),
-            'L' | 'l' => Ok(RowType::LessEqual),
-            'G' | 'g' => Ok(RowType::GreaterEqual),
-            'E' | 'e' => Ok(RowType::Equal),
-            _ => Err(LunaModelError::Translation(
-                format!("Invalid row type '{}'", c).into(),
-            )),
-        }
-    }
-
-    pub fn to_comparator(self) -> LunaModelResult<Comparator> {
-        match self {
-            RowType::LessEqual => Ok(Comparator::Le),
-            RowType::GreaterEqual => Ok(Comparator::Ge),
-            RowType::Equal => Ok(Comparator::Eq),
-            RowType::Objective => Err(LunaModelError::Translation(
-                "Objective row cannot be converted to comparator".into(),
-            )),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct MpsRow {
-    pub row_type: RowType,
-    pub name: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct MpsConstraint {
-    pub name: String,
-    pub row_type: RowType,
-    pub coefficients: HashMap<String, Bias>,
-    pub rhs: Bias,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum BoundType {
-    LowerBound,
-    UpperBound,
-    Fixed,
+    /// Further `N` rows; like other readers we drop them.
     Free,
-    Binary,
-    LowerInteger,
-    UpperInteger,
-    MinusInfinity,
-    PlusInfinity,
+    Constraint(usize),
 }
 
-impl BoundType {
-    fn try_parse(s: &str) -> Option<Self> {
-        let upper = s.to_uppercase();
-        match upper.as_str() {
-            "LO" => Some(BoundType::LowerBound),
-            "UP" => Some(BoundType::UpperBound),
-            "FX" => Some(BoundType::Fixed),
-            "FR" => Some(BoundType::Free),
-            "BV" => Some(BoundType::Binary),
-            "LI" => Some(BoundType::LowerInteger),
-            "UI" => Some(BoundType::UpperInteger),
-            "MI" => Some(BoundType::MinusInfinity),
-            "PL" => Some(BoundType::PlusInfinity),
-            _ => None,
-        }
+struct Reader<'a> {
+    problem: Problem<'a>,
+    rows: HashMap<&'a str, Row>,
+    has_objective: bool,
+    ranges: Vec<Option<f64>>, // per constraint
+    bounded: HashSet<usize>,  // variables with a BOUNDS entry
+    integer_block: bool,      // between the 'INTORG' and 'INTEND' markers
+    /// The lines of one column follow each other, so this saves most name lookups.
+    last_column: Option<(&'a str, usize)>,
+}
+
+impl<'a> Reader<'a> {
+    fn header(&mut self, line: &'a str) -> Result<Section, String> {
+        let mut words = line.split_whitespace();
+        let keyword = words.next().unwrap_or_default().to_ascii_uppercase();
+        let arg = words.next();
+        let row_arg = || arg.ok_or_else(|| format!("{keyword} needs a row name"));
+
+        let section = match keyword.as_str() {
+            "NAME" => {
+                // Everything after the keyword, so fixed-format names may contain spaces.
+                let name = line.trim_start()[4..].trim();
+                self.problem.name = Some(name).filter(|name| !name.is_empty());
+                Section::Name
+            }
+            "OBJSENSE" => {
+                if let Some(word) = arg {
+                    self.problem.sense = sense(word)?;
+                }
+                Section::Objsense
+            }
+            "ROWS" => Section::Rows,
+            "COLUMNS" => Section::Columns,
+            "RHS" => Section::Rhs,
+            "RANGES" => Section::Ranges,
+            "BOUNDS" | "BOUND" => Section::Bounds,
+            // Objective 1/2 x'Qx with one triangle of Q (Gurobi and others).
+            "QUADOBJ" => quadratic(Row::Objective, 0.5, 1.0),
+            // Objective 1/2 x'Qx with all of Q (CPLEX).
+            "QMATRIX" => quadratic(Row::Objective, 0.5, 0.5),
+            // 1/2 x'Qx for the objective or a row, lower triangle of Q (MOSEK).
+            "QSECTION" => quadratic(self.row(row_arg()?)?, 0.5, 1.0),
+            // x'Qx for a row with all of Q (CPLEX, Gurobi).
+            "QCMATRIX" => quadratic(self.row(row_arg()?)?, 1.0, 1.0),
+            "ENDATA" => Section::End,
+            _ => return Err(format!("Unsupported section '{}'", line.trim())),
+        };
+        Ok(section)
     }
-}
 
-#[derive(Debug, Default)]
-pub struct MpsProblem {
-    pub name: Option<String>,
-    pub sense: Sense,
-    pub objective_name: Option<String>,
-    pub objective_constant: Bias,
-    pub objective: HashMap<String, Bias>,
-    pub objective_quadratic: Vec<(String, String, Bias)>, // (var1, var2, coef) for QUADOBJ
-    pub rows: HashMap<String, MpsRow>,
-    pub constraints: Vec<MpsConstraint>,
-    pub constraint_quadratic: HashMap<String, Vec<(String, String, Bias)>>, // constraint_name -> quadratic terms
-    pub bounds: HashMap<String, Option<LazyBounds>>,
-    pub integers: HashSet<String>,
-    pub binaries: HashSet<String>,
-    pub vars: HashSet<String>,
-}
-
-pub fn read_mps(content: &str) -> LunaModelResult<MpsProblem> {
-    let mut problem = MpsProblem::default();
-    let mut section = Section::None;
-    let lines = content.lines();
-
-    let mut rows_map: HashMap<String, MpsRow> = HashMap::new();
-    let mut column_data: HashMap<String, HashMap<String, Bias>> = HashMap::new();
-    let mut rhs_data: HashMap<String, Bias> = HashMap::new();
-    let mut in_marker_section = false;
-    let mut marked_cols: HashSet<String> = HashSet::new();
-    let mut current_qcmatrix_constraint: Option<String> = None; // Track which constraint for QCMATRIX
-    let mut did_find_obj_sense: bool = false;
-
-    for line in lines {
-        let line = line.trim();
-
-        // Skip comments and empty lines
-        if line.is_empty() || line.starts_with('*') {
-            continue;
-        }
-
-        // Check for section change
-        if let Some(new_section) = Section::try_parse(line) {
-            section = new_section;
-
-            // Handle NAME section inline
-            if section == Section::Name {
-                let parts: Vec<&str> = line.split_whitespace().collect();
-                if parts.len() > 1 {
-                    problem.name = Some(parts[1].to_string());
-                }
-            }
-
-            // Handle OBJSENSE section inline
-            if section == Section::Objsense {
-                let parts: Vec<&str> = line.split_whitespace().collect();
-                if parts.len() > 1
-                    && let Some(sense) = parse_sense(parts[1])
-                {
-                    problem.sense = sense;
-                    did_find_obj_sense = true;
-                }
-            }
-
-            // Handle QCMATRIX section - extract constraint name
-            if section == Section::Qcmatrix {
-                let parts: Vec<&str> = line.split_whitespace().collect();
-                if parts.len() > 1 {
-                    current_qcmatrix_constraint = Some(parts[1].to_string());
-                } else {
-                    return Err(LunaModelError::Translation(
-                        "QCMATRIX section requires constraint name".into(),
-                    ));
-                }
-            }
-
-            continue;
-        }
-
+    fn data(&mut self, section: Section, fields: &[&'a str]) -> Result<(), String> {
         match section {
-            Section::None => {
-                return Err(LunaModelError::Translation(
-                    format!("Unexpected content before first section: {}", line).into(),
-                ));
-            }
-            Section::Name => {
-                // NAME already handled above
-            }
-            Section::Objsense => {
-                if !did_find_obj_sense {
-                    if let Some(sense) = parse_sense(&line.trim().to_uppercase()) {
-                        problem.sense = sense;
-                    } else {
-                        return Err(LunaModelError::Translation(
-                            format!("Unexpected sense: {}", line).into(),
-                        ));
-                    }
-                }
-            }
-            Section::Rows => {
-                parse_row_line(line, &mut rows_map)?;
-            }
-            Section::Columns => {
-                parse_column_line(
-                    line,
-                    &mut column_data,
-                    &mut in_marker_section,
-                    &mut problem.integers,
-                    &mut marked_cols,
-                )?;
-            }
-            Section::Rhs => {
-                parse_rhs_line(line, &mut rhs_data)?;
-            }
-            Section::Bounds => {
-                parse_bounds_line(
-                    line,
-                    &mut problem.bounds,
-                    &mut problem.binaries,
-                    &mut problem.integers,
-                )?;
-            }
-            Section::Quadobj => {
-                // Parse quadratic objective terms: var1 var2 coefficient
-                parse_quadratic_line(line, &mut problem.objective_quadratic, true)?;
-            }
-            Section::Qcmatrix => {
-                // Parse quadratic constraint terms: var1 var2 coefficient
-                if let Some(ref constraint_name) = current_qcmatrix_constraint {
-                    let qterms = problem
-                        .constraint_quadratic
-                        .entry(constraint_name.clone())
-                        .or_insert_with(Vec::new);
-                    parse_quadratic_line(line, qterms, false)?;
+            Section::Objsense => match fields {
+                [word] => self.problem.sense = sense(word)?,
+                _ => return Err(unexpected(fields)),
+            },
+            Section::Rows => self.row_line(fields)?,
+            Section::Columns => self.column_line(fields)?,
+            Section::Rhs => self.rhs_line(fields, false)?,
+            Section::Ranges => self.rhs_line(fields, true)?,
+            Section::Bounds => self.bound_line(fields)?,
+            Section::Quadratic {
+                row,
+                diagonal,
+                off_diagonal,
+            } => self.quadratic_line(fields, row, diagonal, off_diagonal)?,
+            Section::Name | Section::End => return Err(unexpected(fields)),
+        }
+        Ok(())
+    }
+
+    /// `type name`, e.g. `L c1`.
+    fn row_line(&mut self, fields: &[&'a str]) -> Result<(), String> {
+        let [kind, name] = fields else {
+            return Err(unexpected(fields));
+        };
+        if self.rows.contains_key(name) {
+            return Err(format!("duplicate row '{name}'"));
+        }
+        let comparator = match kind.as_bytes() {
+            [b'N' | b'n'] => {
+                let row = if self.has_objective {
+                    Row::Free
                 } else {
-                    return Err(LunaModelError::Translation(
-                        "QCMATRIX data without constraint name".into(),
-                    ));
-                }
+                    Row::Objective
+                };
+                self.has_objective = true;
+                self.rows.insert(name, row);
+                return Ok(());
             }
-            Section::End => {
-                break;
-            }
-        }
-    }
-
-    for colname in marked_cols {
-        problem.bounds.entry(colname).or_insert_with(|| {
-            Some(LazyBounds::new(
-                Some(Bound::Bounded(0.0)),
-                Some(Bound::Bounded(1.0)),
-            ))
+            [b'L' | b'l'] => Comparator::Le,
+            [b'G' | b'g'] => Comparator::Ge,
+            [b'E' | b'e'] => Comparator::Eq,
+            _ => return Err(format!("unknown row type '{kind}'")),
+        };
+        self.rows
+            .insert(name, Row::Constraint(self.problem.constraints.len()));
+        self.problem.constraints.push(Constraint {
+            name: Some(Cow::Borrowed(name)),
+            lhs: Expr::default(),
+            comparator,
+            rhs: 0.0,
         });
+        self.ranges.push(None);
+        Ok(())
     }
 
-    // Build the problem from parsed data
-    build_problem(&mut problem, rows_map, column_data, rhs_data)?;
-
-    Ok(problem)
-}
-
-fn parse_row_line(line: &str, rows_map: &mut HashMap<String, MpsRow>) -> LunaModelResult<()> {
-    let parts: Vec<&str> = line.split_whitespace().collect();
-
-    if parts.len() < 2 {
-        return Err(LunaModelError::Translation(
-            format!("Invalid ROWS line: {}", line).into(),
-        ));
-    }
-
-    let row_type_char = parts[0].chars().next().unwrap();
-    let row_type = RowType::from_char(row_type_char)?;
-    let row_name = parts[1].to_string();
-
-    rows_map.insert(
-        row_name.clone(),
-        MpsRow {
-            row_type,
-            name: row_name,
-        },
-    );
-
-    Ok(())
-}
-
-fn parse_column_line(
-    line: &str,
-    column_data: &mut HashMap<String, HashMap<String, Bias>>,
-    in_marker_section: &mut bool,
-    integers: &mut HashSet<String>,
-    marked_cols: &mut HashSet<String>,
-) -> LunaModelResult<()> {
-    let parts: Vec<&str> = line.split_whitespace().collect();
-
-    if parts.is_empty() {
-        return Ok(());
-    }
-
-    // Check for integer markers
-    if parts.len() >= 3 && parts[1].contains("MARKER") {
-        if parts[2].contains("INTORG") {
-            *in_marker_section = true;
-        } else if parts[2].contains("INTEND") {
-            *in_marker_section = false;
+    /// `column row value [row value]`, or a marker `name 'MARKER' 'INTORG'|'INTEND'`.
+    fn column_line(&mut self, fields: &[&'a str]) -> Result<(), String> {
+        if let [_, "'MARKER'", marker] = fields {
+            self.integer_block = match *marker {
+                "'INTORG'" => true,
+                "'INTEND'" => false,
+                _ => return Err(format!("unknown marker {marker}")),
+            };
+            return Ok(());
         }
-        return Ok(());
-    }
+        let [column, pairs @ ..] = fields else {
+            return Err(unexpected(fields));
+        };
+        if pairs.len() != 2 && pairs.len() != 4 {
+            return Err(unexpected(fields));
+        }
 
-    if parts.len() < 3 {
-        return Err(LunaModelError::Translation(
-            format!("Invalid COLUMNS line: {}", line).into(),
-        ));
-    }
-
-    let var_name = parts[0].to_string();
-
-    if *in_marker_section {
-        integers.insert(var_name.clone());
-        marked_cols.insert(var_name.clone());
-        // let entry = bounds
-        //     .entry(var_name.clone())
-        //     .or_insert(Some(LazyBounds::default()));
-        // let bnds: &mut LazyBounds = entry.as_mut().unwrap();
-        // if bnds.lower.is_none() {
-        //     bnds.lower = Some(Bound::Bounded(0.0));
-        // }
-        // if bnds.upper.is_none() {
-        //     bnds.upper = Some(Bound::Bounded(1.0));
-        // }
-    }
-
-    // Parse first coefficient pair
-    let row_name1 = parts[1].to_string();
-    let coef1: Bias = parts[2].parse().map_err(|_| {
-        LunaModelError::Translation(format!("Invalid coefficient: {}", parts[2]).into())
-    })?;
-
-    column_data
-        .entry(var_name.clone())
-        .or_default()
-        .insert(row_name1, coef1);
-
-    // Parse optional second coefficient pair
-    if parts.len() >= 5 {
-        let row_name2 = parts[3].to_string();
-        let coef2: Bias = parts[4].parse().map_err(|_| {
-            LunaModelError::Translation(format!("Invalid coefficient: {}", parts[4]).into())
-        })?;
-
-        column_data
-            .entry(var_name)
-            .or_default()
-            .insert(row_name2, coef2);
-    }
-
-    Ok(())
-}
-
-fn parse_rhs_line(line: &str, rhs_data: &mut HashMap<String, Bias>) -> LunaModelResult<()> {
-    let parts: Vec<&str> = line.split_whitespace().collect();
-
-    if parts.len() < 3 {
-        return Err(LunaModelError::Translation(
-            format!("Invalid RHS line: {}", line).into(),
-        ));
-    }
-
-    // parts[0] is the RHS name (ignored for now)
-    let row_name = parts[1].to_string();
-    let value: Bias = parts[2].parse().map_err(|_| {
-        LunaModelError::Translation(format!("Invalid RHS value: {}", parts[2]).into())
-    })?;
-
-    rhs_data.insert(row_name, value);
-
-    // Parse optional second RHS pair
-    if parts.len() >= 5 {
-        let row_name2 = parts[3].to_string();
-        let value2: Bias = parts[4].parse().map_err(|_| {
-            LunaModelError::Translation(format!("Invalid RHS value: {}", parts[4]).into())
-        })?;
-        rhs_data.insert(row_name2, value2);
-    }
-
-    Ok(())
-}
-
-fn parse_bounds_line(
-    line: &str,
-    bounds: &mut HashMap<String, Option<LazyBounds>>,
-    binaries: &mut HashSet<String>,
-    integers: &mut HashSet<String>,
-) -> LunaModelResult<()> {
-    let parts: Vec<&str> = line.split_whitespace().collect();
-
-    if parts.len() < 3 {
-        return Err(LunaModelError::Translation(
-            format!("Invalid BOUNDS line: {}", line).into(),
-        ));
-    }
-
-    let bound_type = BoundType::try_parse(parts[0]).ok_or_else(|| {
-        LunaModelError::Translation(format!("Invalid bound type: {}", parts[0]).into())
-    })?;
-
-    // parts[1] is the bound name (ignored)
-    let var_name = parts[2].to_string();
-
-    let base = bounds
-        .entry(var_name.clone())
-        .or_insert(Some(LazyBounds::new(
-            Some(Bound::Bounded(0.0)),
-            Some(Bound::Unbounded),
-        )))
-        .as_mut()
-        .unwrap();
-
-    // let mut base = LazyBounds::new(Some(Bound::Bounded(0.0)), Some(Bound::Unbounded));
-
-    match bound_type {
-        BoundType::LowerBound => {
-            if parts.len() < 4 {
-                return Err(LunaModelError::Translation(
-                    format!("Missing value for LO bound: {}", line).into(),
-                ));
+        let id = match self.last_column {
+            Some((last, id)) if last == *column => id,
+            _ => self.problem.var_id(column),
+        };
+        self.last_column = Some((column, id));
+        if self.integer_block {
+            self.problem.vtypes[id] = Vtype::Integer;
+        }
+        for pair in pairs.chunks(2) {
+            let value = number(pair[1])?;
+            let row = self.row(pair[0])?;
+            if let Some(expr) = self.expr(row) {
+                expr.linear.push((id, value));
             }
-            let value: Bias = parts[3].parse().map_err(|_| {
-                LunaModelError::Translation(format!("Invalid bound value: {}", parts[3]).into())
-            })?;
-            base.lower = Some(Bound::Bounded(value));
         }
-        BoundType::UpperBound => {
-            if parts.len() < 4 {
-                return Err(LunaModelError::Translation(
-                    format!("Missing value for UP bound: {}", line).into(),
-                ));
-            }
-            let value: Bias = parts[3].parse().map_err(|_| {
-                LunaModelError::Translation(format!("Invalid bound value: {}", parts[3]).into())
-            })?;
-            base.upper = Some(Bound::Bounded(value));
-        }
-        BoundType::Fixed => {
-            if parts.len() < 4 {
-                return Err(LunaModelError::Translation(
-                    format!("Missing value for FX bound: {}", line).into(),
-                ));
-            }
-            let value: Bias = parts[3].parse().map_err(|_| {
-                LunaModelError::Translation(format!("Invalid bound value: {}", parts[3]).into())
-            })?;
-            base.lower = Some(Bound::Bounded(value));
-            base.upper = Some(Bound::Bounded(value));
-        }
-        BoundType::Free => {
-            base.lower = Some(Bound::Unbounded);
-            base.upper = Some(Bound::Unbounded);
-        }
-        BoundType::Binary => {
-            binaries.insert(var_name.clone());
-            base.lower = Some(Bound::Bounded(0.0));
-            base.upper = Some(Bound::Bounded(1.0));
-        }
-        BoundType::LowerInteger => {
-            if parts.len() < 4 {
-                return Err(LunaModelError::Translation(
-                    format!("Missing value for LI bound: {}", line).into(),
-                ));
-            }
-            let value: Bias = parts[3].parse().map_err(|_| {
-                LunaModelError::Translation(format!("Invalid bound value: {}", parts[3]).into())
-            })?;
-            integers.insert(var_name.clone());
-            base.lower = Some(Bound::Bounded(value));
-        }
-        BoundType::UpperInteger => {
-            if parts.len() < 4 {
-                return Err(LunaModelError::Translation(
-                    format!("Missing value for UI bound: {}", line).into(),
-                ));
-            }
-            let value: Bias = parts[3].parse().map_err(|_| {
-                LunaModelError::Translation(format!("Invalid bound value: {}", parts[3]).into())
-            })?;
-            integers.insert(var_name.clone());
-            base.upper = Some(Bound::Bounded(value));
-        }
-        BoundType::MinusInfinity => {
-            base.lower = Some(Bound::Unbounded);
-        }
-        BoundType::PlusInfinity => {
-            base.upper = Some(Bound::Unbounded);
-        }
+        Ok(())
     }
 
-    Ok(())
-}
-
-fn build_problem(
-    problem: &mut MpsProblem,
-    rows_map: HashMap<String, MpsRow>,
-    column_data: HashMap<String, HashMap<String, Bias>>,
-    rhs_data: HashMap<String, Bias>,
-) -> LunaModelResult<()> {
-    // Find objective row (first N type row, default to MIN)
-    let objective_row = rows_map
-        .values()
-        .find(|row| row.row_type == RowType::Objective)
-        .ok_or_else(|| LunaModelError::Translation("No objective row found in MPS file".into()))?;
-
-    problem.objective_name = Some(objective_row.name.clone());
-    // Note: sense may have been set by OBJSENSE section, don't override if already set
-    // Only set to Min if it's still the default (which is also Min, so this is a no-op)
-    // The sense was already initialized to Min in MpsProblem::default()
-
-    // Build objective coefficients
-    for (var_name, row_coeffs) in &column_data {
-        problem.vars.insert(var_name.clone());
-
-        if let Some(coef) = row_coeffs.get(&objective_row.name) {
-            problem.objective.insert(var_name.clone(), *coef);
+    /// `[set] row value [row value]` for RHS and RANGES; the set name is optional.
+    fn rhs_line(&mut self, fields: &[&'a str], is_range: bool) -> Result<(), String> {
+        let pairs = match fields.len() {
+            2 | 4 => fields,
+            3 | 5 => &fields[1..],
+            _ => return Err(unexpected(fields)),
+        };
+        for pair in pairs.chunks(2) {
+            let value = number(pair[1])?;
+            match (self.row(pair[0])?, is_range) {
+                (Row::Objective, false) => self.problem.objective.offset = -value,
+                (Row::Constraint(i), false) => self.problem.constraints[i].rhs = value,
+                (Row::Constraint(i), true) => self.ranges[i] = Some(value),
+                _ => (), // free rows, and ranges on the objective, have no effect
+            }
         }
+        Ok(())
     }
 
-    for var_name in &problem.integers {
-        if !problem.bounds.contains_key(var_name) {
-            problem.bounds.insert(
-                var_name.clone(),
-                Some(LazyBounds::new(
-                    Some(Bound::Bounded(0.0)),
-                    Some(Bound::Bounded(1.0)),
-                )),
-            );
+    /// `type [set] column [value]`; the set name is optional.
+    fn bound_line(&mut self, fields: &[&'a str]) -> Result<(), String> {
+        let Some((&kind_field, rest)) = fields.split_first() else {
+            return Err(unexpected(fields));
+        };
+        let unsupported = || format!("Unsupported bound type '{kind_field}'");
+        // Bound types have two letters; compare them in upper case without allocating.
+        let kind = match kind_field.as_bytes() {
+            [a, b] => [a.to_ascii_uppercase(), b.to_ascii_uppercase()],
+            _ => return Err(unsupported()),
+        };
+        let has_value = matches!(&kind, b"UP" | b"LO" | b"FX" | b"LI" | b"UI");
+        let (column, value) = match (has_value, rest) {
+            (true, [_, column, value] | [column, value]) => (column, number(value)?),
+            (false, [column] | [_, column] | [_, column, _]) => (column, 0.0),
+            _ => return Err(unexpected(fields)),
+        };
+
+        let id = self.problem.var_id(column);
+        self.bounded.insert(id);
+        let (lower, upper) = &mut self.problem.bounds[id];
+        let vtype = &mut self.problem.vtypes[id];
+        match &kind {
+            b"UP" => *upper = Some(value),
+            b"LO" => *lower = Some(value),
+            b"FX" => (*lower, *upper) = (Some(value), Some(value)),
+            b"FR" => (*lower, *upper) = (Some(f64::NEG_INFINITY), Some(f64::INFINITY)),
+            b"MI" => *lower = Some(f64::NEG_INFINITY),
+            b"PL" => *upper = Some(f64::INFINITY),
+            b"BV" => *vtype = Vtype::Binary,
+            b"LI" => (*lower, *vtype) = (Some(value), Vtype::Integer),
+            b"UI" => (*upper, *vtype) = (Some(value), Vtype::Integer),
+            _ => return Err(unsupported()),
         }
+        Ok(())
     }
 
-    // Build constraints
-    for (row_name, row) in rows_map.iter() {
-        let rhs = rhs_data.get(row_name).copied().unwrap_or(0.0);
-
-        if row.row_type == RowType::Objective {
-            problem.objective_constant = rhs;
-            continue;
+    /// `column column value`.
+    fn quadratic_line(
+        &mut self,
+        fields: &[&'a str],
+        row: Row,
+        diagonal: f64,
+        off_diagonal: f64,
+    ) -> Result<(), String> {
+        let [u, v, value] = fields else {
+            return Err(unexpected(fields));
+        };
+        let value = number(value)?;
+        let (u, v) = (self.problem.var_id(u), self.problem.var_id(v));
+        let factor = if u == v { diagonal } else { off_diagonal };
+        if let Some(expr) = self.expr(row) {
+            expr.quadratic.push((u, v, factor * value));
         }
+        Ok(())
+    }
 
-        let mut coefficients = HashMap::new();
-        for (var_name, row_coeffs) in &column_data {
-            if let Some(coef) = row_coeffs.get(row_name) {
-                coefficients.insert(var_name.clone(), *coef);
+    /// Integer defaults and ranges can only be applied once the whole file is read.
+    fn finish(mut self) -> Problem<'a> {
+        // Integer columns without any bound entry default to 0 <= x <= 1, i.e. binary.
+        for (id, vtype) in self.problem.vtypes.iter_mut().enumerate() {
+            if *vtype == Vtype::Integer && !self.bounded.contains(&id) {
+                *vtype = Vtype::Binary;
             }
         }
 
-        problem.constraints.push(MpsConstraint {
-            name: row_name.clone(),
-            row_type: row.row_type,
-            coefficients,
-            rhs,
-        });
+        let constraints = std::mem::take(&mut self.problem.constraints);
+        for (constraint, range) in constraints.into_iter().zip(self.ranges) {
+            match range {
+                None => self.problem.constraints.push(constraint),
+                Some(range) => self
+                    .problem
+                    .constraints
+                    .extend(split_range(constraint, range)),
+            }
+        }
+        self.problem
     }
 
-    problem.rows = rows_map;
+    fn expr(&mut self, row: Row) -> Option<&mut Expr> {
+        match row {
+            Row::Objective => Some(&mut self.problem.objective),
+            Row::Free => None,
+            Row::Constraint(i) => Some(&mut self.problem.constraints[i].lhs),
+        }
+    }
 
-    Ok(())
+    fn row(&self, name: &str) -> Result<Row, String> {
+        let row = self.rows.get(name).copied();
+        row.ok_or_else(|| format!("unknown row '{name}'"))
+    }
 }
 
-fn parse_quadratic_line(
-    line: &str,
-    quad_terms: &mut Vec<(String, String, Bias)>,
-    is_obj: bool,
-) -> LunaModelResult<()> {
-    let parts: Vec<&str> = line.split_whitespace().collect();
-
-    if parts.len() < 3 {
-        return Err(LunaModelError::Translation(
-            format!("Invalid quadratic line (expected 3 parts): {}", line).into(),
-        ));
+fn quadratic(row: Row, diagonal: f64, off_diagonal: f64) -> Section {
+    Section::Quadratic {
+        row,
+        diagonal,
+        off_diagonal,
     }
-
-    let var1 = parts[0].to_string();
-    let var2 = parts[1].to_string();
-    let mut coef: Bias = parts[2].parse().map_err(|_| {
-        LunaModelError::Translation(format!("Invalid quadratic coefficient: {}", parts[2]).into())
-    })?;
-
-    if is_obj && var1 == var2 {
-        coef *= 0.5;
-    }
-
-    quad_terms.push((var1, var2, coef));
-
-    Ok(())
 }
 
-fn parse_sense(sense_str: &str) -> Option<Sense> {
-    // Parse OBJSENSE: MAX, MAXIMIZE, MIN, MINIMIZE
-    if sense_str == "MAX" || sense_str == "MAXIMIZE" {
-        Some(Sense::Max)
-    } else if sense_str == "MIN" || sense_str == "MINIMIZE" {
-        Some(Sense::Min)
+fn sense(word: &str) -> Result<Sense, String> {
+    let is = |s| word.eq_ignore_ascii_case(s);
+    if is("MIN") || is("MINIMIZE") {
+        Ok(Sense::Min)
+    } else if is("MAX") || is("MAXIMIZE") {
+        Ok(Sense::Max)
     } else {
-        None
+        Err(format!("unknown objective sense '{word}'"))
     }
+}
+
+fn number(text: &str) -> Result<f64, String> {
+    let value = text.parse::<f64>().ok().filter(|v| !v.is_nan());
+    value.ok_or_else(|| format!("invalid number '{text}'"))
+}
+
+fn unexpected(fields: &[&str]) -> String {
+    format!("unexpected line {fields:?}")
+}
+
+/// Splits a ranged row into `name_lb` (>=) and `name_ub` (<=), with the bounds SCIP and HiGHS use.
+fn split_range(c: Constraint<'_>, range: f64) -> [Constraint<'_>; 2] {
+    let (lower, upper) = match c.comparator {
+        Comparator::Le => (c.rhs - range.abs(), c.rhs),
+        Comparator::Ge => (c.rhs, c.rhs + range.abs()),
+        Comparator::Eq if range >= 0.0 => (c.rhs, c.rhs + range),
+        Comparator::Eq => (c.rhs + range, c.rhs),
+    };
+    let name = c.name.unwrap_or_default();
+    let lb = Constraint {
+        name: Some(format!("{name}_lb").into()),
+        lhs: c.lhs.clone(),
+        comparator: Comparator::Ge,
+        rhs: lower,
+    };
+    let ub = Constraint {
+        name: Some(format!("{name}_ub").into()),
+        lhs: c.lhs,
+        comparator: Comparator::Le,
+        rhs: upper,
+    };
+    [lb, ub]
 }

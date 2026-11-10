@@ -1,48 +1,26 @@
-//! Low-level capsule and pointer FFI helpers for Python constraint wrappers.
+//! C-handle capsule transport for Python constraint wrappers.
 
-use std::{ffi::CStr, sync::Arc};
-
-use lunamodel_core::prelude::Constraint;
+use lunamodel_capi::LmConstraint;
+use lunamodel_capi_handle::{drop_handle, handle_from_shared, handle_into_shared};
+use lunamodel_capi_pyffi::{new_capsule, take_handle};
 use lunamodel_unwind::*;
-use parking_lot::RwLock;
-use pyo3::{
-    Bound, PyResult, Python, pymethods,
-    types::{PyCapsule, PyCapsuleMethods},
-};
+use pyo3::{Bound, PyResult, Python, pymethods, types::PyCapsule};
 
-use crate::{
-    PyConstraint,
-    ffi::{CapsuleFFI, capsule_name},
-};
-
-const CAPSULE_NAME_C: &CStr = c"builtins.capsule.PyConstraint";
-
-impl<'py> CapsuleFFI<'py> for Arc<RwLock<Constraint>> {
-    fn to_capsule(
-        &self,
-        py: pyo3::Python<'py>,
-    ) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::types::PyCapsule>> {
-        PyCapsule::new_with_value(py, self.clone(), capsule_name(CAPSULE_NAME_C))
-    }
-
-    fn from_capsule(capsule: pyo3::Bound<'py, pyo3::types::PyCapsule>) -> pyo3::PyResult<Self> {
-        let ptr = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_C)))?;
-        let constr = unsafe { ptr.cast::<Arc<RwLock<Constraint>>>().as_ref().clone() };
-        Ok(constr)
-    }
-}
+use crate::PyConstraint;
 
 #[unwindable]
 #[pymethods]
 impl PyConstraint {
-    pub fn _to_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        self.c.to_capsule(py)
+    pub fn _to_c_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
+        let handle = handle_from_shared::<LmConstraint>(self.c.clone());
+        new_capsule(py, handle, drop_handle::<LmConstraint>)
     }
 
     #[staticmethod]
-    pub fn _from_capsule<'py>(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        Ok(Self {
-            c: Arc::<RwLock<Constraint>>::from_capsule(capsule)?,
-        })
+    pub fn _from_c_capsule(capsule: Bound<'_, PyCapsule>) -> PyResult<Self> {
+        let handle = take_handle::<LmConstraint>(&capsule)?;
+        let c = unsafe { handle_into_shared::<LmConstraint>(handle) }
+            .expect("a consumed non-null constraint handle must contain shared storage");
+        Ok(Self { c })
     }
 }

@@ -71,6 +71,9 @@ include = [
     "src/luna_model/**/*.pyi",
     "src/luna_model/**/*.py",
     "src/luna_model/py.typed",
+    "src/luna_model/include/**/*.h",
+    "src/luna_model/include/**/*.hpp",
+    "src/luna_model/proto/**/*.proto",
 ]
 exclude = [
     "**/__pycache__",
@@ -79,11 +82,24 @@ exclude = [
 
 [tool.uv]
 package = true
+# Only sources: `src/luna_model/include` is copied by pylm/build.rs on every build, and the
+# generated headers in crates/capi-host/include are rewritten by its build.rs.
 cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "../Cargo.toml" },
+    { file = "../Cargo.lock" },
     { file = "pylm/Cargo.toml" },
-    { file = "pylm/Cargo.lock" },
-    { file = "pylm/src/lib.rs" },
+    { file = "pylm/build.rs" },
+    { file = "pylm/src/**/*.rs" },
+    { file = "../crates/**/Cargo.toml" },
     { file = "../crates/**/*.rs" },
+    { file = "../crates/capi-host/cbindgen.*.toml" },
+    { file = "../crates/capi-host/include/luna_model.h" },
+    { file = "../crates/capi-host/include/luna_model/attributes.h" },
+    { file = "../cxx-lunamodel/src/**/*.hpp" },
+    { file = "src/luna_model/**/*.py" },
+    { file = "src/luna_model/**/*.pyi" },
+    { file = "src/luna_model/proto/**/*.proto" },
 ]
 
 [dependency-groups]
@@ -109,6 +125,7 @@ dev = [
     "pytest-xdist>=3.8.0",
     "dimod>=0.12.22",
     "gurobipy>=13.0.2; python_version < '3.15'",
+    "cplex>=22.2.0.1; python_version < '3.15'",
     "qiskit-aer>=0.17.1; python_version < '3.14'",
 ]
 docs = [

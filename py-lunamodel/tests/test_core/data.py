@@ -5,6 +5,8 @@ from itertools import combinations, product
 from math import prod
 from typing import Protocol, runtime_checkable
 
+import pytest
+
 from luna_model import (
     Bounds,
     Comparator,
@@ -259,15 +261,20 @@ def models() -> list[Model]:
     return model_collection
 
 
-def to_serialized(f: Callable[[], Sequence[T]], t: type[T]) -> list[tuple[T, bytes, type[T]]]:
-    return [(e, e.encode(), t) for e in f()]
+def to_serialized(f: Callable[[], Sequence[T]], t: type[T]) -> list[pytest.param]:
+    # Explicit, content-independent ids: letting pytest auto-derive an id from a `bytes`
+    # argument embeds the freshly (re)generated serialized payload straight into the test's
+    # name. That payload is only reproducible byte-for-byte within a single process — under
+    # pytest-xdist, each worker collects (and so regenerates it) independently, so workers would
+    # disagree on the id of "the same" test and xdist would reject the run outright.
+    return [pytest.param(e, e.encode(), t, id=f"{t.__name__}{i}") for i, e in enumerate(f())]
 
 
 def to_serialized_with_env(
     f: Callable[[], tuple[Sequence[T], Environment]], t: type[T]
-) -> list[tuple[T, bytes, type[T], Environment]]:
+) -> list[pytest.param]:
     items, env = f()
-    return [(e, e.encode(), t, env) for e in items]
+    return [pytest.param(e, e.encode(), t, env, id=f"{t.__name__}{i}") for i, e in enumerate(items)]
 
 
 TO_SER_OBJECTS: dict[type[T], Callable[[], Sequence[T]]] = {

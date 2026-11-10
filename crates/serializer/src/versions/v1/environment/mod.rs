@@ -91,8 +91,8 @@ impl Creatable<Environment> for SerEnvironment {
 mod tests {
     use super::*;
     use crate::encode::{BytesDecodable, BytesEncodable};
-    use lunamodel_core::prelude::ArcEnv;
-    use lunamodel_types::Vtype;
+    use lunamodel_core::prelude::{ArcEnv, LazyBounds};
+    use lunamodel_types::{Bound, Vtype};
 
     fn names(env: &Environment) -> Vec<String> {
         env.vars().map(|v| env[v].name().into()).collect()
@@ -133,7 +133,28 @@ mod tests {
         }
         let mut ser = SerEnvironment::new(&env);
         ser.order.clear();
-        let decoded = ser.extract();
+        let decoded = ser.extract().unwrap();
         assert_eq!(names(&decoded), ["x", "y", "z", "w"]);
+    }
+
+    /// Fields that contradict each other are a decoding error, not a panic (found by fuzzing).
+    #[test]
+    fn contradicting_fields_are_an_error() {
+        let mut env = Environment::default();
+        let bounds = LazyBounds::new(Some(Bound::Bounded(0.0)), Some(Bound::Bounded(5.0)));
+        env.insert("x", Vtype::Integer, Some(bounds)).unwrap();
+        env.insert("y", Vtype::Binary, None).unwrap();
+        let tampers: [fn(&mut SerEnvironment); 5] = [
+            |ser| ser.integer_names.clear(),
+            |ser| ser.integer_bounds_lower.clear(),
+            |ser| ser.binary_names[0] = "x".into(),
+            |ser| ser.next_idx = Some(1),
+            |ser| ser.binary[0] = u32::MAX,
+        ];
+        for tamper in tampers {
+            let mut ser = SerEnvironment::new(&env);
+            tamper(&mut ser);
+            assert!(ser.extract().is_err());
+        }
     }
 }

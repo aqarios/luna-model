@@ -1,0 +1,100 @@
+# Testing luna-model-ffi
+
+Tests live in this directory: a small maturin-built extension crate
+(`rs-lunamodel-integration-ext` under `integration_ext/`) plus pytest
+suites in `integration_ext/pytests/`. They exercise the pyo3 bindings
+against the `lunamodel` Python package.
+
+The test environment is managed by [`uv`](https://docs.astral.sh/uv/) via
+the `pyproject.toml` in this directory. There is no `nox` / `tox` — the
+local-vs-published `lunamodel` switch is expressed as two mutually exclusive
+uv dependency groups.
+
+## Prerequisites
+
+- `uv` (>= 0.5)
+- A Rust toolchain (maturin builds the extension on first sync)
+
+Run all commands from `rs-lunamodel/tests/`.
+
+## Run tests against the local `py-lunamodel`
+
+This is the default (`default-groups = ["local"]`). It builds and installs
+`../../py-lunamodel`:
+
+```bash
+uv run pytest integration_ext/pytests
+```
+
+## Run tests against the published `lunamodel` on PyPI
+
+```bash
+just rs-ext-test-pypi   # from the repository root; CI runs this too
+```
+
+or by hand:
+
+```bash
+uv sync --no-default-groups --group pypi --reinstall-package luna-model
+uv run --no-sync pytest integration_ext/pytests
+```
+
+`--no-default-groups` is required: `local` is enabled by default and conflicts
+with `pypi`. `--reinstall-package luna-model` is required as well: a local build
+of the same version would otherwise be kept, and `--no-sync` keeps a plain
+`uv run` from re-syncing the `local` group.
+
+The extension itself is always compiled from the local Rust crates
+(`integration_ext/Cargo.toml` uses path dependencies); the group only selects
+which `luna_model` host it runs against. That is what makes this a check of
+whether the published host is compatible with the current extension code.
+
+The contract: against a host of a **different** C API ABI version the extension
+may fail (luna-model-ffi rejects such a host), so `conftest.py` skips the whole
+session with the two versions as reason. Against the **same** ABI version every
+test must pass. Additions to the host don't break that: an older extension
+never uses them. But the extension built here is newer than the published host,
+so where luna-model-ffi uses a host addition (e.g.
+`luna_model.errors._error_for_kind`, added in 0.8.0a2) it must fall back when
+the host predates it, and the tests expect that fallback on such a host (see
+`test_errors.py`).
+
+The minimum version is pinned in `pyproject.toml` under
+`[dependency-groups] pypi`. Bump it there when a new release should be
+exercised.
+
+## Pinning the Python version
+
+```bash
+uv run -p 3.14 pytest integration_ext/pytests
+```
+
+## Forcing a rebuild of the extension
+
+After Rust changes in `rs-lunamodel/` or `integration_ext/`, uv may reuse
+the cached wheel. Force a rebuild with:
+
+```bash
+uv sync --reinstall-package rs-lunamodel-integration-ext
+```
+
+`py-lunamodel` is installed non-editable, so after changes there add
+`--reinstall-package luna-model` as well. (Use `--no-default-groups --group pypi`
+for the PyPI variant.)
+
+## How it's wired
+
+- `[tool.uv] package = false` — this is a uv workspace env, not a
+  publishable distribution.
+- `conflicts = [[{group = "local"}, {group = "pypi"}]]` — uv refuses to
+  resolve both groups together, keeping the lockfile coherent.
+- `default-groups = ["local"]` makes the local host the default.
+- `[tool.uv.sources]` maps `luna-model` to the local path **only** under
+  the `local` group; otherwise it resolves from PyPI. `integration_ext` must
+  not declare its own source for `luna-model`, or it would override the group
+  selection.
+- `pytests/test_layout.py` reads and computes on host objects in Rust. The
+  `roundtrip_*` tests only pass the C-API handle back and cannot detect
+  host/extension mismatches.
+- `rs-lunamodel-integration-ext` is a path source built via PEP 517
+  (maturin) on `uv sync` / `uv run`.

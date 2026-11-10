@@ -1,5 +1,6 @@
+use indexmap::IndexMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use super::Model;
 use crate::ops::SolutionLookup;
@@ -60,7 +61,7 @@ impl Model {
 
         // Direct column-by-column variable bounds evaluation
         let sol_var_names = sol.variable_names();
-        let mut vbounds: HashMap<String, Vec<bool>> = HashMap::with_capacity(sol_var_names.len());
+        let mut vbounds: IndexMap<String, Vec<bool>> = IndexMap::with_capacity(sol_var_names.len());
         let mut all_vars_ok: Vec<bool> = vec![true; num_samples];
 
         for name in &sol_var_names {

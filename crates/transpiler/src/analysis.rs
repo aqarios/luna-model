@@ -1,6 +1,14 @@
 //! Typed analysis keys and analysis storage.
 
-use std::{any::Any, collections::HashMap, fmt::Debug, marker::PhantomData, sync::Arc};
+use std::{
+    any::Any,
+    collections::HashMap,
+    fmt::Debug,
+    marker::PhantomData,
+    sync::{Arc, OnceLock, RwLock},
+};
+
+use lunamodel_types::{EnumSet, ModelPart};
 
 use crate::error::{TranspileErrorKind, TranspileKindResult};
 
@@ -22,10 +30,27 @@ impl<T: 'static> AnalysisKey<T> {
     }
 }
 
+/// A serialized analysis result deposited by a **plugin** analysis, retrievable by name across the
+/// C-ABI.
+///
+/// Native analyses store their result as a typed value (see [`AnalysisManager::insert`]) and native
+/// passes read it back typed with zero copies. A plugin analysis produces a result whose Rust type
+/// the host does not know, so it deposits `(type_tag, bytes)` here instead; a plugin pass reads the
+/// bytes back by name and deserializes into its own copy of the type.
+#[derive(Clone, Debug)]
+pub struct SerializedAnalysis {
+    /// Stable type tag of the producing result type (verified by the consumer before decoding).
+    pub type_tag: String,
+    /// The result's serialized bytes.
+    pub bytes: Vec<u8>,
+}
+
 /// Type-safe storage for analysis results keyed by [`AnalysisKey`].
 #[derive(Clone, Default, Debug)]
 pub struct AnalysisManager {
     results: HashMap<String, Arc<dyn Any + Send + Sync>>,
+    /// Model parts each result depends on; results without an entry depend on all parts.
+    depends_on: HashMap<String, EnumSet<ModelPart>>,
 }
 
 impl AnalysisManager {
@@ -49,13 +74,94 @@ impl AnalysisManager {
 
     /// Stores an analysis result under its typed key.
     pub fn insert<T: Send + Sync + 'static>(&mut self, key: &AnalysisKey<T>, value: T) {
+        self.depends_on.remove(&key.name);
         self.results.insert(key.name.clone(), Arc::new(value));
     }
 
-    /// Invalidates analysis entries by name.
-    pub fn invalidate_many(&mut self, keys: &[String]) {
-        for key in keys {
-            self.results.remove(key);
-        }
+    /// Deposits a plugin analysis result as serialized bytes under `name`.
+    ///
+    /// The bytes are opaque to the host; a plugin pass retrieves them with [`get_serialized`] and
+    /// decodes into its own result type after checking `type_tag`.
+    ///
+    /// [`get_serialized`]: Self::get_serialized
+    pub fn insert_serialized(&mut self, name: &str, type_tag: String, bytes: Vec<u8>) {
+        self.depends_on.remove(name);
+        self.results.insert(
+            name.to_string(),
+            Arc::new(SerializedAnalysis { type_tag, bytes }),
+        );
     }
+
+    /// Retrieves a plugin analysis result deposited by [`insert_serialized`], if present.
+    ///
+    /// [`insert_serialized`]: Self::insert_serialized
+    pub fn get_serialized(&self, name: &str) -> Option<&SerializedAnalysis> {
+        self.results
+            .get(name)
+            .and_then(|boxed| boxed.downcast_ref::<SerializedAnalysis>())
+    }
+
+    /// Records the model parts the result stored under `name` depends on.
+    pub fn set_depends_on(&mut self, name: &str, parts: EnumSet<ModelPart>) {
+        self.depends_on.insert(name.to_string(), parts);
+    }
+
+    /// Drops every result that depends on one of the `modified` parts.
+    pub fn invalidate(&mut self, modified: EnumSet<ModelPart>) {
+        if modified.is_empty() {
+            return;
+        }
+        let depends_on = &mut self.depends_on;
+        self.results.retain(|name, _| {
+            let keep = depends_on
+                .get(name)
+                .is_some_and(|parts| parts.is_disjoint(modified));
+            if !keep {
+                depends_on.remove(name);
+            }
+            keep
+        });
+    }
+}
+
+/// Serializes a native (typed) analysis result in value for cross-ABI consumption by a plugin.
+///
+/// Receives the type-erased result stored in an [`AnalysisManager`]. Downcasts to its concrete type
+/// and encodes it (as protobuf, by the registering crate), or returns `None` on a type mismatch.
+pub type AnalysisResultSerializer = fn(&(dyn Any + Send + Sync)) -> Option<Vec<u8>>;
+fn analysis_serializers() -> &'static RwLock<HashMap<String, (String, AnalysisResultSerializer)>> {
+    static REGISTRY: OnceLock<RwLock<HashMap<String, (String, AnalysisResultSerializer)>>> =
+        OnceLock::new();
+    REGISTRY.get_or_init(|| RwLock::new(HashMap::new()))
+}
+
+/// Registers how to serialize the analysis result stored under `name`, so a plugin can consume it
+/// across the C-ABI. The producer keeps storing its typed result for native consumers; this only
+/// adds an on-demand byte encoding. `type_tag` identifies the result type so a consumer decoding
+/// into the wrong type is rejected. Idempotent per `name`. Serves both built-in analyses (static
+/// tag) and pure-Python analyses (runtime tag).
+pub fn register_analysis_serializer(
+    name: impl Into<String>,
+    type_tag: impl Into<String>,
+    serializer: AnalysisResultSerializer,
+) {
+    analysis_serializers()
+        .write()
+        .expect("analysis serializer registry poisoned")
+        .insert(name.into(), (type_tag.into(), serializer));
+}
+
+/// Serializes the analysis result stored under `name` using a serializer registered with
+/// [`register_analysis_serializer`], returning `(type_tag, bytes)`. `None` if no serializer is
+/// registered for `name` or no result is stored under it.
+pub fn serialize_named_analysis(
+    manager: &AnalysisManager,
+    name: &str,
+) -> Option<(String, Vec<u8>)> {
+    let guard = analysis_serializers()
+        .read()
+        .expect("analysis serializer registry poisoned");
+    let (type_tag, serializer) = guard.get(name)?;
+    let bytes = serializer(manager.results.get(name)?.as_ref())?;
+    Some((type_tag.clone(), bytes))
 }

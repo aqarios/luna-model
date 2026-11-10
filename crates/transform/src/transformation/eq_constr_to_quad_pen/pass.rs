@@ -8,7 +8,7 @@ use lunamodel_transpiler::{
     AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult,
     transformation,
 };
-use lunamodel_types::{Comparator, Sense};
+use lunamodel_types::{Comparator, EnumSet, ModelPart, Sense};
 
 use crate::{
     analysis::{MaxBias, MaxBiasAnalysis},
@@ -42,6 +42,10 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
         "equality-constraints-to-quadratic-penalty"
     }
 
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        ModelPart::Objective | ModelPart::Constraints
+    }
+
     fn forward(&self, model: &mut Model, ctx: &PassContext) -> TranspileKindResult<Self::Artifact> {
         let max_bias: &MaxBias = ctx.require_analysis(&MaxBiasAnalysis::key())?;
         let max_bias = if max_bias.val == 0.0 {
@@ -60,7 +64,7 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
 
         for (name, constr) in constrs.iter() {
             if constr.comparator != Comparator::Eq {
-                return Err(TransformError::Transformation {
+                Err(TransformError::Transformation {
                     name: self.name().to_owned(),
                     msg: "cannot move inequality constraints to objective. Transform inequality constraints to equality constraints first.".into(),
                 })?;

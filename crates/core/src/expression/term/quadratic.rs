@@ -63,8 +63,8 @@ impl Quadratic {
     pub fn iter(&self) -> impl Iterator<Item = (VarIdx, &Neighborhood)> {
         self.adj
             .iter()
-            .filter_map(|t| match t.neighborhood.is_zero() {
-                false => Some((t.idx, &t.neighborhood)),
+            .filter_map(|t| match t.neighborhood().is_zero() {
+                false => Some((t.idx(), t.neighborhood())),
                 true => None,
             })
     }
@@ -73,8 +73,8 @@ impl Quadratic {
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (VarIdx, &mut Neighborhood)> {
         self.adj
             .iter_mut()
-            .filter_map(|t| match t.neighborhood.is_zero() {
-                false => Some((t.idx, &mut t.neighborhood)),
+            .filter_map(|t| match t.neighborhood().is_zero() {
+                false => Some((t.idx(), t.neighborhood_mut())),
                 true => None,
             })
     }
@@ -83,13 +83,13 @@ impl Quadratic {
     pub fn iter_flat(&self) -> impl Iterator<Item = (VarIdx, VarIdx, Bias)> {
         self.adj
             .iter()
-            .flat_map(|t| t.neighborhood.iter().map(|(n, b)| (t.idx, n, b)))
+            .flat_map(|t| t.neighborhood().iter().map(|(n, b)| (t.idx(), n, b)))
     }
 
     /// Removes explicitly stored zero entries from all neighborhoods.
     pub fn clean(&mut self) {
         self.iter_mut()
-            .for_each(|(_, n)| n.retain(|t| t.bias != Bias::default()));
+            .for_each(|(_, n)| n.retain(|t| t.bias() != Bias::default()));
     }
 
     /// Appends an empty outer adjacency entry.
@@ -107,7 +107,7 @@ impl Quadratic {
 
     /// Binary-searches the outer adjacency list by variable index.
     pub(super) fn find(hay: &[TwoVarTerm], needle: VarIdx) -> Result<usize, usize> {
-        hay.binary_search_by(|t| t.idx.partial_cmp(&needle).unwrap_or(Ordering::Equal))
+        hay.binary_search_by(|t| t.idx().partial_cmp(&needle).unwrap_or(Ordering::Equal))
     }
 }
 
@@ -140,7 +140,7 @@ impl Index<VarIdx> for Quadratic {
     fn index(&self, index: VarIdx) -> &Self::Output {
         let pos = Self::find(&self.adj, index).ok();
         match pos {
-            Some(p) => &self.adj[p].neighborhood,
+            Some(p) => self.adj[p].neighborhood(),
             None => &DEFAULT_NEIGHBORHOOD,
         }
     }
@@ -152,10 +152,10 @@ impl IndexMut<VarIdx> for Quadratic {
         let pos = Self::find(&self.adj, index).unwrap_or_else(|l| l);
         if pos == self.storage_len() {
             self.push_back_empty(index);
-        } else if self.adj[pos].idx != index {
+        } else if self.adj[pos].idx() != index {
             self.insert_empty(pos, index);
         }
-        &mut self.adj[pos].neighborhood
+        self.adj[pos].neighborhood_mut()
     }
 }
 
@@ -167,12 +167,12 @@ impl Index<(VarIdx, VarIdx)> for Quadratic {
         let (outer, inner) = get_indices(index.0, index.1);
         let pos = Self::find(&self.adj, outer).ok();
         let nei = match pos {
-            Some(p) => &self.adj[p].neighborhood,
+            Some(p) => self.adj[p].neighborhood(),
             None => &DEFAULT_NEIGHBORHOOD,
         };
         let pos = nei.find(inner).ok();
         match pos {
-            Some(p) => &nei[p].bias,
+            Some(p) => nei[p].bias_ref(),
             None => &DEFAULT_BIAS,
         }
     }
@@ -186,10 +186,10 @@ impl IndexMut<(VarIdx, VarIdx)> for Quadratic {
         let pos = nei.find(inner).unwrap_or_else(|l| l);
         if pos == nei.storage_len() {
             nei.push_back_empty(inner);
-        } else if nei[pos].idx != inner {
+        } else if nei[pos].idx() != inner {
             nei.insert_empty(pos, inner);
         }
-        &mut nei[pos].bias
+        nei[pos].bias_mut()
     }
 }
 
@@ -218,16 +218,28 @@ impl PartialEq for Quadratic {
 impl Neg for Quadratic {
     type Output = Self;
 
+    /// Negates every stored quadratic bias in place, reusing the existing storage.
+    fn neg(mut self) -> Self::Output {
+        self.adj
+            .iter_mut()
+            .for_each(|t| t.neighborhood_mut().iter_mut().for_each(|(_, b)| *b = -*b));
+        self
+    }
+}
+
+impl Neg for &Quadratic {
+    type Output = Quadratic;
+
     /// Negates every stored quadratic bias.
     fn neg(self) -> Self::Output {
-        Self {
+        Quadratic {
             adj: self
                 .adj
                 .iter()
                 .map(|t| {
                     TwoVarTerm::new(
-                        t.idx,
-                        t.neighborhood
+                        t.idx(),
+                        t.neighborhood()
                             .iter()
                             .map(|(idx, bias)| (idx, -bias))
                             .collect(),

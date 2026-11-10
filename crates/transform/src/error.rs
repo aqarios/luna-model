@@ -71,6 +71,7 @@ impl From<TransformError> for TranspileErrorKind {
             }
             _ => TranspileErrorKind::External {
                 e: anyhow::Error::from(value),
+                kind: None,
             },
         }
     }

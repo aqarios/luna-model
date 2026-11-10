@@ -122,8 +122,11 @@ def test_qctrl_translator_constructed_with_time():
         assert sol.raw_energies is None
         assert len(sol.counts.tolist()) == num_samples
         assert sol.runtime is not None
-        assert round(sol.runtime.total, 1) == 0.3
-        assert round(sol.runtime.total, 1) == 0.3
+        # sleep() only ever waits *at least* the requested duration — assert a lower bound plus
+        # a generous upper bound (rather than round(..., 1) == 0.3) so this doesn't flake under
+        # scheduler contention (e.g. parallel test execution), which only ever pushes elapsed
+        # time up, never down.
+        assert 0.3 <= sol.runtime.total < 1.0
         assert sol.runtime.qpu is None
 
         for result in sol.results:

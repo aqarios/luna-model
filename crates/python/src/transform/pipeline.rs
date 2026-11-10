@@ -1,10 +1,13 @@
 //! Python wrapper for reusable transformation pipelines.
 
-use lunamodel_io::{CustomFormat, FormatOpt};
+use lunamodel_fmt::{CustomFormat, FormatOpt};
 use lunamodel_transpiler::{Pipeline, PipelineStep};
-use pyo3::{Py, PyAny, PyResult, Python, pyclass, pymethods};
+use pyo3::{Bound, Py, PyAny, PyResult, Python, pyclass, pymethods, types::PySet};
 
-use crate::transform::{pass::PyPass, utils::FromSteps};
+use crate::{
+    transform::{pass::PyPass, utils::FromSteps},
+    types::parts_to_py,
+};
 
 #[pyclass(from_py_object, subclass)]
 #[derive(Clone)]
@@ -47,9 +50,9 @@ impl PyPipeline {
         self.0.requires().collect()
     }
 
-    /// Return the analyses invalidated by the pipeline.
-    fn invalidates(&self) -> Vec<String> {
-        self.0.invalidates().collect()
+    /// Return the model parts modified anywhere in the pipeline.
+    fn modifies<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PySet>> {
+        parts_to_py(py, self.0.modifies())
     }
 
     /// Return the analyses produced by the pipeline.
