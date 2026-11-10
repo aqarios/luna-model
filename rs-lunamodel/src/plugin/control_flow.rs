@@ -1,5 +1,6 @@
 //! Control-flow plugin pass trait and its execution-plan builder.
 
+use crate::types::{EnumSet, ModelPart};
 use std::ffi::CString;
 
 use lunamodel_capi::plugin::LmControlFlowPlan;
@@ -34,9 +35,10 @@ pub trait ControlFlowPass: Send + Sync + 'static {
         &[]
     }
 
-    /// Analysis names this pass invalidates.
-    fn invalidates(&self) -> &[String] {
-        &[]
+    /// Model parts any step of the plan may modify, used for static pipeline validation. Defaults
+    /// to every part.
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        EnumSet::all()
     }
 
     /// Executes control flow against the lent read-only model and context, building a plan.

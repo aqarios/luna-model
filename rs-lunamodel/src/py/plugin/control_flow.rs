@@ -7,7 +7,7 @@
 /// a `ControlFlowPlan` (a pipeline of steps), not a serialized payload, and it is not reversible.
 /// It is also not Python-callable directly — building a plan needs the host-lent model/context — so
 /// it is exercised only by adding it to a `PassManager`. `py_control_flow_plugin!(vis Pass(Inner))`
-/// emits `struct Pass(Inner)` — a `#[pyclass]` with `name`/`requires`/`provides`/`invalidates` and
+/// emits `struct Pass(Inner)` — a `#[pyclass]` with `name`/`requires`/`provides`/`modifies` and
 /// the internal `_luna_plugin_control_flow_capsule`.
 ///
 /// You supply the pass constructor(s) in your own `#[pymethods]` block. `Inner` must be `Clone`.
@@ -31,8 +31,11 @@ macro_rules! py_control_flow_plugin {
                 $crate::plugin::ControlFlowPass::provides(&self.0).to_vec()
             }
 
-            fn invalidates(&self) -> ::std::vec::Vec<::std::string::String> {
-                $crate::plugin::ControlFlowPass::invalidates(&self.0).to_vec()
+            fn modifies<'py>(
+                &self,
+                py: ::pyo3::Python<'py>,
+            ) -> ::pyo3::PyResult<::pyo3::Bound<'py, ::pyo3::types::PySet>> {
+                $crate::py::model_parts_to_py(py, $crate::plugin::ControlFlowPass::modifies(&self.0))
             }
 
             /// Hands the host this pass's C descriptor (read when added to a `PassManager`).

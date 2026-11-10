@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 from luna_model._lm import PyControlFlowPass, PyControlFlowPlan, PyModel, PyPassContext
 from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
+from luna_model.transformation.model_part import ModelPart
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -82,7 +83,7 @@ class ControlFlowPass(PyControlFlowPass, metaclass=_ControlFlowPassMeta):
     Notes
     -----
     This is an abstract class. Subclasses must implement the `name`, `run` methods.
-    Additionally, the `requires` and `invalidates` and `provides` methods can be implemented.
+    Additionally, the `requires`, `modifies` and `provides` methods can be implemented.
     """
 
     @abstractmethod
@@ -128,16 +129,16 @@ class ControlFlowPass(PyControlFlowPass, metaclass=_ControlFlowPassMeta):
         """
         return []
 
-    def invalidates(self) -> list[str]:
+    def modifies(self) -> set[ModelPart]:
         """
-        Get a list of passes that are invalidated by this control-flow's plan.
+        Get the model parts any step of this control-flow's plan may modify.
 
         Returns
         -------
-        list of str
-            Names of passes whose results become invalid after this pass runs.
+        set[ModelPart]
+            The modified model parts. Defaults to every part.
         """
-        return []
+        return set(ModelPart)
 
     def provides(self) -> list[str]:
         """

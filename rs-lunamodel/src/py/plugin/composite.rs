@@ -8,7 +8,7 @@
 /// `forward` returns `(model, artifact, result)`, and — unlike [`py_analysis_plugin!`] — it is
 /// reversible (list it in [`register_plugins!`]'s `composite:` group).
 /// `py_composite_plugin!(vis Pass(Inner) => Artifact, Result)` emits:
-/// - `struct Pass(Inner)` — a `#[pyclass]` with `name`/`provides`/`requires`/`invalidates`,
+/// - `struct Pass(Inner)` — a `#[pyclass]` with `name`/`provides`/`requires`/`modifies`/`depends_on`,
 ///   `forward(model, ctx=None) -> (Model, Artifact, Result)`, classmethod `backward(artifact,
 ///   solution) -> Solution`, and the internal `_luna_plugin_composite_capsule`.
 /// - `struct Artifact(<Inner as Reversible>::Artifact)` — a `#[pyclass]` with `serialize`/
@@ -123,8 +123,18 @@ macro_rules! py_composite_plugin {
                 $crate::plugin::CompositePass::requires(&self.0).to_vec()
             }
 
-            fn invalidates(&self) -> ::std::vec::Vec<::std::string::String> {
-                $crate::plugin::CompositePass::invalidates(&self.0).to_vec()
+            fn modifies<'py>(
+                &self,
+                py: ::pyo3::Python<'py>,
+            ) -> ::pyo3::PyResult<::pyo3::Bound<'py, ::pyo3::types::PySet>> {
+                $crate::py::model_parts_to_py(py, $crate::plugin::CompositePass::modifies(&self.0))
+            }
+
+            fn depends_on<'py>(
+                &self,
+                py: ::pyo3::Python<'py>,
+            ) -> ::pyo3::PyResult<::pyo3::Bound<'py, ::pyo3::types::PySet>> {
+                $crate::py::model_parts_to_py(py, $crate::plugin::CompositePass::depends_on(&self.0))
             }
 
             /// Runs the fused forward and returns `(model, artifact, result)`, mirroring the native

@@ -19,6 +19,7 @@ from luna_model._lm import PyAnalysisPass, PyModel, PyPassContext
 from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.key import AnalysisKey
+from luna_model.transformation.model_part import ModelPart
 
 Result = TypeVar("Result")
 
@@ -39,7 +40,8 @@ class AnalysisPass(PyAnalysisPass, Generic[Result], metaclass=_AnalysisPassMeta)
     This is an abstract class. Subclasses must implement the `name` and `run` methods and
     the `PROVIDES` class variable.
     Additionally, the `requires` method can be implemented to indicate which passes must
-    be executed before the analysis is run.
+    be executed before the analysis is run, and `depends_on` to narrow which model parts
+    the result is computed from.
     """
 
     PROVIDES: str
@@ -85,6 +87,19 @@ class AnalysisPass(PyAnalysisPass, Generic[Result], metaclass=_AnalysisPassMeta)
             Pass names that must execute first, or empty list if no dependencies.
         """
         return []
+
+    def depends_on(self) -> set[ModelPart]:
+        """
+        Get the model parts the result is computed from.
+
+        The result stays valid until a transformation modifies one of these parts.
+
+        Returns
+        -------
+        set[ModelPart]
+            The model parts the result depends on. Defaults to every part.
+        """
+        return set(ModelPart)
 
     @classmethod
     def provides(cls) -> str:

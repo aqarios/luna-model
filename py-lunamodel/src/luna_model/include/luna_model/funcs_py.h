@@ -510,7 +510,7 @@ static inline int import_luna_model(void) {
 #define lm_step_list_name(...) (lunamodel__vtable->step_list_name(__VA_ARGS__))
 #define lm_step_list_requires(...) (lunamodel__vtable->step_list_requires(__VA_ARGS__))
 #define lm_step_list_provides(...) (lunamodel__vtable->step_list_provides(__VA_ARGS__))
-#define lm_step_list_invalidates(...) (lunamodel__vtable->step_list_invalidates(__VA_ARGS__))
+#define lm_step_list_modifies(...) (lunamodel__vtable->step_list_modifies(__VA_ARGS__))
 #define lm_control_flow_plan_new(...) (lunamodel__vtable->control_flow_plan_new(__VA_ARGS__))
 #define lm_control_flow_plan_free(...) (lunamodel__vtable->control_flow_plan_free(__VA_ARGS__))
 #define lm_control_flow_plan_add_transform(...) (lunamodel__vtable->control_flow_plan_add_transform(__VA_ARGS__))

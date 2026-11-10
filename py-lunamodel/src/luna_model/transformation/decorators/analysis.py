@@ -14,12 +14,16 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Generic, TypeAlias, TypeVar
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING, Generic, TypeAlias, TypeVar
 
 from luna_model.model.model import Model
 from luna_model.transformation.analysis import AnalysisPass
 from luna_model.transformation.context import PassContext
+from luna_model.transformation.decorators.transformation import _model_parts
+
+if TYPE_CHECKING:
+    from luna_model.transformation.model_part import ModelPart
 
 R = TypeVar("R")
 
@@ -29,11 +33,13 @@ AnalysisSignature: TypeAlias = Callable[[Model, PassContext], R]
 class _DynamicAnalysisPass(AnalysisPass[R], Generic[R]):
     _name: str
     _requires: list[str]
+    _depends_on: set[ModelPart]
     _run_f: AnalysisSignature[R]
 
-    def __init__(self, name: str, requires: list[str], run: AnalysisSignature[R]) -> None:
+    def __init__(self, name: str, requires: list[str], depends_on: set[ModelPart], run: AnalysisSignature[R]) -> None:
         self._name = name
         self._requires = requires
+        self._depends_on = depends_on
         self._run_f = run
 
     def name(self) -> str:
@@ -45,9 +51,16 @@ class _DynamicAnalysisPass(AnalysisPass[R], Generic[R]):
     def requires(self) -> list[str]:
         return self._requires
 
+    def depends_on(self) -> set[ModelPart]:
+        return self._depends_on
+
 
 def analyze(
-    name: str | None = None, provides: str | None = None, requires: list[str] | None = None
+    name: str | None = None,
+    provides: str | None = None,
+    requires: list[str] | None = None,
+    *,
+    depends_on: Iterable[ModelPart] | None = None,
 ) -> Callable[[AnalysisSignature[R]], _DynamicAnalysisPass[R]]:
     """Create an AnalysisPass from a function decorator.
 
@@ -67,6 +80,9 @@ def analyze(
     requires : list[str], optional
         List of analysis pass names that must run before this analysis. The results
         of required passes are available in the ``AnalysisCache``. Defaults to ``[]``.
+    depends_on : Iterable[ModelPart], optional
+        Model parts the result is computed from; it stays valid until a transformation
+        modifies one of them. Defaults to every part.
 
     Returns
     -------
@@ -105,6 +121,7 @@ def analyze(
         return _TheAnalysis(
             name=loc_name,
             requires=requires,
+            depends_on=_model_parts(depends_on),
             run=func,
         )
 

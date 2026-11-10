@@ -1,5 +1,6 @@
 //! The plugin-side mirror of the transpiler's analysis pass and its result.
 
+use crate::types::{EnumSet, ModelPart};
 use prost::Message;
 
 use crate::Model;
@@ -52,6 +53,12 @@ pub trait AnalysisPass: Send + Sync {
     /// Analysis names that must be satisfied before this pass runs.
     fn requires(&self) -> &[String] {
         &[]
+    }
+
+    /// Model parts the result is computed from. It stays valid until a transformation modifies one
+    /// of them. Defaults to every part.
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        EnumSet::all()
     }
 
     /// Computes the analysis result from the model without mutating it.

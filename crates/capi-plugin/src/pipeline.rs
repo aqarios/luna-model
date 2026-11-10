@@ -8,6 +8,7 @@
 
 use lunamodel_capi::plugin::LmPassKind;
 use lunamodel_transpiler::{PipelineStep, PipelineStepMethods};
+use lunamodel_types::{EnumSet, ModelPart};
 
 /// Borrowed, read-only view of a slice of pipeline steps, lent to a meta-analysis plugin as
 /// `*const LmStepList`.
@@ -69,11 +70,11 @@ impl StepListView {
             .map(|s| std::slice::from_ref(s).collect_provides().collect())
     }
 
-    /// Analysis names the step at `index` invalidates, or `None` if out of bounds.
-    ///
-    /// Invalidation is tracked by model part (`modifies`) now, so no step names analyses.
-    pub fn invalidates(&self, index: usize) -> Option<Vec<String>> {
-        self.steps().get(index).map(|_| Vec::new())
+    /// Model parts the step at `index` may modify, or `None` if out of bounds.
+    pub fn modifies(&self, index: usize) -> Option<EnumSet<ModelPart>> {
+        self.steps()
+            .get(index)
+            .map(|s| std::slice::from_ref(s).collect_modifies())
     }
 }
 

@@ -32,6 +32,26 @@ pub use lunamodel_capi::{
 pub const CAPI_ABI_VERSION: u32 = 1;
 const _: () = assert!(CAPI_ABI_VERSION == lunamodel_capi::CAPI_ABI_VERSION);
 
+// The `LM_MODEL_PART_*` flags, mirrored here for the same reason as `CAPI_ABI_VERSION`.
+/// The objective expression.
+pub const LM_MODEL_PART_OBJECTIVE: u32 = 1;
+/// The constraint collection.
+pub const LM_MODEL_PART_CONSTRAINTS: u32 = 2;
+/// The environment: variables, their types and their bounds.
+pub const LM_MODEL_PART_VARIABLES: u32 = 4;
+/// The optimization sense.
+pub const LM_MODEL_PART_SENSE: u32 = 8;
+/// Every model part; the safe choice when a pass cannot say what it touches.
+pub const LM_MODEL_PART_ALL: u32 = 15;
+const _: () = {
+    use lunamodel_capi::plugin as abi;
+    assert!(LM_MODEL_PART_OBJECTIVE == abi::LM_MODEL_PART_OBJECTIVE);
+    assert!(LM_MODEL_PART_CONSTRAINTS == abi::LM_MODEL_PART_CONSTRAINTS);
+    assert!(LM_MODEL_PART_VARIABLES == abi::LM_MODEL_PART_VARIABLES);
+    assert!(LM_MODEL_PART_SENSE == abi::LM_MODEL_PART_SENSE);
+    assert!(LM_MODEL_PART_ALL == abi::LM_MODEL_PART_ALL);
+};
+
 pub mod plugin;
 
 pub mod bound;

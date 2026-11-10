@@ -4,12 +4,12 @@
 //! The view is a borrowed [`StepListView`] (defined in `lunamodel-capi-plugin`, created by the
 //! meta-analysis adapter for the duration of one `run` call). These entries cast the lent
 //! `*const LmStepList` back to it and answer per-step queries; list-valued answers (name, requires,
-//! provides, invalidates) are delivered through an `LmStrSink` so no ownership crosses the ABI.
+//! provides) are delivered through an `LmStrSink` so no ownership crosses the ABI.
 
 use std::ffi::{CString, c_char, c_void};
 
 use lunamodel_capi::LmStatus;
-use lunamodel_capi::plugin::{LmPassKind, LmStepList, LmStrSink};
+use lunamodel_capi::plugin::{LmModelParts, LmPassKind, LmStepList, LmStrSink};
 use lunamodel_capi_plugin::StepListView;
 
 use crate::error::{CapiError, guard};
@@ -139,23 +139,24 @@ pub unsafe extern "C" fn lm_step_list_provides(
     })
 }
 
-/// Emits the analysis names the step at `index` invalidates, one per `sink` call.
+/// Writes the model parts the step at `index` may modify (`LM_MODEL_PART_*` flags) to `out_parts`.
+/// `InvalidArgument` if out of bounds.
 ///
 /// # Safety
-/// `steps` must be a live `*const LmStepList`; `sink` must copy each string before returning.
+/// `steps` must be a live `*const LmStepList`; `out_parts` must be a valid writable `LmModelParts`.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn lm_step_list_invalidates(
+pub unsafe extern "C" fn lm_step_list_modifies(
     steps: *const LmStepList,
     index: usize,
-    sink: LmStrSink,
-    sink_ctx: *mut c_void,
+    out_parts: *mut LmModelParts,
 ) -> LmStatus {
     guard(|| {
         let view = unsafe { view(steps) }?;
-        let items = view
-            .invalidates(index)
-            .ok_or_else(|| out_of_bounds(index))?;
-        unsafe { emit(&items, sink, sink_ctx) };
+        if out_parts.is_null() {
+            return Err(CapiError::null_pointer("out_parts"));
+        }
+        let parts = view.modifies(index).ok_or_else(|| out_of_bounds(index))?;
+        unsafe { *out_parts = parts.as_u32() };
         Ok(())
     })
 }

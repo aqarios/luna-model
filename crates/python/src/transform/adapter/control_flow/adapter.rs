@@ -3,12 +3,14 @@
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{ControlFlowPass, ControlFlowPlan, PassContext, TranspileKindResult};
+use lunamodel_types::{EnumSet, ModelPart};
 use pyo3::{Py, PyErr, Python, types::PyAnyMethods};
 
 use super::{PyControlFlowPass, PyControlFlowPlan};
 use crate::{
     PyModel,
     transform::{PyPassContext, utils::map_pyerr},
+    types::parts_from_py,
 };
 
 pub struct PyControlFlowPassAdapter {
@@ -16,6 +18,7 @@ pub struct PyControlFlowPassAdapter {
     name: String,
     requires: Vec<String>,
     provides: Vec<String>,
+    modifies: EnumSet<ModelPart>,
 }
 
 impl PyControlFlowPassAdapter {
@@ -35,11 +38,20 @@ impl PyControlFlowPassAdapter {
             .map_err(map_pyerr)?
             .extract(py)
             .map_err(map_pyerr)?;
+        let modifies = parts_from_py(
+            inner
+                .call_method0(py, "modifies")
+                .map_err(map_pyerr)?
+                .bind(py),
+        )
+        .map_err(map_pyerr)?;
+
         Ok(Self {
             inner,
             name,
             requires,
             provides,
+            modifies,
         })
     }
 
@@ -73,6 +85,10 @@ impl ControlFlowPass for PyControlFlowPassAdapter {
 
     fn requires(&self) -> &[String] {
         &self.requires
+    }
+
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        self.modifies
     }
 
     fn provides(&self) -> &[String] {

@@ -67,7 +67,7 @@ from luna_model.timer import (
     Timer,
     Timing,
 )
-from luna_model.transformation import PassContext
+from luna_model.transformation import ModelPart, PassContext
 from luna_model.ttarget import TranslationTarget
 from luna_model.utils import quicksum
 from luna_model.variable import (
@@ -93,6 +93,7 @@ __all__ = [
     "HigherOrder",
     "Linear",
     "Model",
+    "ModelPart",
     "ModelSpecs",
     "PassContext",
     "Quadratic",

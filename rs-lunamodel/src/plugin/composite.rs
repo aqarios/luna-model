@@ -1,6 +1,7 @@
 //! The plugin-side mirror of the transpiler's `CompositePass` trait.
 
 use crate::Model;
+use crate::types::{EnumSet, ModelPart};
 
 use super::{AnalysisResult, PassContext, Reversible};
 
@@ -29,9 +30,16 @@ pub trait CompositePass: Send + Sync + Reversible {
         &[]
     }
 
-    /// Analysis names invalidated after this pass runs.
-    fn invalidates(&self) -> &[String] {
-        &[]
+    /// Model parts this pass may modify. Analyses depending on any of them are invalidated after it
+    /// runs. Defaults to every part.
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        EnumSet::all()
+    }
+
+    /// Model parts the result is computed from. It stays valid until a transformation modifies one
+    /// of them. Defaults to every part.
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        EnumSet::all()
     }
 
     /// Runs the fused forward: mutates the model and returns the inverse [`Artifact`](Reversible::Artifact)

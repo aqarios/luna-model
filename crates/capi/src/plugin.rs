@@ -30,7 +30,7 @@ pub struct LmPassContext {
 
 /// Opaque, read-only view of the pipeline steps following a meta-analysis pass, lent to it during
 /// `run`. Introspected through the `step_list_*` API-table entries (length, and per-index kind /
-/// name / requires / provides / invalidates). Borrowed for the duration of the call only — the
+/// name / requires / provides / modifies). Borrowed for the duration of the call only — the
 /// plugin must not retain or free it.
 ///
 /// cbindgen::opaque
@@ -39,8 +39,36 @@ pub struct LmStepList {
     _private: [u8; 0],
 }
 
+/// Bitmask of model parts a plugin pass modifies or depends on: any combination of the
+/// `LM_MODEL_PART_*` flags. Unknown bits are ignored.
+pub type LmModelParts = u32;
+
+/// The objective expression.
+///
+/// cbindgen:ignore
+pub const LM_MODEL_PART_OBJECTIVE: LmModelParts = 1 << 0;
+/// The constraint collection.
+///
+/// cbindgen:ignore
+pub const LM_MODEL_PART_CONSTRAINTS: LmModelParts = 1 << 1;
+/// The environment: variables, their types and their bounds.
+///
+/// cbindgen:ignore
+pub const LM_MODEL_PART_VARIABLES: LmModelParts = 1 << 2;
+/// The optimization sense.
+///
+/// cbindgen:ignore
+pub const LM_MODEL_PART_SENSE: LmModelParts = 1 << 3;
+/// Every model part; the safe choice when a pass cannot say what it touches.
+///
+/// cbindgen:ignore
+pub const LM_MODEL_PART_ALL: LmModelParts = LM_MODEL_PART_OBJECTIVE
+    | LM_MODEL_PART_CONSTRAINTS
+    | LM_MODEL_PART_VARIABLES
+    | LM_MODEL_PART_SENSE;
+
 /// Callback luna-model uses to collect a list of string produced by a plugin (e.g.
-/// `requires`/`invalidates`) without transferring ownership across the ABI. The plugin calls
+/// `requires_analyses`) without transferring ownership across the ABI. The plugin calls
 /// `sink(ctx, s)` once per NUL-termianted string. luna-model copies each immediately, so `s` need
 /// only stay valid for the call.
 pub type LmStrSink = unsafe extern "C" fn(ctx: *mut c_void, s: *const c_char);
@@ -91,9 +119,9 @@ pub struct LmPluginTransform {
     /// from C++ plugin authors.)
     pub requires_analyses:
         unsafe extern "C" fn(user_data: *mut c_void, sink: LmStrSink, sink_ctx: *mut c_void),
-    /// Emits the analysis names this pass invalidates, one per `sink` call.
-    pub invalidates:
-        unsafe extern "C" fn(user_data: *mut c_void, sink: LmStrSink, sink_ctx: *mut c_void),
+    /// Model parts this pass may modify (`LM_MODEL_PART_*` flags). Analyses depending on any of
+    /// them are invalidated after it runs; return `LM_MODEL_PART_ALL` when unsure.
+    pub modifies: unsafe extern "C" fn(user_data: *mut c_void) -> LmModelParts,
     /// Applies the transformation to the lent model and emits the inverse-artifact bytes via
     /// `sink`. Return non-`Ok` to abort the run.
     pub forward: unsafe extern "C" fn(
@@ -137,6 +165,9 @@ pub struct LmPluginAnalysis {
     /// from C++ plugin authors.)
     pub requires_analyses:
         unsafe extern "C" fn(user_data: *mut c_void, sink: LmStrSink, sink_ctx: *mut c_void),
+    /// Model parts the result is computed from (`LM_MODEL_PART_*` flags). It stays valid until a
+    /// transformation modifies one of them; return `LM_MODEL_PART_ALL` when unsure.
+    pub depends_on: unsafe extern "C" fn(user_data: *mut c_void) -> LmModelParts,
     /// Computes the result from the lent read-only model and emits its serialized bytes via `sink`.
     /// Return non-`Ok` to abort the run.
     pub run: unsafe extern "C" fn(
@@ -181,9 +212,12 @@ pub struct LmPluginComposite {
     /// from C++ plugin authors.)
     pub requires_analyses:
         unsafe extern "C" fn(user_data: *mut c_void, sink: LmStrSink, sink_ctx: *mut c_void),
-    /// Emits the analysis names this pass invalidates, one per `sink` call.
-    pub invalidates:
-        unsafe extern "C" fn(user_data: *mut c_void, sink: LmStrSink, sink_ctx: *mut c_void),
+    /// Model parts this pass may modify (`LM_MODEL_PART_*` flags). Analyses depending on any of
+    /// them are invalidated after it runs; return `LM_MODEL_PART_ALL` when unsure.
+    pub modifies: unsafe extern "C" fn(user_data: *mut c_void) -> LmModelParts,
+    /// Model parts the result is computed from (`LM_MODEL_PART_*` flags). It stays valid until a
+    /// transformation modifies one of them; return `LM_MODEL_PART_ALL` when unsure.
+    pub depends_on: unsafe extern "C" fn(user_data: *mut c_void) -> LmModelParts,
     /// Applies the transformation to the lent model, emitting the inverse-artifact bytes via
     /// `artifact_sink` and the analysis-result bytes via `result_sink`. Return non-`Ok` to abort
     /// the run.
@@ -264,9 +298,9 @@ pub struct LmPluginControlFlow {
     /// Emits the analysis names this pass provides, one per `sink` call.
     pub provides:
         unsafe extern "C" fn(user_data: *mut c_void, sink: LmStrSink, sink_ctx: *mut c_void),
-    /// Emits the analysis names this pass invalidates, one per `sink` call.
-    pub invalidates:
-        unsafe extern "C" fn(user_data: *mut c_void, sink: LmStrSink, sink_ctx: *mut c_void),
+    /// Model parts any step of the plan may modify (`LM_MODEL_PART_*` flags), used for static
+    /// pipeline validation; return `LM_MODEL_PART_ALL` when unsure.
+    pub modifies: unsafe extern "C" fn(user_data: *mut c_void) -> LmModelParts,
     /// Evaluates control flow against the lent read-only model, constructing and returning a
     /// plan via `out_plan`. Return non-`Ok` to abort the run.
     pub run: unsafe extern "C" fn(

@@ -21,6 +21,7 @@ from luna_model.solution.sol import Solution
 from luna_model.transformation.artifact import TransformationPassArtifact
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.key import AnalysisKey
+from luna_model.transformation.model_part import ModelPart
 
 Artifact = TypeVar("Artifact", bound=TransformationPassArtifact)
 Result = TypeVar("Result")
@@ -42,7 +43,7 @@ class CompositePass(PyCompositePass, Generic[Artifact, Result], metaclass=_Compo
     -----
     This is an abstract class. Subclasses must implement the `name`, `forward` methods,
     the `backward` function and the `PROVIDES` class variable.
-    Additionally, the `requires` and `invalidates` methods can be implemented.
+    Additionally, the `requires`, `modifies` and `depends_on` methods can be implemented.
     """
 
     PROVIDES: str
@@ -112,16 +113,31 @@ class CompositePass(PyCompositePass, Generic[Artifact, Result], metaclass=_Compo
         """
         return []
 
-    def invalidates(self) -> list[str]:
+    def modifies(self) -> set[ModelPart]:
         """
-        Get a list of passes that are invalidated by this pass.
+        Get the model parts this pass may modify.
+
+        Analyses depending on any of these parts are invalidated after this pass runs.
 
         Returns
         -------
-        list of str
-            Names of passes whose results become invalid after this pass runs.
+        set[ModelPart]
+            The modified model parts. Defaults to every part.
         """
-        return []
+        return set(ModelPart)
+
+    def depends_on(self) -> set[ModelPart]:
+        """
+        Get the model parts the result is computed from.
+
+        The result stays valid until a transformation modifies one of these parts.
+
+        Returns
+        -------
+        set[ModelPart]
+            The model parts the result depends on. Defaults to every part.
+        """
+        return set(ModelPart)
 
     @classmethod
     def provides(cls) -> str:

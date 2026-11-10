@@ -51,7 +51,9 @@ pub use lunamodel_translate::TranslationTarget;
 pub use lunamodel_types::{Comparator, Ctype, Sense, ValueSource, Vtype};
 
 /// Python enum wrappers corresponding to the re-exported core enums.
-pub use types::{PyComparator, PyCtype, PySense, PyTranslationTarget, PyValueSource, PyVtype};
+pub use types::{
+    PyComparator, PyCtype, PyModelPart, PySense, PyTranslationTarget, PyValueSource, PyVtype,
+};
 
 /// Python exception types generated from the Rust error taxonomy.
 pub use lunamodel_error::py::*;

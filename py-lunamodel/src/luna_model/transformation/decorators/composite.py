@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from hashlib import sha256
 from typing import Generic, TypeAlias, TypeVar, overload
 
@@ -25,8 +25,11 @@ from luna_model.transformation.decorators.transformation import (
     BackwardSignature,
     __identity_backward,
     _ArtifactEnvelope,
+    _model_parts,
     _validate_backward,
+    _warn_invalidates,
 )
+from luna_model.transformation.model_part import ModelPart
 
 A = TypeVar("A", bound=TransformationPassArtifact)
 R = TypeVar("R")
@@ -37,22 +40,25 @@ CompositeSignature: TypeAlias = Callable[[Model, PassContext], tuple[Model, A, R
 class _DynamicCompositePass(CompositePass[_ArtifactEnvelope, R], Generic[A, R]):
     _name: str
     _requires: list[str]
-    _invalidates: list[str]
+    _modifies: set[ModelPart]
+    _depends_on: set[ModelPart]
     _forward_f: CompositeSignature[A, R]
     _backward_f: BackwardSignature[A]
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         requires: list[str],
-        invalidates: list[str],
+        modifies: set[ModelPart],
+        depends_on: set[ModelPart],
         forward: CompositeSignature[A, R],
         backward: BackwardSignature[A],
     ) -> None:
         super().__init__()
         self._name = name
         self._requires = requires
-        self._invalidates = invalidates
+        self._modifies = modifies
+        self._depends_on = depends_on
         self._forward_f = forward
         self._backward_f = backward
 
@@ -62,8 +68,11 @@ class _DynamicCompositePass(CompositePass[_ArtifactEnvelope, R], Generic[A, R]):
     def requires(self) -> list[str]:
         return self._requires
 
-    def invalidates(self) -> list[str]:
-        return self._invalidates
+    def modifies(self) -> set[ModelPart]:
+        return self._modifies
+
+    def depends_on(self) -> set[ModelPart]:
+        return self._depends_on
 
     def forward(self, model: Model, ctx: PassContext) -> tuple[Model, _ArtifactEnvelope[A], R]:
         model, artifact, res = self._forward_f(model, ctx)
@@ -81,6 +90,9 @@ def composite(
     requires: list[str] | None = ...,
     provides: str | None = ...,
     invalidates: list[str] | None = ...,
+    *,
+    modifies: Iterable[ModelPart] | None = ...,
+    depends_on: Iterable[ModelPart] | None = ...,
 ) -> Callable[[CompositeSignature[A, R]], _DynamicCompositePass[A, R]]: ...
 
 
@@ -92,15 +104,20 @@ def composite(
     invalidates: list[str] | None = ...,
     *,
     backward: BackwardSignature[A],
+    modifies: Iterable[ModelPart] | None = ...,
+    depends_on: Iterable[ModelPart] | None = ...,
 ) -> Callable[[CompositeSignature[A, R]], _DynamicCompositePass[A, R]]: ...
 
 
-def composite(
+def composite(  # noqa: PLR0913
     name: str | None = None,
     requires: list[str] | None = None,
     provides: str | None = None,
     invalidates: list[str] | None = None,
     backward: BackwardSignature[A] | None = None,
+    *,
+    modifies: Iterable[ModelPart] | None = None,
+    depends_on: Iterable[ModelPart] | None = None,
 ) -> Callable[[CompositeSignature[A, R]], _DynamicCompositePass[A, R]]:
     """Create a CompositePass from a function decorator.
 
@@ -126,10 +143,15 @@ def composite(
         name with underscores replaced by hyphens prefixed with ``decorated_analysis::``
         (e.g., ``my_analysis`` becomes ``decorated_analysis::my-analysis``).
     invalidates : list[str], optional
-        List of analysis pass names whose results become invalid after this composite pass. Defaults to ``[]``.
+        Deprecated and ignored; use ``modifies``.
     backward : Callable[[A, Solution], Solution], optional
         Optional function to map solutions from the transformed model back to the
         original model's variable space. If not provided, solutions pass through unchanged.
+    modifies : Iterable[ModelPart], optional
+        Model parts the pass may modify; analyses depending on any of them are invalidated
+        after it runs. Defaults to every part.
+    depends_on : Iterable[ModelPart], optional
+        Model parts the provided result is computed from. Defaults to every part.
 
     Returns
     -------
@@ -164,8 +186,7 @@ def composite(
     """
     if requires is None:
         requires = []
-    if invalidates is None:
-        invalidates = []
+    _warn_invalidates(invalidates)
 
     if backward is None:
         backward = __identity_backward
@@ -193,7 +214,8 @@ def composite(
         return the_composite(
             name=loc_name,
             requires=requires,
-            invalidates=invalidates,
+            modifies=_model_parts(modifies),
+            depends_on=_model_parts(depends_on),
             forward=forward,
             backward=backward,
         )

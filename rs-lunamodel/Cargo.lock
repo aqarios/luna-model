@@ -628,6 +628,7 @@ dependencies = [
  "lunamodel-capi-handle",
  "lunamodel-core",
  "lunamodel-transpiler",
+ "lunamodel-types",
 ]
 
 [[package]]

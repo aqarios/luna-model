@@ -3,7 +3,8 @@
 
 Compares the committed C headers (crates/capi-host/include, generated from the Rust
 definitions and kept current by `just cdrift`) with the same headers at the last
-release tag. Offsets, sizes, and enum values come from compiling the headers with the
+release tag. Alpha pre-releases give no ABI guarantee, so they are never compared
+against; betas, release candidates, and releases are. Offsets, sizes, and enum values come from compiling the headers with the
 system C compiler, not from parsing, so they are exactly what consumers see.
 
 While `LUNA_MODEL_CAPI_ABI_VERSION` is unchanged, only these changes are allowed:
@@ -17,8 +18,8 @@ bump (a higher version allows every change; a lower one is always an error).
 
 Usage:
   check-abi.py [--base-ref REF]   compare the working tree with REF (default: the
-                                  newest release tag `v*` merged into HEAD, other
-                                  than one on HEAD itself)
+                                  newest non-alpha release tag `v*` merged into
+                                  HEAD, other than one on HEAD itself)
   check-abi.py --self-test        verify the rules against mutated copies of the
                                   current headers
 """
@@ -235,7 +236,7 @@ def compare_table(
 
 
 def base_ref() -> str | None:
-    """The newest release tag merged into HEAD, other than one on HEAD itself."""
+    """The newest non-alpha release tag merged into HEAD, other than one on HEAD itself."""
 
     def git(*args: str) -> str:
         return subprocess.run(
@@ -249,6 +250,8 @@ def base_ref() -> str | None:
         "--sort=-v:refname",
     ).split()
     for tag in tags:
+        if "-alpha" in tag:
+            continue
         if git("rev-list", "-n", "1", tag).strip() != head:
             return tag
     return None

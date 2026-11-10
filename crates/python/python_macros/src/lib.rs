@@ -24,7 +24,7 @@ fn extract_newtype_inner(input: &DeriveInput, macro_name: &str) -> Type {
 ///   `#[pyanalysis(PyReturnType)]`  — `run` returns `PyResult<PyReturnType>`
 ///
 /// Adds `#[pyclass(subclass)]` to the struct and generates a `#[pymethods]` impl
-/// with: `provides` (classmethod), `name`, `requires`, `__str__`, and `run`.
+/// with: `provides` (classmethod), `name`, `requires`, `depends_on`, `__str__`, and `run`.
 ///
 /// `PyReturnType` must implement `From<InnerPass::Result>`.
 #[proc_macro_attribute]
@@ -58,6 +58,13 @@ pub fn pyanalysis(attr: TokenStream, item: TokenStream) -> TokenStream {
                 <#inner as AnalysisPass>::requires(&self.0).to_vec()
             }
 
+            fn depends_on<'py>(
+                &self,
+                py: ::pyo3::Python<'py>,
+            ) -> ::pyo3::PyResult<::pyo3::Bound<'py, ::pyo3::types::PySet>> {
+                crate::types::parts_to_py(py, <#inner as AnalysisPass>::depends_on(&self.0))
+            }
+
             fn __str__(&self) -> ::std::string::String {
                 <#inner as AnalysisPass>::display(&self.0)
             }
@@ -85,7 +92,7 @@ pub fn pyanalysis(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///   `#[pytransformation(PyArtifactType)]`  — also generates `forward` and `backward`
 ///
 /// Adds `#[pyclass(subclass)]` to the struct and generates a `#[pymethods]` impl
-/// with: `name`, `requires`, `invalidates`, `__str__`, and optionally `forward`/`backward`.
+/// with: `name`, `requires`, `modifies`, `__str__`, and optionally `forward`/`backward`.
 ///
 /// `PyArtifactType` must be a tuple struct wrapping the inner `InnerPass::Artifact`.
 #[proc_macro_attribute]
@@ -146,8 +153,11 @@ pub fn pytransformation(attr: TokenStream, item: TokenStream) -> TokenStream {
                 <#inner as TransformationPass>::requires(&self.0).to_vec()
             }
 
-            fn invalidates(&self) -> ::std::vec::Vec<::std::string::String> {
-                ::std::vec::Vec::new()
+            fn modifies<'py>(
+                &self,
+                py: ::pyo3::Python<'py>,
+            ) -> ::pyo3::PyResult<::pyo3::Bound<'py, ::pyo3::types::PySet>> {
+                crate::types::parts_to_py(py, <#inner as TransformationPass>::modifies(&self.0))
             }
 
             fn __str__(&self) -> ::std::string::String {
@@ -163,7 +173,7 @@ pub fn pytransformation(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// Attribute macro for control-flow pass newtype wrappers.
 ///
 /// Adds `#[pyclass(subclass)]` to the struct and generates a `#[pymethods]` impl
-/// with: `name`, `requires`, `provides`, `invalidates`, `__str__`.
+/// with: `name`, `requires`, `provides`, `modifies`, `__str__`.
 #[proc_macro_attribute]
 pub fn pycontrolflow(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
@@ -189,8 +199,11 @@ pub fn pycontrolflow(attr: TokenStream, item: TokenStream) -> TokenStream {
                 <#inner as ControlFlowPass>::provides(&self.0).to_vec()
             }
 
-            fn invalidates(&self) -> ::std::vec::Vec<::std::string::String> {
-                ::std::vec::Vec::new()
+            fn modifies<'py>(
+                &self,
+                py: ::pyo3::Python<'py>,
+            ) -> ::pyo3::PyResult<::pyo3::Bound<'py, ::pyo3::types::PySet>> {
+                crate::types::parts_to_py(py, <#inner as ControlFlowPass>::modifies(&self.0))
             }
 
             fn run(

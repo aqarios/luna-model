@@ -16,8 +16,11 @@ use lunamodel_transpiler::{
     AnalysisKey, AnalysisManager, AnalysisPass, PassContext, SerializedAnalysis,
     TranspileKindResult,
 };
+use lunamodel_types::{EnumSet, ModelPart};
 
-use crate::marshal::{borrow_cstr, byte_sink, collect_strings, plugin_failure, reclaim};
+use crate::marshal::{
+    borrow_cstr, byte_sink, collect_strings, model_parts, plugin_failure, reclaim,
+};
 
 /// A plugin analysis pass wrapping its C descriptor.
 pub struct CPluginAnalysisPass {
@@ -27,6 +30,7 @@ pub struct CPluginAnalysisPass {
     provides: String,
     result_type_tag: String,
     requires: Vec<String>,
+    depends_on: EnumSet<ModelPart>,
 }
 
 // Safety: `desc` holds plugin-owned pointers opaque to luna-model. The plugin owns their
@@ -44,6 +48,7 @@ impl CPluginAnalysisPass {
         let provides = unsafe { borrow_cstr((desc.provides)(desc.user_data)) };
         let result_type_tag = unsafe { borrow_cstr((desc.result_type_tag)(desc.user_data)) };
         let requires = unsafe { collect_strings(desc.user_data, desc.requires_analyses) };
+        let depends_on = model_parts(unsafe { (desc.depends_on)(desc.user_data) });
         Self {
             desc,
             id,
@@ -51,6 +56,7 @@ impl CPluginAnalysisPass {
             provides,
             result_type_tag,
             requires,
+            depends_on,
         }
     }
 }
@@ -83,6 +89,10 @@ impl AnalysisPass for CPluginAnalysisPass {
 
     fn requires(&self) -> &[String] {
         &self.requires
+    }
+
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        self.depends_on
     }
 
     fn run(&self, model: &Model, ctx: &PassContext) -> TranspileKindResult<SerializedAnalysis> {

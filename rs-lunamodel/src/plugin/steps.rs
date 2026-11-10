@@ -3,10 +3,11 @@
 use std::ffi::{CStr, c_char, c_void};
 
 use lunamodel_capi::LmStatus;
-use lunamodel_capi::plugin::{LmPassKind, LmStepList, LmStrSink};
+use lunamodel_capi::plugin::{LmModelParts, LmPassKind, LmStepList, LmStrSink};
 
 use crate::api::api;
 use crate::error::check;
+use crate::types::{EnumSet, ModelPart};
 
 /// The kind of a pipeline step — a 1:1 facade over the C `LmPassKind`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -43,7 +44,7 @@ impl From<LmPassKind> for StepKind {
 ///
 /// A 1:1 mirror of the step slice `lunamodel_transpiler::MetaAnalysisPass::run` receives, exposed
 /// over the C ABI: the count, and per step its [`StepKind`], name, and the analysis names it
-/// requires / provides / invalidates. Borrowed for the duration of the call only — do not retain it.
+/// requires / provides, and the model parts it may modify. Borrowed for the duration of the call only — do not retain it.
 pub struct StepList {
     raw: *const LmStepList,
 }
@@ -126,11 +127,11 @@ impl Step<'_> {
         })
     }
 
-    /// The analysis names this step invalidates.
-    pub fn invalidates(&self) -> crate::Result<Vec<String>> {
-        collect(|sink, ctx| unsafe {
-            (api().step_list_invalidates)(self.list.raw, self.index, sink, ctx)
-        })
+    /// The model parts this step may modify.
+    pub fn modifies(&self) -> crate::Result<EnumSet<ModelPart>> {
+        let mut parts: LmModelParts = 0;
+        check(unsafe { (api().step_list_modifies)(self.list.raw, self.index, &mut parts) })?;
+        Ok(EnumSet::from_u32_truncated(parts))
     }
 }
 

@@ -156,15 +156,13 @@ LmStatus lm_step_list_provides(const LmStepList *steps,
                                void *sink_ctx);
 
 /**
- * Emits the analysis names the step at `index` invalidates, one per `sink` call.
+ * Writes the model parts the step at `index` may modify (`LM_MODEL_PART_*` flags) to `out_parts`.
+ * `InvalidArgument` if out of bounds.
  *
  * # Safety
- * `steps` must be a live `*const LmStepList`; `sink` must copy each string before returning.
+ * `steps` must be a live `*const LmStepList`; `out_parts` must be a valid writable `LmModelParts`.
  */
-LmStatus lm_step_list_invalidates(const LmStepList *steps,
-                                  uintptr_t index,
-                                  LmStrSink sink,
-                                  void *sink_ctx);
+LmStatus lm_step_list_modifies(const LmStepList *steps, uintptr_t index, LmModelParts *out_parts);
 
 /**
  * Returns whether the bound is finite (`Bounded`) rather than `Unbounded`.

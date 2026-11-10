@@ -12,9 +12,9 @@ use std::ffi::{CString, c_char, c_void};
 use std::ptr;
 
 use lunamodel_capi::plugin::{
-    LmBackwardFn, LmByteSink, LmControlFlowPlan, LmPassContext, LmPassKind, LmPluginAnalysis,
-    LmPluginComposite, LmPluginControlFlow, LmPluginMetaAnalysis, LmPluginTransform, LmStepList,
-    LmStrSink,
+    LmBackwardFn, LmByteSink, LmControlFlowPlan, LmModelParts, LmPassContext, LmPassKind,
+    LmPluginAnalysis, LmPluginComposite, LmPluginControlFlow, LmPluginMetaAnalysis,
+    LmPluginTransform, LmStepList, LmStrSink,
 };
 use lunamodel_capi::{LmModel, LmSol, LmStatus};
 
@@ -57,7 +57,7 @@ pub fn descriptor<P: TransformationPass>(pass: P) -> crate::Result<LmPluginTrans
         id: trampoline_id::<P>,
         name: trampoline_name::<P>,
         requires_analyses: trampoline_requires::<P>,
-        invalidates: trampoline_invalidates::<P>,
+        modifies: trampoline_modifies::<P>,
         forward: trampoline_forward::<P>,
         free: trampoline_free::<P>,
     })
@@ -82,6 +82,7 @@ pub fn descriptor_analysis<A: AnalysisPass>(pass: A) -> crate::Result<LmPluginAn
         provides: analysis_trampoline_provides::<A>,
         result_type_tag: analysis_trampoline_result_tag::<A>,
         requires_analyses: analysis_trampoline_requires::<A>,
+        depends_on: analysis_trampoline_depends_on::<A>,
         run: analysis_trampoline_run::<A>,
         free: analysis_trampoline_free::<A>,
     })
@@ -106,7 +107,8 @@ pub fn descriptor_composite<C: CompositePass>(pass: C) -> crate::Result<LmPlugin
         provides: composite_trampoline_provides::<C>,
         result_type_tag: composite_trampoline_result_tag::<C>,
         requires_analyses: composite_trampoline_requires::<C>,
-        invalidates: composite_trampoline_invalidates::<C>,
+        modifies: composite_trampoline_modifies::<C>,
+        depends_on: composite_trampoline_depends_on::<C>,
         forward: composite_trampoline_forward::<C>,
         free: composite_trampoline_free::<C>,
     })
@@ -153,7 +155,7 @@ pub fn descriptor_control_flow<C: ControlFlowPass>(pass: C) -> crate::Result<LmP
         name: control_flow_trampoline_name::<C>,
         requires_analyses: control_flow_trampoline_requires::<C>,
         provides: control_flow_trampoline_provides::<C>,
-        invalidates: control_flow_trampoline_invalidates::<C>,
+        modifies: control_flow_trampoline_modifies::<C>,
         run: control_flow_trampoline_run::<C>,
         free: control_flow_trampoline_free::<C>,
     })
@@ -247,13 +249,10 @@ unsafe extern "C" fn trampoline_requires<P: TransformationPass>(
     unsafe { emit_strings(state.pass.requires(), sink, ctx) };
 }
 
-unsafe extern "C" fn trampoline_invalidates<P: TransformationPass>(
+unsafe extern "C" fn trampoline_modifies<P: TransformationPass>(
     user_data: *mut c_void,
-    sink: LmStrSink,
-    ctx: *mut c_void,
-) {
-    let state = unsafe { &*(user_data as *const State<P>) };
-    unsafe { emit_strings(state.pass.invalidates(), sink, ctx) };
+) -> LmModelParts {
+    unsafe { (*(user_data as *const State<P>)).pass.modifies().as_u32() }
 }
 
 unsafe extern "C" fn trampoline_forward<P: TransformationPass>(
@@ -363,6 +362,17 @@ unsafe extern "C" fn analysis_trampoline_requires<A: AnalysisPass>(
     unsafe { emit_strings(state.pass.requires(), sink, ctx) };
 }
 
+unsafe extern "C" fn analysis_trampoline_depends_on<A: AnalysisPass>(
+    user_data: *mut c_void,
+) -> LmModelParts {
+    unsafe {
+        (*(user_data as *const AnalysisState<A>))
+            .pass
+            .depends_on()
+            .as_u32()
+    }
+}
+
 unsafe extern "C" fn analysis_trampoline_run<A: AnalysisPass>(
     user_data: *mut c_void,
     model: *const LmModel,
@@ -440,13 +450,26 @@ unsafe extern "C" fn composite_trampoline_requires<C: CompositePass>(
     unsafe { emit_strings(state.pass.requires(), sink, ctx) };
 }
 
-unsafe extern "C" fn composite_trampoline_invalidates<C: CompositePass>(
+unsafe extern "C" fn composite_trampoline_modifies<C: CompositePass>(
     user_data: *mut c_void,
-    sink: LmStrSink,
-    ctx: *mut c_void,
-) {
-    let state = unsafe { &*(user_data as *const CompositeState<C>) };
-    unsafe { emit_strings(state.pass.invalidates(), sink, ctx) };
+) -> LmModelParts {
+    unsafe {
+        (*(user_data as *const CompositeState<C>))
+            .pass
+            .modifies()
+            .as_u32()
+    }
+}
+
+unsafe extern "C" fn composite_trampoline_depends_on<C: CompositePass>(
+    user_data: *mut c_void,
+) -> LmModelParts {
+    unsafe {
+        (*(user_data as *const CompositeState<C>))
+            .pass
+            .depends_on()
+            .as_u32()
+    }
 }
 
 unsafe extern "C" fn composite_trampoline_forward<C: CompositePass>(
@@ -574,13 +597,15 @@ unsafe extern "C" fn control_flow_trampoline_provides<C: ControlFlowPass>(
     unsafe { emit_strings(state.pass.provides(), sink, ctx) };
 }
 
-unsafe extern "C" fn control_flow_trampoline_invalidates<C: ControlFlowPass>(
+unsafe extern "C" fn control_flow_trampoline_modifies<C: ControlFlowPass>(
     user_data: *mut c_void,
-    sink: LmStrSink,
-    ctx: *mut c_void,
-) {
-    let state = unsafe { &*(user_data as *const ControlFlowState<C>) };
-    unsafe { emit_strings(state.pass.invalidates(), sink, ctx) };
+) -> LmModelParts {
+    unsafe {
+        (*(user_data as *const ControlFlowState<C>))
+            .pass
+            .modifies()
+            .as_u32()
+    }
 }
 
 unsafe extern "C" fn control_flow_trampoline_run<C: ControlFlowPass>(
