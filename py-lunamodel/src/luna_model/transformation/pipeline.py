@@ -20,6 +20,7 @@ from luna_model.transformation.analysis import AnalysisPass
 from luna_model.transformation.composite import CompositePass
 from luna_model.transformation.control_flow import ControlFlowPass
 from luna_model.transformation.meta_analysis import MetaAnalysisPass
+from luna_model.transformation.model_part import ModelPart
 from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
 from luna_model.transformation.passes.composite.builtin import BuiltinComposite
 from luna_model.transformation.passes.control_flow.builtin import BuiltinControlFlow
@@ -102,13 +103,13 @@ class Pipeline(PyPipeline, metaclass=_PipelineMeta):
         raise NotImplementedError
 
     @wraps()
-    def invalidates(self) -> list[str]:
-        """Get analysis keys invalidated by this pipeline.
+    def modifies(self) -> set[ModelPart]:
+        """Get the model parts modified anywhere in this pipeline.
 
         Returns
         -------
-        list[str]
-            Analysis/pass keys invalidated by at least one step.
+        set[ModelPart]
+            Model parts modified by at least one step.
         """
         raise NotImplementedError
 

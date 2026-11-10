@@ -148,7 +148,7 @@ class PassContext {
 /// Read-only view of the pipeline steps that follow a meta-analysis pass, lent to it during
 /// `MetaAnalysisPass::run`. A 1:1 mirror of the `luna-model-ffi` `StepList`/`Step` facade over the
 /// `step_list_*` API-table entries: the count, and per step its `LmPassKind`, name, and the analysis
-/// names it requires / provides / invalidates. Matching the native semantics, the view starts at the
+/// names it requires / provides, and the model parts it may modify. Matching the native semantics, the view starts at the
 /// meta pass's OWN position — so index 0 is the meta pass itself, index 1 the next step, and so on.
 /// Borrowed for the duration of the call only — do not retain it.
 class StepList {
@@ -202,11 +202,11 @@ class StepList {
         });
     }
 
-    /// Analysis names the step at `index` invalidates.
-    std::vector<std::string> invalidates(std::size_t index) const {
-        return collect([&](LmStrSink sink, void *ctx) {
-            return lm_step_list_invalidates(raw_, index, sink, ctx);
-        });
+    /// Model parts the step at `index` may modify (`LM_MODEL_PART_*` flags).
+    LmModelParts modifies(std::size_t index) const {
+        LmModelParts out = 0;
+        lm::detail::check(lm_step_list_modifies(raw_, index, &out));
+        return out;
     }
 
   private:
@@ -248,8 +248,9 @@ class TransformationPass {
     virtual std::string name() const = 0;
     /// Names of analyses this pass reads via the `PassContext` (empty by default).
     virtual std::vector<std::string> requires_analyses() const { return {}; }
-    /// Names of analyses this pass invalidates (empty by default).
-    virtual std::vector<std::string> invalidates() const { return {}; }
+    /// Model parts this pass may modify (`LM_MODEL_PART_*` flags). Analyses depending on any of
+    /// them are invalidated after it runs. Defaults to every part.
+    virtual LmModelParts modifies() const { return LM_MODEL_PART_ALL; }
     /// Mutates the lent `model` in place and returns the protobuf-encoded inverse artifact.
     virtual std::vector<std::uint8_t> forward(Model &model, const PassContext &ctx) = 0;
 };
@@ -271,6 +272,9 @@ class AnalysisPass {
     virtual std::string result_type_tag() const = 0;
     /// Names of analyses this pass reads via the `PassContext` (empty by default).
     virtual std::vector<std::string> requires_analyses() const { return {}; }
+    /// Model parts the result is computed from (`LM_MODEL_PART_*` flags). It stays valid until a
+    /// transformation modifies one of them. Defaults to every part.
+    virtual LmModelParts depends_on() const { return LM_MODEL_PART_ALL; }
     /// Computes the result from the lent read-only `model` and returns its protobuf-encoded bytes.
     virtual std::vector<std::uint8_t> run(const Model &model, const PassContext &ctx) = 0;
 };
@@ -299,8 +303,12 @@ class CompositePass {
     virtual std::string result_type_tag() const = 0;
     /// Names of analyses this pass reads via the `PassContext` (empty by default).
     virtual std::vector<std::string> requires_analyses() const { return {}; }
-    /// Names of analyses this pass invalidates (empty by default).
-    virtual std::vector<std::string> invalidates() const { return {}; }
+    /// Model parts this pass may modify (`LM_MODEL_PART_*` flags). Analyses depending on any of
+    /// them are invalidated after it runs. Defaults to every part.
+    virtual LmModelParts modifies() const { return LM_MODEL_PART_ALL; }
+    /// Model parts the result is computed from (`LM_MODEL_PART_*` flags). It stays valid until a
+    /// transformation modifies one of them. Defaults to every part.
+    virtual LmModelParts depends_on() const { return LM_MODEL_PART_ALL; }
     /// Mutates the lent `model` in place and returns `{inverse-artifact bytes, result bytes}`, both
     /// protobuf-encoded.
     virtual std::pair<std::vector<std::uint8_t>, std::vector<std::uint8_t>>
@@ -410,8 +418,9 @@ class ControlFlowPass {
     virtual std::vector<std::string> requires_analyses() const { return {}; }
     /// Names of analyses this pass provides (empty by default).
     virtual std::vector<std::string> provides() const { return {}; }
-    /// Names of analyses this pass invalidates (empty by default).
-    virtual std::vector<std::string> invalidates() const { return {}; }
+    /// Model parts any step of the plan may modify (`LM_MODEL_PART_*` flags), used for static
+    /// pipeline validation. Defaults to every part.
+    virtual LmModelParts modifies() const { return LM_MODEL_PART_ALL; }
     /// Builds the plan of steps to execute next from the lent read-only `model` and `ctx`.
     virtual ControlFlowPlan run(const Model &model, const PassContext &ctx) = 0;
 };
@@ -514,13 +523,9 @@ inline LmPluginTransform make_descriptor(std::unique_ptr<TransformationPass> pas
                     sink(sink_ctx, s.c_str());
                 }
             },
-        .invalidates =
-            [](void *ud, LmStrSink sink, void *sink_ctx) {
-                for (const auto &s :
-                     static_cast<detail::TransformState *>(ud)->pass->invalidates()) {
-                    sink(sink_ctx, s.c_str());
-                }
-            },
+        .modifies = [](void *ud) -> LmModelParts {
+            return static_cast<detail::TransformState *>(ud)->pass->modifies();
+        },
         .forward = [](void *ud, LmModel *model, const LmPassContext *ctx, LmByteSink sink,
                       void *sink_ctx) -> LmStatus {
             if (model == nullptr) {
@@ -576,6 +581,9 @@ inline LmPluginAnalysis make_descriptor(std::unique_ptr<AnalysisPass> pass) {
                     sink(sink_ctx, s.c_str());
                 }
             },
+        .depends_on = [](void *ud) -> LmModelParts {
+            return static_cast<detail::AnalysisState *>(ud)->pass->depends_on();
+        },
         .run = [](void *ud, const LmModel *model, const LmPassContext *ctx, LmByteSink sink,
                   void *sink_ctx) -> LmStatus {
             if (model == nullptr) {
@@ -630,13 +638,12 @@ inline LmPluginComposite make_descriptor(std::unique_ptr<CompositePass> pass) {
                     sink(sink_ctx, s.c_str());
                 }
             },
-        .invalidates =
-            [](void *ud, LmStrSink sink, void *sink_ctx) {
-                for (const auto &s :
-                     static_cast<detail::CompositeState *>(ud)->pass->invalidates()) {
-                    sink(sink_ctx, s.c_str());
-                }
-            },
+        .modifies = [](void *ud) -> LmModelParts {
+            return static_cast<detail::CompositeState *>(ud)->pass->modifies();
+        },
+        .depends_on = [](void *ud) -> LmModelParts {
+            return static_cast<detail::CompositeState *>(ud)->pass->depends_on();
+        },
         .forward = [](void *ud, LmModel *model, const LmPassContext *ctx, LmByteSink artifact_sink,
                       void *artifact_ctx, LmByteSink result_sink, void *result_ctx) -> LmStatus {
             if (model == nullptr) {
@@ -734,13 +741,9 @@ inline LmPluginControlFlow make_descriptor(std::unique_ptr<ControlFlowPass> pass
                     sink(sink_ctx, s.c_str());
                 }
             },
-        .invalidates =
-            [](void *ud, LmStrSink sink, void *sink_ctx) {
-                for (const auto &s :
-                     static_cast<detail::ControlFlowState *>(ud)->pass->invalidates()) {
-                    sink(sink_ctx, s.c_str());
-                }
-            },
+        .modifies = [](void *ud) -> LmModelParts {
+            return static_cast<detail::ControlFlowState *>(ud)->pass->modifies();
+        },
         .run = [](void *ud, const LmModel *model, const LmPassContext *ctx,
                   LmControlFlowPlan **out_plan) -> LmStatus {
             if (model == nullptr) {

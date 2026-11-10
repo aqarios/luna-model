@@ -15,9 +15,12 @@ use lunamodel_transpiler::{
     AnalysisManager, PassContext, Reversible, TransformationPass, TranspileErrorKind,
     TranspileKindResult,
 };
+use lunamodel_types::{EnumSet, ModelPart};
 
 use crate::artifact::CPluginArtifact;
-use crate::marshal::{borrow_cstr, byte_sink, collect_strings, plugin_failure, reclaim};
+use crate::marshal::{
+    borrow_cstr, byte_sink, collect_strings, model_parts, plugin_failure, reclaim,
+};
 use crate::registry;
 
 /// A plugin transformation pass wrapping its C descriptor.
@@ -26,6 +29,7 @@ pub struct CPluginTransformPass {
     id: String,
     name: String,
     requires: Vec<String>,
+    modifies: EnumSet<ModelPart>,
 }
 
 // Safety: `desc` holds plugin-owned pointers opaque to luna-model. The plugin owns their
@@ -42,11 +46,13 @@ impl CPluginTransformPass {
         let id = unsafe { borrow_cstr((desc.id)(desc.user_data)) };
         let name = unsafe { borrow_cstr((desc.name)(desc.user_data)) };
         let requires = unsafe { collect_strings(desc.user_data, desc.requires_analyses) };
+        let modifies = model_parts(unsafe { (desc.modifies)(desc.user_data) });
         Self {
             desc,
             id,
             name,
             requires,
+            modifies,
         }
     }
 }
@@ -64,6 +70,10 @@ impl TransformationPass for CPluginTransformPass {
 
     fn requires(&self) -> &[String] {
         &self.requires
+    }
+
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        self.modifies
     }
 
     fn forward(&self, model: &mut Model, ctx: &PassContext) -> TranspileKindResult<Self::Artifact> {

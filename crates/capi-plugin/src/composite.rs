@@ -17,9 +17,12 @@ use lunamodel_transpiler::{
     AnalysisKey, AnalysisManager, CompositePass, PassContext, Reversible, SerializedAnalysis,
     TranspileErrorKind, TranspileKindResult,
 };
+use lunamodel_types::{EnumSet, ModelPart};
 
 use crate::artifact::CPluginArtifact;
-use crate::marshal::{borrow_cstr, byte_sink, collect_strings, plugin_failure, reclaim};
+use crate::marshal::{
+    borrow_cstr, byte_sink, collect_strings, model_parts, plugin_failure, reclaim,
+};
 use crate::registry;
 
 /// A plugin composite pass wrapping its C descriptor.
@@ -30,6 +33,8 @@ pub struct CPluginCompositePass {
     provides: String,
     result_type_tag: String,
     requires: Vec<String>,
+    modifies: EnumSet<ModelPart>,
+    depends_on: EnumSet<ModelPart>,
 }
 
 // Safety: `desc` holds plugin-owned pointers opaque to luna-model. The plugin owns their
@@ -48,6 +53,8 @@ impl CPluginCompositePass {
         let provides = unsafe { borrow_cstr((desc.provides)(desc.user_data)) };
         let result_type_tag = unsafe { borrow_cstr((desc.result_type_tag)(desc.user_data)) };
         let requires = unsafe { collect_strings(desc.user_data, desc.requires_analyses) };
+        let modifies = model_parts(unsafe { (desc.modifies)(desc.user_data) });
+        let depends_on = model_parts(unsafe { (desc.depends_on)(desc.user_data) });
         Self {
             desc,
             id,
@@ -55,6 +62,8 @@ impl CPluginCompositePass {
             provides,
             result_type_tag,
             requires,
+            modifies,
+            depends_on,
         }
     }
 }
@@ -82,6 +91,14 @@ impl CompositePass for CPluginCompositePass {
 
     fn requires(&self) -> &[String] {
         &self.requires
+    }
+
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        self.modifies
+    }
+
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        self.depends_on
     }
 
     fn key<T>() -> AnalysisKey<T> {

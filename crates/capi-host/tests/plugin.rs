@@ -11,7 +11,9 @@ use std::{
     sync::atomic::{AtomicBool, AtomicUsize, Ordering},
 };
 
-use lunamodel_capi::plugin::{LmByteSink, LmPassContext, LmPassKind, LmPluginTransform, LmStrSink};
+use lunamodel_capi::plugin::{
+    LmByteSink, LmModelParts, LmPassContext, LmPassKind, LmPluginTransform, LmStrSink,
+};
 use lunamodel_capi_host::{
     LmBuffer, LmModel, LmSol, LmStatus,
     error::{
@@ -51,7 +53,10 @@ unsafe extern "C" fn name(_ud: *mut c_void) -> *const c_char {
     c"rename".as_ptr()
 }
 unsafe extern "C" fn requires(_ud: *mut c_void, _sink: LmStrSink, _ctx: *mut c_void) {}
-unsafe extern "C" fn invalidates(_ud: *mut c_void, _sink: LmStrSink, _ctx: *mut c_void) {}
+/// Renaming touches no model part, so no analysis is invalidated.
+unsafe extern "C" fn modifies(_ud: *mut c_void) -> LmModelParts {
+    0
+}
 
 unsafe extern "C" fn forward(
     _ud: *mut c_void,
@@ -97,7 +102,7 @@ fn descriptor() -> LmPluginTransform {
         id,
         name,
         requires_analyses: requires,
-        invalidates,
+        modifies,
         forward,
         free,
     }
@@ -172,7 +177,7 @@ fn failing_descriptor() -> LmPluginTransform {
         id: failing_id,
         name,
         requires_analyses: requires,
-        invalidates,
+        modifies,
         forward: failing_forward,
         free,
     }

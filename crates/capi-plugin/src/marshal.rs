@@ -7,9 +7,10 @@
 use std::ffi::{CStr, c_char, c_void};
 use std::sync::Arc;
 
-use lunamodel_capi::plugin::LmStrSink;
+use lunamodel_capi::plugin::{LmModelParts, LmStrSink};
 use lunamodel_capi_handle::{Shared, SharedHandleKind, handle_into_shared};
 use lunamodel_transpiler::{TranspileErrorKind, TranspileKindResult};
+use lunamodel_types::{EnumSet, ModelPart};
 
 /// Copies a plugin-owned, borrowed C string into an owned `String`.
 pub(crate) unsafe fn borrow_cstr(ptr: *const c_char) -> String {
@@ -19,6 +20,11 @@ pub(crate) unsafe fn borrow_cstr(ptr: *const c_char) -> String {
     unsafe { CStr::from_ptr(ptr) }
         .to_string_lossy()
         .into_owned()
+}
+
+/// Converts a plugin's `LM_MODEL_PART_*` bitmask into a model-part set, ignoring unknown bits.
+pub(crate) fn model_parts(bits: LmModelParts) -> EnumSet<ModelPart> {
+    EnumSet::from_u32_truncated(bits)
 }
 
 /// Drives a plugin string-list callback, collecting the emitted strings.
@@ -97,5 +103,30 @@ pub(crate) fn plugin_failure(pass_id: &str, fallback: &str) -> TranspileErrorKin
             reason: rich.to_string(),
         },
         _ => plugin_error(fallback),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use lunamodel_capi::plugin::{
+        LM_MODEL_PART_ALL, LM_MODEL_PART_CONSTRAINTS, LM_MODEL_PART_OBJECTIVE, LM_MODEL_PART_SENSE,
+        LM_MODEL_PART_VARIABLES,
+    };
+
+    use super::*;
+
+    #[test]
+    fn model_part_flags_match_enumset_bits() {
+        let cases = [
+            (LM_MODEL_PART_OBJECTIVE, ModelPart::Objective),
+            (LM_MODEL_PART_CONSTRAINTS, ModelPart::Constraints),
+            (LM_MODEL_PART_VARIABLES, ModelPart::Variables),
+            (LM_MODEL_PART_SENSE, ModelPart::Sense),
+        ];
+        for (flag, part) in cases {
+            assert_eq!(model_parts(flag), EnumSet::only(part));
+        }
+        assert_eq!(model_parts(LM_MODEL_PART_ALL), EnumSet::all());
+        assert_eq!(model_parts(1 << 31), EnumSet::empty());
     }
 }

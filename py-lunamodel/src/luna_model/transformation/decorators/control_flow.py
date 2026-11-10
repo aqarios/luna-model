@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from typing import TypeAlias
 
 from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.control_flow import ControlFlowPass, ControlFlowPlan
+from luna_model.transformation.decorators.transformation import _model_parts, _warn_invalidates
+from luna_model.transformation.model_part import ModelPart
 
 ControlFlowSignature: TypeAlias = Callable[[Model, PassContext], ControlFlowPlan]
 
@@ -25,16 +27,16 @@ ControlFlowSignature: TypeAlias = Callable[[Model, PassContext], ControlFlowPlan
 class _DynamicControlFlowPass(ControlFlowPass):
     _name: str
     _requires: list[str]
-    _invalidates: list[str]
+    _modifies: set[ModelPart]
     _provides: list[str]
     _run_f: ControlFlowSignature
 
     def __init__(
-        self, name: str, requires: list[str], invalidates: list[str], provides: list[str], run: ControlFlowSignature
+        self, name: str, requires: list[str], modifies: set[ModelPart], provides: list[str], run: ControlFlowSignature
     ) -> None:
         self._name = name
         self._requires = requires
-        self._invalidates = invalidates
+        self._modifies = modifies
         self._provides = provides
         self._run_f = run
 
@@ -47,8 +49,8 @@ class _DynamicControlFlowPass(ControlFlowPass):
     def requires(self) -> list[str]:
         return self._requires
 
-    def invalidates(self) -> list[str]:
-        return self._invalidates
+    def modifies(self) -> set[ModelPart]:
+        return self._modifies
 
     def provides(self) -> list[str]:
         return self._provides
@@ -59,6 +61,8 @@ def control_flow(
     requires: list[str] | None = None,
     invalidates: list[str] | None = None,
     provides: list[str] | None = None,
+    *,
+    modifies: Iterable[ModelPart] | None = None,
 ) -> Callable[[ControlFlowSignature], _DynamicControlFlowPass]:
     """Create a ``ControlFlowPass`` from a function decorator.
 
@@ -76,8 +80,12 @@ def control_flow(
         Pass/analysis keys that must be satisfied before this pass can execute.
         Defaults to ``[]``.
     invalidates : list[str], optional
-        Analysis keys invalidated after the selected plan is executed.
-        Defaults to ``[]``.
+        Deprecated and ignored; use ``modifies``.
+    provides : list[str], optional
+        Analysis keys provided after the selected plan is executed. Defaults to ``[]``.
+    modifies : Iterable[ModelPart], optional
+        Model parts any selectable plan may modify, used for static pipeline validation.
+        Defaults to every part.
 
     Returns
     -------
@@ -105,8 +113,7 @@ def control_flow(
     """
     if requires is None:
         requires = []
-    if invalidates is None:
-        invalidates = []
+    _warn_invalidates(invalidates)
     if provides is None:
         provides = []
 
@@ -115,7 +122,7 @@ def control_flow(
         return _DynamicControlFlowPass(
             name=loc_name,
             requires=requires,
-            invalidates=invalidates,
+            modifies=_model_parts(modifies),
             provides=provides,
             run=func,
         )

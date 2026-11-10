@@ -5,12 +5,14 @@ use std::any::Any;
 use lunamodel_core::Model;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, TranspileKindResult};
+use lunamodel_types::{EnumSet, ModelPart};
 use pyo3::{Py, PyAny, Python, types::PyAnyMethods};
 
 use super::{PyAnalysisPass, PyAnalysisPassAdapterResult};
 use crate::{
     PyModel,
     transform::{PyPassContext, utils::map_pyerr},
+    types::parts_from_py,
 };
 
 pub struct PyAnalysisPassAdapter {
@@ -21,6 +23,7 @@ pub struct PyAnalysisPassAdapter {
     /// Set when the pass opts into cross-language plugin consumption; its result must then be a
     /// protobuf message. `None` for native-Python-only analyses.
     result_type_tag: Option<String>,
+    depends_on: EnumSet<ModelPart>,
 }
 
 impl PyAnalysisPassAdapter {
@@ -56,12 +59,21 @@ impl PyAnalysisPassAdapter {
             );
         }
 
+        let depends_on = parts_from_py(
+            inner
+                .call_method0(py, "depends_on")
+                .map_err(map_pyerr)?
+                .bind(py),
+        )
+        .map_err(map_pyerr)?;
+
         Ok(Self {
             inner,
             name,
             requires,
             provides,
             result_type_tag,
+            depends_on,
         })
     }
 
@@ -85,6 +97,10 @@ impl AnalysisPass for PyAnalysisPassAdapter {
 
     fn requires(&self) -> &[String] {
         &self.requires
+    }
+
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        self.depends_on
     }
 
     fn key<PyAnalysisPassAdapterResult>() -> AnalysisKey<PyAnalysisPassAdapterResult> {

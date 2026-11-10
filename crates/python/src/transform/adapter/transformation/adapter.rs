@@ -5,6 +5,7 @@ use std::sync::Arc;
 use lunamodel_core::{Model, Solution};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{PassContext, Reversible, TransformationPass, TranspileKindResult};
+use lunamodel_types::{EnumSet, ModelPart};
 use pyo3::{
     Py, PyAny, PyErr, Python,
     types::{PyAnyMethods, PyModule, PyTuple, PyTupleMethods},
@@ -17,12 +18,14 @@ use crate::{
         adapter::transformation::envelope::BackwardEnvelope, context::PyPassContext,
         utils::map_pyerr,
     },
+    types::parts_from_py,
 };
 
 pub struct PyTransformationPassAdapter {
     inner: Py<PyTransformationPass>,
     name: String,
     requires: Vec<String>,
+    modifies: EnumSet<ModelPart>,
 }
 
 impl PyTransformationPassAdapter {
@@ -37,10 +40,19 @@ impl PyTransformationPassAdapter {
             .map_err(map_pyerr)?
             .extract(py)
             .map_err(map_pyerr)?;
+        let modifies = parts_from_py(
+            inner
+                .call_method0(py, "modifies")
+                .map_err(map_pyerr)?
+                .bind(py),
+        )
+        .map_err(map_pyerr)?;
+
         Ok(Self {
             inner,
             name,
             requires,
+            modifies,
         })
     }
 
@@ -122,6 +134,10 @@ impl TransformationPass for PyTransformationPassAdapter {
 
     fn requires(&self) -> &[String] {
         &self.requires
+    }
+
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        self.modifies
     }
 }
 

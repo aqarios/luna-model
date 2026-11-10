@@ -23,6 +23,7 @@ fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PySense>()?;
     m.add_class::<PyCtype>()?;
     m.add_class::<PyComparator>()?;
+    m.add_class::<PyModelPart>()?;
     // Enums from lunamodel-translate
     m.add_class::<PyTranslationTarget>()?;
     // extra

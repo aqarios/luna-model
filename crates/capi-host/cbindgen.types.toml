@@ -14,7 +14,7 @@ item_types = ["constants", "enums", "structs", "unions", "typedefs", "opaque"]
 # `LmPluginTransform`/`LmPluginAnalysis` are not reachable from the vtable (plugins hand them to the
 # host, not vice versa), so force-emit them for C/C++ plugin authors. Their field types are already
 # reachable via `LunaModelCApi`.
-include = ["LunaModelCApi", "CAPI_ABI_VERSION", "LmPluginTransform", "LmPluginAnalysis", "LmPluginComposite", "LmPluginMetaAnalysis", "LmPluginControlFlow", "LmControlFlowPlan"]
+include = ["LunaModelCApi", "CAPI_ABI_VERSION", "LmModelParts", "LmPluginTransform", "LmPluginAnalysis", "LmPluginComposite", "LmPluginMetaAnalysis", "LmPluginControlFlow", "LmControlFlowPlan"]
 
 [export.rename]
 "CAPI_ABI_VERSION" = "LUNA_MODEL_CAPI_ABI_VERSION"

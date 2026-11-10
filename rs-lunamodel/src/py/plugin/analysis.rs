@@ -7,7 +7,7 @@
 /// The C-boundary analog of a pure-Python analysis pass (subclassing luna-model's `PyAnalysisPass`);
 /// both kinds can be mixed in one `PassManager`. `py_analysis_plugin!(vis Pass(Inner) => Result)`
 /// emits:
-/// - `struct Pass(Inner)` — a `#[pyclass]` with `name`/`provides`/`requires`,
+/// - `struct Pass(Inner)` — a `#[pyclass]` with `name`/`provides`/`requires`/`depends_on`,
 ///   `run(model, ctx=None) -> Result`, and the internal `_luna_plugin_analysis_capsule`. Every
 ///   method delegates to the Rust facade trait, so the logic stays in Rust.
 /// - `struct Result(<Inner as AnalysisPass>::Output)` — a `#[pyclass]` with `serialize`/
@@ -85,6 +85,13 @@ macro_rules! py_analysis_plugin {
 
             fn requires(&self) -> ::std::vec::Vec<::std::string::String> {
                 $crate::plugin::AnalysisPass::requires(&self.0).to_vec()
+            }
+
+            fn depends_on<'py>(
+                &self,
+                py: ::pyo3::Python<'py>,
+            ) -> ::pyo3::PyResult<::pyo3::Bound<'py, ::pyo3::types::PySet>> {
+                $crate::py::model_parts_to_py(py, $crate::plugin::AnalysisPass::depends_on(&self.0))
             }
 
             /// Computes the analysis result from the model, mirroring the native Python API. The

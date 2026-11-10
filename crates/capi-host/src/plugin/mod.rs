@@ -21,6 +21,6 @@ pub use lunamodel_capi_plugin::{
 };
 pub use pass_context::lm_pass_context_get_analysis;
 pub use step_list::{
-    lm_step_list_invalidates, lm_step_list_kind, lm_step_list_len, lm_step_list_name,
+    lm_step_list_kind, lm_step_list_len, lm_step_list_modifies, lm_step_list_name,
     lm_step_list_provides, lm_step_list_requires,
 };

@@ -5,7 +5,7 @@
 /// `TransformationPass` surface from Python.
 ///
 /// `py_transform_plugin!(vis Pass(Inner) => Artifact)` emits:
-/// - `struct Pass(Inner)` — a `#[pyclass]` with `name`/`requires`/`invalidates`,
+/// - `struct Pass(Inner)` — a `#[pyclass]` with `name`/`requires`/`modifies`,
 ///   `forward(model, ctx=None) -> (Model, Artifact)`, classmethod `backward(artifact, solution) ->
 ///   Solution`, and the internal `_luna_plugin_transform_capsule`. Every method delegates to the
 ///   Rust facade traits, so the logic stays in Rust; Python just gets the same callable surface.
@@ -78,8 +78,11 @@ macro_rules! py_transform_plugin {
                 $crate::plugin::TransformationPass::requires(&self.0).to_vec()
             }
 
-            fn invalidates(&self) -> ::std::vec::Vec<::std::string::String> {
-                $crate::plugin::TransformationPass::invalidates(&self.0).to_vec()
+            fn modifies<'py>(
+                &self,
+                py: ::pyo3::Python<'py>,
+            ) -> ::pyo3::PyResult<::pyo3::Bound<'py, ::pyo3::types::PySet>> {
+                $crate::py::model_parts_to_py(py, $crate::plugin::TransformationPass::modifies(&self.0))
             }
 
             /// Transforms the model and returns `(model, artifact)`, mirroring the native Python

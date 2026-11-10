@@ -19,6 +19,31 @@
 #define LUNA_MODEL_CAPI_ABI_VERSION 1
 
 /**
+ * The objective expression.
+ */
+#define LM_MODEL_PART_OBJECTIVE 1
+
+/**
+ * The constraint collection.
+ */
+#define LM_MODEL_PART_CONSTRAINTS 2
+
+/**
+ * The environment: variables, their types and their bounds.
+ */
+#define LM_MODEL_PART_VARIABLES 4
+
+/**
+ * The optimization sense.
+ */
+#define LM_MODEL_PART_SENSE 8
+
+/**
+ * Every model part; the safe choice when a pass cannot say what it touches.
+ */
+#define LM_MODEL_PART_ALL 15
+
+/**
  * Status codes returned by every fallible `lm_*` entry point.
  *
  * `Ok` is guaranteed to be `0`. On any non-`Ok` status, a structured description is available
@@ -242,11 +267,17 @@ typedef struct {
 
 /**
  * Callback luna-model uses to collect a list of string produced by a plugin (e.g.
- * `requires`/`invalidates`) without transferring ownership across the ABI. The plugin calls
+ * `requires_analyses`) without transferring ownership across the ABI. The plugin calls
  * `sink(ctx, s)` once per NUL-termianted string. luna-model copies each immediately, so `s` need
  * only stay valid for the call.
  */
 typedef void (*LmStrSink)(void *ctx, const char *s);
+
+/**
+ * Bitmask of model parts a plugin pass modifies or depends on: any combination of the
+ * `LM_MODEL_PART_*` flags. Unknown bits are ignored.
+ */
+typedef uint32_t LmModelParts;
 
 /**
  * Opaque handle to a LunaModel model.
@@ -308,9 +339,10 @@ typedef struct {
      */
     void (*requires_analyses)(void *user_data, LmStrSink sink, void *sink_ctx);
     /**
-     * Emits the analysis names this pass invalidates, one per `sink` call.
+     * Model parts this pass may modify (`LM_MODEL_PART_*` flags). Analyses depending on any of
+     * them are invalidated after it runs; return `LM_MODEL_PART_ALL` when unsure.
      */
-    void (*invalidates)(void *user_data, LmStrSink sink, void *sink_ctx);
+    LmModelParts (*modifies)(void *user_data);
     /**
      * Applies the transformation to the lent model and emits the inverse-artifact bytes via
      * `sink`. Return non-`Ok` to abort the run.
@@ -367,6 +399,11 @@ typedef struct {
      * from C++ plugin authors.)
      */
     void (*requires_analyses)(void *user_data, LmStrSink sink, void *sink_ctx);
+    /**
+     * Model parts the result is computed from (`LM_MODEL_PART_*` flags). It stays valid until a
+     * transformation modifies one of them; return `LM_MODEL_PART_ALL` when unsure.
+     */
+    LmModelParts (*depends_on)(void *user_data);
     /**
      * Computes the result from the lent read-only model and emits its serialized bytes via `sink`.
      * Return non-`Ok` to abort the run.
@@ -425,9 +462,15 @@ typedef struct {
      */
     void (*requires_analyses)(void *user_data, LmStrSink sink, void *sink_ctx);
     /**
-     * Emits the analysis names this pass invalidates, one per `sink` call.
+     * Model parts this pass may modify (`LM_MODEL_PART_*` flags). Analyses depending on any of
+     * them are invalidated after it runs; return `LM_MODEL_PART_ALL` when unsure.
      */
-    void (*invalidates)(void *user_data, LmStrSink sink, void *sink_ctx);
+    LmModelParts (*modifies)(void *user_data);
+    /**
+     * Model parts the result is computed from (`LM_MODEL_PART_*` flags). It stays valid until a
+     * transformation modifies one of them; return `LM_MODEL_PART_ALL` when unsure.
+     */
+    LmModelParts (*depends_on)(void *user_data);
     /**
      * Applies the transformation to the lent model, emitting the inverse-artifact bytes via
      * `artifact_sink` and the analysis-result bytes via `result_sink`. Return non-`Ok` to abort
@@ -476,9 +519,10 @@ typedef struct {
      */
     void (*provides)(void *user_data, LmStrSink sink, void *sink_ctx);
     /**
-     * Emits the analysis names this pass invalidates, one per `sink` call.
+     * Model parts any step of the plan may modify (`LM_MODEL_PART_*` flags), used for static
+     * pipeline validation; return `LM_MODEL_PART_ALL` when unsure.
      */
-    void (*invalidates)(void *user_data, LmStrSink sink, void *sink_ctx);
+    LmModelParts (*modifies)(void *user_data);
     /**
      * Evaluates control flow against the lent read-only model, constructing and returning a
      * plan via `out_plan`. Return non-`Ok` to abort the run.
@@ -496,7 +540,7 @@ typedef struct {
 /**
  * Opaque, read-only view of the pipeline steps following a meta-analysis pass, lent to it during
  * `run`. Introspected through the `step_list_*` API-table entries (length, and per-index kind /
- * name / requires / provides / invalidates). Borrowed for the duration of the call only — the
+ * name / requires / provides / modifies). Borrowed for the duration of the call only — the
  * plugin must not retain or free it.
  *
  */
@@ -1808,12 +1852,10 @@ typedef struct {
                                    LmStrSink sink,
                                    void *sink_ctx);
     /**
-     * Emits the analysis names the step at `index` invalidates, one per `sink` call.
+     * Writes the model parts the step at `index` may modify to `out_parts`. `OutOfBounds` if
+     * `index >= len`.
      */
-    LmStatus (*step_list_invalidates)(const LmStepList *steps,
-                                      uintptr_t index,
-                                      LmStrSink sink,
-                                      void *sink_ctx);
+    LmStatus (*step_list_modifies)(const LmStepList *steps, uintptr_t index, LmModelParts *out_parts);
     /**
      * Creates a new control-flow execution plan for `name`, written to `out_plan`.
      */

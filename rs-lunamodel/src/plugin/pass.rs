@@ -1,6 +1,7 @@
 //! The plugin-side mirror of the transpiler's `TransformationPass` trait.
 
 use crate::Model;
+use crate::types::{EnumSet, ModelPart};
 
 use super::{PassContext, Reversible};
 
@@ -22,8 +23,9 @@ pub trait TransformationPass: Send + Sync + Reversible {
         &[]
     }
 
-    /// Analysis names invalidated after this pass runs.
-    fn invalidates(&self) -> &[String] {
-        &[]
+    /// Model parts this pass may modify. Analyses depending on any of them are invalidated after it
+    /// runs. Defaults to every part.
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        EnumSet::all()
     }
 }

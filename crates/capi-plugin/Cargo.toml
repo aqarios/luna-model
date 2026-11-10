@@ -16,5 +16,6 @@ crate-type = ["rlib"]
 [dependencies]
 lunamodel-core = { workspace = true }
 lunamodel-transpiler = { workspace = true }
+lunamodel-types = { workspace = true }
 lunamodel-capi = { workspace = true }
 lunamodel-capi-handle = { workspace = true }

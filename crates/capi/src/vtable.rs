@@ -4,9 +4,9 @@ use std::{
 };
 
 use crate::plugin::{
-    LmBackwardFn, LmByteSink, LmControlFlowPlan, LmPassContext, LmPassKind, LmPluginAnalysis,
-    LmPluginComposite, LmPluginControlFlow, LmPluginMetaAnalysis, LmPluginTransform, LmStepList,
-    LmStrSink,
+    LmBackwardFn, LmByteSink, LmControlFlowPlan, LmModelParts, LmPassContext, LmPassKind,
+    LmPluginAnalysis, LmPluginComposite, LmPluginControlFlow, LmPluginMetaAnalysis,
+    LmPluginTransform, LmStepList, LmStrSink,
 };
 
 pub use super::{
@@ -883,12 +883,12 @@ pub struct LunaModelCApi {
         sink: LmStrSink,
         sink_ctx: *mut c_void,
     ) -> LmStatus,
-    /// Emits the analysis names the step at `index` invalidates, one per `sink` call.
-    pub step_list_invalidates: unsafe extern "C" fn(
+    /// Writes the model parts the step at `index` may modify to `out_parts`. `OutOfBounds` if
+    /// `index >= len`.
+    pub step_list_modifies: unsafe extern "C" fn(
         steps: *const LmStepList,
         index: usize,
-        sink: LmStrSink,
-        sink_ctx: *mut c_void,
+        out_parts: *mut LmModelParts,
     ) -> LmStatus,
     /// Creates a new control-flow execution plan for `name`, written to `out_plan`.
     pub control_flow_plan_new: unsafe extern "C" fn(

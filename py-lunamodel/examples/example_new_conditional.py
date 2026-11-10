@@ -2,7 +2,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Sequence
 
-from luna_model import Model, Sense, Vtype
+from luna_model import Model, ModelPart, Sense, Vtype
 from luna_model.transformation import PassManager, PassContext, ControlFlowPass, Pass
 from luna_model.transformation.analysis import AnalysisPass
 from luna_model.transformation.control_flow import ControlFlowPlan
@@ -57,24 +57,16 @@ class IfElsePass(ControlFlowPass):
         out = list(set([*then_requires, *otherwise_requires]))
         return out
 
-    def invalidates(self) -> list[str]:
-        then_invalidates = []
-        if isinstance(self._then, Pipeline):
-            then_invalidates = self._then.invalidates()
-        else:
-            for p in self._then:
-                if not isinstance(p, AnalysisPass | BuiltinAnalysis):
-                    then_invalidates.extend(p.invalidates())
-
-        otherwise_invalidates = []
-        if isinstance(self._otherwise, Pipeline):
-            otherwise_invalidates = self._otherwise.invalidates()
-        else:
-            for p in self._otherwise:
-                if not isinstance(p, AnalysisPass | BuiltinAnalysis):
-                    otherwise_invalidates.extend(p.invalidates())
-
-        return list(set([*then_invalidates, *otherwise_invalidates]))
+    def modifies(self) -> set[ModelPart]:
+        out: set[ModelPart] = set()
+        for branch in (self._then, self._otherwise):
+            if isinstance(branch, Pipeline):
+                out |= branch.modifies()
+            else:
+                for p in branch:
+                    if not isinstance(p, AnalysisPass | BuiltinAnalysis):
+                        out |= p.modifies()
+        return out
 
     def provides(self) -> list[str]:
         then_provides = []

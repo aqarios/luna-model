@@ -583,7 +583,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     step_list_name: crate::plugin::lm_step_list_name,
     step_list_requires: crate::plugin::lm_step_list_requires,
     step_list_provides: crate::plugin::lm_step_list_provides,
-    step_list_invalidates: crate::plugin::lm_step_list_invalidates,
+    step_list_modifies: crate::plugin::lm_step_list_modifies,
     control_flow_plan_new: crate::plugin::lm_control_flow_plan_new,
     control_flow_plan_free: crate::plugin::lm_control_flow_plan_free,
     control_flow_plan_add_transform: crate::plugin::lm_control_flow_plan_add_transform,
