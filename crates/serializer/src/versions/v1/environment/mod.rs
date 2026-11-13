@@ -124,6 +124,18 @@ mod tests {
         }
     }
 
+    /// A binary and its inverse point at each other.
+    #[test]
+    fn roundtrip_keeps_inverted_binaries_linked() {
+        let mut env = ArcEnv::default();
+        let b = env.insert("b", Vtype::Binary, None).unwrap();
+        let inverted = env.insert_inverted(&b).unwrap();
+
+        let decoded = roundtrip(&env.env.read_arc());
+        assert_eq!(decoded[b.id()].inverted, Some(inverted.id()));
+        assert_eq!(decoded[inverted.id()].inverted, Some(b.id()));
+    }
+
     /// Data written without an explicit order falls back to index order.
     #[test]
     fn decode_without_order_uses_index_order() {

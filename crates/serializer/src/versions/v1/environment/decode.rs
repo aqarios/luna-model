@@ -77,7 +77,8 @@ impl SerEnvironment {
                 let inv = *next(&mut inverted, "inverted binary variable")?;
                 var.inverted = Some(inv);
                 let invname = var.name().inverted();
-                let invvar = variable(&invname.0, Vtype::InvertedBinary, None)?;
+                let mut invvar = variable(&invname.0, Vtype::InvertedBinary, None)?;
+                invvar.inverted = Some(vidx);
                 insert(variables, lookup, inv, invvar, invname.0)?;
             }
             insert(variables, lookup, vidx, var, name)?;
