@@ -4,8 +4,8 @@ use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 
 use super::LpTranslator;
-use super::builder::build_model;
 use super::reader::read_lp;
+use crate::model::builder::build_model;
 
 impl LpTranslator {
     pub fn translate(content: String) -> LunaModelResult<Model> {
@@ -48,7 +48,7 @@ End
     fn test_parse_simple_linear() {
         let lp_content = r#"
 Minimize
-  x + 2 y + 5 ^ 3
+  x + 2 y
 Subject To
   c1: x + y <= 10
 Bounds

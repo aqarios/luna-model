@@ -5,7 +5,7 @@ use lunamodel_types::VarIdx;
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-const ALLOWED_EXTRA: &str = r#"_.,;(){}"‘’'@#!$%&?"#;
+const ALLOWED_EXTRA: &str = r#"_.,;(){}[]"‘’'@#!$%&?"#;
 
 static ALLOWED_MSG: LazyLock<String> = LazyLock::new(|| {
     let allowed = ALLOWED_EXTRA

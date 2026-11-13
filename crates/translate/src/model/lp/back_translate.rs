@@ -1,305 +1,185 @@
-//! LP back-translator from core models to text.
+//! Writes a core [`Model`] as LP text.
 
-use std::{fs::File, io::Write, path::PathBuf};
+use std::{
+    fmt::{self, Write},
+    path::PathBuf,
+};
 
-use lunamodel_core::{ArcEnv, ConstraintCollection, Expression, Model, prelude::Bounds};
-use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_types::{Bias, Bound, Comparator, VarId, Vtype};
-use regex::Regex;
-use std::collections::HashSet;
+use lunamodel_core::{Expression, Model};
+use lunamodel_error::LunaModelResult;
+use lunamodel_types::{Bound, Comparator, Vtype};
 
-use super::LpTranslator;
-
-/// Maximum LP output line length used by the back-translator.
-static MAX_LINE_LENGTH: usize = 88;
-/// Indentation prefix used for LP body sections.
-static INDENT: &str = " ";
-/// Token separator used while chunking output.
-const SEP: &str = " ";
+use super::{LpTranslator, reader::is_keyword, tokenizer::is_name};
+use crate::model::writer::{Vars, check_names, output, prepare, quadratic};
 
 impl LpTranslator {
-    /// Translates a model into LP text and optionally writes it to `filepath`.
-    ///
-    /// When `filepath` is `None`, the generated LP string is returned directly.
+    /// Translates a model into LP text, written to `filepath` or returned.
     pub fn back_translate(
         model: &Model,
         filepath: Option<PathBuf>,
     ) -> LunaModelResult<Option<String>> {
-        let lpstr = Self::build_string(model)?;
-        if let Some(pb) = filepath {
-            Self::write_file(lpstr, &pb)?;
-            Ok(None)
-        } else {
-            Ok(Some(lpstr))
-        }
-    }
-
-    /// Writes already-generated LP data to disk.
-    pub fn write_file(data: String, filepath: &PathBuf) -> LunaModelResult<()> {
-        let mut file = File::create(filepath)
-            .map_err(|why| LunaModelError::Translation(why.to_string().into()))?;
-        file.write_all(data.as_bytes())
-            .map_err(|why| LunaModelError::Translation(why.to_string().into()))?;
-        Ok(())
-    }
-
-    /// Builds the full LP string representation of `model`.
-    pub fn build_string(model: &Model) -> LunaModelResult<String> {
-        let mut out = String::new();
-        out.push_str(&format!("\\ Model {}\n", model.name));
-        out.push_str(&format!("\\ Problem name: {}\n", model.name));
-        out.push('\n');
-        out.push_str(&format!("{}\n", model.sense));
-        out.push_str(&format!(
-            "{}\n",
-            Self::expr_string(
-                model.objective(),
-                Some(
-                    model
-                        .constraints()
-                        .vars()
-                        .map(|v| VarId(v.id()))
-                        .collect::<Vec<_>>()
-                        .as_slice()
-                ),
-                true
-            )?
-        ));
-        out.push_str("Subject To\n");
-        out.push_str(&format!("{}\n", Self::constr_string(model.constraints())?));
-        out.push_str("Bounds\n");
-        out.push_str(&format!("{}\n", Self::bounds_string(&model.environment)?));
-        out.push_str(&format!("{}\n", Self::variables_string(model)?));
-        out.push_str("End");
-        Ok(out)
-    }
-
-    /// Renders the variable type sections (`Binaries`, `Generals`) for the LP file.
-    fn variables_string(model: &Model) -> LunaModelResult<String> {
-        let mut bins = Vec::new();
-        let mut gens = Vec::new();
-        for v in model.vars() {
-            match v.vtype()? {
-                Vtype::Real => (),
-                Vtype::Spin => {
-                    return Err(LunaModelError::Translation(
-                        "LP files cannot contain variables of type SPIN".into(),
-                    ));
-                }
-                Vtype::InvertedBinary => unreachable!(),
-                Vtype::Binary => bins.push(v.name()?),
-                Vtype::Integer => gens.push(v.name()?),
-            }
-        }
-        let mut out = String::new();
-        if !bins.is_empty() {
-            let mut binstr = String::from("Binaries\n ");
-            let chunks = safe_chunks(&bins, MAX_LINE_LENGTH);
-            binstr.push_str(&chunks.join("\n"));
-            out.push_str(&binstr);
-            out.push('\n');
-        }
-        if !gens.is_empty() {
-            let mut genstr = String::from("Generals\n ");
-            let chunks = safe_chunks(&gens, MAX_LINE_LENGTH);
-            genstr.push_str(&chunks.join("\n"));
-            out.push_str(&genstr);
-        }
-        Ok(out)
-    }
-
-    /// Renders the `Bounds` section for all non-binary variables.
-    fn bounds_string(env: &ArcEnv) -> LunaModelResult<String> {
-        let mut res = Vec::new();
-        for v in env.vars() {
-            match v.vtype()? {
-                Vtype::Binary => (),
-                Vtype::InvertedBinary => (),
-                Vtype::Integer | Vtype::Real => {
-                    let Bounds { lower, upper } = v.bounds()?;
-                    let bstr = match (lower, upper) {
-                        (Bound::Unbounded, Bound::Unbounded) => format!("{} free", v.name()?),
-                        (Bound::Bounded(lower), Bound::Unbounded) => {
-                            format!("{} >= {}", v.name()?, lower)
-                        }
-                        (Bound::Unbounded, Bound::Bounded(upper)) => {
-                            format!("{} <= {}", v.name()?, upper)
-                        }
-                        (Bound::Bounded(lower), Bound::Bounded(upper)) => {
-                            format!("{} <= {} <= {}", lower, v.name()?, upper)
-                        }
-                    };
-                    res.push(format!("{INDENT}{bstr}"));
-                }
-                Vtype::Spin => {
-                    return Err(LunaModelError::Translation(
-                        "LP files cannot contain variables of type SPIN".into(),
-                    ));
-                }
-            }
-        }
-        Ok(res.join("\n"))
-    }
-
-    /// Renders an expression in LP syntax.
-    ///
-    /// `constr_vars` is used for objective rendering to keep variables that only
-    /// appear in constraints visible with zero coefficients when needed by some
-    /// downstream readers.
-    fn expr_string(
-        expr: &Expression,
-        constr_vars: Option<&[VarId]>,
-        obj: bool,
-    ) -> LunaModelResult<String> {
-        let mut const_str = String::new();
-        let mut lins = Vec::new();
-        let mut quads = Vec::new();
-        let env = &expr.env;
-
-        // additional_linears are variables contained in the constraints but not in the expression.
-        let mut exprvarids = HashSet::new();
-        for (vars, b) in expr.items() {
-            match &vars[..] {
-                [] => {
-                    if b != Bias::default() {
-                        const_str.push_str(&format!("+{}", &b.to_string()).replace("+-", "-"))
-                    }
-                }
-                [v] => {
-                    exprvarids.insert(v.id());
-                    if lins.is_empty() {
-                        lins.push(format!("{b} {}", v.name()?));
-                    } else {
-                        lins.push(format!("+{b} {}", v.name()?).replace("+-", "-"));
-                    }
-                }
-                [u, v] => {
-                    exprvarids.insert(u.id());
-                    exprvarids.insert(v.id());
-                    let bias = if obj { 2.0 * b } else { b };
-                    if quads.is_empty() {
-                        quads.push(format!("{} {} * {}", bias, u.name()?, v.name()?));
-                    } else {
-                        quads.push(
-                            format!("+{} {} * {}", bias, u.name()?, v.name()?).replace("+-", "-"),
-                        );
-                    }
-                }
-                // vars => ho_str.push_str(&format!(
-                //     "{b} {}",
-                //     vars.iter().map(|v| env.name(v)).join(" ")
-                // )),
-                _ => {
-                    return Err(LunaModelError::Translation(
-                        "cannot create an LP file from a model with higher order terms".into(),
-                    ));
-                }
-            }
-        }
-
-        if let Some(cv) = constr_vars {
-            let mut additional_linears: HashSet<VarId> = cv.iter().copied().collect();
-            additional_linears.retain(|e| !exprvarids.contains(&e.0));
-            for al in &additional_linears {
-                let var: String = env.read_arc().get(al.0)?.name().into();
-                lins.push(format!("+0 {}", var));
-            }
-        }
-
-        // let mut resstr = String::new();
-        let mut resstrs = Vec::new();
-        if !quads.is_empty() {
-            quads.insert(0, "[".to_string());
-            if obj {
-                quads.push("] / 2".to_string());
+        let vars = prepare(model, "LP")?;
+        check_names(model, &vars, "LP", |name| {
+            if !is_name(name) {
+                Some("it contains characters LP does not allow")
+            } else if is_keyword(name) {
+                Some("it is an LP keyword")
             } else {
-                quads.push("]".to_string());
+                None
             }
-            // resstr.push_str(&format!("+{quadstr}"));
-            // let mut split_quad = quadstr.split("+").map(|e| e.to_string()).collect_vec();
-            resstrs.append(&mut quads);
-        }
-        if !lins.is_empty() {
-            if !resstrs.is_empty() {
-                resstrs.push("+".to_string());
-            }
-            resstrs.append(&mut lins);
-        }
-        if !const_str.is_empty() {
-            // resstr.push_str(&format!("+{const_str}"));
-            resstrs.push(const_str);
-        }
-        let out = if obj {
-            let mut outs = Vec::new();
-            let chunks = safe_chunks(&resstrs, MAX_LINE_LENGTH);
-            for chunk in chunks {
-                // let chunk = chunk.replace("+-", "-");
-                let mut chunk = chunk.replace("-", "- ");
-                chunk = chunk.replace("+", "+ ");
-                // let chunk = chunk.replace("  ", " ");
-                let chunk = chunk.trim().to_string();
-                outs.push(format!("{INDENT}{chunk}"));
-            }
-            outs.join("\n")
-        } else {
-            let mut out = resstrs.join(" ");
-            out = out.replace("-", "- ");
-            out = out.replace("+", "+ ");
-            out
-        };
-
-        let re = Regex::new(r"\s+").unwrap();
-        let mut out = re.replace_all(&out, " ").to_string();
-        out = out.replace("+ -", "-");
-        Ok(out.to_string())
-    }
-
-    /// Renders the `Subject To` section for the given constraint collection.
-    fn constr_string(constr: &ConstraintCollection) -> LunaModelResult<String> {
-        let mut out: Vec<String> = Vec::new();
-        for (name, c) in constr.iter() {
-            let lhsstr = Self::expr_string(&c.lhs, None, false)?;
-            let cstr = format!(
-                "{name}: {} {} {}",
-                lhsstr,
-                match &c.comparator {
-                    Comparator::Le => "<=",
-                    Comparator::Eq => "=",
-                    Comparator::Ge => ">=",
-                },
-                c.rhs,
-            );
-            out.push(format!("{INDENT}{cstr}"));
-        }
-        Ok(out.join("\n"))
+        })?;
+        let mut out = String::new();
+        write_lp(&mut out, model, &vars).expect("writing to a String cannot fail");
+        output(out, filepath)
     }
 }
 
-/// Splits tokens into line-safe chunks while preserving token order.
-fn safe_chunks(d: &[String], max_len: usize) -> Vec<String> {
-    let mut chunks = Vec::new();
-    let mut buffer: String = String::default();
-    for entry in d {
-        let next_length = buffer.len() + entry.len();
-        if next_length > max_len {
-            // Adding `entry` to the current buffer would result in a
-            // line exceeding the maximum allowed length.
-            // => Flush the buffer into the chunks output and create a new buffer.
-            chunks.push(buffer);
-            buffer = entry.clone();
-            continue;
+/// Lines are wrapped before this length, as some LP readers limit it.
+const MAX_LINE: usize = 88;
+
+fn write_lp(out: &mut String, model: &Model, vars: &Vars) -> fmt::Result {
+    writeln!(out, "\\ Model {}", model.name)?;
+    writeln!(out, "\\ Problem name: {}", model.name)?;
+    writeln!(out, "\n{}", model.sense)?;
+    let mut line = Line::start(out);
+    expression(&mut line, model.objective(), vars, true)?;
+    line.end();
+
+    writeln!(out, "Subject To")?;
+    for (name, c) in model.constraints().iter() {
+        let comparator = match c.comparator {
+            Comparator::Le => "<=",
+            Comparator::Ge => ">=",
+            Comparator::Eq => "=",
+        };
+        let mut line = Line::start(out);
+        line.push(format_args!("{name}:"))?;
+        expression(&mut line, &c.lhs, vars, false)?;
+        // LP allows no constant on the left-hand side.
+        line.push(format_args!("{comparator} {}", c.rhs - c.lhs.offset))?;
+        line.end();
+    }
+
+    write_bounds(out, vars)?;
+    write_var_list(out, "Binaries", vars, Vtype::Binary)?;
+    write_var_list(out, "Generals", vars, Vtype::Integer)?;
+    out.push_str("End");
+    Ok(())
+}
+
+/// Writes `linear + [ quadratic ] + constant`.
+fn expression(line: &mut Line, expr: &Expression, vars: &Vars, is_objective: bool) -> fmt::Result {
+    let mut first = true;
+    if is_objective {
+        // Every variable appears in the objective, in model order, so reading the file
+        // back gives the same variable order.
+        for var in &vars.list {
+            line.term(first, expr.linear[var.idx], format_args!(" {}", var.name))?;
+            first = false;
         }
-        // We can safely add the current entry to the current buffer.
-        // We only need the separator if it is NOT the first entry.
-        if buffer.is_empty() {
-            buffer.push_str(entry);
-        } else {
-            buffer.push_str(&format!("{SEP}{entry}"));
+    } else {
+        for (idx, coef) in expr.linear.iter() {
+            line.term(first, coef, format_args!(" {}", vars.name(idx)))?;
+            first = false;
         }
     }
-    // Finally, we push the last buffer into the chunks if it is not empty.
-    if !buffer.is_empty() {
-        chunks.push(buffer);
+
+    let mut terms = quadratic(expr).peekable();
+    if terms.peek().is_some() {
+        line.push(format_args!("{}", if first { "[" } else { "+ [" }))?;
+        // The objective is written as [ 2 Q ] / 2, as LP readers expect.
+        let factor = if is_objective { 2.0 } else { 1.0 };
+        let mut first_in_bracket = true;
+        for (u, v, coef) in terms {
+            let product = format_args!(" {} * {}", vars.name(u), vars.name(v));
+            line.term(first_in_bracket, factor * coef, product)?;
+            first_in_bracket = false;
+        }
+        line.push(format_args!("{}", if is_objective { "] / 2" } else { "]" }))?;
+        first = false;
     }
-    chunks
+
+    if is_objective && expr.offset != 0.0 {
+        line.term(first, expr.offset, format_args!(""))?;
+    }
+    Ok(())
+}
+
+fn write_bounds(out: &mut String, vars: &Vars) -> fmt::Result {
+    let mut bounded = vars
+        .list
+        .iter()
+        .filter(|v| v.vtype != Vtype::Binary)
+        .peekable();
+    if bounded.peek().is_none() {
+        return Ok(());
+    }
+    writeln!(out, "Bounds")?;
+    for var in bounded {
+        let name = &var.name;
+        match (var.lower, var.upper) {
+            (Bound::Unbounded, Bound::Unbounded) => writeln!(out, " {name} free")?,
+            (Bound::Bounded(l), Bound::Unbounded) => writeln!(out, " {name} >= {l}")?,
+            (Bound::Unbounded, Bound::Bounded(u)) => writeln!(out, " -inf <= {name} <= {u}")?,
+            (Bound::Bounded(l), Bound::Bounded(u)) => writeln!(out, " {l} <= {name} <= {u}")?,
+        }
+    }
+    Ok(())
+}
+
+fn write_var_list(out: &mut String, header: &str, vars: &Vars, vtype: Vtype) -> fmt::Result {
+    let mut names = vars.list.iter().filter(|v| v.vtype == vtype).peekable();
+    if names.peek().is_none() {
+        return Ok(());
+    }
+    writeln!(out, "{header}")?;
+    let mut line = Line::start(out);
+    for var in names {
+        line.push(format_args!("{}", var.name))?;
+    }
+    line.end();
+    Ok(())
+}
+
+/// Writes space-separated tokens, starting a new line before [`MAX_LINE`].
+struct Line<'a> {
+    out: &'a mut String,
+    len: usize,
+    token: String,
+}
+
+impl<'a> Line<'a> {
+    fn start(out: &'a mut String) -> Self {
+        Self {
+            out,
+            len: 0,
+            token: String::new(),
+        }
+    }
+
+    fn push(&mut self, token: fmt::Arguments) -> fmt::Result {
+        self.token.clear();
+        self.token.write_fmt(token)?;
+        if self.len > 0 && self.len + 1 + self.token.len() > MAX_LINE {
+            self.out.push('\n');
+            self.len = 0;
+        }
+        self.out.push(' ');
+        self.out.push_str(&self.token);
+        self.len += 1 + self.token.len();
+        Ok(())
+    }
+
+    /// A term `coef name`; every term but the first gets an explicit sign.
+    fn term(&mut self, first: bool, coef: f64, name: fmt::Arguments) -> fmt::Result {
+        match (first, coef < 0.0) {
+            (true, _) => self.push(format_args!("{coef}{name}")),
+            (false, false) => self.push(format_args!("+ {coef}{name}")),
+            (false, true) => self.push(format_args!("- {}{name}", -coef)),
+        }
+    }
+
+    fn end(self) {
+        self.out.push('\n');
+    }
 }
