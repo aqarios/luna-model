@@ -31,7 +31,7 @@ jobs:
           - suite: rs-ext
             run: just rs-ext-test
           # The same against the newest published luna-model: skipped on a different C API ABI
-          # version, must pass on the same one.
+          # version or an alpha, must pass otherwise.
           - suite: rs-ext-pypi
             run: just rs-ext-test-pypi
           - suite: rs-plugin

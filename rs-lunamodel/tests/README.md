@@ -51,7 +51,10 @@ whether the published host is compatible with the current extension code.
 
 The contract: against a host of a **different** C API ABI version the extension
 may fail (luna-model-ffi rejects such a host), so `conftest.py` skips the whole
-session with the two versions as reason. Against the **same** ABI version every
+session with the two versions as reason. It also skips against a published
+**alpha**: alpha pre-releases give no ABI guarantee (the same rule as
+`ci/tools/check-abi.py`), so the table may change between them without a new ABI
+version. Against any other host of the **same** ABI version every
 test must pass. Additions to the host don't break that: an older extension
 never uses them. But the extension built here is newer than the published host,
 so where luna-model-ffi uses a host addition (e.g.

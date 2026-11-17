@@ -220,8 +220,8 @@ rs-ext-test:
     cd {{rs_ext_test}} && CARGO_TARGET_DIR={{uv_cargo_target_dir}} uv sync --reinstall-package luna-model --reinstall-package rs-lunamodel-integration-ext && uv run pytest integration_ext/pytests -v
 
 # The same interop test against the newest published luna-model from PyPI (the `pypi` group, see
-# rs-lunamodel/tests/README.md): skipped when the published host has a different C API ABI version,
-# and must pass when it has the same. `--no-sync`: a plain `uv run` would re-sync the local group.
+# rs-lunamodel/tests/README.md): skipped when the published host has a different C API ABI version
+# or is an alpha, and must pass otherwise. `--no-sync`: a plain `uv run` would re-sync the local group.
 rs-ext-test-pypi:
     cd {{rs_ext_test}} && CARGO_TARGET_DIR={{uv_cargo_target_dir}} uv sync --no-default-groups --group pypi --reinstall-package luna-model --reinstall-package rs-lunamodel-integration-ext && uv run --no-sync pytest integration_ext/pytests -v -rs
 
