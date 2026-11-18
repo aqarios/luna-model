@@ -2,9 +2,9 @@ use std::{collections::HashMap, sync::Once};
 
 use indexmap::{IndexMap, indexmap};
 use luna_model_ffi::{
-    Assignment, Column, Comparator, Constraint, ConstraintCollection, Environment, ErrorKind,
-    HigherOrder, LmAddAssign, Result, Sense, Solution, Timing, TryAddAssign, TryClone, TryIndex,
-    Variable, Vtype,
+    Assignment, Column, Comparator, Constraint, ConstraintCollection, ContentEquality, Environment,
+    ErrorKind, HigherOrder, LmAddAssign, Result, Sense, Solution, Timing, TryAddAssign, TryClone,
+    TryIndex, Variable, Vtype,
 };
 
 static INIT: Once = Once::new();
@@ -50,6 +50,85 @@ fn environment_expression_and_constraint_facade() -> Result<()> {
         editor.commit()?;
     }
     assert_eq!(constraints.get("limit")?.name()?, "renamed");
+    Ok(())
+}
+
+#[test]
+fn insert_before_puts_a_variable_in_front_of_its_anchor() -> Result<()> {
+    init();
+
+    let mut env = luna_model_ffi::ArcEnv::default();
+    let a = env.insert("a", Vtype::Binary, None)?;
+    let b = env.insert("b", Vtype::Binary, None)?;
+    let c = env.insert_before(&b, "c", Vtype::Integer, None)?;
+    assert_eq!(c.vtype()?, Vtype::Integer);
+
+    let names = |vars: Vec<luna_model_ffi::VarRef>| -> Result<Vec<String>> {
+        vars.iter().map(|var| var.name()).collect()
+    };
+    assert_eq!(names(env.vars()?)?, ["a", "c", "b"]);
+    // The anchor has to be in the environment.
+    let mut other = luna_model_ffi::ArcEnv::default();
+    assert!(other.insert_before(&a, "d", Vtype::Binary, None).is_err());
+    Ok(())
+}
+
+#[test]
+fn derivative_removes_a_variable_from_its_terms() -> Result<()> {
+    init();
+
+    let mut env = luna_model_ffi::ArcEnv::default();
+    let z = env.insert("z", Vtype::Binary, None)?;
+    let x = env.insert("x", Vtype::Integer, None)?;
+    let y = env.insert("y", Vtype::Integer, None)?;
+
+    // d/dz (z x + 3 z + y) = x + 3
+    let expr = (((&z * &x)? + (&z * 3.0)?)? + &y)?;
+    let derivative = expr.derivative(&z)?;
+    assert_eq!(derivative.linear(x.id()?)?, 1.0);
+    assert_eq!(derivative.linear(y.id()?)?, 0.0);
+    assert_eq!(derivative.offset()?, 3.0);
+    assert_eq!(derivative.degree()?, 1);
+
+    // The variable has to be of the expression's environment.
+    let mut other = luna_model_ffi::ArcEnv::default();
+    let stranger = other.insert("z", Vtype::Binary, None)?;
+    assert!(expr.derivative(&stranger).is_err());
+    Ok(())
+}
+
+#[test]
+fn indicators_are_written_with_when_and_read_back() -> Result<()> {
+    init();
+
+    let mut env = luna_model_ffi::ArcEnv::default();
+    let z = env.insert("z", Vtype::Binary, None)?;
+    let x = env.insert("x", Vtype::Integer, None)?;
+    let cap = Constraint::new((&x * 1.0)?, 3.0, Comparator::Le, Some("cap".into()))?;
+
+    // No binary in every term.
+    assert!(cap.indicator()?.is_none());
+
+    for value in [true, false] {
+        let conditional = cap.when(&z, value)?;
+        assert_eq!(conditional.rhs()?, 0.0);
+        assert_eq!(conditional.name()?, "cap");
+
+        let indicator = conditional.indicator()?.expect("an indicator");
+        assert_eq!(indicator.variable.id()?, z.id()?);
+        assert_eq!(indicator.value, value);
+        assert!(indicator.constraint.equal_contents(&cap)?);
+        assert_eq!(indicator.constraint.name()?, "cap");
+    }
+
+    // An inverted binary stands for the other value of its base.
+    let not_z = (!&z)?;
+    let indicator = cap.when(&not_z, true)?.indicator()?.expect("an indicator");
+    assert_eq!(indicator.variable.id()?, z.id()?);
+    assert!(!indicator.value);
+
+    // Only binaries can be conditions.
+    assert!(cap.when(&x, true).is_err());
     Ok(())
 }
 

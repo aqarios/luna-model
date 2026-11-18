@@ -464,6 +464,13 @@ void lm_vref_buffer_free(LmVrefBuffer buffer);
 void lm_vtype_buffer_free(LmVtypeBuffer buffer);
 
 /**
+ * Returns the C API table, for programs and SDKs that link `liblunamodel` directly
+ * instead of getting the table from the Python wheel. The table lives as long as the
+ * library is loaded.
+ */
+const LunaModelCApi *lm_c_api_table(void);
+
+/**
  * Returns constraint names in stable insertion order.
  *
  * # Safety
@@ -1066,6 +1073,41 @@ LmStatus lm_constr_evaluate_sample_quick(const LmConstraint *constr,
                                          bool *out);
 
 /**
+ * Reads a constraint as an indicator constraint on a binary variable.
+ *
+ * On success, `out_var` receives the binary (never an inverted binary),
+ * `out_value` the value of that binary for which the inner constraint must
+ * hold, and `out_inner` the inner constraint. If the constraint cannot be read
+ * as an indicator, `out_var` and `out_inner` are set to NULL and `out_value`
+ * to `false`.
+ *
+ * # Safety
+ * `constr` must be a valid constraint handle created by this library.
+ * `out_var` must point to writable `LmVref *` storage.
+ * `out_value` must point to writable `bool` storage.
+ * `out_inner` must point to writable `LmConstraint *` storage.
+ */
+LmStatus lm_constr_indicator(const LmConstraint *constr,
+                             LmVref **out_var,
+                             bool *out_value,
+                             LmConstraint **out_inner);
+
+/**
+ * Builds the constraint that holds only when the binary `var` equals `value`
+ * (`true` for 1, `false` for 0). An inverted binary stands for the other value
+ * of its base.
+ *
+ * # Safety
+ * `constr` must be a valid constraint handle created by this library.
+ * `var` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmConstraint *` storage.
+ */
+LmStatus lm_constr_when(const LmConstraint *constr,
+                        const LmVref *var,
+                        bool value,
+                        LmConstraint **out);
+
+/**
  * Sorts names by their variable order in the environment.
  *
  * # Safety
@@ -1240,6 +1282,25 @@ LmStatus lm_env_insert(LmEnv *env,
                        LmVtype vtype,
                        const LmLazyBounds *bounds,
                        LmVref **out);
+
+/**
+ * Inserts a new variable directly before `anchor` and returns a reference
+ * tied to this environment. Fails with the `variable_not_existing` kind if
+ * `anchor` is not (or no longer) in the environment; nothing is inserted then.
+ *
+ * # Safety
+ * `env` must be a valid mutable environment handle created by this library.
+ * `anchor` must point to a valid `LmVref`.
+ * `name` must point to a valid NUL-terminated C string.
+ * `bounds`, when non-null, must be a valid lazy-bounds handle created by this library.
+ * `out` must point to writable `LmVref *` storage.
+ */
+LmStatus lm_env_insert_before(LmEnv *env,
+                              const LmVref *anchor,
+                              const char *name,
+                              LmVtype vtype,
+                              const LmLazyBounds *bounds,
+                              LmVref **out);
 
 /**
  * Inserts a new variable, deriving a fallback name when necessary and returns a reference tied to this environment.
@@ -1812,6 +1873,20 @@ LmStatus lm_expr_add_bias(const LmExpr *expr, double bias, LmExpr **out);
  * `out` must point to writable `LmExpr *` storage.
  */
 LmStatus lm_expr_add_expr(const LmExpr *expr, const LmExpr *other, LmExpr **out);
+
+/**
+ * Computes the partial derivative of `expr` with respect to `var`.
+ *
+ * The input expression is left unchanged. The result is a new expression in
+ * the same environment, written to `out`. Fails if `var` belongs to another
+ * environment or is no longer in it.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `var` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmExpr *` storage.
+ */
+LmStatus lm_expr_derivative(const LmExpr *expr, const LmVref *var, LmExpr **out);
 
 /**
  * Multiplies a variable reference to the expression in place.

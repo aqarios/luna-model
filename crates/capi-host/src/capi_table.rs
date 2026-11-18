@@ -2,8 +2,9 @@
 //!
 //! [`LUNA_MODEL_C_API`] fills the `LunaModelCApi` table (defined in
 //! `lunamodel-capi`) with this crate's `extern "C"` entry points. The
-//! standalone library calls the `lm_*` symbols directly; the Python wheel publishes
-//! a pointer to this table through a `PyCapsule` (`luna_model._lm._C_API`).
+//! standalone library calls the `lm_*` symbols directly and hands out the table through
+//! [`lm_c_api_table`]; the Python wheel publishes a pointer to this table through a
+//! `PyCapsule` (`luna_model._lm._C_API`).
 
 use crate::{CAPI_ABI_VERSION, LunaModelCApi};
 
@@ -97,6 +98,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Env -- modification
     env_insert: crate::env::lm_env_insert,
     env_insert_with_fallback: crate::env::lm_env_insert_with_fallback,
+    env_insert_before: crate::env::lm_env_insert_before,
     env_insert_inverted: crate::env::lm_env_insert_inverted,
     env_remove: crate::env::lm_env_remove,
     env_set_inverted: crate::env::lm_env_set_inverted,
@@ -304,6 +306,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_ipow: crate::expr::lm_expr_ipow,
     expr_separate: crate::expr::lm_expr_separate,
     expr_substitute: crate::expr::lm_expr_substitute,
+    expr_derivative: crate::expr::lm_expr_derivative,
     // ////////// //
     // Constraint //
     // ////////// //
@@ -314,6 +317,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     constr_clone: crate::constr::lm_constr_clone,
     constr_deep_clone: crate::constr::lm_constr_deep_clone,
     constr_substitute: crate::constr::lm_constr_substitute,
+    constr_indicator: crate::constr::lm_constr_indicator,
+    constr_when: crate::constr::lm_constr_when,
     constr_equal_contents: crate::constr::lm_constr_equal_contents,
     constr_eq: crate::constr::lm_constr_eq,
     constr_evaluate_sample: crate::constr::lm_constr_evaluate_sample,
@@ -592,3 +597,11 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     control_flow_plan_add_control_flow: crate::plugin::lm_control_flow_plan_add_control_flow,
     control_flow_plan_add_meta_analysis: crate::plugin::lm_control_flow_plan_add_meta_analysis,
 };
+
+/// Returns the C API table, for programs and SDKs that link `liblunamodel` directly
+/// instead of getting the table from the Python wheel. The table lives as long as the
+/// library is loaded.
+#[unsafe(no_mangle)]
+pub extern "C" fn lm_c_api_table() -> *const LunaModelCApi {
+    &LUNA_MODEL_C_API
+}

@@ -1088,22 +1088,6 @@ typedef struct {
 } LmVtypeBuffer;
 
 /**
- * Opaque handle to a LunaModel constraint-collection reference.
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmCC;
-
-/**
- * Opaque handle to a LunaModel constraint reference.
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmConstraint;
-
-/**
  * Opaque handle to a LunaModel environment.
  *
  * Created by [`lm_env_default`] and released with
@@ -1115,6 +1099,30 @@ typedef struct {
 } LmEnv;
 
 /**
+ * Opaque handle to a LunaModel model-specs reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmSpecs;
+
+/**
+ * Opaque handle to a LunaModel lazy bounds reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmLazyBounds;
+
+/**
+ * Opaque handle to a LunaModel constraint-collection reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmCC;
+
+/**
  * Opaque handle to a LunaModel expression reference.
  *
  */
@@ -1123,15 +1131,12 @@ typedef struct {
 } LmExpr;
 
 /**
- * Typed assignment value used by the C API.
+ * Opaque handle to a LunaModel variable reference.
  *
- * C-ABI-stable mirror of LunaModel's Rust `Assignment` enum: `vtype` names the
- * variable kind and `value` holds the numeric assignment (widened to `f64`).
  */
 typedef struct {
-    LmVtype vtype;
-    double value;
-} LmAssignment;
+    uint8_t _private[0];
+} LmVar;
 
 /**
  * A 128-bit environment identity token, split into two 64-bit halves because C
@@ -1150,28 +1155,37 @@ typedef struct {
 } LmEnvId;
 
 /**
- * Opaque handle to a LunaModel variable reference.
+ * Typed assignment value used by the C API.
  *
+ * C-ABI-stable mirror of LunaModel's Rust `Assignment` enum: `vtype` names the
+ * variable kind and `value` holds the numeric assignment (widened to `f64`).
  */
 typedef struct {
-    uint8_t _private[0];
-} LmVar;
+    LmVtype vtype;
+    double value;
+} LmAssignment;
 
 /**
- * Opaque handle to a LunaModel lazy bounds reference.
+ * Opaque handle to a LunaModel timing reference.
  *
  */
 typedef struct {
     uint8_t _private[0];
-} LmLazyBounds;
+} LmTiming;
 
 /**
- * Opaque handle to a structured LunaModel error. See [`crate::error::RichError`].
+ * Opaque handle to a bulk per-sample solution lookup table.
+ *
+ * Built once from an [`LmEnv`] and an [`LmSol`] with [`lm_sol_lookup_new`], then
+ * reused across many samples: [`lm_sol_lookup_update`] loads one sample row's
+ * values by variable id, and [`lm_sol_lookup_write_sol`] writes them back. This
+ * avoids one ABI round-trip per value in hot per-sample loops (e.g. samplers).
+ * Release with [`lm_sol_lookup_free`].
  *
  */
 typedef struct {
     uint8_t _private[0];
-} LmError;
+} LmSolutionLookup;
 
 /**
  * Opaque handle to a LunaModel linear terms reference.
@@ -1198,34 +1212,12 @@ typedef struct {
 } LmHigherOrder;
 
 /**
- * Opaque handle to a LunaModel model-specs reference.
+ * Opaque handle to a LunaModel constraint reference.
  *
  */
 typedef struct {
     uint8_t _private[0];
-} LmSpecs;
-
-/**
- * Opaque handle to a LunaModel timing reference.
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmTiming;
-
-/**
- * Opaque handle to a bulk per-sample solution lookup table.
- *
- * Built once from an [`LmEnv`] and an [`LmSol`] with [`lm_sol_lookup_new`], then
- * reused across many samples: [`lm_sol_lookup_update`] loads one sample row's
- * values by variable id, and [`lm_sol_lookup_write_sol`] writes them back. This
- * avoids one ABI round-trip per value in hot per-sample loops (e.g. samplers).
- * Release with [`lm_sol_lookup_free`].
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmSolutionLookup;
+} LmConstraint;
 
 /**
  * Opaque handle to a LunaModel timer reference.
@@ -1245,6 +1237,14 @@ typedef struct {
 typedef struct {
     uint8_t _private[0];
 } LmSubTimer;
+
+/**
+ * Opaque handle to a structured LunaModel error. See [`crate::error::RichError`].
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmError;
 
 /**
  * Stable, versioned table of LunaModel C API entry points.
@@ -1366,6 +1366,12 @@ typedef struct {
                                          const uint64_t*,
                                          uintptr_t,
                                          LmVref**);
+    LmStatus (*env_insert_before)(LmEnv*,
+                                  const LmVref*,
+                                  const char*,
+                                  LmVtype,
+                                  const LmLazyBounds*,
+                                  LmVref**);
     LmStatus (*env_insert_inverted)(LmEnv*, const LmVref*, LmVref**);
     LmStatus (*env_remove)(LmEnv*, const LmVref*);
     LmStatus (*env_set_inverted)(LmEnv*, uint32_t, bool, uint32_t);
@@ -1555,11 +1561,14 @@ typedef struct {
     LmStatus (*expr_ipow)(LmExpr*, uintptr_t);
     LmStatus (*expr_separate)(const LmExpr*, const LmVref*const *, uintptr_t, LmExpr**, LmExpr**);
     LmStatus (*expr_substitute)(const LmExpr*, const LmVref*, const LmExpr*, LmExpr**);
+    LmStatus (*expr_derivative)(const LmExpr*, const LmVref*, LmExpr**);
     void (*constr_free)(LmConstraint*);
     LmStatus (*constr_new)(const LmExpr*, double, LmComparator, const char*, LmConstraint**);
     LmStatus (*constr_clone)(const LmConstraint*, LmConstraint**);
     LmStatus (*constr_deep_clone)(const LmConstraint*, const LmEnv*, LmConstraint**);
     LmStatus (*constr_substitute)(LmConstraint*, const LmVref*, const LmExpr*);
+    LmStatus (*constr_indicator)(const LmConstraint*, LmVref**, bool*, LmConstraint**);
+    LmStatus (*constr_when)(const LmConstraint*, const LmVref*, bool, LmConstraint**);
     LmStatus (*constr_equal_contents)(const LmConstraint*, const LmConstraint*, bool*);
     LmStatus (*constr_eq)(const LmConstraint*, const LmConstraint*, bool*);
     LmStatus (*constr_evaluate_sample)(const LmConstraint*,

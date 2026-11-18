@@ -35,6 +35,7 @@ from luna_model.constraint import (
     Constraint,
     ConstraintCollection,
     ConstraintCollectionIter,
+    Indicator,
 )
 from luna_model.environment import Environment
 from luna_model.expression import (
@@ -91,6 +92,7 @@ __all__ = [
     "ExprIter",
     "Expression",
     "HigherOrder",
+    "Indicator",
     "Linear",
     "Model",
     "ModelPart",

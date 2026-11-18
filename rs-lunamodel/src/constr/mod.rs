@@ -6,13 +6,16 @@
 //! that are infallible on the native `Constraint` still return `Result` here.
 
 mod access;
+mod indicator;
 mod modification;
 
 use luna_model_ffi_derive::RawHandle;
 use lunamodel_capi::LmConstraint;
 use lunamodel_types::{Bias, Comparator};
 
-use crate::{ContentEquality, Env, Expression, Result, TryClone, TryDeepClone};
+use crate::{ContentEquality, Env, Expression, Result, TryClone, TryDeepClone, traits::LmTryFrom};
+
+pub use indicator::Indicator;
 
 /// Owning handle to a LunaModel constr (frees on drop).
 #[derive(RawHandle)]
@@ -73,6 +76,12 @@ impl std::fmt::Debug for Constraint {
             .field("rhs", &self.rhs().ok())
             .field("comparator", &self.comparator().ok())
             .finish()
+    }
+}
+
+impl LmTryFrom<*mut LmConstraint> for Option<Constraint> {
+    fn lm_try_from(value: *mut LmConstraint) -> Result<Self> {
+        Ok((!value.is_null()).then(|| Constraint::from_raw(value)))
     }
 }
 

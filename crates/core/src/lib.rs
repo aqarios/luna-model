@@ -28,7 +28,7 @@ mod utils;
 mod variable;
 
 pub use bounds::Bounds;
-pub use constraint::{Constraint, ConstraintCollection};
+pub use constraint::{Constraint, ConstraintCollection, Indicator};
 pub use environment::{ArcEnv, Environment};
 pub use expression::Expression;
 pub use model::{Model, ObjectiveMut};

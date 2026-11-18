@@ -279,6 +279,13 @@ class Expression:
             The partial derivative of this expression with respect to ``var``.
             Terms not involving ``var`` do not appear in the result.
 
+        Raises
+        ------
+        DifferentEnvsError
+            If ``var`` is from a different environment than this expression.
+        VariableNotExistingError
+            If ``var`` was removed from its environment.
+
         Examples
         --------
         >>> from luna_model import Variable, Environment
@@ -312,6 +319,13 @@ class Expression:
         -------
         set[Variable]
             The distinct variables appearing alongside ``var`` in some term, in no particular order.
+
+        Raises
+        ------
+        DifferentEnvsError
+            If ``var`` is from a different environment than this expression.
+        VariableNotExistingError
+            If ``var`` was removed from its environment.
 
         Examples
         --------

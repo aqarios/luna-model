@@ -31,6 +31,16 @@ impl Env {
         ))
     }
 
+    pub fn insert_before(
+        &mut self,
+        anchor: &VarRef,
+        name: &str,
+        vtype: Vtype,
+        bounds: Option<LazyBounds>,
+    ) -> Result<VarRef> {
+        out!(env_insert_before(@mut self, @anchor, !name, ~vtype, ?@bounds))
+    }
+
     pub fn insert_inverted(&mut self, vref: &VarRef) -> Result<VarRef> {
         out!(env_insert_inverted(@mut self, @vref))
     }

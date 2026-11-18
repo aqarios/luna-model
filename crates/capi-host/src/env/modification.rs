@@ -40,6 +40,45 @@ pub unsafe extern "C" fn lm_env_insert(
     })
 }
 
+/// Inserts a new variable directly before `anchor` and returns a reference
+/// tied to this environment. Fails with the `variable_not_existing` kind if
+/// `anchor` is not (or no longer) in the environment; nothing is inserted then.
+///
+/// # Safety
+/// `env` must be a valid mutable environment handle created by this library.
+/// `anchor` must point to a valid `LmVref`.
+/// `name` must point to a valid NUL-terminated C string.
+/// `bounds`, when non-null, must be a valid lazy-bounds handle created by this library.
+/// `out` must point to writable `LmVref *` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_env_insert_before(
+    env: *mut LmEnv,
+    anchor: *const LmVref,
+    name: *const c_char,
+    vtype: LmVtype,
+    bounds: *const LmLazyBounds,
+    out: *mut *mut LmVref,
+) -> LmStatus {
+    guard(|| {
+        let mut env = unsafe { storage_from_c(env, "env") }?.clone();
+        let anchor = unsafe { ref_from_c(anchor as *const VarRef, "anchor") }?;
+        let name = unsafe { str_from_c(name, "name") }?;
+        let vtype = vtype_from_c(vtype);
+        let bounds = if bounds.is_null() {
+            None
+        } else {
+            let bounds = unsafe { ref_from_c(bounds as *const LazyBounds, "bounds") }?;
+            Some(*bounds)
+        };
+        let out = unsafe { out_from_c(out) }?;
+        let var = env
+            .insert_before(anchor, name, vtype, bounds)
+            .map_err(CapiError::from)?;
+        *out = handle_to_c(var);
+        Ok(())
+    })
+}
+
 /// Inserts a new variable, deriving a fallback name when necessary and returns a reference tied to this environment.
 ///
 /// # Safety

@@ -15,6 +15,8 @@
 
 namespace lm {
 
+struct Indicator; // defined below
+
 /* Owning handle to a constraint: a comparison between an expression and a
  * right-hand-side value (frees on destruction). */
 class Constraint {
@@ -138,6 +140,18 @@ class Constraint {
         detail::check(lm_constr_substitute(handle_, target.get(), replacement.get()));
     }
 
+    /* Reads the constraint as an indicator, if every term has a common binary
+     * factor. Defined below. */
+    std::optional<Indicator> indicator() const;
+
+    /* The constraint that only has to hold while the binary `var` equals `value`
+     * (`true` for 1). An inverted binary stands for the other value of its base. */
+    Constraint when(const Vref &var, bool value = true) const {
+        LmConstraint *out = nullptr;
+        detail::check(lm_constr_when(handle_, var.get(), value, &out));
+        return Constraint(out);
+    }
+
     /* Content equality, ignoring environment identity. */
     bool equal_contents(const Constraint &other) const {
         bool out = false;
@@ -162,6 +176,27 @@ class Constraint {
   private:
     LmConstraint *handle_;
 };
+
+/* A constraint that only has to hold for one value of a binary variable. */
+struct Indicator {
+    /* The binary variable the constraint depends on, never an inverted one. */
+    Vref variable;
+    /* The value of `variable` the constraint holds for. */
+    bool value;
+    /* What holds then. */
+    Constraint constraint;
+};
+
+inline std::optional<Indicator> Constraint::indicator() const {
+    LmVref *var = nullptr;
+    bool value = false;
+    LmConstraint *inner = nullptr;
+    detail::check(lm_constr_indicator(handle_, &var, &value, &inner));
+    if (var == nullptr) {
+        return std::nullopt;
+    }
+    return Indicator{Vref(var), value, Constraint(inner)};
+}
 
 } // namespace lm
 

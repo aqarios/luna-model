@@ -206,6 +206,15 @@ class Env {
         return Vref(out);
     }
 
+    /* Inserts a variable directly before `anchor` in the variable order. */
+    Vref insert_before(const Vref &anchor, const std::string &name, LmVtype vtype,
+                       const LazyBounds *bounds = nullptr) {
+        LmVref *out = nullptr;
+        detail::check(lm_env_insert_before(handle_, anchor.get(), name.c_str(), vtype,
+                                           bounds ? bounds->get() : nullptr, &out));
+        return Vref(out);
+    }
+
     /* Inserts a variable, retrying with an encoding fallback on name clashes. */
     Vref insert_with_fallback(const std::string &name, LmVtype vtype,
                               const std::vector<std::uint64_t> &enc,
@@ -224,7 +233,8 @@ class Env {
         return Vref(out);
     }
 
-    /* Removes the variable referenced by `vref`; throws `lm::Error` if it is not in the environment. */
+    /* Removes the variable referenced by `vref`; throws `lm::Error` if it is not in the
+     * environment. */
     void remove(const Vref &vref) { detail::check(lm_env_remove(handle_, vref.get())); }
 
     /* Sets or clears the inverted companion index of the variable at `index`.

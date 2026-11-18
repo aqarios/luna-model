@@ -65,6 +65,12 @@ impl Expression {
         out!(expr_substitute(@self, @target, @replacement))
     }
 
+    /// Returns the partial derivative of the expression with respect to `var`,
+    /// preserving the environment.
+    pub fn derivative(&self, var: &VarRef) -> Result<Expression> {
+        out!(expr_derivative(@self, @var))
+    }
+
     /// Splits the expression by `vrefs` into two: the first holds every
     /// contribution involving at least one variable in `vrefs`, the second holds
     /// the remainder.

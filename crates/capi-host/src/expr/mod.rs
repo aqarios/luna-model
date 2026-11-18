@@ -32,9 +32,9 @@ pub use modification::{
 pub use serialize::{lm_expr_deserialize, lm_expr_serialize};
 
 pub use ops::{
-    lm_expr_add_bias, lm_expr_add_expr, lm_expr_add_vref, lm_expr_iadd_bias, lm_expr_iadd_expr,
-    lm_expr_iadd_vref, lm_expr_imul_bias, lm_expr_imul_expr, lm_expr_imul_vref, lm_expr_ipow,
-    lm_expr_isub_bias, lm_expr_isub_expr, lm_expr_isub_vref, lm_expr_mul_bias, lm_expr_mul_expr,
-    lm_expr_mul_vref, lm_expr_neg, lm_expr_pow, lm_expr_rsub_bias, lm_expr_separate,
-    lm_expr_sub_bias, lm_expr_sub_expr, lm_expr_sub_vref, lm_expr_substitute,
+    lm_expr_add_bias, lm_expr_add_expr, lm_expr_add_vref, lm_expr_derivative, lm_expr_iadd_bias,
+    lm_expr_iadd_expr, lm_expr_iadd_vref, lm_expr_imul_bias, lm_expr_imul_expr, lm_expr_imul_vref,
+    lm_expr_ipow, lm_expr_isub_bias, lm_expr_isub_expr, lm_expr_isub_vref, lm_expr_mul_bias,
+    lm_expr_mul_expr, lm_expr_mul_vref, lm_expr_neg, lm_expr_pow, lm_expr_rsub_bias,
+    lm_expr_separate, lm_expr_sub_bias, lm_expr_sub_expr, lm_expr_sub_vref, lm_expr_substitute,
 };
