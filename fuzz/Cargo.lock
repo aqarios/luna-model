@@ -430,7 +430,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-core"
-version = "0.8.0-alpha.3"
+version = "0.8.0"
 dependencies = [
  "bitvec",
  "derive_more",
@@ -454,7 +454,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-error"
-version = "0.8.0-alpha.3"
+version = "0.8.0"
 dependencies = [
  "prost",
  "rand",
@@ -476,7 +476,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-hashing"
-version = "0.8.0-alpha.3"
+version = "0.8.0"
 dependencies = [
  "lunamodel-core",
  "lunamodel-types",
@@ -485,7 +485,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-serializer"
-version = "0.8.0-alpha.3"
+version = "0.8.0"
 dependencies = [
  "bitvec",
  "indexmap",
@@ -502,7 +502,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-translate"
-version = "0.8.0-alpha.3"
+version = "0.8.0"
 dependencies = [
  "indexmap",
  "lunamodel-core",
@@ -514,7 +514,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler"
-version = "0.8.0-alpha.3"
+version = "0.8.0"
 dependencies = [
  "anyhow",
  "lunamodel-core",
@@ -526,7 +526,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transpiler-macros"
-version = "0.8.0-alpha.3"
+version = "0.8.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -535,7 +535,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-types"
-version = "0.8.0-alpha.3"
+version = "0.8.0"
 dependencies = [
  "derive_more",
  "enumset",
@@ -547,7 +547,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.8.0-alpha.3"
+version = "0.8.0"
 dependencies = [
  "lunamodel-error",
  "num",
