@@ -3,20 +3,22 @@
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{ControlFlowPass, ControlFlowPlan, PassContext, TranspileKindResult};
+use lunamodel_types::{EnumSet, ModelPart};
 use pyo3::{Py, PyErr, Python, types::PyAnyMethods};
 
 use super::{PyControlFlowPass, PyControlFlowPlan};
 use crate::{
     PyModel,
     transform::{PyPassContext, utils::map_pyerr},
+    types::parts_from_py,
 };
 
 pub struct PyControlFlowPassAdapter {
     inner: Py<PyControlFlowPass>,
     name: String,
     requires: Vec<String>,
-    invalidates: Vec<String>,
     provides: Vec<String>,
+    modifies: EnumSet<ModelPart>,
 }
 
 impl PyControlFlowPassAdapter {
@@ -31,22 +33,25 @@ impl PyControlFlowPassAdapter {
             .map_err(map_pyerr)?
             .extract(py)
             .map_err(map_pyerr)?;
-        let invalidates: Vec<String> = inner
-            .call_method0(py, "invalidates")
-            .map_err(map_pyerr)?
-            .extract(py)
-            .map_err(map_pyerr)?;
         let provides: Vec<String> = inner
             .call_method0(py, "provides")
             .map_err(map_pyerr)?
             .extract(py)
             .map_err(map_pyerr)?;
+        let modifies = parts_from_py(
+            inner
+                .call_method0(py, "modifies")
+                .map_err(map_pyerr)?
+                .bind(py),
+        )
+        .map_err(map_pyerr)?;
+
         Ok(Self {
             inner,
             name,
             requires,
-            invalidates,
             provides,
+            modifies,
         })
     }
 
@@ -82,11 +87,11 @@ impl ControlFlowPass for PyControlFlowPassAdapter {
         &self.requires
     }
 
-    fn provides(&self) -> &[String] {
-        &self.provides
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        self.modifies
     }
 
-    fn invalidates(&self) -> &[String] {
-        &self.invalidates
+    fn provides(&self) -> &[String] {
+        &self.provides
     }
 }

@@ -28,6 +28,7 @@ from .decorators import (
     transform,
 )
 from .meta_analysis import MetaAnalysisPass
+from .model_part import ModelPart
 from .output import TransformationOutput
 from .pass_manager import PassManager
 from .pipeline import Pipeline
@@ -43,6 +44,7 @@ __all__ = [
     "ControlFlowPass",
     "ControlFlowPlan",
     "MetaAnalysisPass",
+    "ModelPart",
     "NothingArtifact",
     "Pass",
     "PassContext",

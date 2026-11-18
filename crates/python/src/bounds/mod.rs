@@ -2,13 +2,13 @@
 mod access;
 mod cmp;
 mod creation;
-mod io;
+mod fmt;
 mod unbounded;
 
 use std::sync::Arc;
 
 use lunamodel_core::prelude::{Bounds, LazyBounds};
-use lunamodel_io::{CustomFormat, FormatOpt};
+use lunamodel_fmt::{CustomFormat, FormatOpt};
 use parking_lot::RwLock;
 use pyo3::pyclass;
 

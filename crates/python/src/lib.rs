@@ -45,15 +45,15 @@ pub use timer::{PySubTimer, PyTimer, PyTiming};
 /// Python variable wrapper.
 pub use variable::PyVariable;
 
-/// Re-exported core enum used by Python solution APIs.
-pub use lunamodel_core::ValueSource;
 /// Re-exported translation target enum used by Python APIs.
 pub use lunamodel_translate::TranslationTarget;
 /// Re-exported core enums commonly surfaced in Python.
-pub use lunamodel_types::{Comparator, Ctype, Sense, Vtype};
+pub use lunamodel_types::{Comparator, Ctype, Sense, ValueSource, Vtype};
 
 /// Python enum wrappers corresponding to the re-exported core enums.
-pub use types::{PyComparator, PyCtype, PySense, PyTranslationTarget, PyValueSource, PyVtype};
+pub use types::{
+    PyComparator, PyCtype, PyModelPart, PySense, PyTranslationTarget, PyValueSource, PyVtype,
+};
 
 /// Python exception types generated from the Rust error taxonomy.
 pub use lunamodel_error::py::*;

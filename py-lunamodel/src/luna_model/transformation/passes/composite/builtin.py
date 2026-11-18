@@ -20,6 +20,7 @@ from luna_model.transformation.artifact import TransformationPassArtifact
 from luna_model.transformation.composite import CompositePass
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.key import AnalysisKey
+from luna_model.transformation.model_part import ModelPart
 
 if TYPE_CHECKING:
     from luna_model._lm import PyModel
@@ -37,7 +38,8 @@ class _BuiltinCompositeSuper(Protocol[Artifact, Result]):
     def name(self) -> str: ...
     def forward(self, model: Model, ctx: PassContext) -> tuple[Model, Artifact, Result]: ...
     def requires(self) -> list[str]: ...
-    def invalidates(self) -> list[str]: ...
+    def modifies(self) -> set[ModelPart]: ...
+    def depends_on(self) -> set[ModelPart]: ...
     @classmethod
     def backward(cls, artifact: Artifact, solution: Solution) -> Solution: ...
     @classmethod
@@ -123,17 +125,31 @@ class BuiltinComposite(Generic[Artifact, Result], metaclass=_BuiltinCompositeMet
         sup = cast("_BuiltinCompositeSuper[Artifact, Result]", super())
         return sup.requires()
 
-    def invalidates(self) -> list[str]:
+    def modifies(self) -> set[ModelPart]:
         """
-        Get a list of passes that are invalidated by this pass.
+        Get the model parts this pass may modify.
+
+        Analyses depending on any of these parts are invalidated after this pass runs.
 
         Returns
         -------
-        list of str
-            Names of passes whose results become invalid after this pass runs.
+        set[ModelPart]
+            The modified model parts.
         """
         sup = cast("_BuiltinCompositeSuper[Artifact, Result]", super())
-        return sup.invalidates()
+        return sup.modifies()
+
+    def depends_on(self) -> set[ModelPart]:
+        """
+        Get the model parts the result is computed from.
+
+        Returns
+        -------
+        set[ModelPart]
+            The model parts the result depends on.
+        """
+        sup = cast("_BuiltinCompositeSuper[Artifact, Result]", super())
+        return sup.depends_on()
 
     @classmethod
     def provides(cls) -> str:

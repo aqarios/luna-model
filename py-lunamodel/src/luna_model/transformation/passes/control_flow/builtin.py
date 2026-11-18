@@ -17,6 +17,7 @@ from typing import Protocol, cast
 from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.control_flow import ControlFlowPass, ControlFlowPlan
+from luna_model.transformation.model_part import ModelPart
 
 
 class _BuiltinControlFlowMeta(type(ControlFlowPass)):
@@ -27,7 +28,7 @@ class _BuiltinControlFlowMeta(type(ControlFlowPass)):
 class _BuiltinControlFlowSuper(Protocol):
     def name(self) -> str: ...
     def requires(self) -> list[str]: ...
-    def invalidates(self) -> list[str]: ...
+    def modifies(self) -> set[ModelPart]: ...
     def provides(self) -> list[str]: ...
     def run(self, model: Model, ctx: PassContext) -> ControlFlowPlan: ...
     def __str__(self) -> str: ...
@@ -84,17 +85,17 @@ class BuiltinControlFlow(metaclass=_BuiltinControlFlowMeta):
         sup = cast("_BuiltinControlFlowSuper", super())
         return sup.requires()
 
-    def invalidates(self) -> list[str]:
+    def modifies(self) -> set[ModelPart]:
         """
-        Get a list of passes that are invalidated by this control-flow's plan.
+        Get the model parts any step of this control-flow's plan may modify.
 
         Returns
         -------
-        list of str
-            Names of passes whose results become invalid after this pass runs.
+        set[ModelPart]
+            The modified model parts.
         """
         sup = cast("_BuiltinControlFlowSuper", super())
-        return sup.invalidates()
+        return sup.modifies()
 
     def provides(self) -> list[str]:
         """
@@ -106,7 +107,7 @@ class BuiltinControlFlow(metaclass=_BuiltinControlFlowMeta):
             The identifiers of the cache elements
         """
         sup = cast("_BuiltinControlFlowSuper", super())
-        return sup.invalidates()
+        return sup.provides()
 
     def __str__(self) -> str:
         """Human readable string."""

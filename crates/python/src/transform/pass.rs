@@ -2,6 +2,16 @@
 
 use std::sync::Arc;
 
+use lunamodel_capi_plugin::{
+    CPluginAnalysisPass, CPluginCompositePass, CPluginControlFlowPass, CPluginMetaAnalysisPass,
+    CPluginTransformPass,
+};
+use lunamodel_capi_pyffi::plugin::{
+    PLUGIN_ANALYSIS_METHOD, PLUGIN_COMPOSITE_METHOD, PLUGIN_CONTROL_FLOW_METHOD,
+    PLUGIN_META_ANALYSIS_METHOD, PLUGIN_TRANSFORM_METHOD, read_plugin_analysis,
+    read_plugin_composite, read_plugin_control_flow, read_plugin_meta_analysis,
+    read_plugin_transform,
+};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transform::{
     analysis::{
@@ -19,7 +29,7 @@ use lunamodel_transpiler::{Pipeline, PipelineStep};
 use pyo3::{
     FromPyObject, IntoPyObjectExt, Py, PyAny, PyErr, PyResult, Python,
     exceptions::PyTypeError,
-    types::{PyAnyMethods, PyTypeMethods},
+    types::{PyAnyMethods, PyCapsule, PyTypeMethods},
 };
 
 use crate::transform::{
@@ -130,7 +140,7 @@ macro_rules! define_py_pass {
                         PyCompositePassAdapter::new(py, p.clone_ref(py))?,
                     ))),
                     // default for non-leaking error
-                    Self::Default(d) => Err(invalid_pass_error(d, py)),
+                    Self::Default(d) => plugin_pass_step(d, py),
                 }
             }
 
@@ -248,6 +258,63 @@ define_py_pass!(
     ],
     control_flow: [(PyIfElsePass, IfElsePass)],
 );
+
+/// Wraps a foreign C-boundary plugin pass (Rust/C-backed), if the object provides a descriptor.
+///
+/// Native built-in and pure-Python passes match earlier `PyPass` variants; only objects that don't
+/// reach the host as a known pass fall here. If the object exposes a plugin-descriptor method — a
+/// transform via [`PLUGIN_TRANSFORM_METHOD`] or an analysis via [`PLUGIN_ANALYSIS_METHOD`] — its
+/// capsule is read and adapted into the matching step exactly like a built-in; otherwise it is an
+/// invalid pass.
+fn plugin_pass_step(obj: &Py<PyAny>, py: Python<'_>) -> PyResult<PipelineStep> {
+    let bound = obj.bind(py);
+    if bound.hasattr(PLUGIN_TRANSFORM_METHOD)? {
+        let capsule = bound
+            .call_method0(PLUGIN_TRANSFORM_METHOD)?
+            .cast_into::<PyCapsule>()?;
+        let descriptor = read_plugin_transform(&capsule)?;
+        return Ok(PipelineStep::Transform(Arc::new(
+            CPluginTransformPass::from_descriptor(&descriptor),
+        )));
+    }
+    if bound.hasattr(PLUGIN_ANALYSIS_METHOD)? {
+        let capsule = bound
+            .call_method0(PLUGIN_ANALYSIS_METHOD)?
+            .cast_into::<PyCapsule>()?;
+        let descriptor = read_plugin_analysis(&capsule)?;
+        return Ok(PipelineStep::Analysis(Arc::new(
+            CPluginAnalysisPass::from_descriptor(&descriptor),
+        )));
+    }
+    if bound.hasattr(PLUGIN_COMPOSITE_METHOD)? {
+        let capsule = bound
+            .call_method0(PLUGIN_COMPOSITE_METHOD)?
+            .cast_into::<PyCapsule>()?;
+        let descriptor = read_plugin_composite(&capsule)?;
+        return Ok(PipelineStep::Composite(Arc::new(
+            CPluginCompositePass::from_descriptor(&descriptor),
+        )));
+    }
+    if bound.hasattr(PLUGIN_META_ANALYSIS_METHOD)? {
+        let capsule = bound
+            .call_method0(PLUGIN_META_ANALYSIS_METHOD)?
+            .cast_into::<PyCapsule>()?;
+        let descriptor = read_plugin_meta_analysis(&capsule)?;
+        return Ok(PipelineStep::MetaAnalysis(Arc::new(
+            CPluginMetaAnalysisPass::from_descriptor(&descriptor),
+        )));
+    }
+    if bound.hasattr(PLUGIN_CONTROL_FLOW_METHOD)? {
+        let capsule = bound
+            .call_method0(PLUGIN_CONTROL_FLOW_METHOD)?
+            .cast_into::<PyCapsule>()?;
+        let descriptor = read_plugin_control_flow(&capsule)?;
+        return Ok(PipelineStep::ControlFlow(Arc::new(
+            CPluginControlFlowPass::from_descriptor(&descriptor),
+        )));
+    }
+    Err(invalid_pass_error(obj, py))
+}
 
 fn invalid_pass_error(obj: &Py<PyAny>, py: Python<'_>) -> PyErr {
     let bound = obj.bind(py);

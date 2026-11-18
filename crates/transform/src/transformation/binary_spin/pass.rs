@@ -6,7 +6,7 @@ use lunamodel_core::{Environment, Model, Solution, solution::Column};
 use lunamodel_transpiler::{
     PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult, transformation,
 };
-use lunamodel_types::Vtype;
+use lunamodel_types::{EnumSet, ModelPart, Vtype};
 use sqids::Sqids;
 
 use crate::error::{TransformError, TransformResult};
@@ -76,6 +76,10 @@ impl BinarySpinPass {
 impl TransformationPass for BinarySpinPass {
     fn name(&self) -> &str {
         "binary-spin"
+    }
+
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        ModelPart::Objective | ModelPart::Constraints | ModelPart::Variables
     }
 
     fn forward(

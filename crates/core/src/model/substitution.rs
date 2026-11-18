@@ -31,7 +31,7 @@ impl Model {
         self.objective = self.objective.substitute(target, replacement)?;
         self.constraints.substitute(target, replacement)?;
         if !replacement.contains(target) {
-            self.environment.remove(target);
+            self.environment.remove(target)?;
         }
         Ok(())
     }

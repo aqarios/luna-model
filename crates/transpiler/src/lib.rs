@@ -22,13 +22,20 @@ mod registry;
 mod reversible;
 mod step;
 mod validation;
+mod verify;
 
-pub use analysis::{AnalysisKey, AnalysisManager};
+pub use analysis::{
+    AnalysisKey, AnalysisManager, SerializedAnalysis, register_analysis_serializer,
+    serialize_named_analysis,
+};
 pub use artifact::{Artifact, ErasedArtifact};
 pub use composite::CompositePass;
 pub use context::PassContext;
 pub use control_flow::{ControlFlowPass, ControlFlowPlan};
-pub use error::{TranspileErrorKind, TranspileKindResult, TranspilerError, TranspilerResult};
+pub use error::{
+    InvalidatedRequirement, TranspileErrorKind, TranspileKindResult, TranspilerError,
+    TranspilerResult,
+};
 pub use manager::PassManager;
 pub use meta::MetaAnalysisPass;
 pub use output::TransformationOutput;

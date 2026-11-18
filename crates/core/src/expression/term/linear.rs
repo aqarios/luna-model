@@ -107,10 +107,10 @@ impl AddAssign<(VarIdx, Bias)> for Linear {
         let pos = self.biases.find(u).unwrap_or_else(|l| l);
         if pos == self.storage_len() {
             self.push_back(u, b);
-        } else if self.biases[pos].idx != u {
+        } else if self.biases[pos].idx() != u {
             self.insert(pos, u, b);
         } else {
-            self.biases[pos].bias += b;
+            *self.biases[pos].bias_mut() += b;
         }
     }
 }
@@ -158,7 +158,7 @@ impl Index<VarIdx> for Linear {
     /// Returns the bias for a variable, defaulting to zero when absent.
     fn index(&self, index: VarIdx) -> &Self::Output {
         match self.biases.find(index).ok() {
-            Some(p) => &self.biases[p].bias,
+            Some(p) => self.biases[p].bias_ref(),
             None => &DEFAULT_BIAS,
         }
     }
@@ -170,10 +170,10 @@ impl IndexMut<VarIdx> for Linear {
         let pos = self.biases.find(index).unwrap_or_else(|l| l);
         if pos == self.storage_len() {
             self.push_back(index, Bias::default());
-        } else if self.biases[pos].idx != index {
+        } else if self.biases[pos].idx() != index {
             self.insert(pos, index, Bias::default());
         }
-        &mut self.biases[pos].bias
+        self.biases[pos].bias_mut()
     }
 }
 
@@ -187,9 +187,19 @@ impl PartialEq for Linear {
 impl Neg for Linear {
     type Output = Self;
 
+    /// Negates every stored bias in place, reusing the existing storage.
+    fn neg(mut self) -> Self::Output {
+        self.biases.iter_mut().for_each(|(_, b)| *b = -*b);
+        self
+    }
+}
+
+impl Neg for &Linear {
+    type Output = Linear;
+
     /// Negates every stored bias.
     fn neg(self) -> Self::Output {
-        Self {
+        Linear {
             biases: self.biases.iter().map(|(idx, b)| (idx, -b)).collect(),
         }
     }

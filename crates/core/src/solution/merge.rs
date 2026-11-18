@@ -16,7 +16,7 @@ impl Solution {
     /// floating-point constraint comparisons.
     pub fn merge_many(
         solutions: &[Solution],
-        model: &Option<Model>,
+        model: Option<&Model>,
         tol: Option<f64>,
     ) -> LunaModelResult<Solution> {
         if solutions.is_empty() {

@@ -115,9 +115,9 @@ impl ArcEnv {
         ))
     }
 
-    /// Removes the referenced variable from the environment.
-    pub fn remove(&mut self, target: &VarRef) {
-        self.env.write_arc().remove(target);
+    /// Removes the referenced variable from the environment; fails if it is not in it.
+    pub fn remove(&mut self, target: &VarRef) -> LunaModelResult<()> {
+        self.env.write_arc().remove(target)
     }
 
     /// Returns the unique id of the wrapped environment.
@@ -181,5 +181,27 @@ impl ContentEquality for ArcEnv {
             }
         }
         true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use lunamodel_error::LunaModelError;
+
+    #[test]
+    fn remove_of_a_removed_variable_fails_instead_of_panicking() -> LunaModelResult<()> {
+        let mut env = ArcEnv::from(Environment::default());
+        let x = env.insert("x", Vtype::Binary, None)?;
+        env.insert("y", Vtype::Binary, None)?;
+
+        env.remove(&x)?;
+        assert!(!env.contains("x"));
+        assert!(matches!(
+            env.remove(&x),
+            Err(LunaModelError::VariableNotExisting(_))
+        ));
+        assert_eq!(env.len(), 1);
+        Ok(())
     }
 }

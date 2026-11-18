@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package luna_plugin_ext;
+
+// Wire form of the analysis result a plugin transform decodes. Field layout must match the
+// consumer's prost `VariableCount` (field 1, uint64) so the bytes are interchangeable.
+message VariableCount {
+  uint64 count = 1;
+}

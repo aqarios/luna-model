@@ -47,6 +47,8 @@ mod tests {
 
     #[test]
     fn roundtrip_binary_spin_pass_spin() -> LunaModelResult<()> {
+        register_backward::<BinarySpinPass>();
+
         let mut model = Model::default();
         let x = model.add_var("s0", Vtype::Spin, None)?;
         let y = model.add_var("s1", Vtype::Spin, None)?;

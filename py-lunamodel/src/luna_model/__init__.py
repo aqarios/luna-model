@@ -35,6 +35,7 @@ from luna_model.constraint import (
     Constraint,
     ConstraintCollection,
     ConstraintCollectionIter,
+    Indicator,
 )
 from luna_model.environment import Environment
 from luna_model.expression import (
@@ -51,6 +52,7 @@ from luna_model.model import (
     ModelSpecs,
     Sense,
 )
+from luna_model.plugins import register
 from luna_model.solution import (
     Result,
     ResultIter,
@@ -66,7 +68,7 @@ from luna_model.timer import (
     Timer,
     Timing,
 )
-from luna_model.transformation import PassContext
+from luna_model.transformation import ModelPart, PassContext
 from luna_model.ttarget import TranslationTarget
 from luna_model.utils import quicksum
 from luna_model.variable import (
@@ -90,8 +92,10 @@ __all__ = [
     "ExprIter",
     "Expression",
     "HigherOrder",
+    "Indicator",
     "Linear",
     "Model",
+    "ModelPart",
     "ModelSpecs",
     "PassContext",
     "Quadratic",
@@ -114,6 +118,7 @@ __all__ = [
     "__version__",
     "errors",
     "quicksum",
+    "register",
     "transformation",
     "translator",
     "utils",

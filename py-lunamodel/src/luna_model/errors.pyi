@@ -135,6 +135,10 @@ class ModelInfeasibleError(TransformError): ...
 @deprecated("CompilationError is deprecated. Use TransformError instead.")  # noqa: PYI053
 class CompilationError(TransformError): ...
 
+# Returns (does not raise) the exception luna-model raises for an error of `kind`, a C API kind
+# tag; C API extensions use it to raise the native class. Unknown kinds map to `LunaModelError`.
+def _error_for_kind(kind: str, message: str) -> LunaModelError | IndexError: ...
+
 __all__ = [
     "AnalysisPassError",
     "CompilationError",

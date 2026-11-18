@@ -1,0 +1,21 @@
+[package]
+name = "lunamodel-capi-plugin"
+version.workspace = true
+license.workspace = true
+publish = false
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+name = "lunamodel_capi_plugin"
+crate-type = ["rlib"]
+
+[dependencies]
+lunamodel-core = { workspace = true }
+lunamodel-transpiler = { workspace = true }
+lunamodel-types = { workspace = true }
+lunamodel-capi = { workspace = true }
+lunamodel-capi-handle = { workspace = true }

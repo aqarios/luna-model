@@ -5,7 +5,7 @@ use lunamodel_transpiler::{
     PassContext, PipelineStep, Reversible, TransformationPass, TranspileErrorKind,
     TranspileKindResult, transformation,
 };
-use lunamodel_types::Comparator;
+use lunamodel_types::{Comparator, EnumSet, ModelPart};
 
 use super::artifact::GeToLeConstraintsArtifact as GTLCArtifact;
 
@@ -16,6 +16,10 @@ pub struct GeToLeConstraintsPass;
 impl TransformationPass for GeToLeConstraintsPass {
     fn name(&self) -> &str {
         "ge-to-le-constraints"
+    }
+
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        EnumSet::only(ModelPart::Constraints)
     }
 
     fn forward(

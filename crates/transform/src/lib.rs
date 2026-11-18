@@ -18,3 +18,13 @@ pub fn register_backward() {
     transformation::register_backward();
     composite::register_backward();
 }
+
+/// Registers on-demand serializers for built-in analysis results so plugins can consume them across
+/// the C-ABI. Call once at host startup.
+pub fn register_builtins() {
+    lunamodel_transpiler::register_analysis_serializer(
+        <analysis::MinValueForConstraintAnalysis as lunamodel_transpiler::AnalysisPass>::PROVIDES,
+        lunamodel_capi_plugin_proto::proto::MinConstraintValues::TYPE_TAG,
+        analysis::min_val_in_constr::serialize_min_constraint_values,
+    );
+}

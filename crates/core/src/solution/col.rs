@@ -1,13 +1,11 @@
 //! Column storage primitives used by solutions.
 
-use std::{
-    fmt::{Debug, Display},
-    marker::PhantomData,
-    ops::Index,
-};
+use std::{fmt::Debug, marker::PhantomData, ops::Index};
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_types::{Bias, BinaryAssignment, IntegerAssignment, RealAssignment, SpinAssignment};
+use lunamodel_types::{
+    Assignment, Bias, BinaryAssignment, IntegerAssignment, RealAssignment, SpinAssignment,
+};
 use lunamodel_utils::cast_near_integral;
 use num::{NumCast, ToPrimitive};
 
@@ -31,26 +29,6 @@ pub enum Column {
     Spin(ColElement<SpinAssignment>),
     Integer(ColElement<IntegerAssignment>),
     Real(ColElement<RealAssignment>),
-}
-
-/// Type-erased single assignment value extracted from a [`Column`].
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Assignment {
-    Binary(BinaryAssignment),
-    Spin(SpinAssignment),
-    Integer(IntegerAssignment),
-    Real(RealAssignment),
-}
-
-impl From<u8> for Assignment {
-    fn from(val: u8) -> Self {
-        Assignment::Binary(val)
-    }
-}
-impl From<i8> for Assignment {
-    fn from(val: i8) -> Self {
-        Assignment::Spin(val)
-    }
 }
 
 impl Index<usize> for Column {
@@ -397,23 +375,5 @@ impl ColElement<f64> {
     /// Returns the real values as an owned vector.
     pub fn data(&self) -> Vec<f64> {
         self.iter().collect()
-    }
-}
-
-impl Display for Assignment {
-    /// Formats the assignment as a plain numeric value.
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Binary(b) => write!(f, "{b}"),
-            Self::Spin(s) => write!(f, "{s}"),
-            Self::Integer(i) => write!(f, "{i}"),
-            Self::Real(r) => {
-                let s = format!("{r:.}");
-                match s.contains(".") {
-                    true => write!(f, "{}", s),
-                    false => write!(f, "{}.0", s),
-                }
-            }
-        }
     }
 }

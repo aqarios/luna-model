@@ -13,7 +13,7 @@ from luna_model._lm import (
     PyTransformationRecord,
 )
 
-from luna_model import Environment, Model, Sense, Solution, Vtype
+from luna_model import Environment, Model, ModelPart, Sense, Solution, Vtype
 from luna_model.transformation.passes import MaxBiasAnalysis
 
 
@@ -44,8 +44,8 @@ class AbstractTransformationPass(PyTransformationPass, Generic[A]):
     def requires(self) -> list[str]:
         return []
 
-    def invalidates(self) -> list[str]:
-        return []
+    def modifies(self) -> set[ModelPart]:
+        return set(ModelPart)
 
     def _forward(self, model: PyModel, ctx: PyPassContext) -> tuple[PyModel, A]:
         m, a = self.forward(Model._from_pym(model), PassContext._from_pyctx(ctx))

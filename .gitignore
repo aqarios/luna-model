@@ -11,7 +11,6 @@
 coverage.lcov
 coverage.xml
 profile.json
-polars/vendor
 
 # OS
 .DS_Store
@@ -48,6 +47,16 @@ node_modules/
 /js-lunamodel/wasi-worker.mjs
 /js-lunamodel/package-lock.json
 
+# C/CPP|CXX
+/dist/
+/test/c/build/
+/cxx-lunamodel/samples/build/
+/cxx-lunamodel/test/build/
+
+!/test/c/CMakeLists.txt
+!/cxx-lunamodel/samples/CMakeLists.txt
+!/cxx-lunamodel/test/CMakeLists.txt
+
 # Data
 *.csv
 *.parquet
@@ -63,15 +72,11 @@ node_modules/
 # User specific source setups
 # You can put anything here that needs to be done to prepare your env.
 .user_env.*
-# pixi environments
-.pixi/*
-!.pixi/config.toml
 
 NOTES.md
 # iykyk
 :w
 *dbg*
-*.txt
 build/
 py-lunamodel/.intentionally-empty-file.o
 
@@ -86,5 +91,9 @@ py-lunamodel/tests/test_core/test_translator/mps_models/*.mps
 py-lunamodel/tmp.py
 
 py-lunamodel/ignore.py
+
+dist/
+
+cxx-lunamodel/tests/plugin_ext/.cache/
 
 ci/build-all.sh

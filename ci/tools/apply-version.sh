@@ -39,6 +39,15 @@ text, n = re.subn(
 assert n > 0, "no internal path-dep version requirements found in Cargo.toml"
 cargo.write_text(text)
 
+# The rs-lunamodel SDK is a separate workspace; its `[workspace.package] version` is the
+# first bare `version =` line (dependency tables follow with their own).
+sdk = pathlib.Path("rs-lunamodel/Cargo.toml")
+text, n = re.subn(
+    r'^version = "[^"]*"', f'version = "{version}"', sdk.read_text(), count=1, flags=re.M
+)
+assert n == 1, "workspace version line not found in rs-lunamodel/Cargo.toml"
+sdk.write_text(text)
+
 pkg = pathlib.Path("js-lunamodel/package.json")
 data = json.loads(pkg.read_text())
 data["version"] = version

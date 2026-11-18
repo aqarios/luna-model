@@ -3,6 +3,7 @@
 use std::any::Any;
 
 use lunamodel_core::Model;
+use lunamodel_types::{EnumSet, ModelPart};
 
 use crate::{ErasedArtifact, PassContext, TransformationPass, error::TranspileKindResult};
 
@@ -14,8 +15,8 @@ pub trait ErasedTransformPass: Send + Sync {
     fn name(&self) -> &str;
     /// Required pass/analysis names.
     fn requires(&self) -> &[String];
-    /// Invalidated analysis names.
-    fn invalidates(&self) -> &[String];
+    /// Model parts the pass may modify.
+    fn modifies(&self) -> EnumSet<ModelPart>;
     /// Runs the forward pass and erases the produced artifact.
     fn forward_erased(
         &self,
@@ -45,8 +46,8 @@ where
         self.requires()
     }
 
-    fn invalidates(&self) -> &[String] {
-        self.invalidates()
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        self.modifies()
     }
 
     fn forward_erased(

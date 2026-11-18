@@ -19,6 +19,7 @@ from luna_model.model.model import Model
 from luna_model.transformation.analysis import AnalysisPass
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.key import AnalysisKey
+from luna_model.transformation.model_part import ModelPart
 
 Result = TypeVar("Result", covariant=True)  # noqa: PLC0105
 
@@ -34,6 +35,7 @@ class _BuiltinSuper(Protocol[Result]):
     def name(self) -> str: ...
     def run(self, model: PyModel, ctx: PyPassContext) -> Result: ...
     def requires(self) -> list[str]: ...
+    def depends_on(self) -> set[ModelPart]: ...
     def __str__(self) -> str: ...
 
 
@@ -88,6 +90,18 @@ class BuiltinAnalysis(Generic[Result], metaclass=_BuiltinAnalysisMeta):
         """
         sup = cast("_BuiltinSuper[Result]", super())
         return sup.requires()
+
+    def depends_on(self) -> set[ModelPart]:
+        """
+        Get the model parts the result is computed from.
+
+        Returns
+        -------
+        set[ModelPart]
+            The model parts the result depends on.
+        """
+        sup = cast("_BuiltinSuper[Result]", super())
+        return sup.depends_on()
 
     @classmethod
     def provides(cls) -> str:

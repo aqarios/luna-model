@@ -37,12 +37,16 @@ class PassManager:
     ----------
     passes : Sequence[BasePass], optional
         An ordered sequence of Pass instances to apply, default None.
+    verify_modifies : bool, optional
+        Check after every transformation that it only modified the model parts it declares
+        in ``modifies``, raising an error otherwise. Turn it on in tests of your own passes.
+        Defaults to on in debug builds and off in release builds.
     """
 
     _pm: PyPassManager
 
-    def __init__(self, passes: Sequence[Pass] | Pipeline | None = None) -> None:
-        self._pm = PyPassManager(passes)
+    def __init__(self, passes: Sequence[Pass] | Pipeline | None = None, *, verify_modifies: bool | None = None) -> None:
+        self._pm = PyPassManager(passes, verify_modifies)
 
     def add(self, pass_: Pass) -> None:
         """Append a pass to the configured passes.

@@ -2,6 +2,8 @@
 
 use std::{collections::BTreeSet, sync::Arc};
 
+use lunamodel_types::{EnumSet, ModelPart};
+
 use crate::{DisplaySteps, PipelineStep};
 
 /// Named sequence of pipeline steps.
@@ -36,9 +38,9 @@ impl Pipeline {
         self.steps.collect_provides()
     }
 
-    /// Returns the distinct analysis names invalidated anywhere in the pipeline.
-    pub fn invalidates(&self) -> impl Iterator<Item = String> {
-        self.steps.collect_invalidates()
+    /// Returns the model parts modified anywhere in the pipeline.
+    pub fn modifies(&self) -> EnumSet<ModelPart> {
+        self.steps.collect_modifies()
     }
 
     /// Returns a human-readable rendering of the pipeline.
@@ -71,8 +73,8 @@ pub trait PipelineStepMethods {
     fn collect_requires(&self) -> impl Iterator<Item = String>;
     /// Collects distinct provided analysis names from the step tree.
     fn collect_provides(&self) -> impl Iterator<Item = String>;
-    /// Collects distinct invalidated analysis names from the step tree.
-    fn collect_invalidates(&self) -> impl Iterator<Item = String>;
+    /// Collects the model parts modified anywhere in the step tree.
+    fn collect_modifies(&self) -> EnumSet<ModelPart>;
 }
 
 impl PipelineStepMethods for [PipelineStep] {
@@ -114,21 +116,16 @@ impl PipelineStepMethods for [PipelineStep] {
         out.into_iter()
     }
 
-    /// Walks the step tree and collects all invalidated analysis names.
-    fn collect_invalidates(&self) -> impl Iterator<Item = String> {
-        let mut out = BTreeSet::<String>::new();
-        fn walk(steps: &[PipelineStep], out: &mut BTreeSet<String>) {
-            for step in steps {
-                match step {
-                    PipelineStep::Analysis(_) | PipelineStep::MetaAnalysis(_) => (),
-                    PipelineStep::Transform(p) => out.extend(p.invalidates().to_owned()),
-                    PipelineStep::ControlFlow(p) => out.extend(p.invalidates().to_owned()),
-                    PipelineStep::Composite(p) => out.extend(p.invalidates().to_owned()),
-                    PipelineStep::Pipeline(p) => walk(&p.steps, out),
-                }
-            }
-        }
-        walk(self, &mut out);
-        out.into_iter()
+    /// Walks the step tree and unions the model parts every step may modify.
+    fn collect_modifies(&self) -> EnumSet<ModelPart> {
+        self.iter()
+            .map(|step| match step {
+                PipelineStep::Analysis(_) | PipelineStep::MetaAnalysis(_) => EnumSet::empty(),
+                PipelineStep::Transform(p) => p.modifies(),
+                PipelineStep::ControlFlow(p) => p.modifies(),
+                PipelineStep::Composite(p) => p.modifies(),
+                PipelineStep::Pipeline(p) => p.steps.collect_modifies(),
+            })
+            .fold(EnumSet::empty(), |acc, parts| acc | parts)
     }
 }

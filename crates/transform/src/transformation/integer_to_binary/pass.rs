@@ -6,7 +6,7 @@ use lunamodel_core::{Expression, Model, Solution, ops::LmAddAssign, prelude::Bou
 use lunamodel_transpiler::{
     PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult, transformation,
 };
-use lunamodel_types::{Bound, Vtype};
+use lunamodel_types::{Bound, EnumSet, ModelPart, Vtype};
 
 use crate::error::{TransformError, TransformResult};
 
@@ -19,6 +19,10 @@ pub struct IntegerToBinaryPass;
 impl TransformationPass for IntegerToBinaryPass {
     fn name(&self) -> &str {
         "integer-to-binary"
+    }
+
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        ModelPart::Objective | ModelPart::Constraints | ModelPart::Variables
     }
 
     fn forward(

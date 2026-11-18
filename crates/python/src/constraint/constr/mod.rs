@@ -2,7 +2,8 @@
 mod access;
 mod cmp;
 mod creation;
-mod io;
+mod fmt;
+mod indicator;
 mod setter;
 
 use std::sync::Arc;

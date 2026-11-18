@@ -14,18 +14,34 @@ name: Release Prep
 on:
   workflow_dispatch:
     inputs:
+      # patch | minor | major: next release (0.7.4 -> minor -> 0.8.0)
+      # <patch|minor|major>-<alpha|beta|rc>: first pre-release of the next version
+      #   (0.7.4 -> minor-alpha -> 0.8.0-alpha.1)
+      # alpha | beta | rc: next pre-release of the current version
+      #   (0.8.0-alpha.1 -> alpha -> 0.8.0-alpha.2, -> beta -> 0.8.0-beta.1)
+      # release: final release of the current pre-release (0.8.0-rc.1 -> 0.8.0)
       release_type:
-        description: 'Version bump (cargo set-version --bump)'
+        description: 'Version bump (e.g. minor-alpha: 0.7.4 -> 0.8.0-alpha.1)'
         type: choice
         required: true
         default: 'patch'
         options:
-          - major
-          - minor
           - patch
-          - rc
-          - beta
+          - minor
+          - major
+          - patch-alpha
+          - minor-alpha
+          - major-alpha
+          - patch-beta
+          - minor-beta
+          - major-beta
+          - patch-rc
+          - minor-rc
+          - major-rc
           - alpha
+          - beta
+          - rc
+          - release
 
 permissions:
   contents: read
@@ -50,6 +66,8 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           token: ${{ steps.app-token.outputs.token }}
+          # The release tags: the C ABI check compares with the last release's headers.
+          fetch-depth: 0
 
       - name: Read Rust toolchain channel
         id: toolchain
@@ -80,6 +98,10 @@ jobs:
 
       - name: Verify version sync
         run: sh ci/tools/check-versions.sh
+
+      # set-release-version.sh regenerated the C headers from the Rust sources.
+      - name: Verify the C ABI only changed compatibly since the last release
+        run: python3 ci/tools/check-abi.py
 
       - name: Regenerate third-party license notices
         run: sh ci/tools/generate-third-party-licenses.sh

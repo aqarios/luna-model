@@ -1,0 +1,18 @@
+// Wire-format messages for the C++ plugin test. The passes serialize their cross-ABI payloads with
+// the generated C++ classes (protobuf is the shared wire format for luna-model plugins). The same
+// `.proto` is what a consumer in another language would generate from, which is exactly the
+// cross-language analysis-sharing case covered by the Rust/C++/Python test.
+
+syntax = "proto3";
+
+package luna_cxx_plugin;
+
+// Result of the variable-count analysis; consumed by the tagging transform.
+message VariableCount {
+  uint64 count = 1;
+}
+
+// Inverse artifact of a rename transform: the model's name before the pass ran.
+message RenameArtifact {
+  string original_name = 1;
+}

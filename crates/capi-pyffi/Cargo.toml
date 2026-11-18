@@ -1,0 +1,11 @@
+[package]
+name = "lunamodel-capi-pyffi"
+version.workspace = true
+license.workspace = true
+publish = false
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+lunamodel-capi = { workspace = true }
+pyo3 = { workspace = true }

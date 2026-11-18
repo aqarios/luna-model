@@ -3,7 +3,7 @@
 mod access;
 mod cmp;
 mod creation;
-mod io;
+mod fmt;
 mod ops;
 
 use lunamodel_core::prelude::VarRef;

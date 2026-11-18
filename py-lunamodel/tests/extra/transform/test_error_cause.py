@@ -28,7 +28,7 @@ def test_analysis_pass_python_exception_preserved_as_cause():
 
 
 def test_transformation_pass_python_exception_preserved_as_cause():
-    @transform(name="boom", requires=[], invalidates=[])
+    @transform(name="boom", requires=[])
     def boom_transform(model: Model, ctx: PassContext) -> tuple[Model, NothingArtifact]:
         _ = ctx
         raise ValueError("boom from python transform")

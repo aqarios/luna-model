@@ -16,3 +16,4 @@ lunamodel-core = { workspace = true }
 lunamodel-types = { workspace = true }
 lunamodel-transpiler-macros = { workspace = true }
 lunamodel-error = { workspace = true }
+lunamodel-hashing = { workspace = true }

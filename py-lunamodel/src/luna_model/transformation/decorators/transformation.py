@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Callable
+import warnings
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from importlib import import_module
 from typing import Generic, TypeAlias, TypeVar, cast, overload
@@ -24,6 +25,7 @@ from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
 from luna_model.transformation.artifact import TransformationPassArtifact
 from luna_model.transformation.context import PassContext
+from luna_model.transformation.model_part import ModelPart
 from luna_model.transformation.transformation import TransformationPass
 
 A = TypeVar("A", bound=TransformationPassArtifact)
@@ -54,6 +56,19 @@ def register_allowed_import_prefix(prefix: str) -> None:
 def allowed_import_prefixes() -> tuple[str, ...]:
     """Get currently allowed import prefixes used by artifact resolution."""
     return tuple(sorted(_ALLOWED_IMPORT_PREFIXES))
+
+
+def _model_parts(parts: Iterable[ModelPart] | None) -> set[ModelPart]:
+    return set(ModelPart) if parts is None else set(parts)
+
+
+def _warn_invalidates(invalidates: list[str] | None) -> None:
+    if invalidates is not None:
+        msg = (
+            "`invalidates` is deprecated and ignored: analyses are invalidated by the model parts "
+            "a pass declares in `modifies`"
+        )
+        warnings.warn(msg, DeprecationWarning, stacklevel=3)
 
 
 def _is_allowed_module_path(module_path: str) -> bool:
@@ -173,7 +188,7 @@ class _ArtifactEnvelope(TransformationPassArtifact, Generic[A]):
 class _DynamicTransformationPass(TransformationPass[_ArtifactEnvelope], Generic[A]):
     _name: str
     _requires: list[str]
-    _invalidates: list[str]
+    _modifies: set[ModelPart]
     _forward_f: TransformationSignature[A]
     _backward_f: BackwardSignature[A]
 
@@ -181,14 +196,14 @@ class _DynamicTransformationPass(TransformationPass[_ArtifactEnvelope], Generic[
         self,
         name: str,
         requires: list[str],
-        invalidates: list[str],
+        modifies: set[ModelPart],
         forward: TransformationSignature[A],
         backward: BackwardSignature[A],
     ) -> None:
         super().__init__()
         self._name = name
         self._requires = requires
-        self._invalidates = invalidates
+        self._modifies = modifies
         self._forward_f = forward
         self._backward_f = backward
 
@@ -207,8 +222,8 @@ class _DynamicTransformationPass(TransformationPass[_ArtifactEnvelope], Generic[
     def requires(self) -> list[str]:
         return self._requires
 
-    def invalidates(self) -> list[str]:
-        return self._invalidates
+    def modifies(self) -> set[ModelPart]:
+        return self._modifies
 
 
 def _validate_backward(fn: object) -> None:
@@ -225,6 +240,8 @@ def transform(
     name: str | None = ...,
     requires: list[str] | None = ...,
     invalidates: list[str] | None = ...,
+    *,
+    modifies: Iterable[ModelPart] | None = ...,
 ) -> Callable[[TransformationSignature[A]], _DynamicTransformationPass[A]]: ...
 
 
@@ -235,6 +252,7 @@ def transform(
     invalidates: list[str] | None = ...,
     *,
     backward: BackwardSignature[A],
+    modifies: Iterable[ModelPart] | None = ...,
 ) -> Callable[[TransformationSignature[A]], _DynamicTransformationPass[A]]: ...
 
 
@@ -243,6 +261,8 @@ def transform(
     requires: list[str] | None = None,
     invalidates: list[str] | None = None,
     backward: BackwardSignature[A] | None = None,
+    *,
+    modifies: Iterable[ModelPart] | None = None,
 ) -> Callable[[TransformationSignature[A]], _DynamicTransformationPass[A]]:
     """Create a TransformationPass from a function decorator.
 
@@ -263,10 +283,13 @@ def transform(
     requires : list[str], optional
         List of pass names that must run before this transformation. Defaults to ``[]``.
     invalidates : list[str], optional
-        List of analysis pass names whose results become invalid after this transformation. Defaults to ``[]``.
+        Deprecated and ignored; use ``modifies``.
     backward : Callable[[A, Solution], Solution], optional
         Optional function to map solutions from the transformed model back to the
         original model's variable space. If not provided, solutions pass through unchanged.
+    modifies : Iterable[ModelPart], optional
+        Model parts the transformation may modify; analyses depending on any of them are
+        invalidated after it runs. Defaults to every part.
 
     Returns
     -------
@@ -278,8 +301,9 @@ def transform(
     --------
     Create a simple transformation:
 
+    >>> from luna_model import ModelPart
     >>> from luna_model.transformation import transform
-    >>> @transform(name="scale-objective")
+    >>> @transform(name="scale-objective", modifies={ModelPart.OBJECTIVE})
     ... def scale_obj(model: Model, ctx: PassContext) -> tuple[Model, NothingArtifact]:
     ...     model.objective = model.objective * 2.0
     ...     return model, NothingArtifact()
@@ -300,8 +324,7 @@ def transform(
     """
     if requires is None:
         requires = []
-    if invalidates is None:
-        invalidates = []
+    _warn_invalidates(invalidates)
 
     if backward is None:
         backward = __identity_backward
@@ -313,7 +336,7 @@ def transform(
         return _DynamicTransformationPass(
             name=loc_name,
             requires=requires,
-            invalidates=invalidates,
+            modifies=_model_parts(modifies),
             forward=forward,
             backward=backward,
         )

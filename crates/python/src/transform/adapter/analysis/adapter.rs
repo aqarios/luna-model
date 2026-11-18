@@ -1,14 +1,18 @@
 //t Runtime adapter for Python analysis passes.
 
+use std::any::Any;
+
 use lunamodel_core::Model;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, TranspileKindResult};
+use lunamodel_types::{EnumSet, ModelPart};
 use pyo3::{Py, PyAny, Python, types::PyAnyMethods};
 
 use super::{PyAnalysisPass, PyAnalysisPassAdapterResult};
 use crate::{
     PyModel,
     transform::{PyPassContext, utils::map_pyerr},
+    types::parts_from_py,
 };
 
 pub struct PyAnalysisPassAdapter {
@@ -16,6 +20,10 @@ pub struct PyAnalysisPassAdapter {
     name: String,
     requires: Vec<String>,
     provides: String,
+    /// Set when the pass opts into cross-language plugin consumption; its result must then be a
+    /// protobuf message. `None` for native-Python-only analyses.
+    result_type_tag: Option<String>,
+    depends_on: EnumSet<ModelPart>,
 }
 
 impl PyAnalysisPassAdapter {
@@ -36,11 +44,36 @@ impl PyAnalysisPassAdapter {
             .extract(py)
             .map_err(map_pyerr)?;
 
+        // If the pass declares its result is a shareable protobuf payload, register an on-demand
+        // serializer so C-ABI plugins (any language) can consume it. Native-only passes return
+        // `None` and stay unregistered (readable only by pure-Python consumers).
+        let result_type_tag: Option<String> = match inner.call_method0(py, "result_type_tag") {
+            Ok(value) => value.extract::<Option<String>>(py).unwrap_or(None),
+            Err(_) => None,
+        };
+        if let Some(tag) = &result_type_tag {
+            lunamodel_transpiler::register_analysis_serializer(
+                provides.clone(),
+                tag.clone(),
+                serialize_py_result,
+            );
+        }
+
+        let depends_on = parts_from_py(
+            inner
+                .call_method0(py, "depends_on")
+                .map_err(map_pyerr)?
+                .bind(py),
+        )
+        .map_err(map_pyerr)?;
+
         Ok(Self {
             inner,
             name,
             requires,
             provides,
+            result_type_tag,
+            depends_on,
         })
     }
 
@@ -66,6 +99,10 @@ impl AnalysisPass for PyAnalysisPassAdapter {
         &self.requires
     }
 
+    fn depends_on(&self) -> EnumSet<ModelPart> {
+        self.depends_on
+    }
+
     fn key<PyAnalysisPassAdapterResult>() -> AnalysisKey<PyAnalysisPassAdapterResult> {
         // AnalysisKey::new(Self::PROVIDES.to_string())
         unimplemented!(
@@ -85,8 +122,31 @@ impl AnalysisPass for PyAnalysisPassAdapter {
                     ),
                 )
                 .map_err(map_pyerr)?;
+            // Enforce the opt-in contract: a plugin-consumable result must be a protobuf message.
+            if self.result_type_tag.is_some()
+                && !res.hasattr("SerializeToString").map_err(map_pyerr)?
+            {
+                return Err(map_pyerr(pyo3::exceptions::PyTypeError::new_err(format!(
+                    "analysis '{}' declares result_type_tag, so run() must return a protobuf \
+                     message (with SerializeToString())",
+                    self.name,
+                ))));
+            }
             Ok::<Py<PyAny>, LunaModelError>(res.unbind())
         })?;
         Ok(PyAnalysisPassAdapterResult(py_result))
     }
+}
+
+/// Serializes a stored pure-Python analysis result — a protobuf message — to its wire bytes, so a
+/// C-ABI plugin (any language) can consume it. Registered per-pass in [`PyAnalysisPassAdapter::new`]
+/// only when the pass declares a `result_type_tag`; calls the result's `SerializeToString()`
+/// (google protobuf) so the bytes match the shared `.proto` the consumer decodes.
+fn serialize_py_result(value: &(dyn Any + Send + Sync)) -> Option<Vec<u8>> {
+    let result = value.downcast_ref::<PyAnalysisPassAdapterResult>()?;
+    Python::attach(|py| {
+        let obj = result.0.bind(py);
+        let bytes = obj.call_method0("SerializeToString").ok()?;
+        bytes.extract::<Vec<u8>>().ok()
+    })
 }

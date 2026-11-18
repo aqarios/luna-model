@@ -1,0 +1,7 @@
+.venv/
+build/
+.pytest_cache/
+__pycache__/
+uv.lock
+*.so
+compile_commands.json

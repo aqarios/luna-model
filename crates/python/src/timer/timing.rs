@@ -4,7 +4,7 @@ use std::time::SystemTime;
 
 use indexmap::IndexMap;
 use lunamodel_core::Timing;
-use lunamodel_io::{CustomFormat, FormatOpt};
+use lunamodel_fmt::{CustomFormat, FormatOpt};
 use lunamodel_unwind::*;
 use pyo3::{Bound, FromPyObject, pymethods, types::PyType};
 

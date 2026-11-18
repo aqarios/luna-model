@@ -19,6 +19,7 @@ from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
 from luna_model.transformation.artifact import TransformationPassArtifact
 from luna_model.transformation.context import PassContext
+from luna_model.transformation.model_part import ModelPart
 from luna_model.transformation.transformation import TransformationPass
 
 Artifact = TypeVar("Artifact", bound=TransformationPassArtifact)
@@ -35,7 +36,7 @@ class _BuiltinTransformationSuper(Protocol[Artifact]):
     def name(self) -> str: ...
     def forward(self, model: PyModel, ctx: PyPassContext) -> tuple[Model, Artifact]: ...
     def requires(self) -> list[str]: ...
-    def invalidates(self) -> list[str]: ...
+    def modifies(self) -> set[ModelPart]: ...
     def __str__(self) -> str: ...
 
 
@@ -114,17 +115,19 @@ class BuiltinTransformation(Generic[Artifact], metaclass=_BuiltinTransformationM
         sup = cast("_BuiltinTransformationSuper[Artifact]", super())
         return sup.requires()
 
-    def invalidates(self) -> list[str]:
+    def modifies(self) -> set[ModelPart]:
         """
-        Get a list of passes that are invalidated by this pass.
+        Get the model parts this pass may modify.
+
+        Analyses depending on any of these parts are invalidated after this pass runs.
 
         Returns
         -------
-        list of str
-            Names of passes whose results become invalid after this pass runs.
+        set[ModelPart]
+            The modified model parts.
         """
         sup = cast("_BuiltinTransformationSuper[Artifact]", super())
-        return sup.invalidates()
+        return sup.modifies()
 
     def __str__(self) -> str:
         """Human readable string."""

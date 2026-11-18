@@ -19,6 +19,7 @@ from luna_model._lm import PyAnalysisPass, PyModel, PyPassContext
 from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.key import AnalysisKey
+from luna_model.transformation.model_part import ModelPart
 
 Result = TypeVar("Result")
 
@@ -39,7 +40,8 @@ class AnalysisPass(PyAnalysisPass, Generic[Result], metaclass=_AnalysisPassMeta)
     This is an abstract class. Subclasses must implement the `name` and `run` methods and
     the `PROVIDES` class variable.
     Additionally, the `requires` method can be implemented to indicate which passes must
-    be executed before the analysis is run.
+    be executed before the analysis is run, and `depends_on` to narrow which model parts
+    the result is computed from.
     """
 
     PROVIDES: str
@@ -86,6 +88,19 @@ class AnalysisPass(PyAnalysisPass, Generic[Result], metaclass=_AnalysisPassMeta)
         """
         return []
 
+    def depends_on(self) -> set[ModelPart]:
+        """
+        Get the model parts the result is computed from.
+
+        The result stays valid until a transformation modifies one of these parts.
+
+        Returns
+        -------
+        set[ModelPart]
+            The model parts the result depends on. Defaults to every part.
+        """
+        return set(ModelPart)
+
     @classmethod
     def provides(cls) -> str:
         """
@@ -102,6 +117,25 @@ class AnalysisPass(PyAnalysisPass, Generic[Result], metaclass=_AnalysisPassMeta)
     def key(cls) -> AnalysisKey[Result]:
         """Get the analysis key used to access the analysis result from the PassContext."""
         return AnalysisKey(cls.PROVIDES)
+
+    @classmethod
+    def result_type_tag(cls) -> str | None:
+        """Stable type tag identifying this analysis's result *type*.
+
+        Stable type tag identifying this analysis's result *type* for cross-language plugin consumers,
+        or ``None`` (default) if the result is native-Python-only.
+
+        When set, :meth:`run` must return a protobuf message generated from the shared ``.proto`` schema.
+        The result is then serialized via ``SerializeToString()`` and made available to C-ABI plugin passes
+        (Rust/C++/...) that ``require_analysis`` this pass's ``PROVIDES`` name and decode into the matching type.
+        The tag must equal the tag the consumer decodes with.
+
+        Returns
+        -------
+        str | None
+            The result's stable type tag, or ``None`` for native-Python-only results.
+        """
+        return None
 
     def _run(self, model: PyModel, ctx: PyPassContext) -> Result:
         return self.run(Model._from_pym(model), PassContext._from_pyctx(ctx))

@@ -3,7 +3,7 @@ mod access;
 mod cmp;
 mod context;
 mod creation;
-mod io;
+mod fmt;
 mod ser;
 
 use lunamodel_core::{ArcEnv, Environment};

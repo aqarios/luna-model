@@ -19,7 +19,7 @@ lunamodel-utils = { workspace = true }
 workspace = true
 optional = true
 
-[dependencies.lunamodel-io]
+[dependencies.lunamodel-fmt]
 workspace = true
 optional = true
 
@@ -49,7 +49,7 @@ optional = true
 
 [features]
 hashing = ["lunamodel-hashing"]
-io = ["lunamodel-io"]
+fmt = ["lunamodel-fmt"]
 python = ["lunamodel-python"]
 serializer = ["lunamodel-serializer"]
 transform = ["lunamodel-transform"]
@@ -57,20 +57,20 @@ transpiler = ["lunamodel-transpiler"]
 translate = ["lunamodel-translate"]
 unwind = ["lunamodel-unwind"]
 
-py-io = ["io", "lunamodel-io/py"]
+py-fmt = ["fmt", "lunamodel-fmt/py"]
 py-types = ["lunamodel-types/py"]
 py-error = ["lunamodel-error/py"]
 
 full = [
   "hashing",
-  "io",
+  "fmt",
   "python",
   "serializer",
   "transform",
   "transpiler",
   "translate",
   "unwind",
-  "py-io",
+  "py-fmt",
   "py-types",
   "py-error"
 ]

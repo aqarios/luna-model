@@ -1,0 +1,62 @@
+[package]
+name = "luna-model-ffi"
+version.workspace = true
+edition = "2024"
+authors = [
+  "Jonas Blenninger <jonas.blenninger@aqarios.com>",
+  "David Bucher <david.bucher@aqarios.com>",
+  "Maximilian Janetschek <maximilian.janetschek@aqarios.com>",
+]
+description = "LunaModel native extension bindings via C"
+homepage = "https://docs.aqarios.com/luna-model/intro"
+repository = "https://github.com/aqarios/luna-model"
+license = "Apache-2.0"
+
+[profile.release]
+strip = "symbols"
+lto = true
+codegen-units = 1
+debug = false
+incremental = false
+
+# Keep out of workspace
+[workspace]
+members = ["derive"]
+
+# The SDK is released with luna-model and carries its version: kept equal to the root
+# workspace version by ci/tools/set-release-version.sh, checked by check-versions.sh.
+# Keep this the first bare `version =` line of this manifest (the scripts edit that one).
+[workspace.package]
+version = "0.8.0-alpha.3"
+
+[dependencies]
+enumset = "1.1.14"
+indexmap = "2.14.0"
+itertools = "0.15.0"
+num = "0.4.3"
+prost = "0.14"
+
+# ABI table plus LunaModel's lightweight shared value-type crate. No
+# `luna-model` core is linked: model operations dispatch into the host table.
+lunamodel-capi = { path = "../crates/capi" }
+lunamodel-types = { path = "../crates/types" }
+luna-model-ffi-derive = { path = "./derive" }
+
+[dependencies.pyo3]
+optional = true
+version = "0.29.0"
+features = ["generate-import-lib"]
+
+[dependencies.derive_more]
+optional = true
+version = "2.1.1"
+
+[dependencies.lunamodel-capi-pyffi]
+optional = true
+path = "../crates/capi-pyffi"
+
+[dev-dependencies]
+lunamodel-capi-host = { path = "../crates/capi-host" }
+
+[features]
+py = ["pyo3", "derive_more", "lunamodel-capi-pyffi"]

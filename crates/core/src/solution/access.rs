@@ -34,20 +34,19 @@ impl Solution {
 
     /// Returns the number of stored sample rows.
     ///
-    /// This corresponds to the length of each column in [`Solution::samples`].
+    /// This corresponds to the length of each column in [`Solution::samples`]. A solution without
+    /// variables (e.g. of a model whose variables were all fixed) still has one row per entry of
+    /// `counts`.
     pub fn len(&self) -> usize {
         match self.samples.first() {
             Some((_, col)) => col.len(),
-            _ => 0,
+            None => self.counts.len(),
         }
     }
 
     /// Returns `true` if the solution stores no sample rows.
     pub fn is_empty(&self) -> bool {
-        match self.samples.first() {
-            Some((_, col)) => col.is_empty(),
-            _ => false,
-        }
+        self.len() == 0
     }
 
     /// Returns the number of variables represented by the solution.
@@ -61,7 +60,7 @@ impl Solution {
     pub fn value(&self, sample: usize, var: &str) -> Option<&Bias> {
         match sample >= self.len() {
             true => None,
-            false => Some(&self[(sample, var)]),
+            false => self.samples.get(var).map(|column| &column[sample]),
         }
     }
 
@@ -221,5 +220,40 @@ impl Index<(usize, usize)> for Solution {
     fn index(&self, index: (usize, usize)) -> &Self::Output {
         let (row, col) = index;
         &self.samples[col][row]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use indexmap::IndexMap;
+    use lunamodel_error::LunaModelResult;
+    use lunamodel_types::Sense;
+
+    use crate::solution::Solution;
+
+    #[test]
+    fn a_solution_without_variables_has_one_row_per_count() -> LunaModelResult<()> {
+        let mut solution = Solution::with_sense(Sense::Min);
+        assert!(solution.is_empty());
+        solution.push(IndexMap::new(), 3, None)?;
+        solution.push(IndexMap::new(), 1, None)?;
+
+        assert_eq!(solution.len(), 2);
+        assert!(!solution.is_empty());
+        assert_eq!(solution.samples().count(), 2);
+        assert_eq!(solution.results().count(), 2);
+        assert_eq!(solution.n_samples(), 4);
+        Ok(())
+    }
+
+    #[test]
+    fn the_value_of_an_unknown_variable_is_none() -> LunaModelResult<()> {
+        let mut solution = Solution::with_sense(Sense::Min);
+        solution.add_binary("x".into(), vec![1.0], None)?;
+
+        assert!(solution.value(0, "x").is_some());
+        assert!(solution.value(0, "y").is_none());
+        assert!(solution.value(1, "x").is_none());
+        Ok(())
     }
 }

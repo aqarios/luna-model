@@ -8,6 +8,7 @@ use lunamodel_transpiler::{
     ControlFlowPass, ControlFlowPlan, DisplaySteps, PassContext, PipelineStep, PipelineStepMethods,
     TranspileKindResult, control_flow,
 };
+use lunamodel_types::{EnumSet, ModelPart};
 use pad::PadStr;
 
 use crate::utils::unique_name;
@@ -32,7 +33,7 @@ pub struct IfElsePass {
     then_steps: Vec<PipelineStep>,
     else_steps: Vec<PipelineStep>,
     requires: Vec<String>,
-    invalidates: Vec<String>,
+    modifies: EnumSet<ModelPart>,
     provides: Vec<String>,
 }
 
@@ -47,17 +48,13 @@ impl IfElsePass {
         req_set.extend(then_steps.collect_requires());
         req_set.extend(else_steps.collect_requires());
 
-        let mut inv_set = BTreeSet::new();
-        inv_set.extend(then_steps.collect_invalidates());
-        inv_set.extend(else_steps.collect_invalidates());
-
         let mut prov_set = BTreeSet::new();
         prov_set.extend(then_steps.collect_provides());
         prov_set.extend(else_steps.collect_provides());
 
         Self {
             requires: req_set.into_iter().collect(),
-            invalidates: inv_set.into_iter().collect(),
+            modifies: then_steps.collect_modifies() | else_steps.collect_modifies(),
             provides: prov_set.into_iter().collect(),
             predicate,
             then_steps,
@@ -92,8 +89,8 @@ impl ControlFlowPass for IfElsePass {
         &self.provides
     }
 
-    fn invalidates(&self) -> &[String] {
-        &self.invalidates
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        self.modifies
     }
 
     fn branches(&self) -> Vec<&[PipelineStep]> {

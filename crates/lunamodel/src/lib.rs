@@ -32,7 +32,7 @@
 //! - `transpiler` enables the `transpiler` re-export
 //! - `translate` enables the `translate` re-export
 //! - `unwind` enables the `unwind` re-export
-//! - `py-io` enables the Python-oriented I/O feature set in `io`
+//! - `py-fmt` enables the Python-oriented I/O feature set in `io`
 //! - `py-types` enables Python-oriented conversions in `types`
 //! - `py-error` enables Python-oriented conversions in `error`
 //! - `full` enables all of the above feature groups
@@ -81,9 +81,9 @@ pub use lunamodel_utils as utils;
 /// Hashing helpers for content-based identity and cache-style workflows.
 pub use lunamodel_hashing as hashing;
 
-#[cfg(any(feature = "io", feature = "py-io"))]
+#[cfg(any(feature = "fmt", feature = "py-fmt"))]
 /// Lower-level I/O helpers used by format adapters and bindings.
-pub use lunamodel_io as io;
+pub use lunamodel_fmt as fmt;
 
 #[cfg(feature = "python")]
 /// Rust-side implementation of the Python bindings.

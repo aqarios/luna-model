@@ -1,0 +1,56 @@
+use lunamodel_core::{ArcEnv, Environment};
+use lunamodel_serializer::prelude::*;
+
+use crate::{
+    LmBuffer, LmEnv, LmStatus,
+    buffer::buffer_from_vec,
+    error::{CapiError, guard},
+    utils::{out_from_c, slice_from_c, storage_from_c, storage_out_from_c},
+};
+
+/// Serializes an environment to bytes, writing an owned buffer to `out`.
+///
+/// The buffer must be released with `lm_buffer_free`.
+///
+/// # Safety
+/// `env` must be a valid environment handle created by this library.
+/// `out` must point to writable `LmBuffer` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_env_serialize(env: *const LmEnv, out: *mut LmBuffer) -> LmStatus {
+    guard(|| {
+        let env = unsafe { storage_from_c(env, "env") }?;
+        let out = unsafe { out_from_c(out) }?;
+        let bytes = env
+            .read_arc()
+            .encode(Some(true), None)
+            .map_err(CapiError::serialization)?;
+        *out = buffer_from_vec(bytes);
+        Ok(())
+    })
+}
+
+/// Deserializes an environment from `len` bytes at `data`, writing a new handle to `out`.
+///
+/// The new handle must be released with [`lm_env_free`].
+///
+/// # Safety
+/// `data` must point to `len` readable bytes.
+/// `out` must point to writable storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_env_deserialize(
+    data: *const u8,
+    len: usize,
+    out: *mut *mut LmEnv,
+) -> LmStatus {
+    guard(|| {
+        let bytes = unsafe { slice_from_c(data, len, "data") }?;
+        let env: Environment = bytes
+            .unversionize()
+            .decompress()
+            .map_err(CapiError::deserialization)?
+            .decode(())
+            .map_err(CapiError::deserialization)?;
+        let env = ArcEnv::from(env);
+        unsafe { storage_out_from_c(out, env) }
+    })
+}

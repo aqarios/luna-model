@@ -15,7 +15,7 @@
 //! rest of the workspace fits together.
 pub mod prelude;
 
-mod bounds;
+pub mod bounds;
 mod constraint;
 mod environment;
 mod expression;
@@ -27,7 +27,8 @@ mod traits;
 mod utils;
 mod variable;
 
-pub use constraint::{Constraint, ConstraintCollection};
+pub use bounds::Bounds;
+pub use constraint::{Constraint, ConstraintCollection, Indicator};
 pub use environment::{ArcEnv, Environment};
 pub use expression::Expression;
 pub use model::{Model, ObjectiveMut};

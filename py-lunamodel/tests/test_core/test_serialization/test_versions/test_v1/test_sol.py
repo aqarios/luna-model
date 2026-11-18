@@ -93,4 +93,7 @@ def test_v0_v1_equality_sol_eval_timing(
         assert reconstructed.runtime is not None
         assert reconstructed.runtime.qpu == sol.runtime.qpu
         total_seconds = reconstructed.runtime.total
-        assert total_seconds > 1.23 and total_seconds < 1.231
+        # sleep() only ever waits *at least* the requested duration — a 1ms upper margin flakes
+        # under any scheduler contention (e.g. parallel test execution), which only pushes
+        # elapsed time up, never down.
+        assert 1.23 <= total_seconds < 2.0

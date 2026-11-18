@@ -2,12 +2,9 @@
 
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
 use lunamodel_transpiler::{
-    AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult,
-    transformation,
+    PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult, transformation,
 };
-use lunamodel_types::Sense;
-
-use crate::analysis::SpecsAnalysis;
+use lunamodel_types::{EnumSet, ModelPart, Sense};
 
 use super::artifact::ChangeSensePassArtifact;
 
@@ -15,15 +12,11 @@ use super::artifact::ChangeSensePassArtifact;
 #[derive(Clone)]
 pub struct ChangeSensePass {
     sense: Sense,
-    invalidates: Vec<String>,
 }
 
 impl ChangeSensePass {
     pub fn new(sense: Sense) -> Self {
-        Self {
-            sense,
-            invalidates: vec![SpecsAnalysis::PROVIDES.to_string()],
-        }
+        Self { sense }
     }
     pub fn sense(&self) -> Sense {
         self.sense
@@ -33,6 +26,10 @@ impl ChangeSensePass {
 impl TransformationPass for ChangeSensePass {
     fn name(&self) -> &str {
         "change-sense"
+    }
+
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        ModelPart::Objective | ModelPart::Sense
     }
 
     fn forward(
@@ -48,10 +45,6 @@ impl TransformationPass for ChangeSensePass {
                 Ok(ChangeSensePassArtifact { did_change: true })
             }
         }
-    }
-
-    fn invalidates(&self) -> &[String] {
-        &self.invalidates
     }
 }
 

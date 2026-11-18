@@ -14,7 +14,7 @@ model.objective = x + y
 THEN_PASSES = Pipeline("then_steps", [BinarySpinPass(Vtype.SPIN)])
 ELSE_PASSES = []
 
-@control_flow(name="has_binary_conditional", requires=THEN_PASSES.requires(), invalidates=THEN_PASSES.invalidates(), provides=THEN_PASSES.provides())
+@control_flow(name="has_binary_conditional", requires=THEN_PASSES.requires(), modifies=THEN_PASSES.modifies(), provides=THEN_PASSES.provides())
 def conditional(model: Model, _: PassContext) -> ControlFlowPlan:
     if Vtype.BINARY in model.vtypes():
         return ControlFlowPlan("has_binary_condition::then", THEN_PASSES)

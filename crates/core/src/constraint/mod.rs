@@ -7,8 +7,11 @@
 
 mod collection;
 mod constr;
+mod indicator;
 
 /// Named constraint collection used by [`crate::Model`].
 pub use collection::ConstraintCollection;
 /// Single algebraic constraint.
 pub use constr::Constraint;
+/// Indicator constraint that holds when a binary variable takes a given value.
+pub use indicator::Indicator;

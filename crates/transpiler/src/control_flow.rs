@@ -1,6 +1,7 @@
 //! Trait definitions for control-flow passes and execution plans.
 
 use lunamodel_core::Model;
+use lunamodel_types::{EnumSet, ModelPart};
 
 use crate::{PassContext, Pipeline, PipelineStep, error::TranspileKindResult};
 
@@ -50,9 +51,9 @@ pub trait ControlFlowPass: Send + Sync {
         &[]
     }
 
-    /// Which pass/analysis keys might be invalidated after this pass was executed.
-    fn invalidates(&self) -> &[String] {
-        &[]
+    /// Which model parts any branch of this pass may modify.
+    fn modifies(&self) -> EnumSet<ModelPart> {
+        EnumSet::all()
     }
 
     /// All possible branches (sub-steps) this pass may branch into, for static validation.

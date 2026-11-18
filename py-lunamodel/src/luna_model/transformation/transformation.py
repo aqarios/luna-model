@@ -20,6 +20,7 @@ from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
 from luna_model.transformation.artifact import TransformationPassArtifact
 from luna_model.transformation.context import PassContext
+from luna_model.transformation.model_part import ModelPart
 
 Artifact = TypeVar("Artifact", bound=TransformationPassArtifact)
 
@@ -39,7 +40,7 @@ class TransformationPass(PyTransformationPass, Generic[Artifact], metaclass=_Tra
     Notes
     -----
     This is an abstract class. Subclasses must implement the `name`, `forward` methods
-    and the `backward` function. Additionally, the `requires` and `invalidates` methods
+    and the `backward` function. Additionally, the `requires` and `modifies` methods
     can be implemented.
     """
 
@@ -108,16 +109,20 @@ class TransformationPass(PyTransformationPass, Generic[Artifact], metaclass=_Tra
         """
         return []
 
-    def invalidates(self) -> list[str]:
+    def modifies(self) -> set[ModelPart]:
         """
-        Get a list of passes that are invalidated by this pass.
+        Get the model parts this pass may modify.
+
+        Analyses depending on any of these parts are invalidated after this pass runs.
+        Run your tests with ``PassManager(..., verify_modifies=True)`` to check the
+        declaration against what the pass actually changes.
 
         Returns
         -------
-        list of str
-            Names of passes whose results become invalid after this pass runs.
+        set[ModelPart]
+            The modified model parts. Defaults to every part.
         """
-        return []
+        return set(ModelPart)
 
     def _forward(self, model: PyModel, ctx: PyPassContext) -> tuple[PyModel, Artifact]:
         m, a = self.forward(Model._from_pym(model), PassContext._from_pyctx(ctx))

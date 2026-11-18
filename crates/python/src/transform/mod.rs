@@ -28,6 +28,7 @@ pub use record::PyTransformationRecord;
 /// Registers built-in and Python-adapter backward handlers.
 pub fn register_backward() {
     lunamodel_transform::register_backward();
+    lunamodel_transform::register_builtins();
     lunamodel_transpiler::register_backward::<PyTransformationPassAdapter>();
     lunamodel_transpiler::register_backward::<PyCompositePassAdapter>();
 }
