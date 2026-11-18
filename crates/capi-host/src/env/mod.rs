@@ -11,7 +11,7 @@ pub use access::{
 pub use creation::{lm_env_default, lm_env_free, lm_env_new};
 pub use general::{lm_env_clone, lm_env_deep_clone, lm_env_eq, lm_env_equal_contents};
 pub use modification::{
-    lm_env_insert, lm_env_insert_inverted, lm_env_insert_with_fallback, lm_env_remove,
-    lm_env_set_inverted,
+    lm_env_insert, lm_env_insert_before, lm_env_insert_inverted, lm_env_insert_with_fallback,
+    lm_env_remove, lm_env_set_inverted,
 };
 pub use serialize::{lm_env_deserialize, lm_env_serialize};

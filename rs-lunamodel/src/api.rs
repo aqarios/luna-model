@@ -137,6 +137,22 @@ macro_rules! api_has {
     };
 }
 
+/// Returns an `unsupported_operation` error from the calling function if the installed
+/// host doesn't provide entry point `$field` yet.
+#[allow(unused_macros)]
+macro_rules! require_api {
+    ($field:ident) => {
+        if !api_has!($field) {
+            return Err(crate::Error::computation(concat!(
+                "the installed luna-model has no `",
+                stringify!($field),
+                "` yet"
+            ))
+            .with_kind("unsupported_operation"));
+        }
+    };
+}
+
 /// Borrows the installed C API table.
 ///
 /// # Panics

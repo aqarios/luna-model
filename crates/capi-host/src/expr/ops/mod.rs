@@ -1,4 +1,5 @@
 mod add;
+mod derivative;
 mod mul;
 mod neg;
 mod pow;
@@ -10,6 +11,7 @@ pub use add::{
     lm_expr_add_bias, lm_expr_add_expr, lm_expr_add_vref, lm_expr_iadd_bias, lm_expr_iadd_expr,
     lm_expr_iadd_vref,
 };
+pub use derivative::lm_expr_derivative;
 pub use mul::{
     lm_expr_imul_bias, lm_expr_imul_expr, lm_expr_imul_vref, lm_expr_mul_bias, lm_expr_mul_expr,
     lm_expr_mul_vref,

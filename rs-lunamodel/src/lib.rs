@@ -26,6 +26,8 @@
 
 #[macro_use]
 mod macros;
+#[macro_use]
+mod api;
 
 mod buffer;
 pub mod ffi;
@@ -33,8 +35,6 @@ pub mod plugin;
 pub mod traits;
 mod utils;
 
-#[macro_use]
-mod api;
 mod assignment;
 mod bound;
 mod bounds;
@@ -73,7 +73,7 @@ pub use bound::Bound;
 pub use bounds::Bounds;
 pub use cc::{ConstraintCollection, ConstraintCollectionEditor};
 pub use column::Column;
-pub use constr::Constraint;
+pub use constr::{Constraint, Indicator};
 pub use env::Env;
 pub type ArcEnv = Env;
 pub use error::{Error, LunaModelError, LunaModelResult, Result, Status};
@@ -128,17 +128,17 @@ pub static DEFAULT_MODEL_NAME: &str = "unnamed";
 pub mod core {
     pub use crate::{
         ArcEnv, Assignment, Bound, Bounds, Column, Constraint, ConstraintCollection, Environment,
-        Expression, HigherOrder, LazyBounds, Linear, Model, Neighborhood, OneVarTerm, Quadratic,
-        ResultView, SampleView, Solution, Specs, SubTimer, Timer, Timing, TwoVarTerm, VarRef,
-        Variable,
+        Expression, HigherOrder, Indicator, LazyBounds, Linear, Model, Neighborhood, OneVarTerm,
+        Quadratic, ResultView, SampleView, Solution, Specs, SubTimer, Timer, Timing, TwoVarTerm,
+        VarRef, Variable,
     };
 
     pub mod prelude {
         pub use crate::{
             ArcEnv, Bounds, Constraint, ConstraintCollection, ContentEquality, DefaultEditable,
-            Editable, Environment, Expression, HigherOrder, LazyBounds, Linear, LmAddAssign,
-            LmMulAssign, LmPow, LmPowAssign, LmSubAssign, Model, Quadratic, Solution, SubTimer,
-            Timer, Timing, VarRef, Variable,
+            Editable, Environment, Expression, HigherOrder, Indicator, LazyBounds, Linear,
+            LmAddAssign, LmMulAssign, LmPow, LmPowAssign, LmSubAssign, Model, Quadratic, Solution,
+            SubTimer, Timer, Timing, VarRef, Variable,
         };
     }
 
@@ -146,7 +146,7 @@ pub mod core {
         pub use crate::{Bound, Bounds, Concretize, LazyBounds};
     }
     pub mod constraint {
-        pub use crate::{Constraint, ConstraintCollection};
+        pub use crate::{Constraint, ConstraintCollection, Indicator};
     }
     pub mod environment {
         pub use crate::{ArcEnv, Environment};

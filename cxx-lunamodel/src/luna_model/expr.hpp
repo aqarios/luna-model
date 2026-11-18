@@ -300,6 +300,9 @@ class Expression {
      * Defined in ops.hpp. */
     Expression substitute(const Vref &vref, const Expression &replacement) const;
 
+    /* The partial derivative with respect to `vref`. Defined in ops.hpp. */
+    Expression derivative(const Vref &vref) const;
+
     /* Clones into a new handle that shares the environment. */
     Expression clone() const {
         LmExpr *out = nullptr;

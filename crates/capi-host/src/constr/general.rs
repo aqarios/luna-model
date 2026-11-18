@@ -1,3 +1,4 @@
+use lunamodel_capi_handle::new_handle;
 use lunamodel_core::prelude::{ContentEquality, VarRef};
 
 use std::ffi::c_char;
@@ -8,8 +9,8 @@ use crate::{
     eval::NameSample,
     expr::utils::expression_from_c,
     utils::{
-        new_handle_out_from_c, opt_from_c, out_from_c, ref_from_c, shared_from_c, slice_from_c,
-        storage_from_c,
+        handle_to_c, new_handle_out_from_c, opt_from_c, out_from_c, ref_from_c, shared_from_c,
+        slice_from_c, storage_from_c,
     },
 };
 
@@ -165,5 +166,70 @@ pub unsafe extern "C" fn lm_constr_evaluate_sample_quick(
             .evaluate_sample_quick(lookup, tol)
             .map_err(CapiError::from)?;
         Ok(())
+    })
+}
+
+/// Reads a constraint as an indicator constraint on a binary variable.
+///
+/// On success, `out_var` receives the binary (never an inverted binary),
+/// `out_value` the value of that binary for which the inner constraint must
+/// hold, and `out_inner` the inner constraint. If the constraint cannot be read
+/// as an indicator, `out_var` and `out_inner` are set to NULL and `out_value`
+/// to `false`.
+///
+/// # Safety
+/// `constr` must be a valid constraint handle created by this library.
+/// `out_var` must point to writable `LmVref *` storage.
+/// `out_value` must point to writable `bool` storage.
+/// `out_inner` must point to writable `LmConstraint *` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_constr_indicator(
+    constr: *const LmConstraint,
+    out_var: *mut *mut LmVref,
+    out_value: *mut bool,
+    out_inner: *mut *mut LmConstraint,
+) -> LmStatus {
+    guard(|| {
+        let constr = unsafe { shared_from_c(constr, "constr") }?.read_arc();
+        let out_var = unsafe { out_from_c(out_var) }?;
+        let out_value = unsafe { out_from_c(out_value) }?;
+        let out_inner = unsafe { out_from_c(out_inner) }?;
+
+        match constr.indicator().map_err(CapiError::from)? {
+            Some(indicator) => {
+                *out_var = handle_to_c(indicator.variable);
+                *out_value = indicator.value;
+                *out_inner = new_handle::<LmConstraint>(indicator.constraint);
+            }
+            None => {
+                *out_var = std::ptr::null_mut();
+                *out_value = false;
+                *out_inner = std::ptr::null_mut();
+            }
+        }
+        Ok(())
+    })
+}
+
+/// Builds the constraint that holds only when the binary `var` equals `value`
+/// (`true` for 1, `false` for 0). An inverted binary stands for the other value
+/// of its base.
+///
+/// # Safety
+/// `constr` must be a valid constraint handle created by this library.
+/// `var` must be a valid vref handle created by this library.
+/// `out` must point to writable `LmConstraint *` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_constr_when(
+    constr: *const LmConstraint,
+    var: *const LmVref,
+    value: bool,
+    out: *mut *mut LmConstraint,
+) -> LmStatus {
+    guard(|| {
+        let constr = unsafe { shared_from_c(constr, "constr") }?.read_arc();
+        let var = unsafe { ref_from_c(var as *const VarRef, "var") }?;
+        let result = constr.when(var, value).map_err(CapiError::from)?;
+        unsafe { new_handle_out_from_c(out, result) }
     })
 }

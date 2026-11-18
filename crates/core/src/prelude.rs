@@ -5,7 +5,7 @@
 //! instead of long import lists.
 
 pub use crate::bounds::{Bounds, LazyBounds};
-pub use crate::constraint::{Constraint, ConstraintCollection};
+pub use crate::constraint::{Constraint, ConstraintCollection, Indicator};
 pub use crate::environment::{ArcEnv, Environment};
 pub use crate::expression::Expression;
 pub use crate::expression::term::{HigherOrder, Linear, Quadratic};

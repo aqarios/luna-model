@@ -60,7 +60,7 @@ impl Solution {
     pub fn value(&self, sample: usize, var: &str) -> Option<&Bias> {
         match sample >= self.len() {
             true => None,
-            false => Some(&self[(sample, var)]),
+            false => self.samples.get(var).map(|column| &column[sample]),
         }
     }
 
@@ -243,6 +243,17 @@ mod tests {
         assert_eq!(solution.samples().count(), 2);
         assert_eq!(solution.results().count(), 2);
         assert_eq!(solution.n_samples(), 4);
+        Ok(())
+    }
+
+    #[test]
+    fn the_value_of_an_unknown_variable_is_none() -> LunaModelResult<()> {
+        let mut solution = Solution::with_sense(Sense::Min);
+        solution.add_binary("x".into(), vec![1.0], None)?;
+
+        assert!(solution.value(0, "x").is_some());
+        assert!(solution.value(0, "y").is_none());
+        assert!(solution.value(1, "x").is_none());
         Ok(())
     }
 }

@@ -186,6 +186,14 @@ pub struct LunaModelCApi {
         usize,
         *mut *mut LmVref,
     ) -> LmStatus,
+    pub env_insert_before: unsafe extern "C" fn(
+        *mut LmEnv,
+        *const LmVref,
+        *const c_char,
+        LmVtype,
+        *const LmLazyBounds,
+        *mut *mut LmVref,
+    ) -> LmStatus,
     pub env_insert_inverted:
         unsafe extern "C" fn(*mut LmEnv, *const LmVref, *mut *mut LmVref) -> LmStatus,
     pub env_remove: unsafe extern "C" fn(*mut LmEnv, *const LmVref) -> LmStatus,
@@ -484,6 +492,8 @@ pub struct LunaModelCApi {
         *const LmExpr,
         *mut *mut LmExpr,
     ) -> LmStatus,
+    pub expr_derivative:
+        unsafe extern "C" fn(*const LmExpr, *const LmVref, *mut *mut LmExpr) -> LmStatus,
     // ////////// //
     // Constraint //
     // ////////// //
@@ -500,6 +510,18 @@ pub struct LunaModelCApi {
         unsafe extern "C" fn(*const LmConstraint, *const LmEnv, *mut *mut LmConstraint) -> LmStatus,
     pub constr_substitute:
         unsafe extern "C" fn(*mut LmConstraint, *const LmVref, *const LmExpr) -> LmStatus,
+    pub constr_indicator: unsafe extern "C" fn(
+        *const LmConstraint,
+        *mut *mut LmVref,
+        *mut bool,
+        *mut *mut LmConstraint,
+    ) -> LmStatus,
+    pub constr_when: unsafe extern "C" fn(
+        *const LmConstraint,
+        *const LmVref,
+        bool,
+        *mut *mut LmConstraint,
+    ) -> LmStatus,
     pub constr_equal_contents:
         unsafe extern "C" fn(*const LmConstraint, *const LmConstraint, *mut bool) -> LmStatus,
     pub constr_eq:

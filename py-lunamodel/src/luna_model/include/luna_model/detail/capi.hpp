@@ -88,4 +88,20 @@ inline LmStatus report_exception() {
 } // namespace detail
 } // namespace lm
 
+/* Throws an `unsupported_operation` error if the host doesn't provide entry point `field` yet.
+ * Only an extension can meet an older host: it calls through the table of the installed
+ * luna_model, while a standalone program links the library it was built against. */
+#if defined(LUNA_MODEL_PYTHON_EXTENSION)
+#define LM_REQUIRE_API(field)                                                                      \
+    do {                                                                                           \
+        if (!lunamodel_api_has(field)) {                                                           \
+            throw ::lm::Error(LmStatus_Errored,                                                    \
+                              "the installed luna-model has no `" #field "` yet",                  \
+                              "unsupported_operation");                                            \
+        }                                                                                          \
+    } while (false)
+#else
+#define LM_REQUIRE_API(field) ((void)0)
+#endif
+
 #endif // LUNA_MODEL_DETAIL_CAPI_HPP

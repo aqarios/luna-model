@@ -260,6 +260,12 @@ inline Expression Expression::substitute(const Vref &vref, const Expression &rep
     return Expression(out);
 }
 
+inline Expression Expression::derivative(const Vref &vref) const {
+    LmExpr *out = nullptr;
+    detail::check(lm_expr_derivative(handle_, vref.get(), &out));
+    return Expression(out);
+}
+
 /* ----- variable-reference operators ----- */
 
 /* vref * vref. */
