@@ -15,9 +15,10 @@ OVERVIEW
 ================================================================================
 
 The dependencies are licensed under the following licenses:
-  - MIT License (MIT): 113
+  - MIT License (MIT): 112
   - BSD 3-Clause "New" or "Revised" License (BSD-3-Clause): 4
   - Apache License 2.0 (Apache-2.0): 2
+  - BSD 2-Clause "Simplified" License (BSD-2-Clause): 1
   - ISC License (ISC): 1
   - Unicode License v3 (Unicode-3.0): 1
 
@@ -32,8 +33,8 @@ Apache License 2.0 (Apache-2.0)
 ================================================================================
 
 Applies to the following dependencies:
-  * prost-derive 0.14.4
-  * prost 0.14.4
+  * prost-derive 0.14.6
+  * prost 0.14.6
 
 --------------------------------------------------------------------------------
 
@@ -241,13 +242,53 @@ limitations under the License.
 
 
 ================================================================================
+BSD 2-Clause "Simplified" License (BSD-2-Clause)
+================================================================================
+
+Applies to the following dependency:
+  * zstd-sys 2.1.3+zstd.1.5.7
+
+--------------------------------------------------------------------------------
+
+The decoders for legacy formats, in zstd/lib/legacy/, include code under the
+2-clause BSD license:
+
+BSD 2-Clause License
+
+Copyright (C) 2013-2016, Yann Collet.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+================================================================================
 BSD 3-Clause "New" or "Revised" License (BSD-3-Clause)
 ================================================================================
 
 Applies to the following dependencies:
-  * zstd-safe 8.2.0
-  * zstd-sys 2.1.2+zstd.1.5.7
-  * zstd 0.14.3
+  * zstd-safe 8.3.0
+  * zstd-sys 2.1.3+zstd.1.5.7
+  * zstd 0.14.4
 
 --------------------------------------------------------------------------------
 
@@ -431,7 +472,7 @@ MIT License (MIT)
 ================================================================================
 
 Applies to the following dependency:
-  * uuid 1.29.0
+  * uuid 1.29.2
 
 --------------------------------------------------------------------------------
 
@@ -469,7 +510,6 @@ MIT License (MIT)
 
 Applies to the following dependencies:
   * either 1.19.0
-  * itertools 0.14.0
   * itertools 0.15.0
 
 --------------------------------------------------------------------------------
@@ -984,7 +1024,7 @@ MIT License (MIT)
 ================================================================================
 
 Applies to the following dependency:
-  * smallvec 1.16.4
+  * smallvec 1.16.5
 
 --------------------------------------------------------------------------------
 
@@ -1603,10 +1643,10 @@ MIT License (MIT)
 
 Applies to the following dependencies:
   * napi-build 2.6.0
-  * napi-derive-backend 7.0.0
-  * napi-derive 3.7.0
+  * napi-derive-backend 7.0.1
+  * napi-derive 3.7.1
   * napi-sys 3.4.1
-  * napi 3.16.1
+  * napi 3.16.2
   * r-efi 5.3.0
   * r-efi 6.0.0
   * winapi-i686-pc-windows-gnu 0.4.0
@@ -1715,7 +1755,7 @@ Applies to the following dependencies:
   * serde_core 1.0.228
   * serde_json 1.0.150
   * syn 2.0.119
-  * syn 3.0.9
+  * syn 3.0.10
   * thiserror-impl 2.0.18
   * thiserror 2.0.18
   * unicode-ident 1.0.24
