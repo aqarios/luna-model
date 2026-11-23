@@ -15,4 +15,4 @@ luna-model-ffi = { path = "../../rs-lunamodel" }
 
 [build-dependencies]
 prost-build = "0.14"
-protox = "0.9.1"
+protox = "0.10.0"
