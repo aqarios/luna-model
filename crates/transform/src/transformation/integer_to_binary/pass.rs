@@ -33,6 +33,7 @@ impl TransformationPass for IntegerToBinaryPass {
         let mut artifact = IntegerToBinaryArtifact::default();
 
         let vars = model.environment.read_arc().vars().collect::<Vec<_>>();
+        let mut subs = Vec::new();
         for vid in vars.into_iter() {
             let v = model.environment.get(vid);
             if v.vtype()? != Vtype::Integer {
@@ -66,10 +67,12 @@ impl TransformationPass for IntegerToBinaryPass {
                 replacement.add_assign((&binref * coef)?)?;
             }
             replacement.add_assign(offset as f64)?;
-            model.substitute(&model.environment.get(vid), &replacement)?;
+            subs.push((v, replacement));
             artifact.varmap.insert(vname.clone(), binvarmap);
             artifact.offsetmap.insert(vname, offset);
         }
+        // Replacements use only the new binaries, so one batch substitution is exact.
+        model.substitute_many(&subs)?;
 
         Ok(artifact)
     }
