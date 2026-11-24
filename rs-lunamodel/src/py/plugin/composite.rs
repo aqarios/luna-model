@@ -105,6 +105,8 @@ macro_rules! py_composite_plugin {
             }
         }
 
+        impl $crate::py::PluginArtifactType<$artifact> for $logic {}
+
         // ---- pass class ----
         #[::pyo3::pyclass]
         $vis struct $py($logic);

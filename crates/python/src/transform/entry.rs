@@ -1,5 +1,6 @@
 //! Python-visible pipeline record entries.
 
+use lunamodel_capi_plugin::CPluginArtifact;
 use lunamodel_error::LunaModelError;
 use lunamodel_transform::transformation::{
     BinarySpinPassArtifact, ChangeSensePassArtifact, EqualityConstraintsToQuadraticPenaltyArtifact,
@@ -7,7 +8,10 @@ use lunamodel_transform::transformation::{
     ReduceInvertedBinaryPassArtifact,
 };
 use lunamodel_transpiler::{ErasedArtifact, PassEntry};
-use pyo3::{IntoPyObjectExt, Py, PyAny, PyResult, Python, pyclass, pymethods};
+use pyo3::{
+    IntoPyObjectExt, Py, PyAny, PyResult, Python, pyclass, pymethods,
+    types::{PyAnyMethods, PyBytes, PyDict, PyDictMethods, PyModule},
+};
 
 use crate::transform::{
     adapter::PyTransformationPassAdapterArtifact,
@@ -41,8 +45,9 @@ impl From<&ErasedArtifact> for PyErasedArtifact {
 impl PyErasedArtifact {
     /// Restore the erased artifact into the first supported concrete Python wrapper.
     ///
-    /// This mirrors the currently registered built-in transformation artifacts as
-    /// well as Python-defined transformation adapters.
+    /// This mirrors the currently registered built-in transformation artifacts,
+    /// Python-defined transformation adapters, and the artifact classes of
+    /// plugins registered with `luna_model.register()`.
     fn restore(&self, py: Python) -> PyResult<Py<PyAny>> {
         let ea = ErasedArtifact::create(self.type_tag.clone(), self.data.clone());
         if let Ok(b) = ea.restore::<BinarySpinPassArtifact>() {
@@ -61,6 +66,21 @@ impl PyErasedArtifact {
             PyReduceInvertedBinaryPassArtifact(b).into_py_any(py)
         } else if let Ok(b) = ea.restore::<PyTransformationPassAdapterArtifact>() {
             b.into_py_any(py)
+        } else if let Ok(b) = ea.restore::<CPluginArtifact>() {
+            let types = PyModule::import(py, "luna_model.plugins")?.getattr("_artifact_types")?;
+            let Some(cls) = types.cast::<PyDict>()?.get_item(b.plugin_pass_id())? else {
+                Err(LunaModelError::Internal(
+                    format!(
+                        "no artifact class known for plugin pass '{}'; call \
+                         luna_model.register() with its plugin module first",
+                        b.plugin_pass_id()
+                    )
+                    .into(),
+                ))?
+            };
+            Ok(cls
+                .call_method1("deserialize", (PyBytes::new(py, b.payload()),))?
+                .unbind())
         } else {
             Err(LunaModelError::Internal(
                 format!("failed to restore artifact for tag: {}", self.type_tag).into(),

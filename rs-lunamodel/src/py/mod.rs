@@ -33,9 +33,10 @@ pub use crate::{
 use crate::LunaModelCApi;
 use crate::types::{EnumSet, ModelPart};
 use lunamodel_capi_pyffi::C_API_CAPSULE_NAME;
+use pyo3::PyTypeInfo;
 use pyo3::exceptions::PyImportError;
 use pyo3::prelude::{Bound, Py, PyAnyMethods, PyModule, PyResult, Python};
-use pyo3::types::{PyCapsule, PyCapsuleMethods, PySet};
+use pyo3::types::{PyCapsule, PyCapsuleMethods, PySet, PyType};
 use std::sync::LazyLock;
 
 static LUNA_MODEL: LazyLock<PyResult<Py<PyModule>>> =
@@ -46,6 +47,24 @@ pub(crate) fn luna_model(py: Python<'_>) -> PyResult<Bound<'_, PyModule>> {
         .as_ref()
         .map(|m| m.bind(py).clone())
         .map_err(|e| e.clone_ref(py))
+}
+
+/// Links a reversible plugin pass to the Python artifact class `A` that its `py_transform_plugin!`
+/// or `py_composite_plugin!` generated, so `register_plugins!` can hand that class to the host,
+/// which uses it in `ErasedArtifact.restore()`. Generic over `A` so the macros may implement it for
+/// a pass type from another crate.
+#[doc(hidden)]
+pub trait PluginArtifactType<A: PyTypeInfo> {}
+
+/// Returns `(P::ID, A)` for a pass `P` linked to its artifact class `A` by [`PluginArtifactType`].
+/// Used by `register_plugins!`.
+#[doc(hidden)]
+pub fn plugin_artifact_type<P, A>(py: Python<'_>) -> (&'static str, Bound<'_, PyType>)
+where
+    P: crate::plugin::Reversible + PluginArtifactType<A>,
+    A: PyTypeInfo,
+{
+    (P::ID, py.get_type::<A>())
 }
 
 /// Converts a model-part set into a Python `set[luna_model.ModelPart]`. Used by the
