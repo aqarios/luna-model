@@ -64,7 +64,8 @@ impl Model {
         }
         self.objective = self.objective.substitute_with(|id| map.get(&id).copied())?;
         for (_, constr) in self.constraints.iter_mut() {
-            constr.lhs = constr.lhs.substitute_with(|id| map.get(&id).copied())?;
+            let lhs = constr.lhs.substitute_with(|id| map.get(&id).copied())?;
+            constr.set_lhs(lhs);
         }
         self.environment
             .write_arc()
@@ -141,5 +142,26 @@ mod tests {
         assert!(m.substitute_many(&twice).is_err());
 
         assert!(m.equal_contents(&before));
+    }
+
+    #[test]
+    fn substitution_moves_the_constant_to_the_rhs() {
+        let mut one = Model::default();
+        let [z, x] = ["z", "x"].map(|n| one.add_var(n, Vtype::Binary, None).unwrap());
+        let lhs = (&(&z * 1.0).unwrap() + &x).unwrap();
+        let c = Constraint::new(lhs, 1.0, Comparator::Le, None).unwrap();
+        one.add_constraint(c, Some("c".into())).unwrap();
+        let mut many = one.deep_clone();
+
+        one.substitute(&z, &Expression::constant(one.environment.clone(), 1.0))
+            .unwrap();
+        let z = many.var("z").unwrap();
+        let one_const = Expression::constant(many.environment.clone(), 1.0);
+        many.substitute_many(&[(z, one_const)]).unwrap();
+
+        for m in [one, many] {
+            let c = m.constraints().get("c").unwrap();
+            assert_eq!((c.lhs.offset, c.rhs), (0.0, 0.0));
+        }
     }
 }
