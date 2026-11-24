@@ -1897,6 +1897,10 @@ typedef struct {
      */
     LmStatus (*control_flow_plan_add_meta_analysis)(LmControlFlowPlan *plan,
                                                     const LmPluginMetaAnalysis *desc);
+    LmStatus (*model_substitute_many)(LmModel*,
+                                      const LmVref*const *,
+                                      const LmExpr*const *,
+                                      uintptr_t);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

@@ -60,6 +60,17 @@ def test_plugin_forward_and_reverse_from_python(plugin):
     assert reversed_solution is not None
 
 
+def test_plugin_artifacts_restore_from_a_record(plugin):
+    """``restore()`` rebuilds a plugin pass's typed artifact class from a ``PassManager`` record."""
+    out = PassManager([plugin.RenamePass(), plugin.RenameAndCount()]).run(Model("original"))
+
+    transform = out.record.find("py-rename").artifact
+    assert transform.type_tag == "luna_model::CPluginArtifact"
+    assert type(transform.restore()).__name__ == "RenameArtifact"
+    composite = out.record.find("rename-and-count").artifact
+    assert type(composite.restore()).__name__ == "RenameAndCountArtifact"
+
+
 def test_plugin_analysis_feeds_plugin_transform(plugin):
     """plugin A's analysis result is consumed by plugin B's transform, mediated by luna_model.
 

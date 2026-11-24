@@ -596,6 +596,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     control_flow_plan_add_composite: crate::plugin::lm_control_flow_plan_add_composite,
     control_flow_plan_add_control_flow: crate::plugin::lm_control_flow_plan_add_control_flow,
     control_flow_plan_add_meta_analysis: crate::plugin::lm_control_flow_plan_add_meta_analysis,
+    // Appended after luna-model 0.8.0
+    model_substitute_many: crate::model::lm_model_substitute_many,
 };
 
 /// Returns the C API table, for programs and SDKs that link `liblunamodel` directly

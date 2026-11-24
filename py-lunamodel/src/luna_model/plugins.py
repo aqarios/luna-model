@@ -26,6 +26,10 @@ from luna_model.transformation.decorators import register_allowed_import_prefix
 
 __all__ = ["register"]
 
+# Plugin pass id -> the plugin's Python artifact class, filled by `register`. The host's
+# `ErasedArtifact.restore()` uses it to rebuild the typed artifact of a plugin pass.
+_artifact_types: dict[str, type] = {}
+
 
 def register(module: ModuleType) -> None:
     """Register a luna-model plugin extension.
@@ -40,10 +44,12 @@ def register(module: ModuleType) -> None:
 
     This allowlists the plugin's import namespace and, if the module exposes a
     ``__luna_register__()`` hook, invokes it so the plugin can install its passes' reversal
-    handlers through the C ABI.
+    handlers through the C ABI, and records the artifact classes it returns so that
+    ``ErasedArtifact.restore()`` can rebuild the plugin's typed artifacts.
     """
     register_allowed_import_prefix(module.__name__)
 
     hook = getattr(module, "__luna_register__", None)
     if callable(hook):
-        hook()
+        # Newer plugins return {pass id: artifact class}; older ones return None.
+        _artifact_types.update(hook() or {})

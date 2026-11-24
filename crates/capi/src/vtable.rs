@@ -944,6 +944,15 @@ pub struct LunaModelCApi {
         plan: *mut LmControlFlowPlan,
         desc: *const LmPluginMetaAnalysis,
     ) -> LmStatus,
+    // ////////////////////////////////////////////////////////////////////// //
+    // Appended after luna-model 0.8.0: check with `capi_has!` before calling. //
+    // ////////////////////////////////////////////////////////////////////// //
+    pub model_substitute_many: unsafe extern "C" fn(
+        *mut LmModel,
+        *const *const LmVref,
+        *const *const LmExpr,
+        usize,
+    ) -> LmStatus,
 }
 
 /// Size of the table as released in luna-model 0.8.0a1, the first release of ABI

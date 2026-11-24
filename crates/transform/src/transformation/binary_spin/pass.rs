@@ -3,6 +3,7 @@
 use std::ops::{Add, Mul};
 
 use lunamodel_core::{Environment, Model, Solution, solution::Column};
+use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{
     PassContext, PipelineStep, Reversible, TransformationPass, TranspileKindResult, transformation,
 };
@@ -112,21 +113,24 @@ impl TransformationPass for BinarySpinPass {
             replacements.push((v, var));
         }
 
-        // Then substitute the old variables with the existing new ones.
-        for (v, var) in replacements {
-            let expr = match artifact.new_vtype {
-                Vtype::Spin => (&var).mul(-0.5)?.add(0.5)?,
-                Vtype::Binary => (&var).mul(-2.0)?.add(1.0)?,
-                _ => unreachable!("unexpected target vtype in binary-spin"),
-            };
-
-            model
-                .substitute(&v, &expr)
-                .map_err(|e| TransformError::Transformation {
-                    name: self.name().to_owned(),
-                    msg: format!("binary-spin substitute: {e}"),
-                })?;
-        }
+        // Then substitute the old variables with the new ones, all in one pass.
+        let subs = replacements
+            .into_iter()
+            .map(|(v, var)| {
+                let expr = match artifact.new_vtype {
+                    Vtype::Spin => (&var).mul(-0.5)?.add(0.5)?,
+                    Vtype::Binary => (&var).mul(-2.0)?.add(1.0)?,
+                    _ => unreachable!("unexpected target vtype in binary-spin"),
+                };
+                Ok((v, expr))
+            })
+            .collect::<LunaModelResult<Vec<_>>>()?;
+        model
+            .substitute_many(&subs)
+            .map_err(|e| TransformError::Transformation {
+                name: self.name().to_owned(),
+                msg: format!("binary-spin substitute: {e}"),
+            })?;
 
         Ok(artifact)
     }

@@ -112,8 +112,17 @@ impl Constraint {
     /// the LHS [Expression] of a constraint. All substitution logic and operations are defined on
     /// the [Expression] [here](Expression::substitute).
     pub fn substitute(&mut self, target: &VarRef, replacement: &Expression) -> LunaModelResult<()> {
-        self.lhs = self.lhs.substitute(target, replacement)?;
+        let lhs = self.lhs.substitute(target, replacement)?;
+        self.set_lhs(lhs);
         Ok(())
+    }
+
+    /// Replaces the LHS and moves its constant to the RHS, keeping the
+    /// normalized form that [`Constraint::new`] establishes.
+    pub(crate) fn set_lhs(&mut self, mut lhs: Expression) {
+        self.rhs -= lhs.offset;
+        lhs.offset = 0.0;
+        self.lhs = lhs;
     }
 }
 

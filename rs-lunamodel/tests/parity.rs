@@ -442,3 +442,24 @@ fn c_api_table_size_and_entry_point_availability() {
         })
     );
 }
+
+#[test]
+fn model_substitute_many_runs_one_pass() -> Result<()> {
+    init();
+
+    let mut model = luna_model_ffi::Model::default();
+    let x = model.add_var("x", Vtype::Integer, None)?;
+    let y = model.add_var("y", Vtype::Integer, None)?;
+    let z = model.add_var("z", Vtype::Integer, None)?;
+    model.set_objective(((&(&x * &y)? + &z)? + 1.0)?, None)?;
+
+    let (y1, z1, z2) = ((&y * 1.0)?, (&z * 1.0)?, (&z * 2.0)?);
+    let err = model.substitute_many(&[(&x, &y1), (&y, &z1)]).unwrap_err();
+    assert_eq!(err.kind(), ErrorKind::UnsupportedOperation);
+    assert_eq!(model.num_variables()?, 3);
+
+    model.substitute_many(&[(&x, &z2), (&y, &z1)])?;
+    assert_eq!(model.num_variables()?, 1);
+    assert_eq!(model.objective()?.raw_linear_items()?, vec![(z.id()?, 1.0)]);
+    Ok(())
+}

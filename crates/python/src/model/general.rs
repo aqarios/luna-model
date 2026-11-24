@@ -43,6 +43,20 @@ impl PyModel {
         )?)
     }
 
+    /// Substitute many variables in one walk over objective and constraints.
+    fn substitute_many(&mut self, substitutions: Vec<(PyVarArg, Replacement)>) -> PyResult<()> {
+        let subs = substitutions
+            .into_iter()
+            .map(|(target, replacement)| {
+                Ok((
+                    target.v.clone(),
+                    LunaModelResult::<Expression>::from(replacement)?,
+                ))
+            })
+            .collect::<LunaModelResult<Vec<_>>>()?;
+        Ok(self.m.write_arc().substitute_many(&subs)?)
+    }
+
     #[pyo3(signature = (solution, tol=None))]
     /// Evaluate the model against a full solution and return the enriched result.
     ///

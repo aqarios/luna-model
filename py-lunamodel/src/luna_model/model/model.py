@@ -32,7 +32,7 @@ from luna_model.variable.var import Variable
 from luna_model.variable.vtype import Vtype
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable, Mapping, Sequence
 
     from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel
     from numpy.typing import NDArray
@@ -893,6 +893,46 @@ class Model:
         variables.
         """
         self._m.substitute(target, replacement)  # type: ignore[attribute]
+
+    def substitute_many(self, /, substitutions: Mapping[Variable, Expression | Variable]) -> None:
+        """Substitute many variables at once.
+
+        Gives the same result as calling ``substitute`` once per entry, but
+        walks the objective and the constraints only once, so substituting
+        ``k`` variables costs one pass over the model instead of ``k``.
+
+        Parameters
+        ----------
+        substitutions : Mapping[Variable, Expression | Variable]
+            Maps each variable to replace to its replacement. No replacement
+            may contain a variable that is replaced: resolve chains such as
+            ``{x: y, y: 0}`` into ``{x: 0, y: 0}`` first.
+
+        Raises
+        ------
+        UnsupportedOperationError
+            If a replacement contains a replaced variable. The model is left
+            unchanged.
+        DifferentEnvsError
+            If a target or replacement is from a different environment than
+            the model. The model is left unchanged.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> x = model.add_variable("x")
+        >>> y = model.add_variable("y")
+        >>> z = model.add_variable("z")
+        >>> model.objective = x + 2 * y + z
+        >>> model.substitute_many({x: z + 1, y: 2 * z})
+        >>> # Objective becomes: (z + 1) + 2*(2z) + z = 6z + 1
+
+        Notes
+        -----
+        This operation modifies the model in place and removes every replaced
+        variable from the model's environment.
+        """
+        self._m.substitute_many(list(substitutions.items()))  # type: ignore[attribute]
 
     def satisfies(self, specs: ModelSpecs) -> bool:
         """Check if the model satisfies given specifications.

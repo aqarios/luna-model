@@ -522,6 +522,7 @@ static inline int import_luna_model(void) {
 #define lm_control_flow_plan_add_composite(...) (lunamodel__vtable->control_flow_plan_add_composite(__VA_ARGS__))
 #define lm_control_flow_plan_add_control_flow(...) (lunamodel__vtable->control_flow_plan_add_control_flow(__VA_ARGS__))
 #define lm_control_flow_plan_add_meta_analysis(...) (lunamodel__vtable->control_flow_plan_add_meta_analysis(__VA_ARGS__))
+#define lm_model_substitute_many(...) (lunamodel__vtable->model_substitute_many(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

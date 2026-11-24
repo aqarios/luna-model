@@ -163,6 +163,9 @@ impl ArcEnv {
 impl ContentEquality for ArcEnv {
     /// Compares environments by variable contents rather than shared pointer identity.
     fn equal_contents(&self, other: &Self) -> bool {
+        if Arc::ptr_eq(&self.env, &other.env) {
+            return true;
+        }
         if self.len() != other.len() {
             return false;
         }

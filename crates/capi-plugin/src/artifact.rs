@@ -12,6 +12,18 @@ pub struct CPluginArtifact {
     pub(crate) payload: Vec<u8>,
 }
 
+impl CPluginArtifact {
+    /// The stable id of the plugin pass that produced this artifact.
+    pub fn plugin_pass_id(&self) -> &str {
+        &self.plugin_pass_id
+    }
+
+    /// The artifact bytes the plugin emitted.
+    pub fn payload(&self) -> &[u8] {
+        &self.payload
+    }
+}
+
 impl Artifact for CPluginArtifact {
     fn static_type_tag() -> &'static str
     where

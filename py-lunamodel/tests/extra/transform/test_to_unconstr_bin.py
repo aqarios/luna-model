@@ -156,8 +156,10 @@ def test_very_simple_model_mixed():
     obj = x + y + z
     max_bias = max([b for _, b in obj.items()])
 
-    c0_penalty = (x + y + z - slack_c0_b0 - 2 * slack_c0_b1 - 2 * slack_c0_b2 + 2)**2
-    c1_penalty = (-1 * (x - y - z) - slack_c1_b0 - 2 * slack_c1_b1 + 3)**2
+    # After substituting y and z, the constant of y moves to the right-hand side, so the slacks
+    # range over [-2, 2] for c0 and [-3, -1] for c1.
+    c0_penalty = (x + y + z - slack_c0_b0 - 2 * slack_c0_b1 - slack_c0_b2 + 1)**2
+    c1_penalty = (-1 * (x - y - z) - slack_c1_b0 - slack_c1_b1 + 2)**2
     c2_penalty = (x + y - 2)**2
     penalties = c0_penalty + c1_penalty + c2_penalty
 

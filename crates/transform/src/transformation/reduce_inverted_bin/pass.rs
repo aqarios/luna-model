@@ -35,11 +35,16 @@ impl TransformationPass for ReduceInvertedBinaryPass {
         _ctx: &PassContext,
     ) -> TranspileKindResult<Self::Artifact> {
         let invs = inverted_varrefs(&model.environment.read_arc())?;
-        for (partner_id, inverted_id) in invs {
-            let partner = VarRef::new(partner_id, model.environment.clone());
-            let inverted = VarRef::new(inverted_id, model.environment.clone());
-            model.substitute(&inverted, &(1 - partner)?)?;
-        }
+        // Partners are plain binaries, never inverted, so one batch substitution is exact.
+        let subs = invs
+            .into_iter()
+            .map(|(partner_id, inverted_id)| {
+                let partner = VarRef::new(partner_id, model.environment.clone());
+                let inverted = VarRef::new(inverted_id, model.environment.clone());
+                Ok((inverted, (1 - partner)?))
+            })
+            .collect::<LunaModelResult<Vec<_>>>()?;
+        model.substitute_many(&subs)?;
         Ok(Self::Artifact {})
     }
 }
