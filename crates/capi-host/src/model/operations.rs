@@ -8,7 +8,7 @@ use crate::{
     sample::SampleViewHandle,
     utils::{
         handle_to_c, new_handle_out_from_c, opt_from_c, out_from_c, ref_from_c, shared_from_c,
-        storage_from_c, storage_out_from_c,
+        slice_from_c, storage_from_c, storage_out_from_c,
     },
 };
 
@@ -128,6 +128,44 @@ pub unsafe extern "C" fn lm_model_substitute(
         model
             .substitute(target, &replacement)
             .map_err(CapiError::from)?;
+        Ok(())
+    })
+}
+
+/// Substitutes `targets[i]` with `replacements[i]` for every `i < len`, in one walk
+/// over the objective and the constraints, and removes every target from the
+/// environment.
+///
+/// No replacement may contain a target and no target may appear twice;
+/// otherwise the call fails and leaves the model unchanged.
+///
+/// # Safety
+/// `model` must be a valid mutable model handle created by this library.
+/// `targets` and `replacements` must each point to `len` readable handles
+/// (`LmVref *` and `LmExpr *`) created by this library.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_substitute_many(
+    model: *mut LmModel,
+    targets: *const *const LmVref,
+    replacements: *const *const LmExpr,
+    len: usize,
+) -> LmStatus {
+    guard(|| {
+        let targets = unsafe { slice_from_c(targets, len, "targets") }?;
+        let replacements = unsafe { slice_from_c(replacements, len, "replacements") }?;
+        let subs = targets
+            .iter()
+            .zip(replacements)
+            .map(|(&target, &replacement)| {
+                let target = unsafe { ref_from_c(target as *const VarRef, "targets") }?.clone();
+                let replacement = unsafe { storage_from_c(replacement, "replacements") }?
+                    .read()
+                    .clone();
+                Ok((target, replacement))
+            })
+            .collect::<Result<Vec<_>, CapiError>>()?;
+        let mut model = unsafe { shared_from_c(model, "model") }?.write_arc();
+        model.substitute_many(&subs).map_err(CapiError::from)?;
         Ok(())
     })
 }

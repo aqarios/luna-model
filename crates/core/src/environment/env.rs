@@ -211,6 +211,17 @@ impl Environment {
         Ok(())
     }
 
+    /// Removes every variable for which `keep` returns `false`, in one pass.
+    pub fn retain(&mut self, mut keep: impl FnMut(VarIdx) -> bool) {
+        let lookup = &mut self.lookup;
+        self.variables.retain(|&id, var| {
+            keep(id) || {
+                lookup.remove(&var.name.0);
+                false
+            }
+        });
+    }
+
     /// Looks up a variable index by name.
     pub fn lookup(&self, name: &str) -> LunaModelResult<VarIdx> {
         self.lookup

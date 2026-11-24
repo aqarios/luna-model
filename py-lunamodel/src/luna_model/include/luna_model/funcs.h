@@ -2824,6 +2824,24 @@ LmStatus lm_model_evaluate_sample(const LmModel *model,
 LmStatus lm_model_substitute(LmModel *model, const LmVref *target, const LmExpr *replacement);
 
 /**
+ * Substitutes `targets[i]` with `replacements[i]` for every `i < len`, in one walk
+ * over the objective and the constraints, and removes every target from the
+ * environment.
+ *
+ * No replacement may contain a target and no target may appear twice;
+ * otherwise the call fails and leaves the model unchanged.
+ *
+ * # Safety
+ * `model` must be a valid mutable model handle created by this library.
+ * `targets` and `replacements` must each point to `len` readable handles
+ * (`LmVref *` and `LmExpr *`) created by this library.
+ */
+LmStatus lm_model_substitute_many(LmModel *model,
+                                  const LmVref *const *targets,
+                                  const LmExpr *const *replacements,
+                                  uintptr_t len);
+
+/**
  * Returns the subset of model constraints violated by a sample view.
  *
  * # Safety
